@@ -252,6 +252,21 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
   }
 });
 
+// 7. PK/FK 관계 데이터 조회 API (데이터맵 동적 연동용)
+app.get('/api/relationships', (req, res) => {
+  const jsonPath = path.join(__dirname, 'foodsafety_key_candidates.json');
+  if (fs.existsSync(jsonPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      res.json(data.relationships || []);
+    } catch (err) {
+      res.status(500).json({ error: '관계 데이터 파일을 읽는 중 오류가 발생했습니다.' });
+    }
+  } else {
+    res.status(404).json({ error: '관계 데이터 분석 결과가 존재하지 않습니다.' });
+  }
+});
+
 // 프론트엔드 정적 리소스 서빙
 app.use(express.static(__dirname));
 

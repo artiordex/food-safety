@@ -206,6 +206,22 @@ export function renderDataMap(container, onSelectDataset) {
   let activePhysics = true;
   let selectedNodeId = null;
   let networkInstance = null;
+  let relationships = [];
+
+  const fetchRelationships = async () => {
+    try {
+      const res = await fetch('/api/relationships');
+      if (res.ok) {
+        relationships = await res.json();
+        console.log(`[DataMap] Loaded ${relationships.length} dynamic relationships from database!`);
+        if (relationships.length > 0) {
+          initNetwork();
+        }
+      }
+    } catch (err) {
+      console.warn('[DataMap] Failed to load dynamic relationships:', err);
+    }
+  };
 
   // 좌측 체크 필터 변수
   let selectedDomains = {
@@ -408,7 +424,20 @@ export function renderDataMap(container, onSelectDataset) {
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
 
     // 2단계: 핵심 조인키 기준 연계선 필터링
-    const visibleEdges = dataMapEdges.filter(edge => {
+    let edgesToUse = [...dataMapEdges];
+    if (relationships && relationships.length > 0) {
+      edgesToUse = relationships.map(rel => {
+        let labelKey = rel.from_field;
+        if (labelKey === 'BAR_CD') labelKey = 'BARCODE_NO';
+        return {
+          from: rel.from_table,
+          to: rel.to_table,
+          label: `${labelKey} (${rel.confidence === 'HIGH' ? '확정' : '추정'})`
+        };
+      });
+    }
+
+    const visibleEdges = edgesToUse.filter(edge => {
       // 노드 자체가 보이고 있는가?
       if (!visibleNodeIds.has(edge.from) || !visibleNodeIds.has(edge.to)) return false;
       // 해당 엣지의 연결 조인키 필터가 활성화되어 있는가?
@@ -865,4 +894,5 @@ export function renderDataMap(container, onSelectDataset) {
   };
 
   render();
+  fetchRelationships();
 }
