@@ -1,8 +1,7 @@
 -- =============================================================================
--- 식품안전나라 Open API PK/FK 후보 ERD DDL
--- 목적: PK/FK 후보를 ERD에서 확인하기 위한 SQL
--- 주의: 실제 DB 제약조건 적용 전 검증 필요
--- 정책: 실제 DDL 제약조건에는 HIGH 신뢰도 및 값 포함률 기준을 통과한 후보만 반영
+-- 식품안전나라 Open API PK/FK 후보 ERD DDL (전체 후보 무제한 연결 버전)
+-- 목적: CONFIRMED 및 SUGGESTED를 포함한 모든 PK/FK 후보를 무제한 실선 연결
+-- 정책: 모든 PK 후보를 PRIMARY KEY로 지정, 모든 FK 후보를 FOREIGN KEY 제약조건으로 주석 없이 실선 연결
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
@@ -1972,6 +1971,7 @@ CREATE TABLE IF NOT EXISTS "I1101" (
   "UNIT_NM" VARCHAR(500), -- UNIT_NM / 단위명
   "UPDT_PRVNS" VARCHAR(500), -- UPDT_PRVNS / 수정사유
   "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 수정일자
+  PRIMARY KEY ("PRDLST_CD"),
   FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
 );
 
@@ -2098,7 +2098,8 @@ CREATE TABLE IF NOT EXISTS "I2846" (
   "DCCNTR_REG_CO" VARCHAR(500), -- DCCNTR_REG_CO / 어린이집 수
   "DCCNTR_NMPR_CO" VARCHAR(500), -- DCCNTR_NMPR_CO / 어린이집 인원수
   "ETC_REG_CO" VARCHAR(500), -- ETC_REG_CO / 기타 수
-  "ETC_NMPR_CO" VARCHAR(500) -- ETC_NMPR_CO / 기타 인원수
+  "ETC_NMPR_CO" VARCHAR(500), -- ETC_NMPR_CO / 기타 인원수
+  PRIMARY KEY ("REPORT_YR")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2207,7 +2208,8 @@ CREATE TABLE IF NOT EXISTS "I2837" (
   "DTL_DESC" VARCHAR(500), -- DTL_DESC / 설명
   "KEYWORD" VARCHAR(500), -- KEYWORD / 연관어
   "SAUS" VARCHAR(500), -- SAUS / 출처
-  "LAST_UPDT_DTM" VARCHAR(500) -- LAST_UPDT_DTM / 최종수정일
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
+  PRIMARY KEY ("WORD")
 );
 
 -- -----------------------------------------------------------------------------

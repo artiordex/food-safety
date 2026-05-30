@@ -1250,10 +1250,9 @@ function generateKeysErdSql(analysis, outputPath) {
     const lines = [];
 
     lines.push('-- =============================================================================');
-    lines.push('-- 식품안전나라 Open API PK/FK 후보 ERD DDL');
-    lines.push('-- 목적: PK/FK 후보를 ERD에서 확인하기 위한 SQL');
-    lines.push('-- 주의: 실제 DB 제약조건 적용 전 검증 필요');
-    lines.push('-- 정책: 실제 DDL 제약조건에는 HIGH 신뢰도 및 값 포함률 기준을 통과한 후보만 반영');
+    lines.push('-- 식품안전나라 Open API PK/FK 후보 ERD DDL (전체 후보 무제한 연결 버전)');
+    lines.push('-- 목적: CONFIRMED 및 SUGGESTED를 포함한 모든 PK/FK 후보를 무제한 실선 연결');
+    lines.push('-- 정책: 모든 PK 후보를 PRIMARY KEY로 지정, 모든 FK 후보를 FOREIGN KEY 제약조건으로 주석 없이 실선 연결');
     lines.push('-- =============================================================================');
     lines.push('');
     lines.push('PRAGMA foreign_keys = ON;');
@@ -1261,24 +1260,7 @@ function generateKeysErdSql(analysis, outputPath) {
 
     const fksByTable = new Map();
     for (const rel of analysis.relationships) {
-        // ── 변경 3/3 ──────────────────────────────────────────────────────────
-        // 기존: CONFIRMED 후보에 대해 confidence 체크 + checked 체크 + inclusion_ratio 재검사를 중복 수행
-        //       → scoreFkCandidate에서 이미 FK_MIN_INCLUSION_RATIO 기준으로 CONFIRMED 판정을 완료했음에도
-        //          여기서 동일 기준으로 한 번 더 걸러내어 확정 FK 후보가 누락되는 문제 발생.
-        // 변경: CONFIRMED 판정 자체를 신뢰하고 중복 필터 제거.
-        //       (inclusion_ratio 재검사 3줄 삭제)
-        if (rel.relation_type === 'CONFIRMED') {
-            if (rel.confidence !== 'HIGH' && rel.confidence !== 'MEDIUM') continue;
-            // 삭제: if (!rel.inclusion_check || !rel.inclusion_check.checked) continue;
-            // 삭제: if (rel.inclusion_check.inclusion_ratio < FK_MIN_INCLUSION_RATIO) continue;
-        } else if (rel.relation_type === 'SUGGESTED') {
-            if (!FK_INCLUDE_SUGGESTED_IN_SQL) continue;
-            if (rel.score < FK_SUGGESTED_MIN_SCORE) continue;
-        } else {
-            continue;
-        }
-        // ─────────────────────────────────────────────────────────────────────
-
+        // 모든 후보 관계(CONFIRMED, SUGGESTED 등 무관하게 전체 목록)를 필터링 없이 연결 처리
         if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, new Map());
         const tbl = fksByTable.get(rel.from_table);
         const ex  = tbl.get(rel.from_field);
@@ -1287,7 +1269,7 @@ function generateKeysErdSql(analysis, outputPath) {
 
     for (const table of analysis.tables) {
         const bestPk     = table.pk_candidates[0];
-        const hasPk      = bestPk && bestPk.confidence === 'HIGH';
+        const hasPk      = !!bestPk; // HIGH 신뢰도 여부와 무관하게 PK 후보가 존재하면 무조건 PK 제약 적용
         const tableFks   = fksByTable.get(table.svc_no);
         const fksList    = tableFks ? [...tableFks.values()] : [];
         const hasFks     = fksList.length > 0;
