@@ -491,33 +491,9 @@ function buildHighConfidenceFksMap(pkFkAnalysis) {
     const allFksMap = new Map();
     if (!pkFkAnalysis) return allFksMap;
 
-    // 각 필드별로 모든 HIGH 후보 수집
-    const candidateMap = new Map();
-
     for (const rel of pkFkAnalysis.relationships) {
-        if (rel.confidence !== 'HIGH') continue;
-        
-        const key = `${rel.from_table}.${rel.from_field}`;
-        if (!candidateMap.has(key)) candidateMap.set(key, []);
-        candidateMap.get(key).push(rel);
-    }
-
-    // 모호성 제거: 동일한 1위 점수가 여러 개면 다형성(Polymorphic) 키로 간주하여 FK 제외
-    for (const [key, candidates] of candidateMap.entries()) {
-        candidates.sort((a, b) => b.score - a.score);
-        
-        // 1위 후보
-        const best = candidates[0];
-        
-        // 후보가 1개뿐이거나, 1위 점수가 2위 점수보다 확실히 높은 경우에만 FK로 승인
-        if (candidates.length === 1 || best.score > candidates[1].score) {
-            if (!allFksMap.has(best.from_table)) allFksMap.set(best.from_table, new Map());
-            allFksMap.get(best.from_table).set(best.from_field, best);
-        } else {
-            // 점수가 동점인 부모가 여러 개면 엉뚱한 부모에 연결될 위험이 큼 (예: LCNS_NO)
-            // 따라서 해당 컬럼은 FK 제약을 걸지 않음
-            console.log(`[WARN] ${key} FK 후보 동점 다수 존재로 자동 연결 보류 (${best.score}점)`);
-        }
+        if (!allFksMap.has(rel.from_table)) allFksMap.set(rel.from_table, []);
+        allFksMap.get(rel.from_table).push(rel);
     }
 
     return allFksMap;
@@ -651,7 +627,7 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
         const bestPk      = pkByTable.get(svcNo);
         const hasPk       = !!bestPk;
         const tableFks    = fksByTable.get(svcNo);
-        const fksList     = tableFks ? [...tableFks.values()] : [];
+        const fksList     = tableFks || [];
         const hasFks      = fksList.length > 0;
         const validFields = fields.filter(f => String(f.field || '').trim() && !isSystemSampleField(f.field));
 
@@ -669,11 +645,10 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
                 const fname    = String(f.field || '').trim();
                 const spec     = inferColumnSpec(f, records);
                 const korNm    = sanitizeSqlComment(f.kor_nm || '');
-                const fkTarget = tableFks && tableFks.get(fname);
-                const fkPct    = fkTarget?.inclusion_check?.checked
-                    ? `, 포함률 ${(fkTarget.inclusion_check.inclusion_ratio * 100).toFixed(1)}%`
+                const columnFks = fksList.filter(fk => fk.from_field === fname);
+                const fkComment = columnFks.length > 0
+                    ? ` / FK 후보: ${columnFks.map(fk => `${fk.to_table}.${fk.to_field}(${fk.confidence})`).join(', ')}`
                     : '';
-                const fkComment = fkTarget ? ` / FK 후보(${fkTarget.confidence}${fkPct}) -> ${fkTarget.to_table}.${fkTarget.to_field}` : '';
                 const pkComment = bestPk && bestPk.fields.includes(fname) ? ` / PK 후보(${bestPk.confidence})` : '';
                 const hasNext   = idx < validFields.length - 1 || hasPk || hasFks;
 
@@ -788,7 +763,7 @@ function buildFkConstraint(allFksMap, svcNo, colMeta, applyConstraints) {
     if (!tableFks) return '';
 
     const fkParts = [];
-    for (const fk of tableFks.values()) {
+    for (const fk of tableFks) {
         if (!colMeta.has(fk.from_field)) continue;
         fkParts.push(`  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})`);
         const pct = fk.inclusion_check?.checked ? `, 포함률 ${(fk.inclusion_check.inclusion_ratio * 100).toFixed(1)}%` : '';
