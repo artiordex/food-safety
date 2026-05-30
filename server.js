@@ -109,77 +109,100 @@ app.post('/api/query', (req, res) => {
   });
 });
 
-// 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원)
-app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', (req, res) => {
+// 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원) -> 직접 식약처 실시간 호출로 전격 개조!
+app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) => {
   const { keyId, serviceId, dataType, startIdx, endIdx } = req.params;
 
-  // 서비스 ID(테이블명) 검증 (알파벳, 숫자, 하이픈 등)
+  // 서비스 ID(테이블명) 검증
   if (!/^[a-zA-Z0-9_-]+$/.test(serviceId)) {
     return res.status(400).json({ error: '유효하지 않은 서비스 ID(테이블명)입니다.' });
   }
 
-  const start = parseInt(startIdx, 10);
-  const end = parseInt(endIdx, 10);
+  // 4대 융합 뷰(v_...)인 경우에만 예외적으로 로컬 DB에서 처리 (원격 식약처 서버에는 융합 뷰가 없으므로!)
+  if (serviceId.startsWith('v_')) {
+    const start = parseInt(startIdx, 10) || 1;
+    const end = parseInt(endIdx, 10) || 10;
+    const limit = end - start + 1;
+    const offset = start - 1;
 
-  if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
-    return res.status(400).json({
-      error: '요청 시작/종료 인덱스 범위가 올바르지 않습니다. (1 이상의 양수이며 startIdx <= endIdx 여야 합니다)'
-    });
-  }
-
-  const limit = end - start + 1;
-  const offset = start - 1;
-
-  // 1. 해당 테이블 전체 건수 조회
-  const countQuery = `SELECT COUNT(*) AS total FROM "${serviceId}";`;
-  db.get(countQuery, [], (err, countRow) => {
-    if (err) {
-      console.error(`${serviceId} 총 건수 조회 오류:`, err.message);
-      const errorResult = {};
-      errorResult[serviceId] = {
-        total_count: "0",
-        row: [],
-        RESULT: {
-          MSG: `해당 서비스 ID(${serviceId})에 매칭되는 DB 테이블이 없거나 조회할 수 없습니다.`,
-          CODE: 'ERROR-500'
-        }
-      };
-      return res.status(500).json(errorResult);
-    }
-
-    const totalCount = countRow ? countRow.total : 0;
-
-    // 2. 실제 데이터 페이징 조회 (SQLite LIMIT/OFFSET 변환)
-    const dataQuery = `SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`;
-    db.all(dataQuery, [limit, offset], (err, rows) => {
+    const countQuery = `SELECT COUNT(*) AS total FROM "${serviceId}";`;
+    db.get(countQuery, [], (err, countRow) => {
       if (err) {
-        console.error(`${serviceId} 데이터 페이징 조회 오류:`, err.message);
+        console.error(`${serviceId} 융합 뷰 총 건수 조회 오류:`, err.message);
         const errorResult = {};
-        errorResult[serviceId] = {
-          total_count: "0",
-          row: [],
-          RESULT: {
-            MSG: err.message,
-            CODE: 'ERROR-500'
-          }
-        };
+        errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
         return res.status(500).json(errorResult);
       }
-
-      // 3. 식약처 OpenAPI 응답 JSON 규격 100% 동일화 설계
-      const openApiResult = {};
-      openApiResult[serviceId] = {
-        total_count: String(totalCount),
-        row: rows,
-        RESULT: {
-          MSG: '정상처리되었습니다.',
-          CODE: 'INFO-000'
+      const totalCount = countRow ? countRow.total : 0;
+      const dataQuery = `SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`;
+      db.all(dataQuery, [limit, offset], (err, rows) => {
+        if (err) {
+          console.error(`${serviceId} 융합 뷰 데이터 조회 오류:`, err.message);
+          const errorResult = {};
+          errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
+          return res.status(500).json(errorResult);
         }
-      };
-
-      res.json(openApiResult);
+        const openApiResult = {};
+        openApiResult[serviceId] = {
+          total_count: String(totalCount),
+          row: rows,
+          RESULT: { MSG: '정상처리되었습니다. (로컬 융합 뷰)', CODE: 'INFO-000' }
+        };
+        return res.json(openApiResult);
+      });
     });
-  });
+    return;
+  }
+
+  // 그 외 모든 표준 테이블은 식약처 공식 실시간 OpenAPI 서버를 직접 호출!
+  const externalUrl = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${serviceId}/${dataType}/${startIdx}/${endIdx}`;
+  console.log(`[에뮬레이터 -> 다이렉트 외부 식약처 OpenAPI 호출] URL: ${externalUrl}`);
+
+  try {
+    const response = await fetch(externalUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`식약처 공식 서버 응답 실패 (HTTP Status: ${response.status})`);
+    }
+
+    if (dataType.toLowerCase() === 'xml') {
+      const xmlData = await response.text();
+      res.set('Content-Type', 'application/xml');
+      return res.send(xmlData);
+    } else {
+      const data = await response.json();
+      return res.json(data);
+    }
+  } catch (err) {
+    console.warn(`[다이렉트 API 호출 실패 -> 로컬 DB Fallback 자동 작동] 사유: ${err.message}`);
+    
+    // 외부 식약처 서버 장애나 네트워크 단선 시 로컬 SQLite 백업에서 긁어와(Fallback) 서비스 무중단 제공!
+    const start = parseInt(startIdx, 10) || 1;
+    const end = parseInt(endIdx, 10) || 5;
+    const limit = end - start + 1;
+    const offset = start - 1;
+
+    db.get(`SELECT COUNT(*) AS total FROM "${serviceId}";`, [], (cErr, countRow) => {
+      const totalCount = countRow ? countRow.total : 0;
+      db.all(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset], (dErr, rows) => {
+        const fallbackResult = {};
+        fallbackResult[serviceId] = {
+          total_count: String(totalCount),
+          row: rows || [],
+          RESULT: {
+            MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${err.message})`,
+            CODE: 'WARN-200'
+          }
+        };
+        return res.json(fallbackResult);
+      });
+    });
+  }
 });
 
 // 6. 실제 외부 식약처 실시간 라이브 OpenAPI 프록시 API (168종 전체 지원)
