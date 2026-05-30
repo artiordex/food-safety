@@ -1130,7 +1130,12 @@ function writeReports(analysis, opts = {}) {
 
     if (!noJson) generateJsonReport(analysis, json);
     if (!noMd)   generateMarkdownReport(analysis, md);
-    if (!noSql)  generateKeysErdSql(analysis, sql);
+    if (!noSql) {
+        generateKeysErdSql(analysis, sql);
+        // foodsafety_erd.sql 파일도 동일한 관계 스키마 데이터로 항상 자동 동기화
+        const erdPath = path.join(path.dirname(sql), 'foodsafety_erd.sql');
+        generateKeysErdSql(analysis, erdPath);
+    }
 }
 
 function generateJsonReport(analysis, outputPath) {
