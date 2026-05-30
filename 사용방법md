@@ -1,0 +1,177 @@
+# 식품안전나라 Open API 분석 파이프라인 사용 방법
+
+본 문서는 프로젝트 구동에 필요한 환경 설정, 크롤러 실행 방법, SQLite 변환 및 PK/FK 분석 실행 방법, 로컬 웹 서버 실행 방법에 대해 안내합니다.
+
+---
+
+## 1. 환경 설정 방법 (Environment Setup)
+
+프로젝트를 처음 실행하기 전, Node.js 모듈 및 크롤링에 필요한 브라우저를 설치해야 합니다.
+
+PowerShell을 열고 현재 폴더(`C:\식약처`)로 이동한 뒤 다음 명령어들을 순서대로 입력하세요.
+
+```powershell
+# 0. 프로젝트 폴더로 이동
+cd C:\식약처
+
+# 1. PowerShell 스크립트 실행 정책 변경
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+# 2. 의존성 패키지(Node.js 모듈) 설치
+npm install
+
+# 3. 크롤러용 Playwright 브라우저(Chromium) 설치
+npx playwright install chromium
+```
+
+> 실행 정책 변경 시 확인 메시지가 나오면 `Y`를 입력한 뒤 Enter를 누르세요.
+
+---
+
+## 2. 크롤러 실행 방법 (Crawler Execution)
+
+`crawler.js`는 식품안전나라 사이트에서 Open API 데이터셋 목록, 출력항목, 샘플 데이터를 자동으로 수집하고, 공통키 분석 및 결합 시나리오 도출을 거쳐 엑셀 보고서(`식품안전나라_API_분석결과.xlsx`)를 생성하는 스크립트입니다.
+
+```powershell
+# 시작 번호와 종료 번호를 지정하여 크롤러 실행
+# 예: 1번부터 13번 항목까지 수집
+node crawler.js 1 13
+
+# 강제 수집 모드
+# 캐시를 무시하고 무조건 화면을 클릭하며 덮어쓰기 수집
+node crawler.js 1 13 --force
+```
+
+### 크롤러의 주요 역할
+
+* 식품안전나라 Open API 데이터셋 목록을 수집합니다.
+* 데이터셋별 상세 페이지에 접속하여 출력항목 정보를 수집합니다.
+* 데이터셋별 샘플 XML 또는 JSON 데이터를 `samples` 폴더에 저장합니다.
+* 크롤링 결과를 `crawl_cache.json`에 저장합니다.
+* 전체 데이터셋의 필드 출현 빈도를 분석하여 공통키를 식별합니다.
+* 공통키를 기준으로 데이터셋 간 결합 시나리오를 도출합니다.
+* 최종 엑셀 보고서(`식품안전나라_API_분석결과.xlsx`)를 생성합니다.
+
+### 스마트 스킵 기능
+
+이미 수집된 데이터가 `samples` 폴더와 `crawl_cache.json` 파일에 존재할 경우, 크롤러는 해당 데이터셋을 다시 클릭하지 않고 빠르게 건너뜁니다.
+
+기존 데이터를 무시하고 다시 수집하려면 `--force` 옵션을 사용하세요.
+
+```powershell
+node crawler.js 1 13 --force
+```
+
+---
+
+## 3. SQLite 변환 및 PK/FK 분석 실행 방법
+
+`import_to_sqlite.js`는 `crawler.js`를 통해 생성된 크롤링 결과물(`crawl_cache.json`, `samples` 폴더)을 기반으로 SQLite 데이터베이스, ERD용 SQL, PK/FK 후보 분석 결과 파일을 생성하는 후처리 스크립트입니다.
+
+즉, `crawler.js`가 데이터를 수집하고 엑셀 보고서를 만드는 역할이라면, `import_to_sqlite.js`는 수집된 데이터를 데이터베이스 구조로 변환하고, 테이블·컬럼·관계 후보를 분석하는 역할을 수행합니다.
+
+```powershell
+# 기본 실행
+node import_to_sqlite.js
+```
+
+### import_to_sqlite.js의 주요 역할
+
+기본 실행 시 다음 작업이 수행됩니다.
+
+* `crawl_cache.json` 파일을 읽어 데이터셋 목록과 출력항목 메타데이터를 불러옵니다.
+* `samples` 폴더의 `{서비스번호}.json` 샘플 데이터를 읽어 SQLite 테이블에 적재합니다.
+* `foodsafety.db` SQLite 데이터베이스 파일을 생성합니다.
+* 데이터셋별 개별 테이블을 생성합니다.
+* `api_tables`, `api_columns` 메타 테이블을 생성합니다.
+* 각 컬럼의 한글명, 타입, 설명, 샘플값 정보를 저장합니다.
+* 한글 컬럼명으로 조회할 수 있는 View를 생성합니다.
+* ERD 작성용 SQL 파일을 생성합니다.
+* `analyze_pk_fk.js`를 함께 실행하여 PK/FK 후보 분석 결과를 생성합니다.
+
+### 주요 실행 옵션
+
+```powershell
+# DB 파일명을 직접 지정하여 실행
+node import_to_sqlite.js --db custom.db
+
+# 특정 캐시 파일을 기준으로 실행
+node import_to_sqlite.js --cache crawl_cache_1_13.json
+
+# 샘플 데이터 폴더를 직접 지정하여 실행
+node import_to_sqlite.js --samples ./samples
+
+# 한글 alias View 생성을 생략
+node import_to_sqlite.js --no-views
+
+# ERD용 SQL 파일 생성을 생략
+node import_to_sqlite.js --no-erd
+
+# PK/FK 후보 분석을 생략
+node import_to_sqlite.js --no-pk-fk
+
+# HIGH 신뢰도 PK/FK 후보를 실제 SQLite 제약조건으로 적용
+node import_to_sqlite.js --apply-constraints
+```
+
+> 일반적으로는 `node import_to_sqlite.js` 기본 실행을 권장합니다.
+> `--apply-constraints` 옵션은 PK/FK 후보를 실제 DB 제약조건으로 적용하는 옵션이므로, 후보 분석 결과를 검토한 뒤 사용하는 것이 안전합니다.
+
+### 기본 실행과 제약조건 적용 실행의 차이
+
+| 실행 명령어                                         | 설명                                                                             |
+| ---------------------------------------------- | ------------------------------------------------------------------------------ |
+| `node import_to_sqlite.js`                     | DB, ERD SQL, PK/FK 후보 분석 파일을 생성합니다. 실제 SQLite 테이블에는 PK/FK 제약조건을 강하게 적용하지 않습니다. |
+| `node import_to_sqlite.js --apply-constraints` | HIGH 신뢰도 PK/FK 후보를 실제 SQLite 테이블의 `PRIMARY KEY`, `FOREIGN KEY` 제약조건으로 적용합니다.   |
+
+### 생성되는 주요 산출물
+
+| 구분                | 경로                               | 설명                                   |
+| ----------------- | -------------------------------- | ------------------------------------ |
+| SQLite DB         | `foodsafety.db`                  | 데이터셋별 테이블과 샘플 데이터가 저장된 SQLite 데이터베이스 |
+| 전체 ERD SQL        | `foodsafety_erd.sql`             | 전체 데이터셋 테이블 구조와 컬럼 한글명을 포함한 ERD용 SQL |
+| PK/FK 후보 JSON     | `foodsafety_key_candidates.json` | PK/FK 후보 분석 원본 결과 파일                 |
+| PK/FK 후보 Markdown | `foodsafety_key_candidates.md`   | 사람이 보기 쉬운 PK/FK 후보 분석 보고서            |
+| PK/FK 후보 ERD SQL  | `foodsafety_keys_erd.sql`        | PK/FK 후보 중심의 ERD용 SQL                |
+| 메타 테이블            | `api_tables`, `api_columns`      | DB 내부에 생성되는 데이터셋·컬럼 메타정보 테이블         |
+| 한글 View           | `v_서비스번호_데이터셋명`                  | 영문 컬럼을 한글 별칭으로 조회할 수 있는 SQLite View  |
+
+### ERD SQL 컬럼 한글명 표시 방식
+
+`foodsafety_erd.sql` 파일에는 각 컬럼 옆에 `--` 주석 형태로 한글명이 함께 표시됩니다.
+
+예시는 다음과 같습니다.
+
+```sql
+CREATE TABLE "I0600" (
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "LCNS_NO" VARCHAR(50),  -- LCNS_NO / 인허가번호
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
+  "PRMS_DT" DATE -- PRMS_DT / 허가일자
+);
+```
+
+실제 SQLite DB 테이블의 컬럼명은 영문 컬럼명 그대로 생성되며, 한글명은 `api_columns` 메타 테이블과 ERD SQL 주석, 한글 alias View를 통해 확인할 수 있습니다.
+
+---
+
+## 4. 로컬 서버 실행 방법 (Local Server)
+
+분석 결과물이나 시각화 화면(`index.html`)을 브라우저에서 편리하게 확인하기 위해 로컬 웹 서버를 구동합니다.
+
+```powershell
+# 로컬 포트 8000번으로 웹 서버 시작
+npx http-server -p 8000
+```
+
+서버가 성공적으로 실행되면 웹 브라우저를 열고 주소창에 아래 주소를 입력하여 접속합니다.
+
+```text
+http://localhost:8000
+```
+
+서버를 종료하고 싶을 때는 구동 중인 PowerShell 창을 선택한 뒤 아래 키를 누르면 됩니다.
+
+```text
+Ctrl + C
+```

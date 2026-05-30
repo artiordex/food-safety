@@ -1,0 +1,19 @@
+{
+  "name": "foodsafetykorea-crawler",
+  "version": "1.0.0",
+  "description": "Playwright & HTTP crawler pipeline for FoodSafetyKorea",
+  "main": "foodsafety_crawler.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node foodsafety_crawler.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "fast-xml-parser": "^5.8.0",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.42.1",
+    "sqlite3": "^6.0.1"
+  }
+}

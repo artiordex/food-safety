@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>식품안전나라 공공데이터활용 - 데이터 세트 서비스 시안</title>
+    <meta name="description" content="식품안전나라 공공데이터 169종을 목적별 데이터세트로 제공하는 대국민 서비스 화면 시안입니다." />
+    <meta name="keywords" content="식품안전, 공공데이터, 데이터세트, Open API, 식품안전나라" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gov: {
+                50: "#eef5ff", 100: "#d9e8ff", 200: "#bcd8ff", 300: "#8ebeff",
+                400: "#5999ff", 500: "#3374f6", 600: "#1a5fb4", 700: "#154a8c",
+                800: "#164074", 900: "#173862", 950: "#0f2340",
+              },
+              teal: {
+                50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4",
+                400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
+                800: "#115e59", 900: "#134e4a",
+              },
+              emerald: {
+                50: "#ecfdf5", 100: "#d1fae5", 500: "#10b981", 600: "#059669", 700: "#047857",
+              },
+              rose: {
+                50: "#fff1f2", 100: "#ffe4e6", 500: "#f43f5e", 600: "#e11d48",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "Pretendard", "system-ui", "-apple-system", "sans-serif"],
+            },
+          }
+        }
+      }
+    </script>
+    <!-- Mermaid.js for interactive ERD rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Vis.js Network Standalone for beautiful force-directed data map relationship visualization -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <div class="min-h-screen bg-white flex flex-col">
+      
+      <!-- Header -->
+      <header class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div class="bg-gov-800 text-white">
+          <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-1.5 flex items-center justify-between text-xs">
+            <span class="opacity-90">대한민국 식품의약품안전처</span>
+            <div class="flex items-center gap-4 opacity-90">
+              <a href="#" class="hover:underline">English</a>
+              <a href="#" class="hover:underline">로그인</a>
+              <a href="#" class="hover:underline">회원가입</a>
+            </div>
+          </div>
+        </div>
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+          <div class="flex items-center justify-between h-16 md:h-20">
+            <a href="#" class="flex items-center gap-3 shrink-0">
+              <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gov-600 flex items-center justify-center">
+                <i class="ri-shield-check-line text-white text-lg md:text-xl"></i>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-sm md:text-base text-gov-800 leading-tight">식품안전나라</span>
+                <span class="text-[10px] md:text-xs text-slate-500 leading-tight">공공데이터활용</span>
+              </div>
+            </a>
+            <div class="hidden lg:flex items-center flex-1 max-w-md mx-8">
+              <div class="flex items-center w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 focus-within:border-gov-400 focus-within:ring-2 focus-within:ring-gov-100 transition-all">
+                <i class="ri-search-line text-slate-400 mr-2"></i>
+                <input type="text" placeholder="데이터세트, 공공데이터 검색" class="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
+                <button class="ml-2 px-4 py-1.5 bg-gov-600 text-white text-xs font-medium rounded-full hover:bg-gov-700 transition-colors whitespace-nowrap">검색</button>
+              </div>
+            </div>
+            <nav class="hidden lg:flex items-center gap-1">
+              <button data-nav="explorer" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-gov-50 text-gov-700">데이터세트 찾기</button>
+              <button data-nav="recommend" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">목적별 추천</button>
+              <button data-nav="datamap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">데이터맵</button>
+              <button data-nav="erdmap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">ERD 데이터맵</button>
+              <button data-nav="sql-playground" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
+              <button data-nav="api-explorer" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">로컬 API Explorer (169종)</button>
+              <button class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">활용가이드</button>
+              <button class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">FAQ</button>
+              <a href="#" class="ml-2 px-4 py-2 rounded-lg bg-gov-600 text-white text-sm font-medium hover:bg-gov-700 transition-colors whitespace-nowrap">사용자 안내</a>
+            </nav>
+            <button id="mobile-menu-btn" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-700">
+              <i class="ri-menu-line text-xl" id="mobile-menu-icon"></i>
+            </button>
+          </div>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white animate-fade-in">
+          <div class="px-4 py-4 flex flex-col gap-2">
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 mb-2">
+              <i class="ri-search-line text-slate-400 mr-2"></i>
+              <input type="text" placeholder="데이터세트 검색" class="flex-1 bg-transparent text-sm outline-none" />
+              <button class="ml-2 px-4 py-1.5 bg-gov-600 text-white text-xs rounded-full">검색</button>
+            </div>
+            <button data-nav="explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors bg-gov-50 text-gov-700">데이터세트 찾기</button>
+            <button data-nav="recommend" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">목적별 추천</button>
+            <button data-nav="datamap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">데이터맵</button>
+            <button data-nav="erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">ERD 데이터맵</button>
+            <button data-nav="sql-playground" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
+            <button data-nav="api-explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">로컬 API Explorer (169종)</button>
+            <a href="#" class="mt-1 px-4 py-3 rounded-lg bg-gov-600 text-white text-sm font-medium text-center">사용자 안내</a>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1">
+        <!-- Hero Stats -->
+        <section class="bg-gradient-to-b from-gov-50 to-white pt-12 md:pt-20 pb-8 md:pb-12 px-4 md:px-8">
+          <div class="max-w-[1400px] mx-auto text-center">
+            <p class="text-xs md:text-sm font-semibold text-gov-600 uppercase tracking-wider mb-3">식품안전나라 공공데이터활용</p>
+            <h1 class="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-4">
+              식품안전 공공데이터를<br class="hidden sm:block" />
+              <span class="text-gov-600"> 목적별 데이터세트</span>로<br class="hidden sm:block" />
+              한눈에 활용하세요
+            </h1>
+            <p class="text-sm md:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed mb-8 md:mb-10">
+              식품안전나라의 169종 공공데이터를 사용자 목적에 맞게 묶어 데이터세트 형태로 제공합니다.
+              <br class="hidden md:block" />
+              제품 검색부터 업체 조회, 영양 분석까지 한 번에 찾아보세요.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 mb-8 md:mb-12">
+              <button class="px-6 py-3 rounded-full bg-gov-600 text-white text-sm font-semibold hover:bg-gov-700 transition-colors shadow-sm">
+                <i class="ri-search-line mr-1.5"></i>데이터세트 찾아보기
+              </button>
+              <button class="px-6 py-3 rounded-full border-2 border-gov-600 text-gov-700 text-sm font-semibold hover:bg-gov-50 transition-colors">
+                <i class="ri-lightbulb-line mr-1.5"></i>목적별 추천 받기
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto">
+              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-gov-50 flex items-center justify-center mx-auto mb-3">
+                  <i class="ri-database-2-line text-gov-600 text-lg md:text-xl"></i>
+                </div>
+                <div class="flex items-baseline justify-center gap-0.5">
+                  <span class="text-xl md:text-2xl font-bold text-slate-900">169</span>
+                  <span class="text-sm font-medium text-slate-500">종</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">개방 공공데이터</p>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-teal-50 flex items-center justify-center mx-auto mb-3">
+                  <i class="ri-folder-open-line text-teal-600 text-lg md:text-xl"></i>
+                </div>
+                <div class="flex items-baseline justify-center gap-0.5">
+                  <span class="text-xl md:text-2xl font-bold text-slate-900">8</span>
+                  <span class="text-sm font-medium text-slate-500">종</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">추천 데이터세트</p>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-emerald-50 flex items-center justify-center mx-auto mb-3">
+                  <i class="ri-grid-line text-emerald-600 text-lg md:text-xl"></i>
+                </div>
+                <div class="flex items-baseline justify-center gap-0.5">
+                  <span class="text-xl md:text-2xl font-bold text-slate-900">10</span>
+                  <span class="text-sm font-medium text-slate-500">개</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">주요 분야</p>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-slate-50 flex items-center justify-center mx-auto mb-3">
+                  <i class="ri-book-open-line text-slate-600 text-lg md:text-xl"></i>
+                </div>
+                <div class="flex items-baseline justify-center gap-0.5">
+                  <span class="text-xl md:text-2xl font-bold text-slate-900">2</span>
+                  <span class="text-sm font-medium text-slate-500">종+</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">활용 가이드</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab Pills -->
+        <div class="sticky top-[60px] md:top-[76px] z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+          <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+            <div class="flex items-center gap-1 py-3 overflow-x-auto" id="tab-pills-container">
+              <button data-tab="explorer" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm">
+                데이터세트 찾기
+              </button>
+              <button data-tab="recommend" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+                목적별 추천
+              </button>
+              <button data-tab="datamap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+                데이터맵
+              </button>
+              <button data-tab="erdmap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+                ERD 데이터맵
+              </button>
+              <button data-tab="sql-playground" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+                실시간 DB 분석 (SQL)
+              </button>
+              <button data-tab="api-explorer" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+                로컬 API Explorer (169종)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="bg-slate-50/50 min-h-[600px]" id="tab-content">
+          <!-- Dynamic content will be injected here by app.js -->
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-slate-900 text-white mt-0">
+        <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-12 md:py-16">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6">
+            <div class="lg:col-span-1">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-lg bg-gov-600 flex items-center justify-center">
+                  <i class="ri-shield-check-line text-white text-base"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-sm">식품안전나라</p>
+                  <p class="text-[10px] text-slate-400">공공데이터활용</p>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed max-w-xs">
+                식품의약품안전처가 운영하는 식품안전 정보 포털입니다. 169종 공공데이터를 제공합니다.
+              </p>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">데이터 서비스</h4>
+              <ul class="space-y-2.5">
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">데이터세트 찾기</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">목적별 추천</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">데이터맵</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Open API 포털</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">파일 다운로드</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">지원 안내</h4>
+              <ul class="space-y-2.5">
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">활용가이드</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">API 문서</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">공지사항</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">문의하기</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">관련 기관</h4>
+              <ul class="space-y-2.5">
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">식품의약품안전처</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">식품안전정보원</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">공공데이터포털</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">정부24</a></li>
+                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">e-people</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-slate-800">
+          <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p class="text-xs text-slate-500">© 식품의약품안전처. All rights reserved. 본 화면은 시안입니다.</p>
+            <div class="flex items-center gap-4">
+              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">개인정보처리방침</a>
+              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">이용약관</a>
+              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">저작권정책</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+      
+      <!-- Detail Panel Container -->
+      <div id="detail-panel-container"></div>
+    </div>
+
+    <!-- Application Scripts -->
+    <script type="module" src="view/app.js"></script>
+  </body>
+</html>
