@@ -87,7 +87,7 @@ async function main() {
   console.log('=============================================\n');
 
   try {
-    execSync('node crawler.js', { stdio: 'inherit' });
+    execSync('node crawler.js 1 1', { stdio: 'inherit' });
     console.log('\n[완료] 엑셀 보고서 생성이 성공적으로 완료되었습니다.');
   } catch (err) {
     console.error('\n[실패] crawler.js 실행 중 오류가 발생했습니다.', err.message);
