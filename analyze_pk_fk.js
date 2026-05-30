@@ -1261,17 +1261,14 @@ function generateKeysErdSql(analysis, outputPath) {
     const fksByTable = new Map();
     for (const rel of analysis.relationships) {
         // 모든 후보 관계(CONFIRMED, SUGGESTED 등 무관하게 전체 목록)를 필터링 없이 연결 처리
-        if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, new Map());
-        const tbl = fksByTable.get(rel.from_table);
-        const ex  = tbl.get(rel.from_field);
-        if (!ex || rel.score > ex.score) tbl.set(rel.from_field, rel);
+        if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, []);
+        fksByTable.get(rel.from_table).push(rel);
     }
 
     for (const table of analysis.tables) {
         const bestPk     = table.pk_candidates[0];
         const hasPk      = !!bestPk; // HIGH 신뢰도 여부와 무관하게 PK 후보가 존재하면 무조건 PK 제약 적용
-        const tableFks   = fksByTable.get(table.svc_no);
-        const fksList    = tableFks ? [...tableFks.values()] : [];
+        const fksList    = fksByTable.get(table.svc_no) || [];
         const hasFks     = fksList.length > 0;
 
         lines.push('-- -----------------------------------------------------------------------------');
@@ -1290,9 +1287,9 @@ function generateKeysErdSql(analysis, outputPath) {
             const pkComment = (bestPk && bestPk.fields.includes(fname))
                 ? ` / PK 후보(${bestPk.confidence})`
                 : '';
-            const fkTarget  = tableFks && tableFks.get(fname);
-            const fkComment = fkTarget
-                ? ` / FK 후보(${fkTarget.confidence}, ${(fkTarget.inclusion_check?.inclusion_ratio * 100 || 0).toFixed(1)}%) -> ${fkTarget.to_table}.${fkTarget.to_field}`
+            const columnFks = fksList.filter(fk => fk.from_field === fname);
+            const fkComment = columnFks.length > 0
+                ? ` / FK 후보: ${columnFks.map(fk => `${fk.to_table}.${fk.to_field}(${fk.confidence}, ${(fk.inclusion_check?.inclusion_ratio * 100 || 0).toFixed(1)}%)`).join(', ')}`
                 : '';
             const hasNext   = idx < table.fields.length - 1 || hasPk || hasFks;
 
