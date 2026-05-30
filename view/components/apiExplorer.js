@@ -15,7 +15,7 @@ export function renderApiExplorer(container, onSelectDataset) {
   ) || datasets.find(d => d.id === 'I0580') || datasets[0]; // 기본선택: HACCP 적용업소(I0580)
   
   // API 데이터 소스 상태
-  let apiSource = 'local'; // 'local' (로컬 DB 에뮬레이터), 'external' (실제 외부 식약처 라이브 OpenAPI)
+  let apiSource = 'external'; // 'local' (로컬 DB 에뮬레이터), 'external' (실제 외부 식약처 라이브 OpenAPI)
   
   // API 테스트 베드 상태
   let startIdx = 1;
@@ -318,7 +318,7 @@ export function renderApiExplorer(container, onSelectDataset) {
                   </div>
                   <div>
                     <button id="send-api-btn" class="w-full px-5 py-2.5 rounded-lg bg-gov-600 hover:bg-gov-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all ${isApiCalling ? 'opacity-70 cursor-not-allowed' : ''}" ${isApiCalling ? 'disabled' : ''}>
-                      ${isApiCalling ? '<i class="ri-loader-4-line animate-spin"></i> 전송 중...' : '<i class="ri-send-plane-fill"></i> 로컬 API 호출 (Send)'}
+                      ${isApiCalling ? '<i class="ri-loader-4-line animate-spin"></i> 전송 중...' : `<i class="ri-send-plane-fill"></i> ${apiSource === 'external' ? '실시간 OpenAPI 호출 (Send)' : '로컬 에뮬레이터 호출 (Send)'}`}
                     </button>
                   </div>
                 </div>
