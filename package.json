@@ -5,7 +5,8 @@
   "main": "foodsafety_crawler.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node foodsafety_crawler.js"
+    "start": "node server.js",
+    "crawl": "node foodsafety_crawler.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",

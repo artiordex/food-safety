@@ -6,7 +6,7 @@ const fs = require('fs');
 const REAL_API_KEY = '77183c01c07d44798948';
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const DB_PATH = path.join(__dirname, 'foodsafety.db');
 
 // 미들웨어 설정
