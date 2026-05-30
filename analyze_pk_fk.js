@@ -1363,7 +1363,7 @@ function generateKeysErdSql(analysis, outputPath) {
 // 섹션 12. CLI 독립 실행용 run()
 // =============================================================================
 
-function run(options) {
+async function run(options) {
     const { cache, samples, json, md, sql, noJson, noMd, noSql } = options;
 
     log('STEP', 'crawl_cache.json 로드');
@@ -1373,16 +1373,65 @@ function run(options) {
     if (!Array.isArray(datasets)) { log('ERR', '캐시 파일 형식이 배열이 아닙니다.'); process.exit(1); }
     log('INFO', `데이터셋 수: ${datasets.length}`);
 
-    log('STEP', '샘플 데이터 로드');
+    log('STEP', '샘플 및 SQLite 적재 데이터 로드');
     const recordsMap = new Map();
-    for (const ds of datasets) {
-        const svcNo = String(ds.svc_no || '').trim();
-        if (!svcNo) continue;
+    
+    // SQLite 데이터베이스가 존재하면 우선적으로 연결
+    const dbPath = path.join(process.cwd(), 'foodsafety.db');
+    let db = null;
+    if (fs.existsSync(dbPath)) {
+        try {
+            const sqlite3 = require('sqlite3').verbose();
+            db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY);
+            log('INFO', `SQLite 데이터베이스 실시간 적재 데이터 연동 성공: ${dbPath}`);
+        } catch (e) {
+            log('WARN', `SQLite 연결 실패, JSON 샘플 모드로 대체합니다: ${e.message}`);
+            db = null;
+        }
+    }
+
+    function loadFromJsonFallback(svcNo, resolve) {
         const samplePath = path.join(samples, `${svcNo}.json`);
-        recordsMap.set(svcNo, fs.existsSync(samplePath)
-            ? parseSampleJson(samplePath, svcNo)
-            : []
-        );
+        if (fs.existsSync(samplePath)) {
+            try {
+                const rows = parseSampleJson(samplePath, svcNo);
+                recordsMap.set(svcNo, rows);
+            } catch (err) {
+                recordsMap.set(svcNo, []);
+            }
+        } else {
+            recordsMap.set(svcNo, []);
+        }
+        resolve();
+    }
+
+    const loadPromises = datasets.map(ds => {
+        const svcNo = String(ds.svc_no || '').trim();
+        if (!svcNo) return Promise.resolve();
+
+        return new Promise((resolve) => {
+            if (db) {
+                // SQLite 적재된 실제 데이터가 있는지 조회 (최대 5000개 로드하여 정확도 극대화)
+                db.all(`SELECT * FROM "${svcNo}" LIMIT 5000;`, [], (err, rows) => {
+                    if (!err && rows && rows.length > 0) {
+                        recordsMap.set(svcNo, rows);
+                        resolve();
+                    } else {
+                        // DB에 테이블이 없거나 데이터가 없으면 로컬 JSON 샘플로 폴백
+                        loadFromJsonFallback(svcNo, resolve);
+                    }
+                });
+            } else {
+                loadFromJsonFallback(svcNo, resolve);
+            }
+        });
+    });
+
+    await Promise.all(loadPromises);
+
+    if (db) {
+        db.close();
+        log('INFO', `SQLite 연결 정상 해제 및 ${recordsMap.size}개 테이블 데이터 분석 준비 완료`);
     }
 
     log('STEP', 'PK/FK 후보 분석');
@@ -1413,12 +1462,14 @@ function run(options) {
 
 if (require.main === module) {
     const args = parseArgs(process.argv.slice(2));
-    try {
-        run(args);
-    } catch (err) {
-        log('ERR', err.stack || err.message);
-        process.exit(1);
-    }
+    (async () => {
+        try {
+            await run(args);
+        } catch (err) {
+            log('ERR', err.stack || err.message);
+            process.exit(1);
+        }
+    })();
 }
 
 // =============================================================================
