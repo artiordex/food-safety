@@ -171,10 +171,10 @@ export function renderDetailPanel(dataset, onClose) {
             </h3>
             <!-- Data Source Selector (Premium Toggle Tab) -->
             <div class="inline-flex bg-slate-100 p-0.5 rounded-lg border border-slate-200" id="data-source-toggle-group">
-              <button id="toggle-source-local" class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all flex items-center gap-1">
+              <button id="toggle-source-local" class="px-2.5 py-1 text-[10px] font-bold rounded-md ${dataset.id.startsWith('v_') ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'} transition-all flex items-center gap-1">
                 <i class="ri-hard-drive-line"></i> 로컬 DB
               </button>
-              <button id="toggle-source-live" class="px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all flex items-center gap-1 ${dataset.id.startsWith('v_') ? 'opacity-50 cursor-not-allowed' : ''}" ${dataset.id.startsWith('v_') ? 'title="융합 뷰는 로컬 전용입니다"' : ''}>
+              <button id="toggle-source-live" class="px-2.5 py-1 text-[10px] font-bold rounded-md ${!dataset.id.startsWith('v_') ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'} transition-all flex items-center gap-1 ${dataset.id.startsWith('v_') ? 'opacity-50 cursor-not-allowed' : ''}" ${dataset.id.startsWith('v_') ? 'title="융합 뷰는 로컬 전용입니다"' : ''}>
                 <i class="ri-pulse-line"></i> 실시간 OpenAPI
               </button>
             </div>
@@ -199,7 +199,7 @@ export function renderDetailPanel(dataset, onClose) {
   `;
 
   // 실시간 하이브리드(로컬-라이브) 데이터 조회 연동
-  let currentSource = 'local';
+  let currentSource = dataset.id.startsWith('v_') ? 'local' : 'live';
   let previewLimit = 10;
 
   const loadLivePreview = async () => {
