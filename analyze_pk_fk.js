@@ -50,10 +50,9 @@ const MAX_COMPOSITE_KEY_SIZE = 2;
 
 // FK 후보 정제 기준
 // ── 변경 1/2 ──────────────────────────────────────────────────────────────
-// 샘플 데이터가 5~10건 수준이면 70% 기준에서 우연히 탈락하는 진짜 FK가 많음.
-// 50% / 70% 로 완화해 확정 FK 후보가 충분히 확보되도록 조정.
-const FK_MIN_INCLUSION_RATIO = 0.50;       // 50% 이상이면 확정 FK 후보
-const FK_STRONG_INCLUSION_RATIO = 0.70;    // 70% 이상이면 HIGH 가산
+// 사용자 요청 반영: 값 포함률이 10% 이상인 경우도 정상적인 조인 관계로 매핑하도록 기준을 대폭 완화
+const FK_MIN_INCLUSION_RATIO = 0.10;       // 10% 이상이면 확정 FK 후보
+const FK_STRONG_INCLUSION_RATIO = 0.30;    // 30% 이상이면 HIGH 가산
 // ─────────────────────────────────────────────────────────────────────────
 const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 추정 후보로 보존
 const FK_MAX_PER_FROM_FIELD = 5;           // 동일 From Table.Field 기준 최대 후보 수

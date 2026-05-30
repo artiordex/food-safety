@@ -543,7 +543,7 @@ CREATE TABLE IF NOT EXISTS "I1660" (
 -- 카테고리: 과태료부과기준
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I1670" (
-  "DSPS_STDR_CD" VARCHAR(500), -- DSPS_STDR_CD / 처분기준코드 / PK 후보(HIGH) / FK 후보(SUGGESTED, 13.4%) -> I2550.DSPS_STDR_CD
+  "DSPS_STDR_CD" VARCHAR(500), -- DSPS_STDR_CD / 처분기준코드 / PK 후보(HIGH) / FK 후보(HIGH, 13.4%) -> I2550.DSPS_STDR_CD
   "DSPS_STDR_CD_NM" VARCHAR(500), -- DSPS_STDR_CD_NM / 처분기준명
   "LV_NO" VARCHAR(500), -- LV_NO / 레벨
   "BASIS_LAWORD" VARCHAR(500), -- BASIS_LAWORD / 근거법령
@@ -2840,7 +2840,7 @@ CREATE TABLE IF NOT EXISTS "I1350" (
 -- 카테고리: 축산물 품목제조정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I1310" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보(HIGH, 100.0%) -> I1300.LCNS_NO
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보(HIGH, 30.0%) -> I2500.LCNS_NO
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
   "PRMS_DT" VARCHAR(500), -- PRMS_DT / 보고일자
@@ -2853,7 +2853,7 @@ CREATE TABLE IF NOT EXISTS "I1310" (
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
   "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일자
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -3455,7 +3455,7 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "I2600"."PRDLST_CD" -> "I2510"."PRDLST_CD"
 -- 값 포함률: 31.7% (44/139)
--- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "공통기준규격" → "품목유형코드" 부모-자식 관계 확인 / 값 포함률 낮음 31.7% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "공통기준규격" → "품목유형코드" 부모-자식 관계 확인 / 값 포함률 31.7%
 -- FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
 
 -- FK 후보 [HIGH/100] "I2600"."TESTITM_CD" -> "I2530"."TESTITM_CD"
@@ -3465,13 +3465,18 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "I2610"."PRDLST_CD" -> "I2510"."PRDLST_CD"
 -- 값 포함률: 12.5% (1/8)
--- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "공통기준제외" → "품목유형코드" 부모-자식 관계 확인 / 값 포함률 낮음 12.5% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "공통기준제외" → "품목유형코드" 부모-자식 관계 확인 / 값 포함률 12.5%
 -- FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
 
 -- FK 후보 [HIGH/100] "I2610"."TESTITM_CD" -> "I2530"."TESTITM_CD"
 -- 값 포함률: 57.1% (4/7)
 -- 사유: 대상 테이블 I2530의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "공통기준제외" → "시험항목코드" 부모-자식 관계 확인 / 값 포함률 57.1%
 -- FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
+
+-- FK 후보 [HIGH/100] "I1670"."DSPS_STDR_CD" -> "I2550"."DSPS_STDR_CD"
+-- 값 포함률: 13.4% (66/493)
+-- 사유: 대상 테이블 I2550의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 13.4%
+-- FOREIGN KEY ("DSPS_STDR_CD") REFERENCES "I2550" ("DSPS_STDR_CD")
 
 -- FK 후보 [HIGH/100] "I2858"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/134)
@@ -3535,7 +3540,7 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "C001"."LCNS_NO" -> "I1260"."LCNS_NO"
 -- 값 포함률: 20.0% (1000/5000)
--- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "수입식품등영업신고대장" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 낮음 20.0% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "수입식품등영업신고대장" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 20.0%
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
 
 -- FK 후보 [HIGH/100] "C001"."LCNS_NO" -> "I2713"."LCNS_NO"
@@ -3715,7 +3720,7 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "I0940"."TESTITM_CD" -> "I2530"."TESTITM_CD"
 -- 값 포함률: 16.9% (12/71)
--- 사유: 대상 테이블 I2530의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품용 기구 및 용기.포장 공전" → "시험항목코드" 부모-자식 관계 확인 / 값 포함률 낮음 16.9% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I2530의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품용 기구 및 용기.포장 공전" → "시험항목코드" 부모-자식 관계 확인 / 값 포함률 16.9%
 -- FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
 
 -- FK 후보 [HIGH/100] "I2830"."LCNS_NO" -> "I2500"."LCNS_NO"
@@ -3885,7 +3890,7 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "I0080"."LCNS_NO" -> "I1300"."LCNS_NO"
 -- 값 포함률: 11.1% (24/217)
--- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 낮음 11.1% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 11.1%
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 
 -- FK 후보 [HIGH/100] "I0080"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
@@ -3980,7 +3985,7 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 
 -- FK 후보 [HIGH/100] "I2851"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 42.1% (72/171)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 +10 / 업무 명칭 규칙: "위생용품영업 생산실적보고" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 42.1% (업무 명칭 규칙으로 CONFIRMED 유지)
+-- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 +10 / 업무 명칭 규칙: "위생용품영업 생산실적보고" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 42.1%
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 
 -- FK 후보 [HIGH/100] "I2851"."LCNS_NO" -> "I1300"."LCNS_NO"
@@ -4187,6 +4192,11 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 -- 값 포함률: 0.0% (0/1000)
 -- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 +10 / 업무 명칭 규칙: "축산물 판매업 폐업정보" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% (업무 명칭 규칙으로 CONFIRMED 유지)
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+
+-- FK 후보 [HIGH/100] "I1310"."LCNS_NO" -> "I2500"."LCNS_NO"
+-- 값 포함률: 30.0% (3/10)
+-- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 30.0%
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 
 -- FK 후보 [HIGH/100] "I1310"."LCNS_NO" -> "I1300"."LCNS_NO"
 -- 값 포함률: 100.0% (10/10)
@@ -4417,11 +4427,6 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 -- 값 포함률: 0.0% (0/329)
 -- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — 추정 후보로 분류
 -- FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
-
--- FK 후보 [SUGGESTED/93] "I1670"."DSPS_STDR_CD" -> "I2550"."DSPS_STDR_CD"
--- 값 포함률: 13.4% (66/493)
--- 사유: 대상 테이블 I2550의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 13.4% — 추정 후보로 분류
--- FOREIGN KEY ("DSPS_STDR_CD") REFERENCES "I2550" ("DSPS_STDR_CD")
 
 -- FK 후보 [SUGGESTED/93] "I1250"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/2)
@@ -5537,11 +5542,6 @@ CREATE TABLE IF NOT EXISTS "I0150" (
 -- 값 포함률: 0.0% (0/10)
 -- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — 추정 후보로 분류
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
-
--- FK 후보 [SUGGESTED/83] "I1310"."LCNS_NO" -> "I2500"."LCNS_NO"
--- 값 포함률: 30.0% (3/10)
--- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 30.0% — 추정 후보로 분류
--- FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 
 -- FK 후보 [SUGGESTED/83] "I2828"."LCNS_NO" -> "I1260"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000)
