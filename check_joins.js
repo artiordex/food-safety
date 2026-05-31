@@ -93,15 +93,18 @@ async function verifyJoins() {
 
     db.close();
 
+    // Only include relationships that have at least one successfully matched record!
+    const activeVerified = verified.filter(v => v.actualJoinCount > 0);
+
     // 1. Build and Write join.sql
     const joinSqlPath = path.join(__dirname, 'join.sql');
     let sqlContent = `-- =============================================================================\n`;
     sqlContent += `--   데이터 연동 검증 보고서: 실제 SQL INNER JOIN 성공 케이스 쿼리 목록\n`;
-    sqlContent += `--   총 검증된 조인 성공 관계: ${verified.length}개\n`;
+    sqlContent += `--   총 검증된 조인 성공 관계: ${activeVerified.length}개\n`;
     sqlContent += `--   생성일시: ${new Date().toISOString()}\n`;
     sqlContent += `-- =============================================================================\n\n`;
 
-    verified.forEach((v, idx) => {
+    activeVerified.forEach((v, idx) => {
         sqlContent += `-- -----------------------------------------------------------------------------\n`;
         sqlContent += `-- ${idx + 1}. [${v.confidence}] ${v.fromTable}.${v.fromField} ↔ ${v.toTable}.${v.toField}\n`;
         sqlContent += `--   - 값 일치율 (Inclusion): ${v.ratio}% (${v.matchedCount}개 / Unique ${v.fromTotal}개)\n`;
@@ -116,7 +119,7 @@ async function verifyJoins() {
     });
 
     fs.writeFileSync(joinSqlPath, sqlContent, 'utf8');
-    console.log(`\n[System] Successfully generated verified join query file: ${joinSqlPath}\n`);
+    console.log(`\n[System] Successfully generated verified join query file (only active joins): ${joinSqlPath}\n`);
 
     // Print a beautiful report!
     console.log(`=============================================================================`);
@@ -125,7 +128,7 @@ async function verifyJoins() {
     console.log(`실제 SQLite 적재 데이터를 바탕으로 INNER JOIN을 실행하여 매칭되는 레코드가 존재하는`);
     console.log(`조인 관계 목록을 분석하였습니다.\n`);
 
-    verified.forEach((v, idx) => {
+    activeVerified.forEach((v, idx) => {
         console.log(`${idx + 1}. [${v.confidence}] ${v.fromTable}.${v.fromField} ↔ ${v.toTable}.${v.toField}`);
         console.log(`   - 값 일치율 (Inclusion): ${v.ratio}% (${v.matchedCount}개 / Unique ${v.fromTotal}개)`);
         console.log(`   - 실제 JOIN 레코드 수 : ${v.actualJoinCount.toLocaleString()}건 매칭됨`);
