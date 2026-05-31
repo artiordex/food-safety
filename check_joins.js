@@ -31,62 +31,65 @@ async function verifyJoins() {
     console.log(`Checking actual SQLite JOIN matches on ${dbPath}...\n`);
     const verified = [];
 
-    // Filter relationships that have positive matched_count
-    const rels = candidates.relationships.filter(r => 
-        r.inclusion_check && 
-        r.inclusion_check.checked && 
-        r.inclusion_check.matched_count > 0
-    );
+    // Use ALL 470 relationships
+    const rels = candidates.relationships;
 
-    // Sort by matched count / inclusion ratio descending
-    rels.sort((a, b) => b.inclusion_check.matched_count - a.inclusion_check.matched_count);
-
-    for (const rel of rels) {
+    for (let i = 0; i < rels.length; i++) {
+        const rel = rels[i];
         const { from_table, from_field, to_table, to_field, confidence } = rel;
-        const ratio = (rel.inclusion_check.inclusion_ratio * 100).toFixed(1);
-        const matched = rel.inclusion_check.matched_count;
-        const total = rel.inclusion_check.from_unique_count;
+        
+        if (i > 0 && i % 50 === 0) {
+            console.log(`Analyzing candidates... (${i}/${rels.length} processed)`);
+        }
 
         try {
-            // Run an actual SQL query to verify the join!
-            const sql = `
-                SELECT COUNT(*) as cnt, A."${from_field}" as sample_val
-                FROM "${from_table}" A
-                INNER JOIN "${to_table}" B ON A."${from_field}" = B."${to_field}"
-                WHERE A."${from_field}" IS NOT NULL AND A."${from_field}" != ''
-                GROUP BY A."${from_field}"
-                LIMIT 3
-            `;
-            const rows = await runQuery(sql);
-            
-            // Total joined rows count
+            // 1. Get live counts from the actual populated database!
             const countSql = `
-                SELECT COUNT(*) as cnt
-                FROM "${from_table}" A
-                INNER JOIN "${to_table}" B ON A."${from_field}" = B."${to_field}"
+                SELECT 
+                    (SELECT COUNT(DISTINCT "${from_field}") FROM "${from_table}" WHERE "${from_field}" IS NOT NULL AND "${from_field}" != '') as total_unique,
+                    (SELECT COUNT(DISTINCT A."${from_field}") FROM "${from_table}" A INNER JOIN "${to_table}" B ON A."${from_field}" = B."${to_field}" WHERE A."${from_field}" IS NOT NULL AND A."${from_field}" != '') as matched_unique,
+                    (SELECT COUNT(*) FROM "${from_table}" A INNER JOIN "${to_table}" B ON A."${from_field}" = B."${to_field}") as actual_join_count
             `;
-            const countRow = await runQuery(countSql);
-            const actualJoinCount = countRow[0]?.cnt || 0;
+            const stats = await runQuery(countSql);
+            const totalUnique = stats[0]?.total_unique || 0;
+            const matchedUnique = stats[0]?.matched_unique || 0;
+            const actualJoinCount = stats[0]?.actual_join_count || 0;
 
+            let samples = [];
+            let ratio = '0.0';
             if (actualJoinCount > 0) {
-                const samples = rows.map(r => r.sample_val).filter(Boolean);
-                verified.push({
-                    fromTable: from_table,
-                    fromField: from_field,
-                    toTable: to_table,
-                    toField: to_field,
-                    ratio,
-                    matchedCount: matched,
-                    fromTotal: total,
-                    actualJoinCount,
-                    samples,
-                    confidence
-                });
+                // 2. Fetch sample values
+                const sampleSql = `
+                    SELECT DISTINCT A."${from_field}" as sample_val
+                    FROM "${from_table}" A
+                    INNER JOIN "${to_table}" B ON A."${from_field}" = B."${to_field}"
+                    WHERE A."${from_field}" IS NOT NULL AND A."${from_field}" != ''
+                    LIMIT 3
+                `;
+                const sampleRows = await runQuery(sampleSql);
+                samples = sampleRows.map(r => r.sample_val).filter(Boolean);
+                ratio = totalUnique > 0 ? (matchedUnique / totalUnique * 100).toFixed(1) : '0.0';
             }
+
+            verified.push({
+                fromTable: from_table,
+                fromField: from_field,
+                toTable: to_table,
+                toField: to_field,
+                ratio,
+                matchedCount: matchedUnique,
+                fromTotal: totalUnique,
+                actualJoinCount,
+                samples,
+                confidence
+            });
         } catch (err) {
             // Ignore error for non-existent table or missing fields
         }
     }
+
+    // Sort by actual join count descending
+    verified.sort((a, b) => b.actualJoinCount - a.actualJoinCount);
 
     db.close();
 
