@@ -90,6 +90,31 @@ async function verifyJoins() {
 
     db.close();
 
+    // 1. Build and Write join.sql
+    const joinSqlPath = path.join(__dirname, 'join.sql');
+    let sqlContent = `-- =============================================================================\n`;
+    sqlContent += `--   데이터 연동 검증 보고서: 실제 SQL INNER JOIN 성공 케이스 쿼리 목록\n`;
+    sqlContent += `--   총 검증된 조인 성공 관계: ${verified.length}개\n`;
+    sqlContent += `--   생성일시: ${new Date().toISOString()}\n`;
+    sqlContent += `-- =============================================================================\n\n`;
+
+    verified.forEach((v, idx) => {
+        sqlContent += `-- -----------------------------------------------------------------------------\n`;
+        sqlContent += `-- ${idx + 1}. [${v.confidence}] ${v.fromTable}.${v.fromField} ↔ ${v.toTable}.${v.toField}\n`;
+        sqlContent += `--   - 값 일치율 (Inclusion): ${v.ratio}% (${v.matchedCount}개 / Unique ${v.fromTotal}개)\n`;
+        sqlContent += `--   - 실제 JOIN 레코드 수 : ${v.actualJoinCount.toLocaleString()}건 매칭됨\n`;
+        sqlContent += `--   - 매칭된 샘플 데이터   : ${JSON.stringify(v.samples)}\n`;
+        sqlContent += `-- -----------------------------------------------------------------------------\n`;
+        sqlContent += `SELECT A.*, B.*\n`;
+        sqlContent += `FROM "${v.fromTable}" A\n`;
+        sqlContent += `INNER JOIN "${v.toTable}" B ON A."${v.fromField}" = B."${v.toField}"\n`;
+        sqlContent += `WHERE A."${v.fromField}" IS NOT NULL AND A."${v.fromField}" != ''\n`;
+        sqlContent += `LIMIT 10;\n\n`;
+    });
+
+    fs.writeFileSync(joinSqlPath, sqlContent, 'utf8');
+    console.log(`\n[System] Successfully generated verified join query file: ${joinSqlPath}\n`);
+
     // Print a beautiful report!
     console.log(`=============================================================================`);
     console.log(`   데이터 연동 검증 보고서: 실제 SQL INNER JOIN 성공 케이스 목록`);
