@@ -106,6 +106,26 @@ document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
   });
 });
 
+// Bind click events for Hero section CTA buttons
+const btnHeroRecommend = document.getElementById('btn-hero-recommend');
+const btnHeroRecommend2 = document.getElementById('btn-hero-recommend-2');
+
+const goToRecommendTab = () => {
+  changeTab('recommend');
+  // Smooth scroll down to the sticky tab bar so the user immediately sees the recommend content
+  const tabContainer = document.getElementById('tab-pills-container');
+  if (tabContainer) {
+    tabContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+if (btnHeroRecommend) {
+  btnHeroRecommend.addEventListener('click', goToRecommendTab);
+}
+if (btnHeroRecommend2) {
+  btnHeroRecommend2.addEventListener('click', goToRecommendTab);
+}
+
 // Initial render
 updateActiveTabUI();
 renderTabContent();
