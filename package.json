@@ -6,7 +6,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "crawl": "node crawler.js"
+    "crawl": "node crawler.js",
+    "db:import": "node db/import_to_sqlite.js",
+    "db:analyze": "node db/analyze_pk_fk.js",
+    "db:check-joins": "node db/check_joins.js",
+    "db:generate-sql": "node db/generate_json_sql.js"
   },
   "engines": {
     "node": "20.x"

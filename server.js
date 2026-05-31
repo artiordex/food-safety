@@ -7,7 +7,7 @@ const REAL_API_KEY = '77183c01c07d44798948';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const DB_PATH = path.join(__dirname, 'foodsafety.db');
+const DB_PATH = path.join(__dirname, 'db', 'foodsafety.db');
 
 // 미들웨어 설정
 app.use(express.json());
@@ -254,7 +254,7 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
 
 // 7. PK/FK 관계 데이터 조회 API (데이터맵 동적 연동용)
 app.get('/api/relationships', (req, res) => {
-  const jsonPath = path.join(__dirname, 'foodsafety_key_candidates.json');
+  const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
   if (fs.existsSync(jsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
