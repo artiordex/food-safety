@@ -11,6 +11,7 @@ import { renderBarcodeSearch } from './components/barcodeSearch.js';
 import { renderSuperErdMap } from './components/superErdMap.js';
 import { renderHealthErdMap } from './components/healthErdMap.js';
 import { renderSauceDataMap } from './components/sauceDataMap.js';
+import { renderNongshimDataset } from './components/nongshimDataset.js';
 
 let activeTab = 'explorer'; // 'explorer', 'recommend', 'datamap', 'erdmap'
 let selectedDataset = null;
@@ -55,6 +56,8 @@ const renderTabContent = () => {
     renderBarcodeSearch(tabContent, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
     renderSauceDataMap(tabContent);
+  } else if (activeTab === 'nongshim-spec') {
+    renderNongshimDataset(tabContent);
   }
 };
 

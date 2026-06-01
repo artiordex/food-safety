@@ -249,52 +249,66 @@ function KeywordDataMap() {
   };
 
   const capture = async () => {
-    if (!captureRef.current || typeof html2canvas === 'undefined') return;
+    const svgEl = captureRef.current?.querySelector('svg');
+    if (!svgEl || !nodesRef.current.length) return;
     setCapturing(true);
-    
-    const el = captureRef.current;
-    // Save original styles
-    const oldW = el.style.width;
-    const oldH = el.style.height;
-    const oldPos = el.style.position;
-    const oldT = transform;
-
-    // Force massive dimensions so nothing is cut off (max text bounds)
-    el.style.width = '2400px';
-    el.style.height = '2000px';
-    el.style.position = 'absolute';
-    el.style.zIndex = '9999';
-    el.style.top = '0';
-    el.style.left = '0';
-
-    // The graph center is CX=900, CY=700. 
-    // For 2400x2000, the center is 1200x1000. 
-    // Offset by +300, +300 to perfectly center it in the massive capture box.
-    setTransform({ x: 300, y: 300, scale: 1 });
 
     try {
-      await new Promise(r => setTimeout(r, 400)); // wait for DOM to update and settle
-      const c = await html2canvas(el, { 
-        width: 2400, 
-        height: 2000, 
-        scale: 1.5, // Crisp resolution 
-        backgroundColor: '#fff',
-        useCORS: true
+      // 1. Calculate dynamic bounding box of all nodes (including dragged ones)
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      nodesRef.current.forEach(n => {
+         minX = Math.min(minX, n.x);
+         minY = Math.min(minY, n.y);
+         maxX = Math.max(maxX, n.x);
+         maxY = Math.max(maxY, n.y);
       });
-      const a = document.createElement('a');
-      a.download = keyword + '_전체_방사형데이터맵.png'; 
-      a.href = c.toDataURL(); 
-      a.click();
-    } catch (e) { 
-      alert('캡처 실패: ' + e.message); 
-    } finally { 
-      // Revert everything
-      el.style.width = oldW;
-      el.style.height = oldH;
-      el.style.position = oldPos;
-      el.style.zIndex = '';
-      setTransform(oldT);
-      setCapturing(false); 
+      
+      // Add generous padding so long text strings at the edges are never cut off
+      minX -= 250; minY -= 150;
+      maxX += 250; maxY += 150;
+      
+      const captureW = Math.max(800, maxX - minX);
+      const captureH = Math.max(600, maxY - minY);
+
+      // 2. Clone the SVG and setup for pure un-clipped export
+      const clone = svgEl.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', captureW);
+      clone.setAttribute('height', captureH);
+      clone.setAttribute('viewBox', `0 0 ${captureW} ${captureH}`);
+      clone.style.backgroundColor = '#ffffff';
+
+      // 3. Strip the user's pan/zoom transform and perfectly center the logic coordinates into the box
+      const g = clone.querySelector('g');
+      if (g) g.setAttribute('transform', `translate(${-minX}, ${-minY}) scale(1)`);
+
+      // 4. Serialize to string and render to 2x resolution Canvas
+      const svgData = new XMLSerializer().serializeToString(clone);
+      const canvas = document.createElement('canvas');
+      canvas.width = captureW * 2;
+      canvas.height = captureH * 2;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(2, 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, captureW, captureH);
+      
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, captureW, captureH);
+        const a = document.createElement('a');
+        a.download = keyword + '_데이터맵_전체화면.jpg';
+        a.href = canvas.toDataURL('image/jpeg', 0.95);
+        a.click();
+        setCapturing(false);
+      };
+      img.onerror = () => {
+        alert('이미지 렌더링 실패');
+        setCapturing(false);
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+    } catch (e) {
+      alert('캡처 실패: ' + e.message);
+      setCapturing(false);
     }
   };
 

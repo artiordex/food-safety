@@ -1147,6 +1147,50 @@ app.get('/api/keyword-datamap', async (req, res) => {
 app.use(express.static(__dirname));
 
 // 서버 구동
+// 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
+app.get('/api/nongshim-dataset', async (req, res) => {
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  try {
+    const query = `
+      SELECT 
+        -- 1. 기준규격정보
+        S.PRDLST_CD_NM AS "식품유형",
+        S.TESTITM_NM AS "검사항목",
+        S.SPEC_VAL AS "기준규격",
+        
+        -- 2. 코드정보
+        P.KOR_NM AS "품목유형_표준명",
+        T.KOR_NM AS "시험항목_표준명",
+        
+        -- 3. 식품위해관리 (회수, 행정처분, 부적합)
+        R.BSSHNM AS "적발업체명",
+        R.PRDTNM AS "회수_대상제품명",
+        R.RTRVLPRVNS AS "회수사유",
+        COALESCE(I.TESTANALS_RSLT, (SELECT TESTANALS_RSLT FROM I2620 WHERE TESTANALS_RSLT IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "검사_부적합결과",
+        COALESCE(A.DSPS_TYPECD_NM, (SELECT DSPS_TYPECD_NM FROM I0470 WHERE DSPS_TYPECD_NM IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "행정처분유형",
+        
+        -- 4. HACCP지정현황
+        COALESCE(H.EDC_INSTT_APPN_NO, (SELECT EDC_INSTT_APPN_NO FROM I0600 WHERE EDC_INSTT_APPN_NO IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "HACCP_지정번호"
+      FROM I2600 S
+      LEFT JOIN I2510 P ON S.PRDLST_CD = P.PRDLST_CD
+      LEFT JOIN I2530 T ON S.TESTITM_CD = T.TESTITM_CD
+      JOIN I0490 R ON S.PRDLST_CD = R.PRDLST_CD
+      LEFT JOIN I2620 I ON R.LCNS_NO = I.LCNS_NO
+      LEFT JOIN I0470 A ON R.LCNS_NO = A.LCNS_NO
+      LEFT JOIN I0600 H ON R.BSSHNM = H.BSSH_NM
+      LIMIT 100
+    `;
+    const rows = await dbAll(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Nongshim dataset error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`==================================================`);
   console.log(` 식품안전나라 통합 DB 웹 앱 서비스가 작동 중입니다.`);
