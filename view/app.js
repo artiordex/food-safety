@@ -10,6 +10,7 @@ import { renderLocalHygiene } from './components/localHygiene.js';
 import { renderBarcodeSearch } from './components/barcodeSearch.js';
 import { renderSuperErdMap } from './components/superErdMap.js';
 import { renderHealthErdMap } from './components/healthErdMap.js';
+import { renderSauceDataMap } from './components/sauceDataMap.js';
 
 let activeTab = 'explorer'; // 'explorer', 'recommend', 'datamap', 'erdmap'
 let selectedDataset = null;
@@ -52,6 +53,8 @@ const renderTabContent = () => {
     renderLocalHygiene(tabContent, onSelectDataset);
   } else if (activeTab === 'api-barcode') {
     renderBarcodeSearch(tabContent, onSelectDataset);
+  } else if (activeTab === 'keyword-datamap') {
+    renderSauceDataMap(tabContent);
   }
 };
 
@@ -62,13 +65,13 @@ const updateActiveTabUI = () => {
 
     if (btn.classList.contains('tab-pill')) {
       if (tabId === activeTab) {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap' || tabId === 'health-erdmap') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap' || tabId === 'health-erdmap' || tabId === 'keyword-datamap') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-emerald-600 text-white shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm flex items-center gap-1";
         }
       } else {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap' || tabId === 'keyword-datamap') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1";

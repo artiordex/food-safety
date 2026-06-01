@@ -974,6 +974,175 @@ app.get('/api/bulk-ecosystem-health', (req, res) => {
   }
 });
 
+// 키워드 기반 전체 테이블 스캔 데이터맵 API
+app.get('/api/keyword-datamap', async (req, res) => {
+  const keyword = req.query.keyword || '소스';
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  try {
+    // 1. Get all table names
+    const tables = await dbAll(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`);
+
+    // Table label mapping (Korean names) dynamically loaded from metadata
+    let tableLabels = {
+      'C005': '유통바코드', 'C002': '원재료', 'C006': '원재료현황'
+    };
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const metaPath = path.join(__dirname, 'db/foodsafety_key_candidates.json');
+      if (fs.existsSync(metaPath)) {
+        const metadata = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+        if (metadata.tables) {
+          metadata.tables.forEach(t => {
+            if (t.svc_no && t.svc_nm) {
+              tableLabels[t.svc_no] = t.svc_nm;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load dynamic table labels:', e.message);
+    }
+
+    // Domain classification for color coding
+    const domainMap = {
+      'C005': 'product', 'I1250': 'product',
+      'I2500': 'business', 'I1290': 'business', 'I2020': 'business', 'I1230': 'business',
+      'C002': 'material', 'C006': 'material', 'I0300': 'material', 'I2710': 'material',
+      'I1030': 'health', 'I0980': 'health', 'I1420': 'health',
+      'I2852': 'import', 'I2854': 'import', 'I2570': 'import', 'I1380': 'import', 'I1350': 'import', 'I2851': 'import',
+      'COOKRCP01': 'farm', 'I0080': 'farm', 'I0250': 'farm',
+      'I0580': 'other', 'I0470': 'other', 'I0460': 'other', 'I1860': 'other', 'I2630': 'other', 'I0480': 'other', 'I0490': 'other',
+      'I2824': 'other', 'I2825': 'other', 'I2831': 'other', 'I0320': 'other', 'I0960': 'other', 'I1310': 'other', 'I2810': 'other'
+    };
+
+    const domainColors = {
+      product: { bg: '#0d9488', border: '#0f766e', light: '#ccfbf1' },
+      business: { bg: '#1a5fb4', border: '#1e40af', light: '#dbeafe' },
+      material: { bg: '#7c3aed', border: '#6d28d9', light: '#ede9fe' },
+      health: { bg: '#e11d48', border: '#be123c', light: '#ffe4e6' },
+      import: { bg: '#d97706', border: '#b45309', light: '#fef3c7' },
+      farm: { bg: '#059669', border: '#047857', light: '#d1fae5' },
+      other: { bg: '#64748b', border: '#475569', light: '#f1f5f9' }
+    };
+
+    const nodes = [];
+    const edges = [];
+    const matchedTables = [];
+    const allLeafNodes = [];
+
+    // 2. Center node
+    nodes.push({
+      id: 'CENTER',
+      label: keyword,
+      shape: 'circle',
+      size: 55,
+      color: { background: '#1e293b', border: '#f59e0b', highlight: { background: '#334155', border: '#fbbf24' } },
+      font: { size: 18, color: '#ffffff', bold: true, face: 'Malgun Gothic' },
+      borderWidth: 4,
+      level: 0
+    });
+
+    // 3. Parallel batch scan: process all tables concurrently for speed
+    const BATCH_SIZE = 20;
+    const processTable = async (tableName) => {
+      let columns = [];
+      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch(e) { return null; }
+      if (!columns.length) return null;
+
+      // Check each column in parallel within the table
+      const colResults = await Promise.all(columns.map(async col => {
+        try {
+          const countRow = await dbAll(`SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ?`, [`%${keyword}%`]);
+          return (countRow[0] && countRow[0].cnt > 0) ? { col: col.name, count: countRow[0].cnt } : null;
+        } catch(e) { return null; }
+      }));
+
+      const matchingCols = colResults.filter(Boolean);
+      if (!matchingCols.length) return null;
+
+      const totalCount = matchingCols.reduce((s, c) => s + c.count, 0);
+      const domain = domainMap[tableName] || 'other';
+      const colColors = domainColors[domain];
+      const tableLabel = tableLabels[tableName] || tableName;
+      const bestCol = matchingCols.sort((a, b) => b.count - a.count)[0];
+
+      let sampleRows = [];
+      try {
+        sampleRows = await dbAll(
+          `SELECT "${bestCol.col}" as val, * FROM "${tableName}" WHERE CAST("${bestCol.col}" AS TEXT) LIKE ? LIMIT 3`,
+          [`%${keyword}%`]
+        );
+      } catch(e) {}
+
+      return { tableName, tableLabel, domain, colColors, totalCount, matchingCols, bestCol, sampleRows };
+    };
+
+    // Run in batches of 20 tables concurrently
+    for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+      const batch = tables.slice(i, i + BATCH_SIZE).map(t => t.name);
+      const batchResults = await Promise.all(batch.map(processTable));
+
+      for (const result of batchResults) {
+        if (!result) continue;
+        const { tableName, tableLabel, domain, colColors, totalCount, matchingCols, sampleRows } = result;
+
+        // Hub node for this table
+        nodes.push({
+          id: `TABLE_${tableName}`,
+          label: tableLabel + '\n(' + totalCount + '건)',
+          shape: 'ellipse',
+          size: Math.min(32, 18 + Math.sqrt(totalCount) * 2),
+          color: { background: colColors.bg, border: colColors.border, highlight: { background: colColors.light, border: colColors.border } },
+          font: { size: 10, color: '#ffffff', bold: true, face: 'Malgun Gothic' },
+          borderWidth: 2, level: 1, domain, totalCount
+        });
+        edges.push({
+          from: 'CENTER', to: `TABLE_${tableName}`,
+          width: Math.min(6, 1 + Math.log(totalCount + 1)),
+          color: { color: colColors.bg, highlight: colColors.border },
+          smooth: { type: 'curvedCW', roundness: 0.2 }
+        });
+        matchedTables.push({ tableName, tableLabel, domain, totalCount, matchingCols });
+
+        // Leaf nodes (up to 3 actual data records per table)
+        sampleRows.forEach((row, idx) => {
+          const leafId = `LEAF_${tableName}_${idx}`;
+          const valStr = String(row.val || '');
+          nodes.push({
+            id: leafId, label: valStr, shape: 'dot', size: 10,
+            color: { background: colColors.light, border: colColors.bg, highlight: { background: '#ffffff', border: colColors.border } },
+            font: { size: 8, color: '#1e293b', face: 'Malgun Gothic' },
+            borderWidth: 2, level: 2, fullData: JSON.stringify(row).substring(0, 300)
+          });
+          edges.push({
+            from: `TABLE_${tableName}`, to: leafId, width: 1,
+            color: { color: colColors.light + 'cc' },
+            dashes: true,
+            smooth: { type: 'dynamic' }
+          });
+          allLeafNodes.push({ table: tableName, col: result.bestCol.col, val: row.val, row });
+        });
+      }
+    }
+
+    res.json({
+      keyword,
+      tableCount: matchedTables.length,
+      totalLeafCount: allLeafNodes.length,
+      nodes,
+      edges,
+      matchedTables
+    });
+  } catch (err) {
+    console.error('Keyword datamap error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 프론트엔드 정적 리소스 서빙
 app.use(express.static(__dirname));
 

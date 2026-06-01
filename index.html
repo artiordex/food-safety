@@ -44,10 +44,17 @@
       }
     </script>
     <!-- Mermaid.js for interactive ERD rendering -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <!-- Vis.js Network Standalone for beautiful force-directed data map relationship visualization -->
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- React 18 + ReactDOM for keyword data map component -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- html2canvas for full-page screenshot capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="index.css">
+
   </head>
   <body>
     <div class="min-h-screen bg-white flex flex-col">
@@ -114,6 +121,7 @@
             <button data-nav="super-erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">핵심 공공-민간 초융합형 ERD 데이터맵</button>
             <button data-nav="sql-playground" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
             <button data-nav="api-explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">로컬 API Explorer (169종)</button>
+            <button data-nav="keyword-datamap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-bold text-left transition-colors text-amber-700 bg-amber-50 border border-amber-200">🔍 키워드 데이터맵</button>
             <a href="#" class="mt-1 px-4 py-3 rounded-lg bg-gov-600 text-white text-sm font-medium text-center">사용자 안내</a>
           </div>
         </div>
@@ -221,6 +229,9 @@
               </button>
               <button data-tab="api-barcode" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm flex items-center gap-1">
                 <i class="ri-barcode-box-line"></i> 바코드 기반 안전 식품 조회
+              </button>
+              <button data-tab="keyword-datamap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-amber-700 bg-amber-50 border border-amber-300 hover:bg-amber-100 shadow-sm flex items-center gap-1">
+                <i class="ri-share-circle-line"></i> 키워드 데이터맵
               </button>
             </div>
           </div>

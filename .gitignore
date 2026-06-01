@@ -5,3 +5,4 @@ node_modules/
 ~$*
 crawl_cache.json
 samples/
+server.log

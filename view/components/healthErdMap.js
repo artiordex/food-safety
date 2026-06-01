@@ -65,7 +65,7 @@ export function renderHealthErdMap(containerId) {
       const data = await res.json();
 
       // --- Mermaid ERD ---
-      const mermaidCode = \`erDiagram
+      const mermaidCode = `erDiagram
     I0030 ||--o{ I0040 : "PRDLST_REPORT_NO"
     I0030 ||--o{ I0730 : "PRDLST_REPORT_NO"
     I0040 ||--o{ I2790 : "CRTFC_NO"
@@ -85,7 +85,7 @@ export function renderHealthErdMap(containerId) {
     I2790 {
         string RAW_MAT_NO PK "원료번호"
         string CRTFC_NO FK "인정번호"
-    }\`;
+    }`;
       
       mermaidContainer.innerHTML = mermaidCode;
       mermaidContainer.removeAttribute('data-processed');
@@ -119,45 +119,45 @@ export function renderHealthErdMap(containerId) {
       sampleContainer.id = 'health-table-container';
       sampleContainer.className = "col-span-1 lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden mt-2 flex flex-col";
       
-      let html = \`<div class="bg-slate-50 border-b border-slate-200 p-5 flex items-center justify-between">
+      let html = `<div class="bg-slate-50 border-b border-slate-200 p-5 flex items-center justify-between">
           <h4 class="font-bold text-slate-800 text-lg flex items-center gap-2">
             <i class="ri-link-m text-gov-600 text-xl"></i> 통합 데이터 조인 결과 (건강기능식품 샘플링 100건)
           </h4>
         </div>
-        <div class="p-6">\`;
+        <div class="p-6">`;
         
       const renderWideTable = (rows) => {
         if (!rows || rows.length === 0) return '<div class="p-4 text-slate-500 text-center">조인된 데이터가 없습니다.</div>';
         const keys = Object.keys(rows[0]);
-        return \`<div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
+        return `<div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm flex flex-col">
           <div class="overflow-x-auto h-[400px] overflow-y-auto bg-white custom-scrollbar">
             <table class="w-full text-left text-xs whitespace-nowrap">
               <thead class="bg-slate-100 sticky top-0 border-b border-slate-300 shadow-sm z-10">
-                <tr>\${keys.map(k => {
+                <tr>${keys.map(k => {
                   let bgClass = "bg-slate-100";
                   if(k.includes('[I0030]')) bgClass = "bg-blue-50";
                   else if(k.includes('[I0040]')) bgClass = "bg-purple-50";
                   else if(k.includes('[I0730]')) bgClass = "bg-emerald-50";
                   else if(k.includes('[I2790]')) bgClass = "bg-amber-50";
-                  return \`<th class="p-3 font-bold text-slate-700 border-r border-slate-200 last:border-0 \${bgClass}">\${k}</th>\`;
+                  return `<th class="p-3 font-bold text-slate-700 border-r border-slate-200 last:border-0 ${bgClass}">${k}</th>`;
                 }).join('')}</tr>
               </thead>
               <tbody>
-                \${rows.map(r => \`<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">\${keys.map(k => \`<td class="p-3 text-slate-700 border-r border-slate-100 last:border-0">\${r[k] || '<span class="text-slate-300">-</span>'}</td>\`).join('')}</tr>\`).join('')}
+                ${rows.map(r => `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">${keys.map(k => `<td class="p-3 text-slate-700 border-r border-slate-100 last:border-0">${r[k] || '<span class="text-slate-300">-</span>'}</td>`).join('')}</tr>`).join('')}
               </tbody>
             </table>
           </div>
-        </div>\`;
+        </div>`;
       };
 
       html += renderWideTable(data.sample_joined_data);
-      html += \`</div>\`;
+      html += `</div>`;
       sampleContainer.innerHTML = html;
       content.appendChild(sampleContainer);
 
     } catch (err) {
       console.error(err);
-      loading.innerHTML = \`<div class="text-rose-500 font-bold p-4 bg-rose-50 rounded-lg shadow border border-rose-200">데이터 로드 중 오류가 발생했습니다: \${err.message}</div>\`;
+      loading.innerHTML = `<div class="text-rose-500 font-bold p-4 bg-rose-50 rounded-lg shadow border border-rose-200">데이터 로드 중 오류가 발생했습니다: ${err.message}</div>`;
     }
   };
 
