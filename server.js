@@ -267,6 +267,125 @@ app.get('/api/relationships', (req, res) => {
   }
 });
 
+// 8. OpenAPI 실시간 전체 스캔 및 조인 기능 (SSE - Server-Sent Events)
+app.get('/api/live-join-stream', async (req, res) => {
+  const { tableA, tableB, joinKey } = req.query;
+
+  // SSE 헤더 설정
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    sendEvent({ type: 'status', message: `[1/4] ${tableA}, ${tableB} 데이터 총 건수 조회 중...` });
+
+    const fetchTotalCount = async (tableName) => {
+      if(tableName.startsWith('v_')) throw new Error("융합 뷰는 로컬 전용이므로 외부 실시간 조인에서 제외됩니다.");
+      const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/1/1`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data[tableName] && data[tableName].total_count) {
+        return parseInt(data[tableName].total_count, 10);
+      }
+      return 0;
+    };
+
+    const totalA = await fetchTotalCount(tableA);
+    const totalB = await fetchTotalCount(tableB);
+
+    if (totalA === 0 || totalB === 0) {
+      throw new Error(`데이터 건수가 0건이거나 API 호출에 실패했습니다. (${tableA}: ${totalA}, ${tableB}: ${totalB})`);
+    }
+
+    sendEvent({ type: 'status', message: `[2/4] 총 건수 확인 완료 (${tableA}: ${totalA}건, ${tableB}: ${totalB}건). 데이터 적재 시작...` });
+
+    const fetchAllData = async (tableName, totalCount) => {
+      const allRows = [];
+      const batchSize = 1000;
+      const parallelLimit = 8; // 최대 8개 동시 요청
+      
+      let promises = [];
+      for (let start = 1; start <= totalCount; start += batchSize) {
+        const end = Math.min(start + batchSize - 1, totalCount);
+        const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
+        
+        const fetchPromise = fetch(url).then(r => r.json()).then(data => {
+          if (data[tableName] && data[tableName].row) {
+            allRows.push(...data[tableName].row);
+          }
+          sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: totalCount });
+        }).catch(err => {
+          console.error(`Fetch error for ${tableName}:`, err);
+        });
+
+        promises.push(fetchPromise);
+
+        if (promises.length >= parallelLimit) {
+          await Promise.all(promises);
+          promises = [];
+        }
+      }
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+      return allRows;
+    };
+
+    sendEvent({ type: 'status', message: `[3/4] ${tableA} 및 ${tableB} 전체 데이터를 병렬 크롤링 중입니다. (대기 시간이 수 분 이상 소요될 수 있습니다)` });
+    
+    // 테이블 단위 순차 수집 (병렬 수집 시 서버 및 대역폭 과부하 방지)
+    const dataA = await fetchAllData(tableA, totalA);
+    const dataB = await fetchAllData(tableB, totalB);
+
+    sendEvent({ type: 'status', message: `[4/4] 수집 완료. 서버 메모리에서 '${joinKey}' 기준으로 Inner Join 연산을 수행 중...` });
+
+    // Inner Join 로직
+    const joinedData = [];
+    const mapB = new Map();
+
+    dataB.forEach(row => {
+      const keyVal = row[joinKey];
+      if (keyVal) {
+        if(!mapB.has(keyVal)) mapB.set(keyVal, []);
+        mapB.get(keyVal).push(row);
+      }
+    });
+
+    dataA.forEach(rowA => {
+      const keyVal = rowA[joinKey];
+      if (keyVal && mapB.has(keyVal)) {
+        const matchedRowsB = mapB.get(keyVal);
+        matchedRowsB.forEach(rowB => {
+          // 컬럼명 충돌 방지를 위해 접두어 추가
+          const merged = {};
+          Object.keys(rowA).forEach(k => merged[`${tableA}_${k}`] = rowA[k]);
+          Object.keys(rowB).forEach(k => merged[`${tableB}_${k}`] = rowB[k]);
+          joinedData.push(merged);
+        });
+      }
+    });
+
+    const maxTransfer = 1000;
+    sendEvent({ 
+      type: 'complete', 
+      totalMatched: joinedData.length, 
+      result: joinedData.slice(0, maxTransfer),
+      message: `성공적으로 ${joinedData.length}건이 매칭되었습니다. (브라우저 보호를 위해 상위 ${maxTransfer}건만 화면에 전송합니다)`
+    });
+    res.end();
+
+  } catch (err) {
+    console.error("SSE 조인 에러:", err);
+    sendEvent({ type: 'error', message: err.message });
+    res.end();
+  }
+});
+
 // 프론트엔드 정적 리소스 서빙
 app.use(express.static(__dirname));
 
