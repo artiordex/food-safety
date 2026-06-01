@@ -1,5 +1,37 @@
 export const datasets = [
   {
+    "id": "1471000",
+    "name": "식품영양성분 DB (1471000)",
+    "description": "국내 유통 및 소비되는 식품의 영양성분 함량 정보를 제공하는 데이터 세트입니다. API에서 직접 수집된 500건의 샘플이 로컬 테이블에 구축되어 있습니다.",
+    "users": ["일반사용자", "식단분석가", "연구원"],
+    "dataCount": 500,
+    "formats": ["SQLite", "JSON API"],
+    "difficulty": "easy",
+    "subject": "영양·건강",
+    "process": "식단관리",
+    "issue": "해당없음",
+    "theme": "일반 조회용",
+    "includedData": ["FOOD_CD", "FOOD_NM_KR", "DB_GRP_NM", "FOOD_CAT1_NM", "FOOD_CAT2_NM", "FOOD_CAT3_NM"],
+    "keys": ["FOOD_CD"],
+    "usageExample": "SELECT * FROM \"1471000\" LIMIT 10;",
+    "detail": {
+      "overview": "식품의약품안전처 식품영양성분 DB (1471000)를 API로부터 수집하여 구축한 로컬 테이블 데이터입니다.",
+      "includedList": ["FOOD_CD (식품코드)", "FOOD_NM_KR (식품명)", "DB_GRP_NM (DB군명)", "FOOD_CAT1_NM (식품대분류명)", "FOOD_CAT2_NM (식품중분류명)", "FOOD_CAT3_NM (식품소분류명)"],
+      "joinKeys": ["PK: FOOD_CD"],
+      "scenarios": ["식품 영양성분 정보 검색", "칼로리 및 성분 분석 앱"],
+      "recommendedUsers": ["다이어트/건강 관리 서비스 개발자", "영양학 연구원"],
+      "guideLinks": [
+        {
+          "label": "Open API 포털 안내",
+          "url": "https://www.foodsafetykorea.go.kr"
+        }
+      ],
+      "examples": [
+        "SELECT * FROM \"1471000\" LIMIT 10;"
+      ]
+    }
+  },
+  {
     "id": "v_user_barcode_allergy_dataset",
     "name": "알레르기·유해성분 바코드 데이터 세트 (v_user_barcode_allergy_dataset)",
     "description": "바코드 제품 정보(C005)를 기반으로 제조원재료 명세(C002)와 위해식품 회수 내역(I0490)을 1초 만에 매핑하는 초경량 실시간 안심 소비 데이터 세트입니다.",

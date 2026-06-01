@@ -19,6 +19,7 @@ const subjectColors = {
 export function renderDataMap(container, onSelectDataset) {
   let maxNodesLimit = 50;
   let activePhysics = true;
+  let activeSubjectFilter = '전체';
   let selectedNodeId = null;
   let networkInstance = null;
   let relationships = [];
@@ -78,6 +79,17 @@ export function renderDataMap(container, onSelectDataset) {
                 </label>
                 
                 <div class="h-4 w-[1px] bg-slate-200"></div>
+
+                <!-- 분야(Subject) 제어 필터 -->
+                <div class="flex items-center gap-1">
+                  <span class="text-[11px] font-bold text-slate-600 whitespace-nowrap">분야:</span>
+                  <select id="subject-filter-select" class="text-[11px] border border-slate-200 rounded px-2 py-1 outline-none focus:border-gov-400 bg-white shadow-sm font-medium">
+                    <option value="전체" ${activeSubjectFilter === '전체' ? 'selected' : ''}>전체 분야</option>
+                    ${Object.keys(subjectColors).map(subj => 
+                      `<option value="${subj}" ${activeSubjectFilter === subj ? 'selected' : ''}>${subj}</option>`
+                    ).join('')}
+                  </select>
+                </div>
 
                 <!-- 노드 한도 제어 필터 -->
                 <div class="flex items-center gap-1">
@@ -141,6 +153,15 @@ export function renderDataMap(container, onSelectDataset) {
       : datasets.map(ds => ({ id: ds.id, label: ds.name.split(' (')[0] }));
       
     let visibleNodes = baseNodes;
+
+    if (activeSubjectFilter !== '전체') {
+      visibleNodes = visibleNodes.filter(node => {
+        const ds = getDatasetById(node.id);
+        const subject = ds ? ds.subject : '기타';
+        return subject === activeSubjectFilter;
+      });
+    }
+
     if (visibleNodes.length > maxNodesLimit) {
       visibleNodes = visibleNodes.slice(0, maxNodesLimit);
     }
@@ -361,6 +382,15 @@ export function renderDataMap(container, onSelectDataset) {
     if (maxNodesSelect) {
       maxNodesSelect.addEventListener('change', (e) => {
         maxNodesLimit = parseInt(e.target.value);
+        initNetwork();
+      });
+    }
+
+    // 분야(Subject) 필터
+    const subjectSelect = container.querySelector('#subject-filter-select');
+    if (subjectSelect) {
+      subjectSelect.addEventListener('change', (e) => {
+        activeSubjectFilter = e.target.value;
         initNetwork();
       });
     }

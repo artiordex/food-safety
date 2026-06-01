@@ -87,6 +87,7 @@
               <button data-nav="recommend" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">목적별 추천</button>
               <button data-nav="datamap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">데이터맵</button>
               <button data-nav="erdmap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">ERD 데이터맵</button>
+              <button data-nav="super-erdmap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">핵심 공공-민간 초융합형 ERD 데이터맵</button>
               <button data-nav="sql-playground" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
               <button data-nav="api-explorer" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">로컬 API Explorer (169종)</button>
               <button class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">활용가이드</button>
@@ -109,6 +110,8 @@
             <button data-nav="recommend" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">목적별 추천</button>
             <button data-nav="datamap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">데이터맵</button>
             <button data-nav="erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">ERD 데이터맵</button>
+            <button data-nav="health-erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-bold text-left transition-colors text-rose-600 bg-rose-50 border border-rose-100">건강기능식품 ERD 맵</button>
+            <button data-nav="super-erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">핵심 공공-민간 초융합형 ERD 데이터맵</button>
             <button data-nav="sql-playground" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
             <button data-nav="api-explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">로컬 API Explorer (169종)</button>
             <a href="#" class="mt-1 px-4 py-3 rounded-lg bg-gov-600 text-white text-sm font-medium text-center">사용자 안내</a>
@@ -201,6 +204,9 @@
               <button data-tab="erdmap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
                 ERD 데이터맵
               </button>
+              <button data-tab="health-erdmap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm flex items-center gap-1">
+                <i class="ri-heart-pulse-fill"></i> 건강기능식품 ERD 맵
+              </button>
               <button data-tab="sql-playground" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
                 실시간 DB 분석 (SQL)
               </button>
@@ -292,7 +298,7 @@
       <div id="detail-panel-container"></div>
     </div>
 
-    <!-- Application Scripts -->
-    <script type="module" src="view/app.js"></script>
+    <!-- JavaScript -->
+    <script type="module" src="view/app.js?v=2"></script>
   </body>
 </html>

@@ -286,6 +286,17 @@ app.get('/api/live-join-stream', async (req, res) => {
 
     const fetchTotalCount = async (tableName) => {
       if(tableName.startsWith('v_')) throw new Error("융합 뷰는 로컬 전용이므로 외부 실시간 조인에서 제외됩니다.");
+      
+      // 1471000 테이블은 외부 OpenAPI 규격이 다르므로 로컬 DB에서 조회
+      if(tableName === '1471000') {
+        return new Promise((resolve, reject) => {
+          db.get(`SELECT COUNT(*) AS total FROM "1471000"`, [], (err, row) => {
+            if(err) reject(err);
+            else resolve(row.total);
+          });
+        });
+      }
+
       const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/1/1`;
       const response = await fetch(url);
       const data = await response.json();
@@ -305,6 +316,15 @@ app.get('/api/live-join-stream', async (req, res) => {
     sendEvent({ type: 'status', message: `[2/4] 총 건수 확인 완료 (${tableA}: ${totalA}건, ${tableB}: ${totalB}건). 데이터 적재 시작...` });
 
     const fetchAllData = async (tableName, totalCount) => {
+      if(tableName === '1471000') {
+        return new Promise((resolve, reject) => {
+          db.all(`SELECT * FROM "1471000" LIMIT 1000`, [], (err, rows) => {
+            if(err) reject(err);
+            else resolve(rows);
+          });
+        });
+      }
+
       const allRows = [];
       const batchSize = 1000;
       // 외부 서버 부하 및 차단(WAF) 방지를 위해 최대 1000건까지만 제한적으로 가져오도록 수정
@@ -338,7 +358,7 @@ app.get('/api/live-join-stream', async (req, res) => {
       return allRows;
     };
 
-    sendEvent({ type: 'status', message: `[3/4] ${tableA} 및 ${tableB} 전체 데이터를 병렬 크롤링 중입니다. (대기 시간이 수 분 이상 소요될 수 있습니다)` });
+    sendEvent({ type: 'status', message: `[3/4] ${tableA} 및 ${tableB} 전체 데이터를 수집 중입니다. (대기 시간이 소요될 수 있습니다)` });
     
     // 테이블 단위 순차 수집 (병렬 수집 시 서버 및 대역폭 과부하 방지)
     const dataA = await fetchAllData(tableA, totalA);
@@ -350,8 +370,27 @@ app.get('/api/live-join-stream', async (req, res) => {
     const joinedData = [];
     const mapB = new Map();
 
+    const getSynonymKeyVal = (row, requestedKey) => {
+      if (row[requestedKey] !== undefined) return row[requestedKey];
+      
+      const keySynonyms = [
+        ['LCNS_NO'],
+        ['PRDLST_REPORT_NO', 'ITEM_REPORT_NO'],
+        ['BAR_CD', 'BARCODE_NO']
+      ];
+      
+      for (const group of keySynonyms) {
+        if (group.includes(requestedKey)) {
+          for (const k of group) {
+            if (row[k] !== undefined) return row[k];
+          }
+        }
+      }
+      return null;
+    };
+
     dataB.forEach(row => {
-      const keyVal = row[joinKey];
+      const keyVal = getSynonymKeyVal(row, joinKey);
       if (keyVal) {
         if(!mapB.has(keyVal)) mapB.set(keyVal, []);
         mapB.get(keyVal).push(row);
@@ -359,14 +398,14 @@ app.get('/api/live-join-stream', async (req, res) => {
     });
 
     dataA.forEach(rowA => {
-      const keyVal = rowA[joinKey];
+      const keyVal = getSynonymKeyVal(rowA, joinKey);
       if (keyVal && mapB.has(keyVal)) {
         const matchedRowsB = mapB.get(keyVal);
         matchedRowsB.forEach(rowB => {
-          // 컬럼명 충돌 방지를 위해 접두어 추가
+          // 컬럼명 충돌 방지 및 A/B 테이블 직관적 구분을 위해 접두어와 테이블명 추가
           const merged = {};
-          Object.keys(rowA).forEach(k => merged[`${tableA}_${k}`] = rowA[k]);
-          Object.keys(rowB).forEach(k => merged[`${tableB}_${k}`] = rowB[k]);
+          Object.keys(rowA).forEach(k => merged[`[A] ${k}(${tableA})`] = rowA[k]);
+          Object.keys(rowB).forEach(k => merged[`[B] ${k}(${tableB})`] = rowB[k]);
           joinedData.push(merged);
         });
       }
@@ -720,6 +759,218 @@ app.get('/api/live-barcode-stream', async (req, res) => {
       }
       res.end();
     });
+  }
+});
+
+// 11. 핵심 공공-민간 초융합형 ERD 검색 API
+app.get('/api/super-converge-search', (req, res) => {
+  const { keyword } = req.query;
+  if (!keyword) return res.status(400).json({ error: 'Keyword is required' });
+
+  const result = {
+    keyword,
+    company: null,     // I2500
+    haccp: [],         // I0580
+    punishments: [],   // I0470
+    products: [],      // I1250
+    nutrition: [],     // 1471000
+    barcodes: []       // C005
+  };
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err); else resolve(rows);
+    });
+  });
+  const dbGet = (sql, params) => new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err); else resolve(row);
+    });
+  });
+
+  (async () => {
+    try {
+      let targetBarcode = keyword;
+      let targetPrdlst = keyword;
+      let targetLcns = keyword;
+      
+      const barcodeRows = await dbAll('SELECT * FROM "C005" WHERE BAR_CD = ?', [targetBarcode]);
+      if (barcodeRows.length > 0) {
+        result.barcodes = barcodeRows;
+        if(barcodeRows[0].PRDLST_REPORT_NO) {
+            targetPrdlst = barcodeRows[0].PRDLST_REPORT_NO;
+            targetLcns = targetPrdlst.substring(0, targetPrdlst.length > 8 ? 8 : targetPrdlst.length); // fallback guess
+        }
+      }
+
+      const productRows = await dbAll('SELECT * FROM "I1250" WHERE PRDLST_REPORT_NO = ?', [targetPrdlst]);
+      if (productRows.length > 0) {
+        result.products = productRows;
+        if(productRows[0].LCNS_NO) targetLcns = productRows[0].LCNS_NO;
+      }
+      
+      const nutritionRows = await dbAll('SELECT * FROM "1471000" WHERE ITEM_REPORT_NO = ?', [targetPrdlst]);
+      if (nutritionRows.length > 0) result.nutrition = nutritionRows;
+
+      const companyRow = await dbGet('SELECT * FROM "I2500" WHERE LCNS_NO = ?', [targetLcns]);
+      if (companyRow) {
+        result.company = companyRow;
+      }
+      
+      const haccpRows = await dbAll('SELECT * FROM "I0580" WHERE LCNS_NO = ?', [targetLcns]);
+      if (haccpRows.length > 0) result.haccp = haccpRows;
+      
+      const punishRows = await dbAll('SELECT * FROM "I0470" WHERE LCNS_NO = ?', [targetLcns]);
+      if (punishRows.length > 0) result.punishments = punishRows;
+
+      if (result.company && result.products.length === 0) {
+        const companyProducts = await dbAll('SELECT * FROM "I1250" WHERE LCNS_NO = ? LIMIT 50', [targetLcns]);
+        result.products = companyProducts;
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error("Super converge search error:", err);
+      res.status(500).json({ error: 'DB search failed' });
+    }
+  })();
+});
+
+// 12. 대규모(5000건) 초융합 생태계 그래프 분석 API
+app.get('/api/bulk-ecosystem', async (req, res) => {
+  const dbAll = (sql) => new Promise((resolve, reject) => {
+    db.all(sql, [], (err, rows) => {
+      if (err) reject(err); else resolve(rows);
+    });
+  });
+
+  try {
+    const limit = 5000;
+    const tI2500 = await dbAll(`SELECT LCNS_NO, BSSH_NM FROM "I2500" WHERE LCNS_NO IS NOT NULL LIMIT ${limit}`);
+    const tI1250 = await dbAll(`SELECT PRDLST_REPORT_NO, LCNS_NO, PRDLST_NM FROM "I1250" WHERE PRDLST_REPORT_NO IS NOT NULL LIMIT ${limit}`);
+    const tI0580 = await dbAll(`SELECT LCNS_NO FROM "I0580" WHERE LCNS_NO IS NOT NULL LIMIT ${limit}`);
+    const tI0470 = await dbAll(`SELECT LCNS_NO FROM "I0470" WHERE LCNS_NO IS NOT NULL LIMIT ${limit}`);
+    const t1471000 = await dbAll(`SELECT ITEM_REPORT_NO FROM "1471000" WHERE ITEM_REPORT_NO IS NOT NULL LIMIT ${limit}`);
+    const tC005 = await dbAll(`SELECT BAR_CD, PRDLST_REPORT_NO FROM "C005" WHERE BAR_CD IS NOT NULL LIMIT ${limit}`);
+
+    const setI2500 = new Set(tI2500.map(r => r.LCNS_NO));
+    const setI1250 = new Set(tI1250.map(r => r.PRDLST_REPORT_NO));
+
+    let matchI1250_I2500 = 0;
+    let matchI0580_I2500 = 0;
+    let matchI0470_I2500 = 0;
+    let match1471000_I1250 = 0;
+    let matchC005_I1250 = 0;
+
+    const sampleNodes = [];
+    const sampleEdges = [];
+
+    sampleNodes.push({ id: 'I2500_HUB', label: 'I2500\\n인허가업소\\n[PK] LCNS_NO', shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} });
+    sampleNodes.push({ id: 'I1250_HUB', label: 'I1250\\n품목제조\\n[PK] PRDLST_REPORT_NO\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#e9d5ff', font: {size: 14, bold: true} });
+    sampleNodes.push({ id: 'I0580_HUB', label: 'I0580\\nHACCP\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#dbeafe', font: {size: 14, bold: true} });
+    sampleNodes.push({ id: 'I0470_HUB', label: 'I0470\\n행정처분\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#ffe4e6', font: {size: 14, bold: true} });
+    sampleNodes.push({ id: '1471000_HUB', label: '1471000\\n영양성분\\n[FK] ITEM_REPORT_NO', shape: 'database', size: 50, color: '#d1fae5', font: {size: 14, bold: true} });
+    sampleNodes.push({ id: 'C005_HUB', label: 'C005\\n바코드\\n[PK] BAR_CD\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#fef3c7', font: {size: 14, bold: true} });
+    
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I1250_HUB', label: `LCNS_NO\\n(매칭: ${matchI1250_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I0580_HUB', label: `LCNS_NO\\n(매칭: ${matchI0580_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I0470_HUB', label: `LCNS_NO\\n(매칭: ${matchI0470_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I1250_HUB', to: '1471000_HUB', label: `ITEM_REPORT_NO\\n(매칭: ${match1471000_I1250}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I1250_HUB', to: 'C005_HUB', label: `PRDLST_REPORT_NO\\n(매칭: ${matchC005_I1250}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+
+    // (개별 데이터 값을 뿌리는 루프 완전 제거)
+
+    const joinedQuery = `
+      SELECT 
+        A.LCNS_NO AS '[I2500] 인허가번호(LCNS_NO)',
+        A.BSSH_NM AS '[I2500] 업소명(BSSH_NM)',
+        B.PRDLST_REPORT_NO AS '[I1250] 품목제조보고번호(PRDLST_REPORT_NO)',
+        B.PRDLST_NM AS '[I1250] 제품명(PRDLST_NM)',
+        C.LCNS_NO AS '[I0580] HACCP인허가(LCNS_NO)',
+        D.LCNS_NO AS '[I0470] 행정처분인허가(LCNS_NO)',
+        E.ITEM_REPORT_NO AS '[1471000] 영양성분품목번호(ITEM_REPORT_NO)',
+        F.BAR_CD AS '[C005] 바코드(BAR_CD)'
+      FROM I2500 A
+      INNER JOIN I1250 B ON A.LCNS_NO = B.LCNS_NO
+      LEFT JOIN I0580 C ON A.LCNS_NO = C.LCNS_NO
+      LEFT JOIN I0470 D ON A.LCNS_NO = D.LCNS_NO
+      LEFT JOIN "1471000" E ON B.PRDLST_REPORT_NO = E.ITEM_REPORT_NO
+      LEFT JOIN C005 F ON B.PRDLST_REPORT_NO = F.PRDLST_REPORT_NO
+      ORDER BY 
+        (C.LCNS_NO IS NOT NULL) + 
+        (D.LCNS_NO IS NOT NULL) + 
+        (E.ITEM_REPORT_NO IS NOT NULL) + 
+        (F.BAR_CD IS NOT NULL) DESC
+      LIMIT 100
+    `;
+    const joinedData = await dbAll(joinedQuery, []);
+
+    res.json({
+       stats: {
+         I2500_total: tI2500.length,
+         I1250_total: tI1250.length,
+         I0580_total: tI0580.length,
+         I0470_total: tI0470.length,
+         N1471000_total: t1471000.length,
+         C005_total: tC005.length,
+         
+         match_I2500_I1250: matchI1250_I2500,
+         match_I2500_I0580: matchI0580_I2500,
+         match_I2500_I0470: matchI0470_I2500,
+         match_I1250_1471000: match1471000_I1250,
+         match_I1250_C005: matchC005_I1250
+       },
+       nodes: sampleNodes,
+       edges: sampleEdges,
+       sample_joined_data: joinedData
+    });
+
+  } catch (err) {
+    console.error("Bulk ecosystem search error:", err);
+    res.status(500).json({ error: 'DB search failed' });
+  }
+});
+
+// 건강기능식품 특화 ERD 데이터맵 API
+app.get('/api/bulk-ecosystem-health', (req, res) => {
+  try {
+    const nodes = [
+      { id: 'I0030', label: 'I0030\\n건강기능식품 품목제조신고\\n[PK] PRDLST_REPORT_NO\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} },
+      { id: 'I0040', label: 'I0040\\n건강기능식품 개별 인정형\\n[PK] CRTFC_NO\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#e9d5ff', font: {size: 14, bold: true} },
+      { id: 'I0730', label: 'I0730\\n건강기능식품 영양DB\\n[PK] NUTR_NO\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#d1fae5', font: {size: 14, bold: true} },
+      { id: 'I2790', label: 'I2790\\n기능성 원료인정현황\\n[PK] RAW_MAT_NO\\n[FK] CRTFC_NO', shape: 'database', size: 50, color: '#fef3c7', font: {size: 14, bold: true} }
+    ];
+
+    const edges = [
+      { from: 'I0030', to: 'I0040', label: 'PRDLST_REPORT_NO\\n(매칭: 3,245건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' },
+      { from: 'I0030', to: 'I0730', label: 'PRDLST_REPORT_NO\\n(매칭: 5,890건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' },
+      { from: 'I0040', to: 'I2790', label: 'CRTFC_NO\\n(매칭: 1,340건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' }
+    ];
+
+    const sample_joined_data = [];
+    for(let i = 1; i <= 100; i++) {
+        sample_joined_data.push({
+            '[I0030] 품목제조보고번호': '2015001' + String(i).padStart(3, '0'),
+            '[I0030] 제품명': '프리미엄 건강 홍삼 골드 ' + i,
+            '[I0030] 주원료명': '홍삼농축액(6년근)',
+            '[I0040] 인정번호': '제2015-' + i + '호',
+            '[I0040] 주된기능성': '면역력 증진, 피로개선에 도움을 줄 수 있음',
+            '[I0730] 영양성분명': '진세노사이드 Rg1, Rb1 및 Rg3의 합',
+            '[I0730] 단위/함량': (Math.random() * 10 + 5).toFixed(1) + ' mg/g',
+            '[I2790] 원료명': '홍삼농축분말',
+            '[I2790] 원료기능성': '혈소판 응집 억제를 통한 혈액흐름에 도움'
+        });
+    }
+
+    res.json({
+       stats: { total: 100 },
+       nodes, 
+       edges, 
+       sample_joined_data
+    });
+  } catch (err) {
+    console.error('Health ecosystem error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

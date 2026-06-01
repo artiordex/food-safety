@@ -29,7 +29,7 @@ export function renderApiLiveJoin(container, onSelectDataset) {
               <label class="block text-xs font-bold text-slate-700 mb-1.5">기준 테이블 (Table A)</label>
               <select id="select-table-a" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
                 <option value="">테이블을 선택하세요</option>
-                ${apiTables.map(ds => `<option value="${ds.id}">${ds.id} : ${ds.name.split(' (')[0]}</option>`).join('')}
+                ${apiTables.map(ds => `<option value="${ds.id}">${ds.name.split(' (')[0]} [${ds.id}]</option>`).join('')}
               </select>
             </div>
             
@@ -42,7 +42,7 @@ export function renderApiLiveJoin(container, onSelectDataset) {
               <label class="block text-xs font-bold text-slate-700 mb-1.5">결합 대상 테이블 (Table B)</label>
               <select id="select-table-b" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
                 <option value="">테이블을 선택하세요</option>
-                ${apiTables.map(ds => `<option value="${ds.id}">${ds.id} : ${ds.name.split(' (')[0]}</option>`).join('')}
+                ${apiTables.map(ds => `<option value="${ds.id}">${ds.name.split(' (')[0]} [${ds.id}]</option>`).join('')}
               </select>
             </div>
 
@@ -135,10 +135,28 @@ export function renderApiLiveJoin(container, onSelectDataset) {
           const colsB = resB.map(c => c.name);
           
           // 공통 컬럼 교집합 찾기
-          const commonCols = colsA.filter(col => colsB.includes(col));
+          let commonCols = colsA.filter(col => colsB.includes(col));
+
+          // 동의어(Synonym) 확장에 따른 지능형 매칭 추가
+          const keySynonyms = [
+            ['PRDLST_REPORT_NO', 'ITEM_REPORT_NO'],
+            ['BAR_CD', 'BARCODE_NO']
+          ];
+          
+          if (commonCols.length === 0) {
+            for (const group of keySynonyms) {
+              const hasA = colsA.find(c => group.includes(c));
+              const hasB = colsB.find(c => group.includes(c));
+              if (hasA && hasB) {
+                // 두 테이블에 동의어 그룹 내의 키가 각각 존재하면 공통 키로 간주
+                commonCols.push(hasA); // 입력창엔 Table A의 키 이름을 대표로 넣음
+                break;
+              }
+            }
+          }
           
           if (commonCols.length > 0) {
-            datalist.innerHTML = commonCols.map(col => `<option value="${col}">추천 공통 키</option>`).join('');
+            datalist.innerHTML = commonCols.map(col => `<option value="${col}">추천 공통 키 (Synonym 포함)</option>`).join('');
             // 자동으로 첫 번째 공통 키를 입력창에 세팅 (사용자 편의성)
             inputKey.value = commonCols[0];
             keyHint.textContent = `${commonCols.length}개의 공통 키 발견!`;
@@ -247,7 +265,7 @@ export function renderApiLiveJoin(container, onSelectDataset) {
 
     const renderResult = (rows, totalMatched) => {
       if (!rows || rows.length === 0) {
-        appendLog('WARN', '조인된 결과 데이터가 없습니다. (매칭되는 조인 키 값이 없음)');
+        appendLog('WARN', '조인된 결과 데이터가 없습니다. (두 테이블 간 조인 키의 실제 데이터 값이 일치하는 항목이 없음)');
         return;
       }
 

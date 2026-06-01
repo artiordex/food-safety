@@ -103,6 +103,26 @@ INNER JOIN (SELECT * FROM "I2711" GROUP BY "PRDLST_REPORT_NO") B
 INNER JOIN (SELECT * FROM "I2713" GROUP BY "LCNS_NO") C
     ON A."LCNS_NO" = C."LCNS_NO"
 LIMIT 5;`
+  },
+  {
+    id: "nutrition_join",
+    title: "식품영양성분 DB [1471000] ↔ 품목제조마스터 [I1250]",
+    description: "영양성분 데이터(1471000)의 '품목보고번호(ITEM_REPORT_NO)'를 활용하여 품목제조마스터(I1250)의 실제 제조업체 및 보고 등록명과 결합합니다.",
+    sql: `SELECT DISTINCT
+    A."ITEM_REPORT_NO" AS '품목보고번호',
+    A."FOOD_NM_KR" AS '영양DB_식품명',
+    A."MAKER_NM" AS '영양DB_제조사',
+    A."AMT_NUM1" AS '열량(kcal)',
+    A."AMT_NUM3" AS '단백질(g)',
+    A."AMT_NUM4" AS '지방(g)',
+    A."AMT_NUM7" AS '탄수화물(g)',
+    A."AMT_NUM14" AS '나트륨(mg)',
+    B."PRDLST_NM" AS '품목보고_제품명',
+    B."BSSH_NM" AS '인허가_업소명'
+FROM "1471000" A
+INNER JOIN "I1250" B
+    ON A."ITEM_REPORT_NO" = B."PRDLST_REPORT_NO"
+LIMIT 15;`
   }
 ];
 
