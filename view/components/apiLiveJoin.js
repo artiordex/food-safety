@@ -47,9 +47,15 @@ export function renderApiLiveJoin(container, onSelectDataset) {
             </div>
 
             <!-- Join Key Input -->
-            <div class="w-full md:w-48">
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">조인 기준 키 (Join Key)</label>
-              <input type="text" id="input-join-key" value="LCNS_NO" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-mono" placeholder="예: LCNS_NO" />
+            <div class="w-full md:w-64 relative">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                <span>조인 기준 키 (Join Key)</span>
+                <span id="join-key-hint" class="text-[10px] text-emerald-600 font-normal hidden">추천 키 발견됨!</span>
+              </label>
+              <input type="text" id="input-join-key" list="join-key-suggestions" value="LCNS_NO" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-mono" placeholder="검색 또는 입력 (예: LCNS_NO)" />
+              <datalist id="join-key-suggestions">
+                <!-- Dynamically populated -->
+              </datalist>
             </div>
 
             <!-- Start Button -->
@@ -99,11 +105,60 @@ export function renderApiLiveJoin(container, onSelectDataset) {
     const selA = container.querySelector('#select-table-a');
     const selB = container.querySelector('#select-table-b');
     const inputKey = container.querySelector('#input-join-key');
+    const datalist = container.querySelector('#join-key-suggestions');
+    const keyHint = container.querySelector('#join-key-hint');
     const logContainer = container.querySelector('#progress-container');
     const logContent = container.querySelector('#log-content');
     const resultContainer = container.querySelector('#result-container');
 
     let eventSource = null;
+
+    // 테이블 스키마에서 공통 컬럼(Join Key 후보)을 추출하는 로직
+    const updateJoinKeySuggestions = async () => {
+      const tableA = selA.value;
+      const tableB = selB.value;
+      
+      datalist.innerHTML = '';
+      keyHint.classList.add('hidden');
+      keyHint.textContent = '';
+
+      if (!tableA || !tableB) return;
+
+      try {
+        const [resA, resB] = await Promise.all([
+          fetch(`/api/tables/${tableA}/schema`).then(r => r.json()),
+          fetch(`/api/tables/${tableB}/schema`).then(r => r.json())
+        ]);
+
+        if (Array.isArray(resA) && Array.isArray(resB)) {
+          const colsA = resA.map(c => c.name);
+          const colsB = resB.map(c => c.name);
+          
+          // 공통 컬럼 교집합 찾기
+          const commonCols = colsA.filter(col => colsB.includes(col));
+          
+          if (commonCols.length > 0) {
+            datalist.innerHTML = commonCols.map(col => `<option value="${col}">추천 공통 키</option>`).join('');
+            // 자동으로 첫 번째 공통 키를 입력창에 세팅 (사용자 편의성)
+            inputKey.value = commonCols[0];
+            keyHint.textContent = `${commonCols.length}개의 공통 키 발견!`;
+            keyHint.classList.remove('hidden');
+          } else {
+            // 공통 키가 없으면 그냥 두 테이블의 모든 컬럼을 후보로 제공
+            const allCols = [...new Set([...colsA, ...colsB])];
+            datalist.innerHTML = allCols.map(col => `<option value="${col}"></option>`).join('');
+            keyHint.textContent = `공통 키 없음`;
+            keyHint.classList.remove('hidden');
+            keyHint.classList.replace('text-emerald-600', 'text-amber-500');
+          }
+        }
+      } catch (err) {
+        console.warn('스키마 조회 실패 (Join Key 추천 불가):', err);
+      }
+    };
+
+    selA.addEventListener('change', updateJoinKeySuggestions);
+    selB.addEventListener('change', updateJoinKeySuggestions);
 
     btnStart.addEventListener('click', () => {
       const tableA = selA.value;

@@ -130,7 +130,7 @@ export const datasets = [
   {
     "id": "api_tables",
     "name": "api_tables (api_tables)",
-    "description": "식약처 OpenAPI api_tables 데이터베이스 테이블입니다. 총 169건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI api_tables 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
@@ -198,7 +198,7 @@ export const datasets = [
   {
     "id": "api_columns",
     "name": "api_columns (api_columns)",
-    "description": "식약처 OpenAPI api_columns 데이터베이스 테이블입니다. 총 1867건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI api_columns 데이터베이스 테이블입니다. 총 12개의 컬럼으로 구성되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
@@ -269,12 +269,12 @@ export const datasets = [
   {
     "id": "I0600",
     "name": "HACCP 교육훈련기관 지정 현황 (I0600)",
-    "description": "식약처 OpenAPI I0600 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0600 데이터베이스 테이블입니다. 총 6개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -329,12 +329,12 @@ export const datasets = [
   {
     "id": "I0580",
     "name": "HACCP 적용업소 지정 현황 (I0580)",
-    "description": "식약처 OpenAPI I0580 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0580 데이터베이스 테이블입니다. 총 14개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -400,12 +400,12 @@ export const datasets = [
   {
     "id": "I0130",
     "name": "LMO 수입 승인 현황 (I0130)",
-    "description": "식약처 OpenAPI I0130 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0130 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -467,12 +467,12 @@ export const datasets = [
   {
     "id": "I2580",
     "name": "개별기준규격 (I2580)",
-    "description": "식약처 OpenAPI I2580 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2580 데이터베이스 테이블입니다. 총 41개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -697,12 +697,12 @@ export const datasets = [
   {
     "id": "I0310",
     "name": "건강기능식품 생산실적 보고 품목 현황 (I0310)",
-    "description": "식약처 OpenAPI I0310 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0310 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -764,12 +764,12 @@ export const datasets = [
   {
     "id": "I0760",
     "name": "건강기능식품 영양DB (I0760)",
-    "description": "식약처 OpenAPI I0760 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0760 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -894,12 +894,12 @@ export const datasets = [
   {
     "id": "I2822",
     "name": "건강기능식품 폐업정보 (I2822)",
-    "description": "식약처 OpenAPI I2822 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2822 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -961,12 +961,12 @@ export const datasets = [
   {
     "id": "I2710",
     "name": "건강기능식품 품목분류정보 (I2710)",
-    "description": "식약처 OpenAPI I2710 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2710 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -1027,12 +1027,12 @@ export const datasets = [
   {
     "id": "I0030",
     "name": "건강기능식품 품목제조 신고사항 현황 (I0030)",
-    "description": "식약처 OpenAPI I0030 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0030 데이터베이스 테이블입니다. 총 26개의 컬럼으로 구성되며, 약 325,295건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 325295,
     "formats": [
       "SQLite",
       "Open API"
@@ -1110,12 +1110,12 @@ export const datasets = [
   {
     "id": "C003",
     "name": "건강기능식품 품목제조신고(원재료) (C003)",
-    "description": "식약처 OpenAPI C003 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C003 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 497,262건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 497262,
     "formats": [
       "SQLite",
       "Open API"
@@ -1185,12 +1185,12 @@ export const datasets = [
   {
     "id": "I0630",
     "name": "건강기능식품GMP 지정 현황 (I0630)",
-    "description": "식약처 OpenAPI I0630 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0630 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -1249,12 +1249,12 @@ export const datasets = [
   {
     "id": "I0960",
     "name": "건강기능식품공전 (I0960)",
-    "description": "식약처 OpenAPI I0960 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0960 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -1322,12 +1322,12 @@ export const datasets = [
   {
     "id": "I2860",
     "name": "건강기능식품업소 인허가 변경 정보 (I2860)",
-    "description": "식약처 OpenAPI I2860 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2860 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -1387,12 +1387,12 @@ export const datasets = [
   {
     "id": "I2839",
     "name": "건강기능식품제조업, 건강기능식품판매업 지도단속계획 및 실적현황 (I2839)",
-    "description": "식약처 OpenAPI I2839 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2839 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 295,668건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 295668,
     "formats": [
       "SQLite",
       "Open API"
@@ -1452,12 +1452,12 @@ export const datasets = [
   {
     "id": "I1290",
     "name": "건강기능식품판매업 (I1290)",
-    "description": "식약처 OpenAPI I1290 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1290 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -1518,12 +1518,12 @@ export const datasets = [
   {
     "id": "I2640",
     "name": "검사부적합 현황(농산물) (I2640)",
-    "description": "식약처 OpenAPI I2640 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2640 데이터베이스 테이블입니다. 총 17개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -1592,12 +1592,12 @@ export const datasets = [
   {
     "id": "I2620",
     "name": "검사부적합(국내) (I2620)",
-    "description": "식약처 OpenAPI I2620 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2620 데이터베이스 테이블입니다. 총 19개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -1668,12 +1668,12 @@ export const datasets = [
   {
     "id": "I2857",
     "name": "공유주방운영업 인허가 대장 (I2857)",
-    "description": "식약처 OpenAPI I2857 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2857 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 295,668건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 295668,
     "formats": [
       "SQLite",
       "Open API"
@@ -1735,12 +1735,12 @@ export const datasets = [
   {
     "id": "I2600",
     "name": "공통기준규격 (I2600)",
-    "description": "식약처 OpenAPI I2600 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2600 데이터베이스 테이블입니다. 총 43개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -1837,12 +1837,12 @@ export const datasets = [
   {
     "id": "I2610",
     "name": "공통기준제외 (I2610)",
-    "description": "식약처 OpenAPI I2610 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2610 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -1903,12 +1903,12 @@ export const datasets = [
   {
     "id": "I2590",
     "name": "공통기준종류 (I2590)",
-    "description": "식약처 OpenAPI I2590 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2590 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -1967,12 +1967,12 @@ export const datasets = [
   {
     "id": "I1660",
     "name": "과징금부과기준 (I1660)",
-    "description": "식약처 OpenAPI I1660 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1660 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -2029,12 +2029,12 @@ export const datasets = [
   {
     "id": "I1670",
     "name": "과태료부과기준 (I1670)",
-    "description": "식약처 OpenAPI I1670 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1670 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -2093,12 +2093,12 @@ export const datasets = [
   {
     "id": "I0910",
     "name": "국외검사기관 인정 현황 (I0910)",
-    "description": "식약처 OpenAPI I0910 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0910 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -2157,12 +2157,12 @@ export const datasets = [
   {
     "id": "I0990",
     "name": "기구 및 용기.포장의 한시적 기준 및 규격 인정 현황 (I0990)",
-    "description": "식약처 OpenAPI I0990 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0990 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -2223,12 +2223,12 @@ export const datasets = [
   {
     "id": "I1240",
     "name": "기구.용기포장제조업 (I1240)",
-    "description": "식약처 OpenAPI I1240 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1240 데이터베이스 테이블입니다. 총 ?개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -2289,12 +2289,12 @@ export const datasets = [
   {
     "id": "I1100",
     "name": "기구등의 살균소독제 기준규격 (I1100)",
-    "description": "식약처 OpenAPI I1100 데이터베이스 테이블입니다. 총 0건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1100 데이터베이스 테이블입니다. 총 16개의 컬럼으로 구성되며, 약 341,204건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 0,
+    "dataCount": 341204,
     "formats": [
       "SQLite",
       "Open API"
@@ -2360,12 +2360,12 @@ export const datasets = [
   {
     "id": "I1010",
     "name": "기구등의 살균소독제 한시적 기준 및 규격 인정 현황 (I1010)",
-    "description": "식약처 OpenAPI I1010 데이터베이스 테이블입니다. 총 2건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1010 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 341,204건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 2,
+    "dataCount": 341204,
     "formats": [
       "SQLite",
       "Open API"
@@ -2426,12 +2426,12 @@ export const datasets = [
   {
     "id": "I2847",
     "name": "나트륨 줄이기 실천음식점 지정업체 대장 (I2847)",
-    "description": "식약처 OpenAPI I2847 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2847 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 426,353건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 426353,
     "formats": [
       "SQLite",
       "Open API"
@@ -2490,12 +2490,12 @@ export const datasets = [
   {
     "id": "I1870",
     "name": "농산물 안전성검사기관 정보 (I1870)",
-    "description": "식약처 OpenAPI I1870 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1870 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -2554,12 +2554,12 @@ export const datasets = [
   {
     "id": "I1790",
     "name": "농산물이력추적 생산정보 (I1790)",
-    "description": "식약처 OpenAPI I1790 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1790 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -2618,12 +2618,12 @@ export const datasets = [
   {
     "id": "I1800",
     "name": "농산물이력추적 유통정보 (I1800)",
-    "description": "식약처 OpenAPI I1800 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1800 데이터베이스 테이블입니다. 총 5개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -2674,12 +2674,12 @@ export const datasets = [
   {
     "id": "I1910",
     "name": "농약 등록정보 (I1910)",
-    "description": "식약처 OpenAPI I1910 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1910 데이터베이스 테이블입니다. 총 30개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -2759,12 +2759,12 @@ export const datasets = [
   {
     "id": "I1040",
     "name": "농약잔류허용기준 (I1040)",
-    "description": "식약처 OpenAPI I1040 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1040 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 270,727건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270727,
     "formats": [
       "SQLite",
       "Open API"
@@ -2819,12 +2819,12 @@ export const datasets = [
   {
     "id": "I1850",
     "name": "농축산물유통관리 허위표시공표정보 (I1850)",
-    "description": "식약처 OpenAPI I1850 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1850 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -2879,12 +2879,12 @@ export const datasets = [
   {
     "id": "I1860",
     "name": "농축산물유통관리 허위표시품목정보 (I1860)",
-    "description": "식약처 OpenAPI I1860 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1860 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -2944,12 +2944,12 @@ export const datasets = [
   {
     "id": "I2858",
     "name": "도축업 인허가 대장 (I2858)",
-    "description": "식약처 OpenAPI I2858 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2858 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 478,189건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 478189,
     "formats": [
       "SQLite",
       "Open API"
@@ -3009,12 +3009,12 @@ export const datasets = [
   {
     "id": "I1070",
     "name": "동물용의약품 현황 (I1070)",
-    "description": "식약처 OpenAPI I1070 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1070 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -3082,12 +3082,12 @@ export const datasets = [
   {
     "id": "I1080",
     "name": "동물의약품별 잔류허용 기준 (I1080)",
-    "description": "식약처 OpenAPI I1080 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1080 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -3148,12 +3148,12 @@ export const datasets = [
   {
     "id": "I2410",
     "name": "물환경 수질정보 (I2410)",
-    "description": "식약처 OpenAPI I2410 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2410 데이터베이스 테이블입니다. 총 19개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -3222,12 +3222,12 @@ export const datasets = [
   {
     "id": "C005",
     "name": "바코드연계제품정보 (C005)",
-    "description": "식약처 OpenAPI C005 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C005 데이터베이스 테이블입니다. 총 12개의 컬럼으로 구성되며, 약 292,856건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 292856,
     "formats": [
       "SQLite",
       "Open API"
@@ -3289,12 +3289,12 @@ export const datasets = [
   {
     "id": "I1030",
     "name": "방사선조사식품 품목 인정 현황 (I1030)",
-    "description": "식약처 OpenAPI I1030 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1030 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -3357,12 +3357,12 @@ export const datasets = [
   {
     "id": "I2540",
     "name": "법령코드 (I2540)",
-    "description": "식약처 OpenAPI I2540 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2540 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -3425,12 +3425,12 @@ export const datasets = [
   {
     "id": "I2381",
     "name": "상수도 수질정보 (I2381)",
-    "description": "식약처 OpenAPI I2381 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2381 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -3491,12 +3491,12 @@ export const datasets = [
   {
     "id": "I2852",
     "name": "생산중단제품정보 (I2852)",
-    "description": "식약처 OpenAPI I2852 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2852 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -3558,12 +3558,12 @@ export const datasets = [
   {
     "id": "I1830",
     "name": "쇠고기(국내)이력추적 가공관리 (I1830)",
-    "description": "식약처 OpenAPI I1830 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1830 데이터베이스 테이블입니다. 총 5개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -3616,12 +3616,12 @@ export const datasets = [
   {
     "id": "I1810",
     "name": "쇠고기(국내)이력추적 생산정보 (I1810)",
-    "description": "식약처 OpenAPI I1810 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1810 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -3682,12 +3682,12 @@ export const datasets = [
   {
     "id": "I1820",
     "name": "쇠고기(국내)이력추적 정보 (I1820)",
-    "description": "식약처 OpenAPI I1820 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1820 데이터베이스 테이블입니다. 총 16개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -3755,12 +3755,12 @@ export const datasets = [
   {
     "id": "I0460",
     "name": "수거검사 계획 및 실적 관련 현황 (I0460)",
-    "description": "식약처 OpenAPI I0460 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0460 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -3825,12 +3825,12 @@ export const datasets = [
   {
     "id": "I1380",
     "name": "수산물 수입업체 현황 정보 (I1380)",
-    "description": "식약처 OpenAPI I1380 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1380 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -3887,12 +3887,12 @@ export const datasets = [
   {
     "id": "I2020",
     "name": "수산물 표시단속정보 (I2020)",
-    "description": "식약처 OpenAPI I2020 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2020 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -3953,12 +3953,12 @@ export const datasets = [
   {
     "id": "I2050",
     "name": "수산물 해외등록시설정보 (I2050)",
-    "description": "식약처 OpenAPI I2050 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2050 데이터베이스 테이블입니다. 총 14개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -4024,12 +4024,12 @@ export const datasets = [
   {
     "id": "I1920",
     "name": "수산물이력정보-기본정보 (I1920)",
-    "description": "식약처 OpenAPI I1920 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1920 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -4084,12 +4084,12 @@ export const datasets = [
   {
     "id": "I1930",
     "name": "수산물이력정보-생산정보 (I1930)",
-    "description": "식약처 OpenAPI I1930 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1930 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -4148,12 +4148,12 @@ export const datasets = [
   {
     "id": "I1940",
     "name": "수산물이력정보-출하정보 (I1940)",
-    "description": "식약처 OpenAPI I1940 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1940 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -4216,12 +4216,12 @@ export const datasets = [
   {
     "id": "I2780",
     "name": "수입쇠고기 냉동전환 정보 (I2780)",
-    "description": "식약처 OpenAPI I2780 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2780 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -4286,12 +4286,12 @@ export const datasets = [
   {
     "id": "I1720",
     "name": "수입쇠고기 유통이력정보 (I1720)",
-    "description": "식약처 OpenAPI I1720 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1720 데이터베이스 테이블입니다. 총 14개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -4357,12 +4357,12 @@ export const datasets = [
   {
     "id": "C001",
     "name": "수입식품등영업신고대장 (C001)",
-    "description": "식약처 OpenAPI C001 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C001 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 265,001건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 265001,
     "formats": [
       "SQLite",
       "Open API"
@@ -4423,12 +4423,12 @@ export const datasets = [
   {
     "id": "I2821",
     "name": "수입식품업 폐업정보 (I2821)",
-    "description": "식약처 OpenAPI I2821 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2821 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -4490,12 +4490,12 @@ export const datasets = [
   {
     "id": "I2781",
     "name": "수입축산물 냉동전환 정보 (I2781)",
-    "description": "식약처 OpenAPI I2781 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2781 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -4560,12 +4560,12 @@ export const datasets = [
   {
     "id": "I1060",
     "name": "시약정보 (I1060)",
-    "description": "식약처 OpenAPI I1060 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1060 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -4620,12 +4620,12 @@ export const datasets = [
   {
     "id": "I2530",
     "name": "시험항목코드 (I2530)",
-    "description": "식약처 OpenAPI I2530 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2530 데이터베이스 테이블입니다. 총 16개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -4693,12 +4693,12 @@ export const datasets = [
   {
     "id": "I2836",
     "name": "식용란선별포장업 인허가 대장 (I2836)",
-    "description": "식약처 OpenAPI I2836 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2836 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 320,200건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 320200,
     "formats": [
       "SQLite",
       "Open API"
@@ -4758,12 +4758,12 @@ export const datasets = [
   {
     "id": "I2835",
     "name": "식육즉석판매가공업 인허가 대장 (I2835)",
-    "description": "식약처 OpenAPI I2835 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2835 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -4823,12 +4823,12 @@ export const datasets = [
   {
     "id": "I2827",
     "name": "식육즉석판매가공업 폐업정보 (I2827)",
-    "description": "식약처 OpenAPI I2827 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2827 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 320,200건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 320200,
     "formats": [
       "SQLite",
       "Open API"
@@ -4890,12 +4890,12 @@ export const datasets = [
   {
     "id": "I2850",
     "name": "식중독 원인물질별 현황 (I2850)",
-    "description": "식약처 OpenAPI I2850 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2850 데이터베이스 테이블입니다. 총 6개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -4948,12 +4948,12 @@ export const datasets = [
   {
     "id": "I2849",
     "name": "식중독 원인시설별 현황 (I2849)",
-    "description": "식약처 OpenAPI I2849 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2849 데이터베이스 테이블입니다. 총 6개의 컬럼으로 구성되며, 약 478,189건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 478189,
     "formats": [
       "SQLite",
       "Open API"
@@ -5006,12 +5006,12 @@ export const datasets = [
   {
     "id": "I2848",
     "name": "식중독 지역별 현황 (I2848)",
-    "description": "식약처 OpenAPI I2848 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2848 데이터베이스 테이블입니다. 총 6개의 컬럼으로 구성되며, 약 295,668건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 295668,
     "formats": [
       "SQLite",
       "Open API"
@@ -5064,12 +5064,12 @@ export const datasets = [
   {
     "id": "I1250",
     "name": "식품(첨가물)품목제조보고 (I1250)",
-    "description": "식약처 OpenAPI I1250 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1250 데이터베이스 테이블입니다. 총 19개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -5140,12 +5140,12 @@ export const datasets = [
   {
     "id": "C002",
     "name": "식품(첨가물)품목제조보고(원재료) (C002)",
-    "description": "식약처 OpenAPI C002 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C002 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 147,607건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 147607,
     "formats": [
       "SQLite",
       "Open API"
@@ -5208,12 +5208,12 @@ export const datasets = [
   {
     "id": "I0300",
     "name": "식품.식품첨가물 생산실적 보고 현황 (I0300)",
-    "description": "식약처 OpenAPI I0300 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0300 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 325,295건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 325295,
     "formats": [
       "SQLite",
       "Open API"
@@ -5275,12 +5275,12 @@ export const datasets = [
   {
     "id": "I0920",
     "name": "식품검사기관별 시험항목정보조회 (I0920)",
-    "description": "식약처 OpenAPI I0920 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0920 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -5341,12 +5341,12 @@ export const datasets = [
   {
     "id": "I0930",
     "name": "식품공전 (I0930)",
-    "description": "식약처 OpenAPI I0930 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0930 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -5414,12 +5414,12 @@ export const datasets = [
   {
     "id": "I2833",
     "name": "식품냉동.냉장업 인허가 대장 (I2833)",
-    "description": "식약처 OpenAPI I2833 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2833 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -5479,12 +5479,12 @@ export const datasets = [
   {
     "id": "I1260",
     "name": "식품등수입판매업정보 (I1260)",
-    "description": "식약처 OpenAPI I1260 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1260 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -5545,12 +5545,12 @@ export const datasets = [
   {
     "id": "I1590",
     "name": "식품모범음식점 (I1590)",
-    "description": "식약처 OpenAPI I1590 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1590 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -5611,12 +5611,12 @@ export const datasets = [
   {
     "id": "I1050",
     "name": "식품별 농약잔류허용기준 (I1050)",
-    "description": "식약처 OpenAPI I1050 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1050 데이터베이스 테이블입니다. 총 14개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -5680,12 +5680,12 @@ export const datasets = [
   {
     "id": "I2854",
     "name": "식품별 유해오염물질 검출량 (I2854)",
-    "description": "식약처 OpenAPI I2854 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2854 데이터베이스 테이블입니다. 총 25개의 컬럼으로 구성되며, 약 320,200건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 320200,
     "formats": [
       "SQLite",
       "Open API"
@@ -5760,12 +5760,12 @@ export const datasets = [
   {
     "id": "I2817",
     "name": "식품보존업 폐업정보 (I2817)",
-    "description": "식약처 OpenAPI I2817 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2817 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -5827,12 +5827,12 @@ export const datasets = [
   {
     "id": "I2831",
     "name": "식품소분업 인허가 대장 (I2831)",
-    "description": "식약처 OpenAPI I2831 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2831 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -5892,12 +5892,12 @@ export const datasets = [
   {
     "id": "I2815",
     "name": "식품소분업 폐업정보 (I2815)",
-    "description": "식약처 OpenAPI I2815 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2815 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -5959,12 +5959,12 @@ export const datasets = [
   {
     "id": "I2859",
     "name": "식품업소 인허가 변경 정보 (I2859)",
-    "description": "식약처 OpenAPI I2859 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2859 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 395,108건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 395108,
     "formats": [
       "SQLite",
       "Open API"
@@ -6024,12 +6024,12 @@ export const datasets = [
   {
     "id": "I0940",
     "name": "식품용 기구 및 용기.포장 공전 (I0940)",
-    "description": "식약처 OpenAPI I0940 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0940 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -6097,12 +6097,12 @@ export const datasets = [
   {
     "id": "I2830",
     "name": "식품운반업 인허가 대장 (I2830)",
-    "description": "식약처 OpenAPI I2830 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2830 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -6162,12 +6162,12 @@ export const datasets = [
   {
     "id": "I2814",
     "name": "식품운반업 폐업정보 (I2814)",
-    "description": "식약처 OpenAPI I2814 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2814 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -6229,12 +6229,12 @@ export const datasets = [
   {
     "id": "I0980",
     "name": "식품원료의 한시적 기준 및 규격 인정 현황 (I0980)",
-    "description": "식약처 OpenAPI I0980 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0980 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -6295,12 +6295,12 @@ export const datasets = [
   {
     "id": "I1020",
     "name": "식품원재료(식물,동물,미생물,수산물) 정보 (I1020)",
-    "description": "식약처 OpenAPI I1020 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1020 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 325,295건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 325295,
     "formats": [
       "SQLite",
       "Open API"
@@ -6361,12 +6361,12 @@ export const datasets = [
   {
     "id": "I2520",
     "name": "식품원재료코드 (I2520)",
-    "description": "식약처 OpenAPI I2520 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2520 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -6436,12 +6436,12 @@ export const datasets = [
   {
     "id": "I0890",
     "name": "식품위생검사기관 지정 현황 (I0890)",
-    "description": "식약처 OpenAPI I0890 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0890 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -6498,12 +6498,12 @@ export const datasets = [
   {
     "id": "I1560",
     "name": "식품위생교육내역 (I1560)",
-    "description": "식약처 OpenAPI I1560 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1560 데이터베이스 테이블입니다. 총 16개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -6571,12 +6571,12 @@ export const datasets = [
   {
     "id": "I1540",
     "name": "식품위생등급평가관리내역 (I1540)",
-    "description": "식약처 OpenAPI I1540 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1540 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -6641,12 +6641,12 @@ export const datasets = [
   {
     "id": "I0320",
     "name": "식품이력추적관리 등록 현황 (I0320)",
-    "description": "식약처 OpenAPI I0320 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0320 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 270,727건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270727,
     "formats": [
       "SQLite",
       "Open API"
@@ -6713,12 +6713,12 @@ export const datasets = [
   {
     "id": "I2819",
     "name": "식품접객업 폐업정보 (I2819)",
-    "description": "식약처 OpenAPI I2819 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2819 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 358,235건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 358235,
     "formats": [
       "SQLite",
       "Open API"
@@ -6780,12 +6780,12 @@ export const datasets = [
   {
     "id": "C004",
     "name": "식품접객업소 위생등급 지정현황 (C004)",
-    "description": "식약처 OpenAPI C004 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C004 데이터베이스 테이블입니다. 총 19개의 컬럼으로 구성되며, 약 228,653건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 228653,
     "formats": [
       "SQLite",
       "Open API"
@@ -6856,12 +6856,12 @@ export const datasets = [
   {
     "id": "I1200",
     "name": "식품접객업정보 (I1200)",
-    "description": "식약처 OpenAPI I1200 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1200 데이터베이스 테이블입니다. 총 23개의 컬럼으로 구성되며, 약 325,295건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 325295,
     "formats": [
       "SQLite",
       "Open API"
@@ -6936,12 +6936,12 @@ export const datasets = [
   {
     "id": "I2811",
     "name": "식품제조가공업 폐업정보 (I2811)",
-    "description": "식약처 OpenAPI I2811 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2811 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -7003,12 +7003,12 @@ export const datasets = [
   {
     "id": "I1220",
     "name": "식품제조가공업정보 (I1220)",
-    "description": "식약처 OpenAPI I1220 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1220 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 270,727건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270727,
     "formats": [
       "SQLite",
       "Open API"
@@ -7135,12 +7135,12 @@ export const datasets = [
   {
     "id": "I0950",
     "name": "식품첨가물공전 (I0950)",
-    "description": "식약처 OpenAPI I0950 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0950 데이터베이스 테이블입니다. 총 15개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -7208,12 +7208,12 @@ export const datasets = [
   {
     "id": "I1101",
     "name": "식품첨가물의 기준 및 규격 현황 (I1101)",
-    "description": "식약처 OpenAPI I1101 데이터베이스 테이블입니다. 총 0건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1101 데이터베이스 테이블입니다. 총 17개의 컬럼으로 구성되며, 약 325,295건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 0,
+    "dataCount": 325295,
     "formats": [
       "SQLite",
       "Open API"
@@ -7280,12 +7280,12 @@ export const datasets = [
   {
     "id": "I1000",
     "name": "식품첨가물의 한시적 기준 및 규격 인정 현황 (I1000)",
-    "description": "식약처 OpenAPI I1000 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1000 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 270,592건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270592,
     "formats": [
       "SQLite",
       "Open API"
@@ -7344,12 +7344,12 @@ export const datasets = [
   {
     "id": "I1230",
     "name": "식품첨가물제조업 (I1230)",
-    "description": "식약처 OpenAPI I1230 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1230 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -7410,12 +7410,12 @@ export const datasets = [
   {
     "id": "I2813",
     "name": "식품첨가물제조업 폐업정보 (I2813)",
-    "description": "식약처 OpenAPI I2813 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2813 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -7477,12 +7477,12 @@ export const datasets = [
   {
     "id": "I2832",
     "name": "식품판매업 인허가 대장 (I2832)",
-    "description": "식약처 OpenAPI I2832 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2832 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -7542,12 +7542,12 @@ export const datasets = [
   {
     "id": "I2816",
     "name": "식품판매업 폐업정보 (I2816)",
-    "description": "식약처 OpenAPI I2816 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2816 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -7609,12 +7609,12 @@ export const datasets = [
   {
     "id": "I1650",
     "name": "신고대상분류기준 (I1650)",
-    "description": "식약처 OpenAPI I1650 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1650 데이터베이스 테이블입니다. 총 5개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -7665,12 +7665,12 @@ export const datasets = [
   {
     "id": "I1980",
     "name": "어류질병정보 (I1980)",
-    "description": "식약처 OpenAPI I1980 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1980 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -7727,12 +7727,12 @@ export const datasets = [
   {
     "id": "I2846",
     "name": "어린이 급식센터 지원현황 (I2846)",
-    "description": "식약처 OpenAPI I2846 데이터베이스 테이블입니다. 총 2건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2846 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 358,235건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 2,
+    "dataCount": 358235,
     "formats": [
       "SQLite",
       "Open API"
@@ -7793,12 +7793,12 @@ export const datasets = [
   {
     "id": "I0080",
     "name": "어린이 기호식품 품질인증 현황 및 재심사 현황 (I0080)",
-    "description": "식약처 OpenAPI I0080 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0080 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -7861,12 +7861,12 @@ export const datasets = [
   {
     "id": "I0340",
     "name": "어린이 식품안전보호구역 관리 현황 (I0340)",
-    "description": "식약처 OpenAPI I0340 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0340 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -7925,12 +7925,12 @@ export const datasets = [
   {
     "id": "I2840",
     "name": "어린이 우수판매업소 지정현황 (I2840)",
-    "description": "식약처 OpenAPI I2840 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2840 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -7987,12 +7987,12 @@ export const datasets = [
   {
     "id": "I2560",
     "name": "영업소재지 GIS 코드 (I2560)",
-    "description": "식약처 OpenAPI I2560 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2560 데이터베이스 테이블입니다. 총 22개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -8066,12 +8066,12 @@ export const datasets = [
   {
     "id": "I2818",
     "name": "용기.포장류제조업 폐업정보 (I2818)",
-    "description": "식약처 OpenAPI I2818 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2818 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 320,200건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 320200,
     "formats": [
       "SQLite",
       "Open API"
@@ -8133,12 +8133,12 @@ export const datasets = [
   {
     "id": "I2837",
     "name": "용어사전(기구용기포장∙식의약품용어집) (I2837)",
-    "description": "식약처 OpenAPI I2837 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2837 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 358,235건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 358235,
     "formats": [
       "SQLite",
       "Open API"
@@ -8193,12 +8193,12 @@ export const datasets = [
   {
     "id": "I0250",
     "name": "우수수입업소 등록 현황 (I0250)",
-    "description": "식약처 OpenAPI I0250 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0250 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -8260,12 +8260,12 @@ export const datasets = [
   {
     "id": "I1550",
     "name": "위생공통교육기관내역 (I1550)",
-    "description": "식약처 OpenAPI I1550 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1550 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -8322,12 +8322,12 @@ export const datasets = [
   {
     "id": "I0680",
     "name": "위생관리등급별 업소 현황 (I0680)",
-    "description": "식약처 OpenAPI I0680 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0680 데이터베이스 테이블입니다. 총 6개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -8382,12 +8382,12 @@ export const datasets = [
   {
     "id": "I2823",
     "name": "위생용품 폐업정보 (I2823)",
-    "description": "식약처 OpenAPI I2823 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2823 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -8449,12 +8449,12 @@ export const datasets = [
   {
     "id": "I2714",
     "name": "위생용품수입업영업신고대장 (I2714)",
-    "description": "식약처 OpenAPI I2714 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2714 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -8515,12 +8515,12 @@ export const datasets = [
   {
     "id": "I2851",
     "name": "위생용품영업 생산실적보고 (I2851)",
-    "description": "식약처 OpenAPI I2851 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2851 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -8581,12 +8581,12 @@ export const datasets = [
   {
     "id": "I2713",
     "name": "위생용품영업정보 (I2713)",
-    "description": "식약처 OpenAPI I2713 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2713 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -8647,12 +8647,12 @@ export const datasets = [
   {
     "id": "I2711",
     "name": "위생용품품목제조보고 (I2711)",
-    "description": "식약처 OpenAPI I2711 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2711 데이터베이스 테이블입니다. 총 11개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -8715,12 +8715,12 @@ export const datasets = [
   {
     "id": "I2712",
     "name": "위생용품품목제조보고(원재료) (I2712)",
-    "description": "식약처 OpenAPI I2712 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2712 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -8779,12 +8779,12 @@ export const datasets = [
   {
     "id": "I0140",
     "name": "유전자변형식품등의 안전성 평가 심사 결과 현황 (I0140)",
-    "description": "식약처 OpenAPI I0140 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0140 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 270,727건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270727,
     "formats": [
       "SQLite",
       "Open API"
@@ -8846,12 +8846,12 @@ export const datasets = [
   {
     "id": "I2570",
     "name": "유통바코드 (I2570)",
-    "description": "식약처 OpenAPI I2570 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2570 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -8912,12 +8912,12 @@ export const datasets = [
   {
     "id": "I2861",
     "name": "음식점업소 인허가 변경 정보 (I2861)",
-    "description": "식약처 OpenAPI I2861 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2861 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -8977,12 +8977,12 @@ export const datasets = [
   {
     "id": "I2500",
     "name": "인허가 업소 정보 (I2500)",
-    "description": "식약처 OpenAPI I2500 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2500 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -9041,12 +9041,12 @@ export const datasets = [
   {
     "id": "I1090",
     "name": "잔류동물의약품 식품별 잔류허용 기준 (I1090)",
-    "description": "식약처 OpenAPI I1090 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1090 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 74,223건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 74223,
     "formats": [
       "SQLite",
       "Open API"
@@ -9103,12 +9103,12 @@ export const datasets = [
   {
     "id": "COOKRCP01",
     "name": "조리식품의 레시피 DB (COOKRCP01)",
-    "description": "식약처 OpenAPI COOKRCP01 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI COOKRCP01 데이터베이스 테이블입니다. 총 56개의 컬럼으로 구성되며, 약 343,730건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 343730,
     "formats": [
       "SQLite",
       "Open API"
@@ -9216,12 +9216,12 @@ export const datasets = [
   {
     "id": "I0060",
     "name": "주류제조.면허자 식품제조.가공영업 등록 현황 (I0060)",
-    "description": "식약처 OpenAPI I0060 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0060 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -9282,12 +9282,12 @@ export const datasets = [
   {
     "id": "I2829",
     "name": "즉석판매제조가공업 인허가 대장 (I2829)",
-    "description": "식약처 OpenAPI I2829 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2829 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 426,353건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 426353,
     "formats": [
       "SQLite",
       "Open API"
@@ -9347,12 +9347,12 @@ export const datasets = [
   {
     "id": "I2812",
     "name": "즉석판매제조가공업 폐업정보 (I2812)",
-    "description": "식약처 OpenAPI I2812 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2812 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -9414,12 +9414,12 @@ export const datasets = [
   {
     "id": "I2400",
     "name": "지하수수질측정망 측정결과 (I2400)",
-    "description": "식약처 OpenAPI I2400 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2400 데이터베이스 테이블입니다. 총 30개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -9499,12 +9499,12 @@ export const datasets = [
   {
     "id": "I1210",
     "name": "집단급식소 설치 현황 (I1210)",
-    "description": "식약처 OpenAPI I1210 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1210 데이터베이스 테이블입니다. 총 14개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -9570,12 +9570,12 @@ export const datasets = [
   {
     "id": "I2834",
     "name": "집단급식소 인허가 대장 (I2834)",
-    "description": "식약처 OpenAPI I2834 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2834 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -9635,12 +9635,12 @@ export const datasets = [
   {
     "id": "I2820",
     "name": "집단급식소 폐업정보 (I2820)",
-    "description": "식약처 OpenAPI I2820 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2820 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -9702,12 +9702,12 @@ export const datasets = [
   {
     "id": "I2550",
     "name": "처분기준코드 (I2550)",
-    "description": "식약처 OpenAPI I2550 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2550 데이터베이스 테이블입니다. 총 12개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -9771,12 +9771,12 @@ export const datasets = [
   {
     "id": "I2824",
     "name": "축산물 가공업 폐업정보 (I2824)",
-    "description": "식약처 OpenAPI I2824 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2824 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -9838,12 +9838,12 @@ export const datasets = [
   {
     "id": "I1300",
     "name": "축산물 가공업허가정보 (I1300)",
-    "description": "식약처 OpenAPI I1300 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1300 데이터베이스 테이블입니다. 총 9개의 컬럼으로 구성되며, 약 266,067건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 266067,
     "formats": [
       "SQLite",
       "Open API"
@@ -9904,12 +9904,12 @@ export const datasets = [
   {
     "id": "I1330",
     "name": "축산물 보관업영업허가대장 (I1330)",
-    "description": "식약처 OpenAPI I1330 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1330 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -9968,12 +9968,12 @@ export const datasets = [
   {
     "id": "I1420",
     "name": "축산물 생산실적정보 (I1420)",
-    "description": "식약처 OpenAPI I1420 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1420 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -10035,12 +10035,12 @@ export const datasets = [
   {
     "id": "I2825",
     "name": "축산물 식육포장처리업 폐업정보 (I2825)",
-    "description": "식약처 OpenAPI I2825 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2825 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 251,675건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 251675,
     "formats": [
       "SQLite",
       "Open API"
@@ -10102,12 +10102,12 @@ export const datasets = [
   {
     "id": "I1320",
     "name": "축산물 식육포장처리업영업허가대장 (I1320)",
-    "description": "식약처 OpenAPI I1320 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1320 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"
@@ -10169,12 +10169,12 @@ export const datasets = [
   {
     "id": "I1340",
     "name": "축산물 운반업영업신고대장 (I1340)",
-    "description": "식약처 OpenAPI I1340 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1340 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -10233,12 +10233,12 @@ export const datasets = [
   {
     "id": "I1370",
     "name": "축산물 집유업영업허가대장 (I1370)",
-    "description": "식약처 OpenAPI I1370 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1370 데이터베이스 테이블입니다. 총 12개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -10302,12 +10302,12 @@ export const datasets = [
   {
     "id": "I2826",
     "name": "축산물 판매업 폐업정보 (I2826)",
-    "description": "식약처 OpenAPI I2826 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2826 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 263,073건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 263073,
     "formats": [
       "SQLite",
       "Open API"
@@ -10369,12 +10369,12 @@ export const datasets = [
   {
     "id": "I1350",
     "name": "축산물 판매업영업신고대장 (I1350)",
-    "description": "식약처 OpenAPI I1350 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1350 데이터베이스 테이블입니다. 총 8개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -10433,12 +10433,12 @@ export const datasets = [
   {
     "id": "I1310",
     "name": "축산물 품목제조정보 (I1310)",
-    "description": "식약처 OpenAPI I1310 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1310 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 270,727건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 270727,
     "formats": [
       "SQLite",
       "Open API"
@@ -10503,12 +10503,12 @@ export const datasets = [
   {
     "id": "I2828",
     "name": "축산물(도축업,보관업,운반업,집유업,식용란선별포장업) 폐업정보 (I2828)",
-    "description": "식약처 OpenAPI I2828 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2828 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 358,235건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 358235,
     "formats": [
       "SQLite",
       "Open API"
@@ -10570,12 +10570,12 @@ export const datasets = [
   {
     "id": "I0610",
     "name": "축산물HACCP 지정정보 (I0610)",
-    "description": "식약처 OpenAPI I0610 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0610 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 285,122건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 285122,
     "formats": [
       "SQLite",
       "Open API"
@@ -10640,12 +10640,12 @@ export const datasets = [
   {
     "id": "I0900",
     "name": "축산물위생검사기관 지정 현황 (I0900)",
-    "description": "식약처 OpenAPI I0900 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0900 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 443,080건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 443080,
     "formats": [
       "SQLite",
       "Open API"
@@ -10700,12 +10700,12 @@ export const datasets = [
   {
     "id": "C006",
     "name": "축산물품목제조보고(원재료) (C006)",
-    "description": "식약처 OpenAPI C006 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI C006 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 92,769건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 92769,
     "formats": [
       "SQLite",
       "Open API"
@@ -10767,12 +10767,12 @@ export const datasets = [
   {
     "id": "I2390",
     "name": "토양지하수 토양실태조사정보 (I2390)",
-    "description": "식약처 OpenAPI I2390 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2390 데이터베이스 테이블입니다. 총 29개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -10853,12 +10853,12 @@ export const datasets = [
   {
     "id": "I1960",
     "name": "패류독소정보 (I1960)",
-    "description": "식약처 OpenAPI I1960 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I1960 데이터베이스 테이블입니다. 총 13개의 컬럼으로 구성되며, 약 243,332건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 243332,
     "formats": [
       "SQLite",
       "Open API"
@@ -10923,12 +10923,12 @@ export const datasets = [
   {
     "id": "I2856",
     "name": "푸드트럭지정현황조회 (I2856)",
-    "description": "식약처 OpenAPI I2856 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2856 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 426,353건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 426353,
     "formats": [
       "SQLite",
       "Open API"
@@ -10990,12 +10990,12 @@ export const datasets = [
   {
     "id": "I2510",
     "name": "품목유형코드 (I2510)",
-    "description": "식약처 OpenAPI I2510 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2510 데이터베이스 테이블입니다. 총 20개의 컬럼으로 구성되며, 약 1,772건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 1772,
     "formats": [
       "SQLite",
       "Open API"
@@ -11067,12 +11067,12 @@ export const datasets = [
   {
     "id": "I2380",
     "name": "하수도 수질정보 (I2380)",
-    "description": "식약처 OpenAPI I2380 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2380 데이터베이스 테이블입니다. 총 22개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -11144,12 +11144,12 @@ export const datasets = [
   {
     "id": "I2810",
     "name": "해외 위해식품 회수정보 (I2810)",
-    "description": "식약처 OpenAPI I2810 데이터베이스 테이블입니다. 총 1건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2810 데이터베이스 테이블입니다. 총 7개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 1,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -11204,12 +11204,12 @@ export const datasets = [
   {
     "id": "I2715",
     "name": "해외직구 위해식품 차단정보 (I2715)",
-    "description": "식약처 OpenAPI I2715 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2715 데이터베이스 테이블입니다. 총 12개의 컬럼으로 구성되며, 약 452,990건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 452990,
     "formats": [
       "SQLite",
       "Open API"
@@ -11273,12 +11273,12 @@ export const datasets = [
   {
     "id": "I0470",
     "name": "행정처분결과 (I0470)",
-    "description": "식약처 OpenAPI I0470 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0470 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -11348,12 +11348,12 @@ export const datasets = [
   {
     "id": "I0482",
     "name": "행정처분결과(수입식품업) (I0482)",
-    "description": "식약처 OpenAPI I0482 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0482 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 414,110건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 414110,
     "formats": [
       "SQLite",
       "Open API"
@@ -11423,12 +11423,12 @@ export const datasets = [
   {
     "id": "I2630",
     "name": "행정처분결과(식품접객업) (I2630)",
-    "description": "식약처 OpenAPI I2630 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I2630 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 72,556건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 72556,
     "formats": [
       "SQLite",
       "Open API"
@@ -11498,12 +11498,12 @@ export const datasets = [
   {
     "id": "I0480",
     "name": "행정처분결과(식품제조가공업) (I0480)",
-    "description": "식약처 OpenAPI I0480 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0480 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 22,525건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 22525,
     "formats": [
       "SQLite",
       "Open API"
@@ -11573,12 +11573,12 @@ export const datasets = [
   {
     "id": "I0481",
     "name": "행정처분결과(식품판매업) (I0481)",
-    "description": "식약처 OpenAPI I0481 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0481 데이터베이스 테이블입니다. 총 18개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -11648,12 +11648,12 @@ export const datasets = [
   {
     "id": "I0490",
     "name": "회수.판매중지 정보 (I0490)",
-    "description": "식약처 OpenAPI I0490 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0490 데이터베이스 테이블입니다. 총 20개의 컬럼으로 구성되며, 약 106,248건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 106248,
     "formats": [
       "SQLite",
       "Open API"
@@ -11725,12 +11725,12 @@ export const datasets = [
   {
     "id": "I0150",
     "name": "후대교배종의 안전성 평가 신청 및 검토 정보 (I0150)",
-    "description": "식약처 OpenAPI I0150 데이터베이스 테이블입니다. 총 5건의 데이터가 포함되어 있습니다.",
+    "description": "식약처 OpenAPI I0150 데이터베이스 테이블입니다. 총 10개의 컬럼으로 구성되며, 약 54,984건의 데이터가 적재되어 있습니다.",
     "users": [
       "개발자",
       "데이터분석가"
     ],
-    "dataCount": 5,
+    "dataCount": 54984,
     "formats": [
       "SQLite",
       "Open API"

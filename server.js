@@ -307,18 +307,20 @@ app.get('/api/live-join-stream', async (req, res) => {
     const fetchAllData = async (tableName, totalCount) => {
       const allRows = [];
       const batchSize = 1000;
-      const parallelLimit = 8; // 최대 8개 동시 요청
+      // 외부 서버 부하 및 차단(WAF) 방지를 위해 최대 1000건까지만 제한적으로 가져오도록 수정
+      const safeTotalCount = Math.min(totalCount, 1000);
+      const parallelLimit = 8;
       
       let promises = [];
-      for (let start = 1; start <= totalCount; start += batchSize) {
-        const end = Math.min(start + batchSize - 1, totalCount);
+      for (let start = 1; start <= safeTotalCount; start += batchSize) {
+        const end = Math.min(start + batchSize - 1, safeTotalCount);
         const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
         
         const fetchPromise = fetch(url).then(r => r.json()).then(data => {
           if (data[tableName] && data[tableName].row) {
             allRows.push(...data[tableName].row);
           }
-          sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: totalCount });
+          sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: safeTotalCount });
         }).catch(err => {
           console.error(`Fetch error for ${tableName}:`, err);
         });
