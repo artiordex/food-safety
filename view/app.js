@@ -6,6 +6,8 @@ import { renderDetailPanel } from './components/detailPanel.js';
 import { renderSqlPlayground } from './components/sqlPlayground.js';
 import { renderApiExplorer } from './components/apiExplorer.js';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js';
+import { renderLocalHygiene } from './components/localHygiene.js';
+import { renderBarcodeSearch } from './components/barcodeSearch.js';
 
 let activeTab = 'explorer'; // 'explorer', 'recommend', 'datamap', 'erdmap'
 let selectedDataset = null;
@@ -37,6 +39,10 @@ const renderTabContent = () => {
     renderApiExplorer(tabContent, onSelectDataset);
   } else if (activeTab === 'api-live-join') {
     renderApiLiveJoin(tabContent, onSelectDataset);
+  } else if (activeTab === 'api-hygiene') {
+    renderLocalHygiene(tabContent, onSelectDataset);
+  } else if (activeTab === 'api-barcode') {
+    renderBarcodeSearch(tabContent, onSelectDataset);
   }
 };
 
@@ -47,13 +53,13 @@ const updateActiveTabUI = () => {
 
     if (btn.classList.contains('tab-pill')) {
       if (tabId === activeTab) {
-        if (tabId === 'api-live-join') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-emerald-600 text-white shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm flex items-center gap-1";
         }
       } else {
-        if (tabId === 'api-live-join') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1";
@@ -61,7 +67,7 @@ const updateActiveTabUI = () => {
       }
     } else {
       if (tabId === activeTab) {
-        if (tabId === 'api-live-join') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.classList.add('bg-emerald-50', 'text-emerald-700');
           btn.classList.remove('text-emerald-600', 'hover:bg-emerald-50');
         } else {
@@ -69,7 +75,7 @@ const updateActiveTabUI = () => {
           btn.classList.remove('text-slate-600', 'hover:text-gov-700', 'hover:bg-slate-50');
         }
       } else {
-        if (tabId === 'api-live-join') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.classList.remove('bg-emerald-50', 'text-emerald-700');
           btn.classList.add('text-emerald-600', 'hover:bg-emerald-50');
         } else {
