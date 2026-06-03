@@ -1,130 +1,7 @@
 // view/components/sqlPlayground.js
 
-// join.sql에서 엄선한 6개 핵심 JOIN 및 분석 시나리오 쿼리 명세
-const joinScenarios = [
-  {
-    id: "haccp_join",
-    title: "HACCP 적용업소 [I0580] ↔ 인허가 업소 정보 [I2500]",
-    description: "HACCP 지정 업소의 실제 영업 신고 대장 및 인허가 세부 상세 정보를 인허가번호(LCNS_NO) 기준으로 결합하여 분석합니다.",
-    sql: `SELECT DISTINCT
-    A."LCNS_NO" AS '매칭키_LCNS_NO',
-    A."BSSH_NM" AS 'HACCP_업소명',
-    A."PRDLST_NM" AS 'HACCP_지정품목',
-    B."BSSH_NM" AS '인허가_업소명',
-    B."PRSDNT_NM" AS '대표자명',
-    B."ADDR" AS '소재지주소',
-    B."PRMS_DT" AS '인허가일자'
-FROM (SELECT * FROM "I0580" GROUP BY "LCNS_NO") A
-INNER JOIN (SELECT * FROM "I2500" GROUP BY "LCNS_NO") B
-    ON A."LCNS_NO" = B."LCNS_NO"
-LIMIT 10;`
-  },
-  {
-    id: "spec_join",
-    title: "식품 개별기준규격 [I2580] ↔ 시험항목코드 [I2530]",
-    description: "각 식품 개별 규격 항목별로 매칭된 구체적인 시험 항목 명칭과 적용 최대/최소 기준 및 단위를 식별합니다.",
-    sql: `SELECT DISTINCT
-    A."TESTITM_CD" AS '매칭키_TESTITM_CD',
-    A."PRDLST_CD_NM" AS '식품분류명',
-    A."TESTITM_NM" AS '규격시험명',
-    A."SPEC_VAL_SUMUP" AS '기준치요약',
-    B."TESTITM_NM" AS '코드명칭',
-    B."TESTITM_LCLAS_NM" AS '시험대분류'
-FROM (SELECT * FROM "I2580" GROUP BY "TESTITM_CD") A
-INNER JOIN (SELECT * FROM "I2530" GROUP BY "TESTITM_CD") B
-    ON A."TESTITM_CD" = B."TESTITM_CD"
-LIMIT 10;`
-  },
-  {
-    id: "lmo_status",
-    title: "LMO 수입 승인 현황 [I0130] 전체 조회",
-    description: "승인 완료된 유전자변형생물체(LMO)의 승인번호, 승인일자, 수입업소명 및 용도(PRPOS)를 조회합니다.",
-    sql: `SELECT 
-    LMO_CONFM_NO AS 'LMO승인번호',
-    CONFM_DT AS '승인일자',
-    BSSH_NM AS '수입업소명',
-    COMMON_NM AS '일반명칭',
-    SYSTM_NM AS '이벤트명',
-    PRPOS AS '수입용도'
-FROM "I0130"
-ORDER BY CONFM_DT DESC
-LIMIT 15;`
-  },
-  {
-    id: "health_food_join",
-    title: "건강기능식품 개별인정형 [I-0050] ↔ 기능성원료인정 [I-0040]",
-    description: "개별적으로 기능성 인정을 획득한 건강기능식품 원료들의 1일 섭취량 상/하한선 규격과 상세 효능(기능성 내용)을 매핑합니다.",
-    sql: `SELECT DISTINCT
-    A."HF_FNCLTY_MTRAL_RCOGN_NO" AS '인정번호',
-    A."RAWMTRL_NM" AS '원료명',
-    A."PRIMARY_FNCLTY" AS '대표기능성',
-    A."DAY_INTK_LOWLIMIT" AS '섭취하한치',
-    A."DAY_INTK_HIGHLIMIT" AS '섭취상한치',
-    A."WT_UNIT" AS '단위',
-    B."FNCLTY_CN" AS '기능성상세내용',
-    B."BSSH_NM" AS '인정신청업체'
-FROM (SELECT * FROM "I-0050" GROUP BY "HF_FNCLTY_MTRAL_RCOGN_NO") A
-INNER JOIN (SELECT * FROM "I-0040" GROUP BY "HF_FNCLTY_MTRAL_RCOGN_NO") B
-    ON A."HF_FNCLTY_MTRAL_RCOGN_NO" = B."HF_FNCLTY_MTRAL_RCOGN_NO"
-LIMIT 10;`
-  },
-  {
-    id: "barcode_join",
-    title: "바코드 연계 제품 [C005] ↔ 축산물 품목제조정보 [I1310]",
-    description: "시중 유통되는 바코드(유통기한 정보 포함)와 실제 식품의약품안전처에 신고된 축산물 품목제조의 원재료 및 규격 상세 보고 명세를 연결합니다.",
-    sql: `SELECT DISTINCT
-    A."PRDLST_REPORT_NO" AS '품목보고번호',
-    A."BAR_CD" AS '바코드번호',
-    A."PRDLST_NM" AS '제품명',
-    B."BSSH_NM" AS '제조업소명',
-    B."PRDLST_NM" AS '보고등록제품명',
-    B."RAWMTRL_NM" AS '주요원재료명세'
-FROM (SELECT * FROM "C005" GROUP BY "PRDLST_REPORT_NO") A
-INNER JOIN (SELECT * FROM "I1310" GROUP BY "PRDLST_REPORT_NO") B
-    ON A."PRDLST_REPORT_NO" = B."PRDLST_REPORT_NO"
-LIMIT 10;`
-  },
-  {
-    id: "sanitary_3way_join",
-    title: "위생용품 3-WAY 연쇄 JOIN [I2851] ↔ [I2711] ↔ [I2713]",
-    description: "생산실적이 보고된 위생용품을 바탕으로, 해당 위생용품의 구체적인 품목 제조 성분 구조와 제조사 영업 허가 정보를 다차원 결합합니다.",
-    sql: `SELECT DISTINCT
-    A."PRDLST_REPORT_NO" AS '품목보고번호',
-    A."LCNS_NO" AS '영업인허가번호',
-    A."PRDLST_NM" AS '생산보고제품명',
-    A."PRDCTN_QY" AS '연간생산량',
-    B."PRDLST_NM" AS '품목제조제품명',
-    B."RAWMTRL_NM" AS '원료성분배합',
-    C."BSSH_NM" AS '위생영업소명',
-    C."LOCP_ADDR" AS '위생영업소주소'
-FROM (SELECT * FROM "I2851" GROUP BY "PRDLST_REPORT_NO") A
-INNER JOIN (SELECT * FROM "I2711" GROUP BY "PRDLST_REPORT_NO") B
-    ON A."PRDLST_REPORT_NO" = B."PRDLST_REPORT_NO"
-INNER JOIN (SELECT * FROM "I2713" GROUP BY "LCNS_NO") C
-    ON A."LCNS_NO" = C."LCNS_NO"
-LIMIT 5;`
-  },
-  {
-    id: "nutrition_join",
-    title: "식품영양성분 DB [1471000] ↔ 품목제조마스터 [I1250]",
-    description: "영양성분 데이터(1471000)의 '품목보고번호(ITEM_REPORT_NO)'를 활용하여 품목제조마스터(I1250)의 실제 제조업체 및 보고 등록명과 결합합니다.",
-    sql: `SELECT DISTINCT
-    A."ITEM_REPORT_NO" AS '품목보고번호',
-    A."FOOD_NM_KR" AS '영양DB_식품명',
-    A."MAKER_NM" AS '영양DB_제조사',
-    A."AMT_NUM1" AS '열량(kcal)',
-    A."AMT_NUM3" AS '단백질(g)',
-    A."AMT_NUM4" AS '지방(g)',
-    A."AMT_NUM7" AS '탄수화물(g)',
-    A."AMT_NUM14" AS '나트륨(mg)',
-    B."PRDLST_NM" AS '품목보고_제품명',
-    B."BSSH_NM" AS '인허가_업소명'
-FROM "1471000" A
-INNER JOIN "I1250" B
-    ON A."ITEM_REPORT_NO" = B."PRDLST_REPORT_NO"
-LIMIT 15;`
-  }
-];
+// join.sql에서 동적 로드되는 JOIN 시나리오 목록 (서버에서 파싱)
+let joinScenarios = [];
 
 export function renderSqlPlayground(container, onSelectDataset) {
   let tableList = [];
@@ -134,8 +11,18 @@ export function renderSqlPlayground(container, onSelectDataset) {
   let tableData = [];
   let isTableLoading = false;
 
+  const getLogicalTitle = (title) => {
+    if (!tableList || tableList.length === 0) return title;
+    let newTitle = title;
+    tableList.forEach(t => {
+      const regex = new RegExp(`\\b${t.name}\\b`, 'g');
+      newTitle = newTitle.replace(regex, `${t.logicalName}(${t.name})`);
+    });
+    return newTitle;
+  };
+
   // SQL Playground 에디터 상태
-  let currentSql = joinScenarios[0].sql;
+  let currentSql = '-- join.sql 시나리오 로딩 중...';
   let queryResult = null;
   let queryError = null;
   let isQueryRunning = false;
@@ -186,13 +73,13 @@ export function renderSqlPlayground(container, onSelectDataset) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: currentSql })
       });
-      
+
       const data = await res.json();
       queryExecutionTime = Math.round(performance.now() - startTime);
 
       if (res.ok) {
         queryResult = data;
-        
+
         // CREATE, DROP, ALTER 등의 스크마 변경 쿼리가 성공적으로 실행되었다면 좌측 테이블 목록 자동 갱신
         const upperSql = currentSql.toUpperCase();
         if (upperSql.includes('CREATE ') || upperSql.includes('DROP ') || upperSql.includes('ALTER ')) {
@@ -215,20 +102,26 @@ export function renderSqlPlayground(container, onSelectDataset) {
   };
 
   const render = () => {
-    const tableItemsHTML = tableList.map(name => {
+    const tableItemsHTML = tableList.map(table => {
+      const name = table.name;
+      const logicalName = table.logicalName;
       const isSelected = selectedTable === name;
-      const activeClass = "bg-gov-50 border-gov-300 text-gov-800 font-semibold";
+      const activeClass = "bg-gov-50 border-gov-300 text-gov-800 font-semibold shadow-sm";
       const inactiveClass = "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300";
       return `
         <button data-table="${name}" class="table-select-btn w-full text-left px-4 py-3 rounded-lg border text-xs flex items-center justify-between transition-all ${isSelected ? activeClass : inactiveClass}">
-          <span class="truncate"><i class="ri-database-2-line text-gov-500 mr-2"></i>${name}</span>
+          <span class="truncate" title="${logicalName} (${name})">
+            <i class="ri-database-2-line text-gov-500 mr-1.5"></i>
+            <span class="font-bold text-slate-800">${logicalName}</span>
+            <span class="text-slate-400">(${name})</span>
+          </span>
           <i class="ri-arrow-right-s-line text-slate-400"></i>
         </button>
       `;
     }).join('');
 
     const scenarioOptionsHTML = joinScenarios.map(sc => `
-      <option value="${sc.id}">${sc.title}</option>
+      <option value="${sc.no}">${getLogicalTitle(sc.title)}</option>
     `).join('');
 
     // 우측 상세 패널 (Schema vs Data) 렌더링
@@ -417,14 +310,8 @@ export function renderSqlPlayground(container, onSelectDataset) {
           <!-- Section title -->
           <div class="mb-8 md:mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">실시간 데이터베이스 분석 및 SQL Playground</h2>
-              <p class="text-sm text-slate-500">실제 적재된 식품의약품안전처 SQLite 데이터베이스(\`foodsafety.db\`)의 물리 구조를 확인하고, 검증된 시나리오 기반의 고차원 JOIN 쿼리를 실시간으로 실행합니다.</p>
+              <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">실시간 데이터베이스 분석</h2>
             </div>
-            <div class="shrink-0 flex items-center gap-2 bg-gov-50 border border-gov-100 rounded-lg px-4 py-2.5">
-              <i class="ri-shield-user-line text-gov-600 text-lg"></i>
-              <div>
-                <p class="text-xs text-slate-400 leading-none">연결 상태</p>
-                <p class="text-xs font-bold text-gov-700 leading-tight mt-0.5">SQLite Live Connected</p>
               </div>
             </div>
           </div>
@@ -459,11 +346,17 @@ export function renderSqlPlayground(container, onSelectDataset) {
               </div>
               
               <!-- Select Join Scenarios -->
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-slate-400 font-semibold whitespace-nowrap"><i class="ri-magic-line text-gov-400"></i> 검증된 시나리오:</label>
-                <select id="scenario-selector" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gov-500 cursor-pointer">
-                  ${scenarioOptionsHTML}
-                </select>
+              <div class="flex items-center gap-3 flex-wrap justify-end">
+                <div class="relative">
+                  <i class="ri-search-line absolute left-2.5 top-[7px] text-slate-400 text-xs"></i>
+                  <input type="text" id="scenario-search" placeholder="조인 시나리오 검색..." class="bg-slate-800 text-white border border-slate-700 rounded-lg pl-7 pr-3 py-1.5 text-xs outline-none focus:border-gov-500 w-48 transition-colors placeholder:text-slate-500">
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <label class="text-xs text-slate-400 font-semibold whitespace-nowrap"><i class="ri-magic-line text-gov-400"></i> join.sql <span id="scenario-count">(${joinScenarios.length}건)</span>:</label>
+                  <select id="scenario-selector" class="max-w-[300px] truncate bg-slate-800 text-white border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gov-500 cursor-pointer">
+                    ${scenarioOptionsHTML}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -473,7 +366,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
                 <h4 class="text-xs font-bold text-gov-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                   <i class="ri-information-line"></i> 시나리오 상세 설명
                 </h4>
-                <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${joinScenarios[0].description}</p>
+                <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${joinScenarios.length > 0 ? joinScenarios[0].description : '시나리오 로딩 중...'}</p>
               </div>
 
               <!-- SQL Textarea -->
@@ -542,18 +435,44 @@ export function renderSqlPlayground(container, onSelectDataset) {
       });
     }
 
+    // 시나리오 검색 이벤트
+    const scenarioSearch = container.querySelector('#scenario-search');
+    if (scenarioSearch) {
+      scenarioSearch.addEventListener('input', (e) => {
+        const keyword = e.target.value.toLowerCase();
+        const filtered = joinScenarios.filter(sc => 
+          sc.title.toLowerCase().includes(keyword) || 
+          sc.description.toLowerCase().includes(keyword) || 
+          sc.sql.toLowerCase().includes(keyword)
+        );
+        
+        const selector = container.querySelector('#scenario-selector');
+        const countLabel = container.querySelector('#scenario-count');
+        if (selector) {
+          if (filtered.length > 0) {
+            selector.innerHTML = filtered.map(sc => `<option value="${sc.no}">${getLogicalTitle(sc.title)}</option>`).join('');
+          } else {
+            selector.innerHTML = '<option value="">검색 결과가 없습니다</option>';
+          }
+        }
+        if (countLabel) {
+          countLabel.textContent = `(${filtered.length}건)`;
+        }
+      });
+    }
+
     // 시나리오 선택 이벤트
     const scenarioSelector = container.querySelector('#scenario-selector');
     if (scenarioSelector) {
       // 셀렉트 박스 현재 선택 상태 유지
       const currentScenario = joinScenarios.find(s => s.sql === currentSql);
       if (currentScenario) {
-        scenarioSelector.value = currentScenario.id;
+        scenarioSelector.value = currentScenario.no;
       }
 
       scenarioSelector.addEventListener('change', (e) => {
-        const id = e.target.value;
-        const sc = joinScenarios.find(s => s.id === id);
+        const no = parseInt(e.target.value);
+        const sc = joinScenarios.find(s => s.no === no);
         if (sc) {
           currentSql = sc.sql;
           const editor = container.querySelector('#sql-editor');
@@ -589,7 +508,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
         const keys = Object.keys(queryResult[0]);
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // 한글 깨짐 방지 BOM 추가
         csvContent += keys.join(",") + "\n";
-        
+
         queryResult.forEach(row => {
           const rowData = keys.map(k => {
             let val = row[k] !== null ? String(row[k]) : '';
@@ -613,15 +532,30 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
+  // join.sql 시나리오 목록 로드
+  const fetchJoinScenarios = async () => {
+    try {
+      const res = await fetch('/api/join-scenarios');
+      if (res.ok) {
+        joinScenarios = await res.json();
+        if (joinScenarios.length > 0 && currentSql.startsWith('-- join.sql')) {
+          currentSql = joinScenarios[0].sql;
+        }
+      }
+    } catch (e) {
+      console.error('join.sql 시나리오 로드 실패:', e);
+    }
+  };
+
   // 마운트 시 초기 작동
   const init = async () => {
-    await fetchTables();
-    
+    await Promise.all([fetchTables(), fetchJoinScenarios()]);
+
     // 타 컴포넌트(예: 데이터맵)로부터 연계된 SQL 자동 입력 및 포커싱 연동
     if (window.sqlPlaygroundAutoQuery) {
       currentSql = window.sqlPlaygroundAutoQuery;
       window.sqlPlaygroundAutoQuery = null; // 단회성 소비 후 초기화
-      
+
       // SQL 쿼리에서 FROM 구문을 분석하여 참조 테이블 명세를 자동 파싱/로드
       const match = currentSql.match(/FROM\s+["']?([a-zA-Z0-9_-]+)["']?/i);
       if (match && match[1]) {
@@ -630,7 +564,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
         loadTableDetails(parsedTable);
       }
     }
-    
+
     render();
   };
 

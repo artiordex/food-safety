@@ -2,6 +2,7 @@ import { renderDatasetExplorer } from './components/datasetExplorer.js';
 import { renderPurposeRecommendation } from './components/purposeRecommendation.js';
 import { renderDataMap } from './components/dataMap.js';
 import { renderErdMap } from './components/erdMap.js';
+import { renderRelationDataMap } from './components/relationDataMap.js';
 import { renderDetailPanel } from './components/detailPanel.js';
 import { renderSqlPlayground } from './components/sqlPlayground.js';
 import { renderApiExplorer } from './components/apiExplorer.js';
@@ -13,7 +14,16 @@ import { renderHealthErdMap } from './components/healthErdMap.js';
 import { renderSauceDataMap } from './components/sauceDataMap.js';
 import { renderNongshimDataset } from './components/nongshimDataset.js';
 
-let activeTab = 'explorer'; // 'explorer', 'recommend', 'datamap', 'erdmap'
+const urlParams = new URLSearchParams(window.location.search);
+let activeTab = urlParams.get('tab') || 'explorer';
+if (activeTab === 'recommend') activeTab = 'recommend-beginner';
+if (window.location.pathname.includes('datamap.html') && !urlParams.has('tab')) {
+  activeTab = 'datamap';
+}
+if (window.location.pathname.includes('analysis.html') && !urlParams.has('tab')) {
+  activeTab = 'health-erdmap';
+}
+let initialSearchKeyword = '소스';
 let selectedDataset = null;
 
 const tabContent = document.getElementById('tab-content');
@@ -31,11 +41,15 @@ const renderTabContent = () => {
 
   if (activeTab === 'explorer') {
     renderDatasetExplorer(tabContent, onSelectDataset);
-  } else if (activeTab === 'recommend') {
-    renderPurposeRecommendation(tabContent, onSelectDataset);
+  } else if (activeTab === 'recommend-beginner') {
+    renderPurposeRecommendation(tabContent, onSelectDataset, 'beginner');
+  } else if (activeTab === 'recommend-developer') {
+    renderPurposeRecommendation(tabContent, onSelectDataset, 'developer');
   } else if (activeTab === 'datamap') {
     renderDataMap(tabContent, onSelectDataset);
   } else if (activeTab === 'erdmap') {
+    renderRelationDataMap(tabContent, onSelectDataset);
+  } else if (activeTab === 'erd-inquiry') {
     renderErdMap(tabContent, onSelectDataset);
   } else if (activeTab === 'super-erdmap') {
     renderSuperErdMap(tabContent, onSelectDataset);
@@ -55,27 +69,70 @@ const renderTabContent = () => {
   } else if (activeTab === 'api-barcode') {
     renderBarcodeSearch(tabContent, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
-    renderSauceDataMap(tabContent);
+    renderSauceDataMap(tabContent, initialSearchKeyword, onSelectDataset);
   } else if (activeTab === 'nongshim-spec') {
     renderNongshimDataset(tabContent);
   }
 };
 
 const updateActiveTabUI = () => {
+  const datamapTabBar = document.getElementById('datamap-tab-bar');
+  const datamapTabs = document.getElementById('datamap-tabs');
+  const scenarioTabs = document.getElementById('scenario-tabs');
+  if (datamapTabBar) {
+    const isDatamap = (
+      activeTab === 'datamap' ||
+      activeTab === 'keyword-datamap' ||
+      activeTab === 'erdmap' ||
+      activeTab === 'erd-inquiry' ||
+      activeTab === 'health-erdmap' ||
+      activeTab === 'sql-playground' ||
+      activeTab === 'api-explorer' ||
+      activeTab === 'api-live-join' ||
+      activeTab === 'api-hygiene' ||
+      activeTab === 'api-barcode' ||
+      activeTab === 'nongshim-spec'
+    );
+    const isScenario = (activeTab === 'recommend-beginner' || activeTab === 'recommend-developer');
+    if (isDatamap || isScenario) {
+      datamapTabBar.style.display = 'block';
+      if (datamapTabs) datamapTabs.style.display = isDatamap ? 'flex' : 'none';
+      if (scenarioTabs) scenarioTabs.style.display = isScenario ? 'flex' : 'none';
+    } else {
+      datamapTabBar.style.display = 'none';
+    }
+  }
+
   document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn').forEach(btn => {
     const tabId = btn.dataset.tab || btn.dataset.nav;
     if (!tabId) return;
 
     if (btn.classList.contains('tab-pill')) {
       if (tabId === activeTab) {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap' || tabId === 'health-erdmap' || tabId === 'keyword-datamap') {
+        if (tabId === 'health-erdmap') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-rose-600 text-white shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-live-join') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-emerald-600 text-white shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-hygiene') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-barcode') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-1";
+        } else if (tabId === 'nongshim-spec') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-teal-700 text-white shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm flex items-center gap-1";
         }
       } else {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap' || tabId === 'keyword-datamap') {
+        if (tabId === 'health-erdmap') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-live-join') {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-hygiene') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 shadow-sm flex items-center gap-1";
+        } else if (tabId === 'api-barcode') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm flex items-center gap-1";
+        } else if (tabId === 'nongshim-spec') {
+          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-teal-700 bg-teal-50 border border-teal-300 hover:bg-teal-100 shadow-sm flex items-center gap-1";
         } else {
           btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1";
         }
@@ -106,6 +163,11 @@ const changeTab = (tabId) => {
   activeTab = tabId;
   updateActiveTabUI();
   renderTabContent();
+};
+
+window.switchToKeywordMap = (keyword) => {
+  initialSearchKeyword = keyword || '소스';
+  changeTab('keyword-datamap');
 };
 
 document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn').forEach(btn => {
@@ -153,7 +215,7 @@ const btnHeroRecommend = document.getElementById('btn-hero-recommend');
 const btnHeroRecommend2 = document.getElementById('btn-hero-recommend-2');
 
 const goToRecommendTab = () => {
-  changeTab('recommend');
+  changeTab('recommend-beginner');
   // Smooth scroll down to the sticky tab bar so the user immediately sees the recommend content
   const tabContainer = document.getElementById('tab-pills-container');
   if (tabContainer) {

@@ -1,422 +1,359 @@
-import {
-  datasets,
-  subjectColorMap,
-  dataMapNodes,
-  dataMapEdges
-} from '../datasetData.js';
-
-// Vis.js 노드 카테고리별 테마 HSL/RGB 색상맵 (Vibrant & Premium)
-const subjectColors = {
-  '식품·제품': { background: '#ccfbf1', border: '#0d9488', highlight: { background: '#99f6e4', border: '#0f766e' } },
-  '업체·영업자': { background: '#d9e8ff', border: '#1a5fb4', highlight: { background: '#bcd8ff', border: '#154a8c' } },
-  '원재료·첨가물': { background: '#ffe4e6', border: '#e11d48', highlight: { background: '#fecdd3', border: '#be123c' } },
-  '영양·건강': { background: '#d1fae5', border: '#059669', highlight: { background: '#a7f3d0', border: '#047857' } },
-  '수입식품': { background: '#fef3c7', border: '#d97706', highlight: { background: '#fde68a', border: '#b45309' } },
-  '농·축·수산물': { background: '#ede9fe', border: '#7c3aed', highlight: { background: '#ddd6fe', border: '#6d28d9' } },
-  '기타': { background: '#f1f5f9', border: '#475569', highlight: { background: '#e2e8f0', border: '#334155' } }
-};
+import { datasets } from '../datasetData.js';
 
 export function renderDataMap(container, onSelectDataset) {
-  let maxNodesLimit = 50;
-  let activePhysics = true;
-  let activeSubjectFilter = '전체';
-  let selectedNodeId = null;
-  let networkInstance = null;
-  let relationships = [];
-
-  const fetchRelationships = async () => {
+  // DB에서 데이터 가져오기
+  const fetchDataAndRender = async () => {
     try {
-      const res = await fetch('/api/relationships');
-      if (res.ok) {
-        relationships = await res.json();
-        console.log(`[DataMap] Loaded ${relationships.length} dynamic relationships from database!`);
-        if (relationships.length > 0) {
-          initNetwork();
-        }
-      }
-    } catch (err) {
-      console.warn('[DataMap] Failed to load dynamic relationships:', err);
+      const res = await fetch('/api/searchDatasetList.do', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
+      });
+      const data = await res.json();
+
+      const subjectCounts = {};
+      let totalCount = 0;
+
+      data.list.forEach(d => {
+        const subj = d.cl_cd_nm || '기타';
+        if (!subjectCounts[subj]) subjectCounts[subj] = { count: 0, items: [] };
+        subjectCounts[subj].count += 1;
+
+        subjectCounts[subj].items.push({
+          id: d.svc_no,
+          name: d.svc_nm,
+          description: d.svc_nm + " 공공데이터 API입니다.",
+          formats: ["JSON", "XML"],
+          users: [d.provd_instt_nm || '식품의약품안전처']
+        });
+        totalCount += 1;
+      });
+
+      const subjectArray = Object.keys(subjectCounts).map(subj => ({
+        subject: subj,
+        count: subjectCounts[subj].count,
+        ratio: ((subjectCounts[subj].count / totalCount) * 100).toFixed(1),
+        items: subjectCounts[subj].items
+      })).sort((a, b) => b.count - a.count);
+
+      renderUI(subjectArray, totalCount);
+
+    } catch (e) {
+      console.error(e);
+      container.innerHTML = '<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</div>';
     }
   };
 
-  const getDatasetById = (id) => datasets.find(d => d.id === id);
-
-  const render = () => {
+  const renderUI = (subjectArray, totalCount) => {
     container.innerHTML = `
       <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
-        
         <!-- Header -->
-        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-              📊 식품안전 JOIN 기반 융합 관계도
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="ri-pie-chart-2-fill text-gov-600"></i> 분야별 데이터맵 (비율 분포)
             </h2>
-            <p class="text-xs text-slate-500 mt-1.5">
-              실제 DB 스키마 간의 조인(JOIN) 관계를 동적인 포스 디렉티드(Force-Directed) 그래프로 시각화합니다.
-            </p>
           </div>
           
-          <div class="flex items-center gap-2 text-xs text-slate-400 self-end bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> 실시간 라이브 조인 분석 중
+          <!-- 키워드 검색기 (키워드 데이터맵으로 전환) -->
+          <div class="flex items-center gap-2 w-full md:w-auto max-w-md">
+            <div class="relative flex-1 md:w-64">
+              <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="datamap-keyword-search" 
+                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-1 focus:ring-gov-500" 
+                style="padding-left: 2.5rem !important;"
+                placeholder="키워드 검색 (예: 초콜릿, 우유...)">
+            </div>
+            <button id="btn-datamap-keyword-search" 
+              class="px-4 py-2 bg-gov-600 text-white rounded-lg text-sm font-medium hover:bg-gov-700 transition-colors whitespace-nowrap">
+              키워드 맵 조회
+            </button>
           </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-6">
-          
-          <!-- LEFT: 메인 캔버스 -->
-          <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col relative min-h-[650px]">
-            
-            <!-- 캔버스 상단 컨트롤 패널 -->
-            <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/80 flex flex-wrap items-center justify-between gap-4 z-10 relative">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gov-600 animate-ping"></span>
-                <span class="text-xs font-semibold text-slate-500">조인 연계선을 따라 동적으로 노드가 배치됩니다.</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                  <input type="checkbox" id="physics-toggle" class="w-3.5 h-3.5 rounded text-gov-600 border-slate-300" ${activePhysics ? 'checked' : ''} />
-                  <span>물리 엔진(정렬) 가동</span>
-                </label>
-                
-                <div class="h-4 w-[1px] bg-slate-200"></div>
-
-                <!-- 분야(Subject) 제어 필터 -->
-                <div class="flex items-center gap-1">
-                  <span class="text-[11px] font-bold text-slate-600 whitespace-nowrap">분야:</span>
-                  <select id="subject-filter-select" class="text-[11px] border border-slate-200 rounded px-2 py-1 outline-none focus:border-gov-400 bg-white shadow-sm font-medium">
-                    <option value="전체" ${activeSubjectFilter === '전체' ? 'selected' : ''}>전체 분야</option>
-                    ${Object.keys(subjectColors).map(subj => 
-                      `<option value="${subj}" ${activeSubjectFilter === subj ? 'selected' : ''}>${subj}</option>`
-                    ).join('')}
-                  </select>
-                </div>
-
-                <!-- 노드 한도 제어 필터 -->
-                <div class="flex items-center gap-1">
-                  <span class="text-[11px] font-bold text-slate-600 whitespace-nowrap">최대 표시 노드:</span>
-                  <select id="max-nodes-select" class="text-[11px] border border-slate-200 rounded px-2 py-1 outline-none focus:border-gov-400 bg-white shadow-sm font-medium">
-                    <option value="30" ${maxNodesLimit == 30 ? 'selected' : ''}>30개</option>
-                    <option value="50" ${maxNodesLimit == 50 ? 'selected' : ''}>50개</option>
-                    <option value="100" ${maxNodesLimit == 100 ? 'selected' : ''}>100개</option>
-                    <option value="200" ${maxNodesLimit == 200 ? 'selected' : ''}>전체 노드 표시</option>
-                  </select>
-                </div>
-                
-                <button id="btn-fit-screen" class="px-2.5 py-1 text-[11px] border border-slate-200 bg-white hover:bg-slate-50 rounded text-slate-600 shadow-sm transition-colors flex items-center gap-1 font-bold">
-                  <i class="ri-focus-3-line"></i> 화면 맞춤
-                </button>
-              </div>
-            </div>
-
-            <!-- Vis.js 영역 -->
-            <div class="flex-1 bg-slate-50/20 relative" id="network-graph-canvas" style="width: 100%; height: 100%;"></div>
-            
-            <!-- 로딩 안내 -->
-            <div id="network-loading-overlay" class="absolute inset-0 bg-white/80 z-20 flex items-center justify-center hidden">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-8 h-8 rounded-full border-4 border-slate-200 border-t-gov-600 animate-spin"></div>
-                <span class="text-xs text-slate-500 font-medium">관계망 구조 분석 및 물리 엔진 정렬 중...</span>
-              </div>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- 좌측: D3 Treemap -->
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[500px]">
+             <h3 class="text-lg font-bold text-slate-800 mb-6">데이터 분포 트리맵 (Treemap)</h3>
+             <div id="treemap-container" class="flex-1 w-full rounded-xl overflow-hidden relative bg-slate-50 border border-slate-100 min-h-[400px]">
+             </div>
           </div>
 
-          <!-- RIGHT: 우측 상세 패널 (PPTX 스타일 유지) -->
-          <div class="lg:w-[350px] shrink-0 flex flex-col gap-4">
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col h-[650px]">
-              <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 rounded-t-xl">
-                <h3 class="text-sm font-bold text-slate-800" id="panel-title">데이터를 선택하세요</h3>
-              </div>
-              <div class="p-5 flex-1 overflow-y-auto" id="panel-content">
-                <div class="flex items-center justify-center h-full text-slate-400 text-xs text-center leading-relaxed">
-                  좌측 데이터맵에서 데이터 노드(점)를 클릭하시면<br>이곳에 상세 정보가 표시됩니다.
-                </div>
-              </div>
-            </div>
+          <!-- 우측: 카테고리 비율 현황 -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full min-h-[500px]">
+             <h3 class="text-lg font-bold text-slate-800 mb-6 flex justify-between items-end">
+               <span>카테고리 비율 현황</span>
+               <span class="text-xs font-normal text-slate-500">총 ${totalCount}종</span>
+             </h3>
+             <div class="flex-1 overflow-y-auto pr-2 space-y-4" id="category-list-container">
+             </div>
           </div>
-
+        </div>
+        
+        <!-- 하단: 선택된 카테고리의 데이터세트 목록 -->
+        <div id="selected-category-datasets" class="mt-8 hidden animate-fade-in">
+          <h3 class="text-xl font-bold text-slate-800 mb-4 border-b border-slate-200 pb-3 flex items-center justify-between">
+            <span id="selected-category-title">선택된 카테고리</span>
+            <button id="close-category-panel" class="text-slate-400 hover:text-slate-600"><i class="ri-close-line text-2xl"></i></button>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="dataset-cards-container">
+          </div>
         </div>
       </section>
     `;
 
-    initNetwork();
-    bindEvents();
-  };
+    renderCategoryList(subjectArray);
 
-  const initNetwork = () => {
-    const canvasContainer = container.querySelector('#network-graph-canvas');
-    if (!canvasContainer) return;
+    // Treemap 렌더링을 약간 지연시켜 컨테이너 레이아웃이 잡히도록 함
+    setTimeout(() => {
+      renderTreemap(subjectArray);
+    }, 100);
 
-    // 1. 노드 구성 (169개 기준 동적 로드)
-    // 데이터맵용 dataMapNodes를 사용하되, datasets 정보로 확장합니다.
-    let baseNodes = dataMapNodes && dataMapNodes.length > 0 
-      ? dataMapNodes 
-      : datasets.map(ds => ({ id: ds.id, label: ds.name.split(' (')[0] }));
-      
-    let visibleNodes = baseNodes;
-
-    if (activeSubjectFilter !== '전체') {
-      visibleNodes = visibleNodes.filter(node => {
-        const ds = getDatasetById(node.id);
-        const subject = ds ? ds.subject : '기타';
-        return subject === activeSubjectFilter;
+    // 하단 패널 닫기 버튼
+    const closeBtn = container.querySelector('#close-category-panel');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        container.querySelector('#selected-category-datasets').classList.add('hidden');
       });
     }
 
-    if (visibleNodes.length > maxNodesLimit) {
-      visibleNodes = visibleNodes.slice(0, maxNodesLimit);
-    }
-    const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
-
-    // 2. 연계선(Edges) 구성 (JOIN 관계 기반)
-    let edgesToUse = (dataMapEdges && dataMapEdges.length > 0) ? [...dataMapEdges] : [];
-    if (relationships && relationships.length > 0) {
-      edgesToUse = relationships.map(rel => {
-        let labelKey = rel.from_field;
-        if (labelKey === 'BAR_CD') labelKey = 'BARCODE_NO';
-        return {
-          from: rel.from_table,
-          to: rel.to_table,
-          label: `${labelKey} (${rel.confidence === 'HIGH' ? '확정' : '추정'})`
-        };
-      });
-    }
-
-    // 보이는 노드 간의 엣지만 필터링
-    const visibleEdges = edgesToUse.filter(edge => 
-      visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to)
-    );
-
-    // 3. Vis.js 포맷 노드 세트 생성
-    const visNodes = visibleNodes.map(node => {
-      const ds = getDatasetById(node.id);
-      const subject = ds ? ds.subject : '기타';
-      const dataCount = ds ? ds.dataCount : 10;
-      
-      // 로그 스케일 크기 (적재 건수에 비례)
-      const size = Math.log10(dataCount || 10) * 10 + 10;
-      const themeColors = subjectColors[subject] || subjectColors['기타'];
-
-      return {
-        id: node.id,
-        label: ds ? ds.name.split(' (')[0] : node.label,
-        shape: 'dot',
-        size: size,
-        font: { size: 10, face: 'Pretendard', color: '#334155', strokeWidth: 2, strokeColor: '#ffffff' },
-        color: themeColors,
-        borderWidth: selectedNodeId === node.id ? 4 : 1.5,
-        shadow: { enabled: true, color: 'rgba(0, 0, 0, 0.05)', size: 5, x: 0, y: 2 },
-        title: `
-          <div class="p-2 text-xs text-slate-700">
-            <p class="font-bold mb-1">${ds ? ds.name.split(' (')[0] : node.label}</p>
-            <p><span class="text-slate-400">분야:</span> ${subject}</p>
-          </div>
-        `
+    // 키워드 데이터맵 검색 버튼 연동
+    const searchInput = container.querySelector('#datamap-keyword-search');
+    const searchBtn = container.querySelector('#btn-datamap-keyword-search');
+    if (searchBtn && searchInput) {
+      const doSearch = () => {
+        const kw = searchInput.value.trim();
+        if (kw) {
+          if (typeof window.switchToKeywordMap === 'function') {
+            window.switchToKeywordMap(kw);
+          }
+        } else {
+          alert('검색어를 입력해 주세요.');
+          searchInput.focus();
+        }
       };
-    });
-
-    // 4. Vis.js 포맷 엣지 세트 생성
-    const visEdgesMapped = visibleEdges.map((edge, idx) => {
-      let width = 1.5;
-      if (edge.label.includes('LCNS_NO') || edge.label.includes('PRDLST_REPORT_NO') || edge.label.includes('BAR_CD')) {
-        width = 2.5; // 주요 키는 굵게
-      }
-      return {
-        id: `edge_${idx}`,
-        from: edge.from,
-        to: edge.to,
-        label: edge.label,
-        font: { size: 9, face: 'monospace', color: '#64748b', strokeWidth: 3, strokeColor: '#ffffff', align: 'middle' },
-        color: { color: '#cbd5e1', highlight: '#3374f6', hover: '#94a3b8' },
-        width: width,
-        arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-        smooth: { enabled: true, type: 'continuous' }
-      };
-    });
-
-    const data = {
-      nodes: new vis.DataSet(visNodes),
-      edges: new vis.DataSet(visEdgesMapped)
-    };
-
-    const options = {
-      nodes: { borderWidthSelected: 4 },
-      edges: { selectionWidth: function (w) { return w + 2; } },
-      interaction: { hover: true, tooltipDelay: 100, selectable: true },
-      physics: {
-        enabled: activePhysics,
-        barnesHut: {
-          gravitationalConstant: -4000,
-          centralGravity: 0.3,
-          springLength: 150,
-          springConstant: 0.04,
-          damping: 0.09,
-          avoidOverlap: 0.8
-        },
-        stabilization: { enabled: true, iterations: 150, updateInterval: 25 }
-      }
-    };
-
-    const overlay = container.querySelector('#network-loading-overlay');
-    if (overlay) overlay.classList.remove('hidden');
-
-    networkInstance = new vis.Network(canvasContainer, data, options);
-
-    networkInstance.on("stabilizationIterationsDone", () => {
-      if (overlay) overlay.classList.add('hidden');
-    });
-
-    networkInstance.on("selectNode", (params) => {
-      const nodeId = params.nodes[0];
-      selectedNodeId = nodeId;
-      showTableDetail(nodeId);
-      
-      // 선택된 노드 하이라이팅 연출
-      networkInstance.setSelection({ nodes: [nodeId] }, { unselectAll: true });
-    });
-    
-    networkInstance.on("deselectNode", () => {
-      selectedNodeId = null;
-      resetTableDetail();
-    });
+      searchBtn.addEventListener('click', doSearch);
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          doSearch();
+        }
+      });
+    }
   };
 
-  const showTableDetail = (nodeId) => {
-    const ds = getDatasetById(nodeId);
-    if (!ds) return;
+  const colorScale = [
+    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#f97316', '#6366f1', '#ec4899', '#14b8a6',
+    '#84cc16', '#a855f7', '#f43f5e', '#0ea5e9'
+  ];
 
-    const panelTitle = container.querySelector('#panel-title');
-    const panelContent = container.querySelector('#panel-content');
-    
-    panelTitle.textContent = ds.name.split(' (')[0];
-    const kws = (ds.keywords || ['식품안전', '공공데이터']).join(', ');
+  const renderCategoryList = (subjectArray) => {
+    const listContainer = container.querySelector('#category-list-container');
+    if (!listContainer) return;
 
-    panelContent.innerHTML = `
-      <div class="mb-4">
-        <span class="inline-block px-2.5 py-1 bg-[#00529B] text-white text-[10px] font-bold rounded">개방데이터</span>
-      </div>
-      
-      <div class="flex flex-col gap-0 border-t border-slate-100">
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">데이터명</div>
-          <div class="flex-1 text-[11px] text-slate-800 font-medium">${ds.name}</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">보유기관</div>
-          <div class="flex-1 text-[11px] text-slate-800">식품의약품안전처</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">부처</div>
-          <div class="flex-1 text-[11px] text-slate-800">식품의약품안전처</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">분류</div>
-          <div class="flex-1 text-[11px] text-slate-800">${ds.subject || '식품안전'}</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">키워드</div>
-          <div class="flex-1 text-[11px] text-slate-800">${kws}</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">설명</div>
-          <div class="flex-1 text-[11px] text-slate-800 leading-relaxed">${ds.description || '이 데이터는 식품안전나라에서 제공하는 공공데이터입니다.'}</div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">URL</div>
-          <div class="flex-1 text-[11px] text-[#00529B] hover:underline break-all">
-            <a href="#" target="_blank">https://www.data.go.kr/data/${nodeId}/fileData.do</a>
+    listContainer.innerHTML = subjectArray.map((item, idx) => {
+      const color = colorScale[idx % colorScale.length];
+      return `
+        <div class="category-item cursor-pointer group p-3 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-200" data-subject="${item.subject}">
+          <div class="flex justify-between items-center mb-1">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full" style="background-color: ${color}"></div>
+              <span class="font-medium text-slate-700 text-sm group-hover:text-gov-700">${item.subject}</span>
+            </div>
+            <span class="text-xs font-bold text-slate-900">${item.count}종 <span class="text-slate-400 font-normal">(${item.ratio}%)</span></span>
           </div>
-        </div>
-        <div class="flex py-3 border-b border-slate-100">
-          <div class="w-20 shrink-0 text-[11px] font-bold text-slate-500">목록번호</div>
-          <div class="flex-1 text-[11px] font-mono text-slate-800">${nodeId}</div>
-        </div>
-      </div>
-      
-      <div class="mt-6 flex flex-col gap-2">
-        <button id="btn-jump-sql" class="w-full py-2.5 bg-gov-600 hover:bg-gov-700 text-white rounded text-xs font-bold transition-colors shadow-sm flex items-center justify-center gap-1">
-          <i class="ri-terminal-box-line"></i> SQL 실행기로 데이터 분석
-        </button>
-        <button id="btn-jump-api" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded text-xs font-bold transition-colors flex items-center justify-center gap-1">
-          <i class="ri-search-eye-line"></i> API 탐색기에서 스키마 확인
-        </button>
-      </div>
-    `;
-
-    // 쿼리 플레이그라운드로 점프
-    const btnJumpSql = container.querySelector('#btn-jump-sql');
-    if (btnJumpSql) {
-      btnJumpSql.addEventListener('click', () => {
-        window.sqlPlaygroundAutoQuery = ds.usageExample || `SELECT * FROM ${nodeId} LIMIT 10;`;
-        const sqlTabBtn = document.querySelector('[data-tab="sql-playground"], [data-nav="sql-playground"]');
-        if (sqlTabBtn) sqlTabBtn.click();
-      });
-    }
-
-    // API Explorer로 점프
-    const btnJumpApi = container.querySelector('#btn-jump-api');
-    if (btnJumpApi) {
-      btnJumpApi.addEventListener('click', () => {
-        window.apiExplorerAutoSearch = nodeId;
-        const apiTabBtn = document.querySelector('[data-tab="api-explorer"], [data-nav="api-explorer"]');
-        if (apiTabBtn) apiTabBtn.click();
-      });
-    }
-  };
-
-  const resetTableDetail = () => {
-    const panelTitle = container.querySelector('#panel-title');
-    const panelContent = container.querySelector('#panel-content');
-    if(panelTitle) panelTitle.textContent = "데이터를 선택하세요";
-    if(panelContent) {
-      panelContent.innerHTML = `
-        <div class="flex items-center justify-center h-full text-slate-400 text-xs text-center leading-relaxed">
-          좌측 데이터맵에서 데이터 노드(점)를 클릭하시면<br>이곳에 상세 정보가 표시됩니다.
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="h-1.5 rounded-full transition-all duration-1000" style="width: 0%; background-color: ${color}" data-target-width="${item.ratio}%"></div>
+          </div>
         </div>
       `;
-    }
-  };
+    }).join('');
 
-  const bindEvents = () => {
-    // 노드 개수 한도 필터
-    const maxNodesSelect = container.querySelector('#max-nodes-select');
-    if (maxNodesSelect) {
-      maxNodesSelect.addEventListener('change', (e) => {
-        maxNodesLimit = parseInt(e.target.value);
-        initNetwork();
+    // Animate progress bars
+    setTimeout(() => {
+      listContainer.querySelectorAll('[data-target-width]').forEach(el => {
+        el.style.width = el.dataset.targetWidth;
       });
-    }
+    }, 50);
 
-    // 분야(Subject) 필터
-    const subjectSelect = container.querySelector('#subject-filter-select');
-    if (subjectSelect) {
-      subjectSelect.addEventListener('change', (e) => {
-        activeSubjectFilter = e.target.value;
-        initNetwork();
-      });
-    }
-
-    // 물리 엔진(Physics) 토글
-    const physicsToggle = container.querySelector('#physics-toggle');
-    if (physicsToggle) {
-      physicsToggle.addEventListener('change', (e) => {
-        activePhysics = e.target.checked;
-        if (networkInstance) {
-          networkInstance.setOptions({ physics: { enabled: activePhysics } });
+    // Click event for category list
+    listContainer.querySelectorAll('.category-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const subject = el.dataset.subject;
+        const categoryData = subjectArray.find(s => s.subject === subject);
+        if (categoryData) {
+          showCategoryDatasets(categoryData);
         }
       });
-    }
-
-    // 한눈에 보기
-    const btnFit = container.querySelector('#btn-fit-screen');
-    if (btnFit) {
-      btnFit.addEventListener('click', () => {
-        if (networkInstance) {
-          networkInstance.fit({ animation: { duration: 800, easingFunction: "easeInOutQuad" } });
-        }
-      });
-    }
+    });
   };
 
-  render();
-  fetchRelationships(); // 동적 관계망 엣지 로딩 가동!
+  const renderTreemap = (subjectArray) => {
+    if (typeof d3 === 'undefined') return;
+
+    const containerEl = document.getElementById('treemap-container');
+    if (!containerEl) return;
+
+    const width = containerEl.clientWidth || 800;
+    const height = containerEl.clientHeight || 500;
+
+    // Remove old svg
+    containerEl.innerHTML = '';
+
+    const rootData = {
+      name: "Root",
+      children: subjectArray.map(s => ({
+        name: s.subject,
+        value: s.count,
+        items: s.items
+      }))
+    };
+
+    const root = d3.hierarchy(rootData)
+      .sum(d => d.value)
+      .sort((a, b) => b.value - a.value);
+
+    d3.treemap()
+      .size([width, height])
+      .padding(4)
+      .paddingInner(4)
+      (root);
+
+    const svg = d3.select(containerEl)
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .style("font-family", "Inter, sans-serif");
+
+    const leaf = svg.selectAll("g")
+      .data(root.leaves())
+      .join("g")
+      .attr("transform", d => `translate(${d.x0},${d.y0})`)
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        const categoryData = subjectArray.find(s => s.subject === d.data.name);
+        if (categoryData) showCategoryDatasets(categoryData);
+      });
+
+    leaf.append("rect")
+      .attr("width", d => Math.max(0, d.x1 - d.x0))
+      .attr("height", d => Math.max(0, d.y1 - d.y0))
+      .attr("fill", (d, i) => colorScale[i % colorScale.length])
+      .attr("rx", 6)
+      .attr("ry", 6)
+      .style("opacity", 0.9)
+      .on("mouseover", function () {
+        d3.select(this).style("opacity", 1).attr("stroke", "#fff").attr("stroke-width", 2);
+      })
+      .on("mouseout", function () {
+        d3.select(this).style("opacity", 0.9).attr("stroke", "none");
+      });
+
+    leaf.append("text")
+      .attr("x", 8)
+      .attr("y", 20)
+      .attr("fill", "white")
+      .attr("font-weight", "600")
+      .attr("font-size", d => {
+        const area = (d.x1 - d.x0) * (d.y1 - d.y0);
+        return area > 10000 ? "16px" : area > 4000 ? "13px" : "11px";
+      })
+      .text(d => {
+        const w = d.x1 - d.x0;
+        return w > 50 ? d.data.name : "";
+      });
+
+    leaf.append("text")
+      .attr("x", 8)
+      .attr("y", 40)
+      .attr("fill", "rgba(255,255,255,0.8)")
+      .attr("font-size", d => {
+        const area = (d.x1 - d.x0) * (d.y1 - d.y0);
+        return area > 10000 ? "13px" : area > 4000 ? "11px" : "0px";
+      })
+      .text(d => {
+        const w = d.x1 - d.x0;
+        return w > 50 ? `${d.data.value}종` : "";
+      });
+  };
+
+  const showCategoryDatasets = (categoryData) => {
+    const panel = container.querySelector('#selected-category-datasets');
+    const title = container.querySelector('#selected-category-title');
+    const cardsContainer = container.querySelector('#dataset-cards-container');
+
+    if (!panel || !title || !cardsContainer) return;
+
+    panel.classList.remove('hidden');
+    title.innerHTML = `<span class="text-gov-600">${categoryData.subject}</span> 분야 데이터세트 (${categoryData.count}종)`;
+
+    cardsContainer.innerHTML = categoryData.items.map(ds => `
+      <div class="dataset-card bg-white border border-slate-200 rounded-xl p-4 hover:border-gov-400 hover:shadow-md transition-all cursor-pointer flex flex-col h-full" data-id="${ds.id}">
+        <div class="flex justify-between items-start mb-2">
+          <span class="px-2 py-1 bg-gov-50 text-gov-700 text-[10px] font-bold rounded">OPEN API</span>
+          <div class="flex gap-1">
+            ${ds.formats.map(f => `<span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded border border-slate-200">${f}</span>`).join('')}
+          </div>
+        </div>
+        <h4 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2 leading-snug">${ds.name}</h4>
+        <p class="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">${ds.description}</p>
+        <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+          <div class="flex items-center gap-1 text-[11px] text-slate-500">
+            <i class="ri-building-line"></i> ${ds.users[0] || '식품의약품안전처'}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // 카드 클릭 이벤트 (상세 패널 등)
+    cardsContainer.querySelectorAll('.dataset-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const dsId = card.dataset.id;
+        let ds = datasets.find(i => i.id === dsId);
+        if (!ds) {
+          const rawDs = categoryData.items.find(i => i.id === dsId);
+          if (rawDs) {
+            ds = {
+              id: rawDs.id,
+              name: rawDs.name,
+              description: rawDs.description || (rawDs.name + " 공공데이터 API입니다."),
+              users: ["일반사용자", "개발자"],
+              dataCount: rawDs.dataCount || 100,
+              formats: rawDs.formats || ["JSON", "XML"],
+              difficulty: "easy",
+              subject: categoryData.subject || "기타",
+              process: "정보 제공",
+              issue: "해당없음",
+              theme: "일반 조회용",
+              includedData: [rawDs.name],
+              keys: ["SVC_NO"],
+              usageExample: `SELECT * FROM "${rawDs.id}" LIMIT 10;`,
+              detail: {
+                overview: rawDs.description || (rawDs.name + " 공공데이터 API입니다."),
+                includedList: [rawDs.name],
+                joinKeys: ["LCNS_NO", "PRDLST_REPORT_NO"],
+                scenarios: ["공공데이터 연계 및 분석 시나리오 수립"],
+                recommendedUsers: ["공공데이터 활용 개발자", "식품 안전 관리자"],
+                guideLinks: [
+                  {
+                    label: "Open API 포털 안내",
+                    url: "https://www.foodsafetykorea.go.kr"
+                  }
+                ],
+                examples: [
+                  `SELECT * FROM "${rawDs.id}" LIMIT 10;`
+                ]
+              }
+            };
+          }
+        }
+        if (ds && onSelectDataset) onSelectDataset(ds);
+      });
+    });
+
+    // 스크롤 이동
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  fetchDataAndRender();
 }

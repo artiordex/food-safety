@@ -1,0 +1,59 @@
+
+
+
+
+<!DOCTYPE HTML>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>식품행정통합시스템</title>
+<style type="text/css">
+body{background-color:#fff;text-align:center;}
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,form,fieldset,p,button{margin:0;padding:0}
+body,h1,h2,h3,h4,input,button{font-family:'맑은 고딕',MalgunGothic,Malgun Gothic,Dotum;font-size:18px;color:#333}
+img,fieldset,iframe{border:0 none}
+li{list-style:none}
+img{vertical-align:top}
+i,em,address{font-style:normal}
+label,button{cursor:pointer}
+button{margin:0;padding:0}
+a{color:#222;text-decoration:none}
+a:hover{color:#0b3e8b;text-decoration:underline;}
+button *{position:relative}
+button img{left:-3px;*left:auto}
+html:first-child select{height:20px;padding-right:6px}
+hr{display:none}
+legend{*width:0}
+table{border-collapse:collapse;border-spacing:0}
+.blind{display:none;overflow:hidden;position:absolute;top:0;left:0;width:0;height:0;font-size:0;line-height:0}
+.off {display:none}
+#wrapE {padding-top:150px}
+.error{background:url(/common/error_1.png)  no-repeat  -20px 0;padding:90px 0 100px 330px;width:500px;margin:0 auto;text-align:left;	vertical-align:top;	}
+.t1 {font-size:30px;margin-bottom:4px;}
+.t2 {color:#999}
+.tR1{color:#FF1900;}
+.logo {margin-bottom:10px;}
+.list1 li{margin-bottom:4px;}
+.submit {margin-top:10px}
+/* btns */
+.btn1 {background:#235093;color:white;border:1px solid #0c326a;font-size:18px;padding:0px 5px 6px 5px}
+.btn1:hover {background:#356ebf;color:white;}
+</style>
+</head>
+<body>
+<div id="wrapE">
+	<div class="error">
+		<h3 class="logo"><img src="logo_h1_01.gif"/></h3>
+		<p class="t1">
+			지금은 <span class="tR1">시스템 점검중</span>입니다. 
+		</p>
+		
+		<ul class="list1">
+			<li>현재 서비스 이용이 <span class="tR1">불가능</span>하니</li>
+			<li>양해 바랍니다.</li>
+		</ul>
+	</div>
+</div>
+</body>
+</html>

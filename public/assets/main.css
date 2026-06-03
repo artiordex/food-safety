@@ -1,0 +1,277 @@
+@charset "utf-8";
+
+@import url('common.css');
+@import url('layout.css');
+@import url('slick.css');
+
+/*메인 비주얼*/
+.main_slider_wrap {position:relative; padding:40px 0; width:100%; background:url("https://www.foodsafetykorea.go.kr/images/api/main/bg_main_slider_pattern.jpg");}
+.main_slider_wrap h2 {margin:0 auto; margin-bottom:40px; width:1220px; line-height:30px; font-size:26px; font-weight:bold; font-family:'Nanum Square';}
+.main_slider_wrap .main_slider {position:relative; margin:0 auto; padding:0 50px; width:1220px;}
+.main_slider_wrap .main_slider .slick-arrow {position:absolute; margin-top:-23px; top:50%; transform:translateY(-50%); width:17px; height:33px; text-indent:-9999px; background-repeat:no-repeat; background-position:center;}
+.main_slider_wrap .main_slider .slick-arrow.slick-prev {left:0; background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_slider_prev.png"); }
+.main_slider_wrap .main_slider .slick-arrow.slick-next {right:0; background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_slider_next.png");}
+.main_slider_wrap .main_slider .item {position:relative; text-align:center;}
+.main_slider_wrap .main_slider .item a {display:inline-block; padding-top:135px;}
+.main_slider_wrap .main_slider .item a:before {content:''; display:block; position:absolute; top:0; left:50%; transform:translateX(-50%); width:115px; height:115px; border-radius:100px; background-color:#fff; background-repeat:no-repeat; background-position:center; transition:all 0.3s;}
+
+.main_slider_wrap .main_slider .item.icon_01 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_01.png");} /* 기준규격정보 */
+.main_slider_wrap .main_slider .item.icon_02 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_02.png");} /* 코드정보 */
+.main_slider_wrap .main_slider .item.icon_03 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_03.png");} /* 식품영양정보 */
+.main_slider_wrap .main_slider .item.icon_04 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_04.png");} /* 수질환경정보 */
+.main_slider_wrap .main_slider .item.icon_05 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_05.png");} /* 검사기관정보 */
+.main_slider_wrap .main_slider .item.icon_06 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_06.png");} /* 식품위해관리 */
+.main_slider_wrap .main_slider .item.icon_07 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_07.png");} /* 식품안전관리 */
+.main_slider_wrap .main_slider .item.icon_08 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_08.png");} /* 이력추적관리 */
+.main_slider_wrap .main_slider .item.icon_09 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_09.png");} /* 어린이식품안전관리 */
+.main_slider_wrap .main_slider .item.icon_10 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_10.png");} /* HACCP지정현황 */
+.main_slider_wrap .main_slider .item.icon_11 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_11.png");} /* 업체인허가현황 */
+.main_slider_wrap .main_slider .item.icon_12 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_12.png");} /* 위생요품 */
+.main_slider_wrap .main_slider .item.icon_13 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_13.png");} /* 측산물 */
+.main_slider_wrap .main_slider .item.icon_14 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_14.png");} /* 건강기능식품 */
+.main_slider_wrap .main_slider .item.icon_15 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_15.png");} /* 수입식품 */
+.main_slider_wrap .main_slider .item.icon_16 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_16.png");} /* 식품 등 */
+.main_slider_wrap .main_slider .item.icon_17 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_17.png");} /* 자료실 */
+.main_slider_wrap .main_slider .item.icon_18 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_18.png");} /* 폐업정보 */
+.main_slider_wrap .main_slider .item.icon_19 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_19.png");} /* 용어사전 */
+
+.main_slider_wrap .main_slider .item a .txt {color:#222; font-size:14px;}
+.main_slider_wrap .main_slider .item a:hover:before {box-shadow:3px 2px 3px #00000038;}
+.main_slider_wrap .main_slider .item a:hover .txt {font-weight:bold;}
+
+/*공공데이터 검색*/
+.data_search_wrap {width:100%; background:#eeeff0;}
+.data_search {position:relative; margin:0 auto; width:1220px; height:120px;}
+.data_text_box {position:absolute; top:27px; left:0;}
+.data_text_box strong {font-size:20px; line-height:28px; color:#262626; font-weight:bold; font-family:'Nanum Square';}
+.data_text_box p {font-size:13px; line-height:18px; color:#636363; letter-spacing:-1.5px;}
+.data_search_box {position:absolute; top:37px; left:250px; width:710px;}
+.data_search_box label {position:absolute; font-size:0; top:999999px; left:999999px;}
+.data_search_box input[type="text"] {padding:5px 70px 5px 20px; width:100%; line-height:25px; height:45px; font-size:16px; font-family:'Nanum Square'; background:#eeeff0; border:3px solid #0168c1; border-radius:50px; box-sizing:border-box; overflow:hidden;}
+.data_search_box input[type="text"]::placeholder {color:#989898;}
+.data_search_box input[type="text"]:focus {background:#fff;}
+.data_search_box button {position:absolute; top:0; right:0; width:50px; height:45px; text-indent:-9999px; background:#0168c1 url('https://www.foodsafetykorea.go.kr/images/api/main/btn_data_search.png') no-repeat center; border-top-right-radius:25px; border-bottom-right-radius:25px;}
+.data_structure_search_box {position:absolute; top:37px; right:0; width:230px;}
+.data_structure_search_box button {width:100%; height:45px; line-height:45px; font-size:16px; color:#fff; font-family:'Nanum Square'; background:#68727f; border-radius:50px; transition:all 0.5s;}
+.data_structure_search_box button:hover {background:#525b66;}
+
+/*메인 게시글 등*/
+.main_cont_wrap {padding:30px 15px; width:100%; overflow:hidden;}
+.main_cont {margin:0 auto; width:1220px;}
+.main_cont .box {position:relative; float:left; margin-right:30px; height:300px; border:1px solid #d8d8d8; box-sizing:border-box;}
+.main_cont .box.notice {width:390px;}
+.main_cont .box.notice .tit {display:block; padding-left:25px; width:100%; line-height:54px; height:55px; font-size:20px; color:#262626; font-weight:bold; font-family:'Nanum Square'; border-bottom:1px solid #d8d8d8; box-sizing:border-box;}
+.main_cont .box.notice .more {display:block; position:absolute; top:-1px; right:-1px; width:30px; height:30px; text-indent:-99999px; background:#0168c1 url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_notice_more.png") no-repeat center;}
+.main_cont .box.notice .list {padding:45px 25px 0;}
+.main_cont .box.notice .list li {margin-bottom:12px;}
+.main_cont .box.notice .list li:last-child {margin:0;}
+.main_cont .box.notice .list li a {display:block; position:relative; padding:0 0 0 10px;}
+.main_cont .box.notice .list li a:before {content:''; position:absolute; top:9px; left:0; width:2px; height:2px; background:#3080c3;}
+.main_cont .box.notice .list li a strong {display:block; overflow:hidden; text-overflow:ellipsis; word-wrap:normal; white-space:nowrap; font-size:15px; font-weight:400; color:#404040;}
+.main_cont .box.notice .list li a .date {position: absolute; top:0; right:0; font-size:14px; color:#777777;}
+.main_cont .box.notice .list li a:hover {text-decoration:underline; color:#0168c1;}
+.main_cont .box.notice .list li a:hover strong {color:#0168c1;}
+
+.main_cont .box.tab {width:580px;}
+.main_cont .box.tab .tit {width:100%; border-bottom:1px solid #d8d8d8; box-sizing:border-box;}
+.main_cont .box.tab .tit:after {content:''; display:block; clear:both;}
+.main_cont .box.tab .tit button {float:left; position:relative; padding:0 25px; line-height:54px; height:54px; font-size:20px; font-family:'Nanum Square'; width:50%;} /* width:50%; 추가(2019.12.02)  */
+.main_cont .box.tab .tit button:after {content:''; display:block; position:absolute; top:20px; right:0; width:1px; height:14px; background:#d2d2d2;}
+.main_cont .box.tab .tit button:last-child:after {display:none;}
+.main_cont .box.tab .tit button strong {color:#888888; font-weight:400;}
+.main_cont .box.tab .tit button strong:after {content:''; display:block; margin-top:-2px; width:100%; height:3px; transform:scaleX(0); visibility:hidden; background:#0168c1; transform-origin:center; transition:all .3s ease;}
+.main_cont .box.tab .tit button.on strong {color:#262626; font-weight:bold;}
+.main_cont .box.tab .tit button.on strong:after {visibility:visible; transform:scaleX(1);}
+.main_cont .box.tab .tab-content {display:none;}
+.main_cont .box.tab .tab-content.on {display:block;}
+.main_cont .box.tab .list {padding:30px 20px 0;}
+.main_cont .box.tab .list li {margin-bottom:9px;}
+.main_cont .box.tab .list li:last-child {margin-bottom:0px;}
+.main_cont .box.tab .list li a {display:block;}
+.main_cont .box.tab .list li a .txt {position:relative; padding-right:80px;}
+.main_cont .box.tab .list li a .txt .stit {display:block; overflow:hidden; text-overflow:ellipsis; word-wrap:normal; white-space:nowrap; font-size:13px; font-weight:400; color:#404040;}
+.main_cont .box.tab .list li a .txt .date {position: absolute; top:0; right:0; font-size:14px; color:#777777;}
+.main_cont .box.tab .list li a strong {display:block; overflow:hidden; text-overflow:ellipsis; word-wrap:normal; white-space:nowrap; line-height:25px; font-size:15px; font-weight:bold; color:#005baa;}
+.main_cont .box.tab .list li a:hover .stit {text-decoration:underline;}
+.main_cont .box.tab .list li a:hover strong {text-decoration:underline;}
+
+.main_cont .box.button {margin:0; width:190px;}
+.main_cont .box.button button {display:block; padding-left:70px; width:100%; height:99px; text-align:left; border-bottom:1px solid #d8d8d8; background-color:#f6f7f7; background-repeat:no-repeat; background-position:center left 13px; box-sizing:border-box; transition:all .3s ease;}
+.main_cont .box.button button:last-child {border-bottom:0;}
+.main_cont .box.button button.application {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_application.png");}
+.main_cont .box.button button.revise {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_revise.png");}
+.main_cont .box.button button.guide {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_guide.png");}
+.main_cont .box.button button span {font-size:17px; font-weight:bold; color:#262626; letter-spacing:-1.5px;}
+.main_cont .box.button button:hover {text-decoration:underline;}
+
+/*  popups  */
+#popupLayout .btn_area{ width:100%; text-align:right; position:absolute; bottom:5%; padding-right:15px; }
+.btn_area_chk{margin:0!important;}
+#popupLayout .btn_area button{ text-align:right; background:#0080FF; color:#FFFFFF; border:none; padding:5px; }
+
+#popupLayout img{ display:block; width:100%; }
+
+.popcontentbox div { padding: 3px 0px; width:100%; }
+.popheaderbox img { width: 100%; }
+.popcontentbox { padding : 10px; margin-top:720px; margin-left:38px; }
+
+/*.popcontentbox input[type=text]{ width:100%; height: 30px; outline:none; border : none;}*/
+.popcontentbox input[type=text]{ width:157px; height: 25px; border : none; margin:1px;}
+.popcontentbox input[type=text]:focus{ }
+#popeventSend{ text-align:right; color:#FFFFFF; border:none;  padding: 5px 10px; background : #58D3F7;}
+#popeventSend:hover{  background : #0080FF; }
+#popeventClose{ color:#FFFFFF; border:none;  padding: 5px 10px; background : #58D3F7; }
+#popeventClose:focus{outline:none;}
+.popeventFooter{ width: 100%; text-align:center; padding:5px 5px 10px 5px;}
+.popeventBtns{position:absolute; top:0px; right:0px; border:none; padding:0px; }
+
+.closePopLay { color:#FFFFFF; border:none;  padding: 5px 10px; background : #58D3F7; }
+.closePopLay:focus {outline:none;}
+
+#systemErrorPop{ position:fixed; top:10%; margin:0; padding:0; z-index:99999; display:none;}
+.popupItemFoot{position:absolute; width:100%; text-align:right; bottom:5%; }
+
+.popups{
+	position : fixed;
+	margin:0 auto;
+	top:3%;
+	z-index:99999;
+	background-color : #FFFFFF;
+	display:none;
+}
+
+.popups>.popup_cookie_close{
+	width:100%;
+	position:relative;
+	height:46px;
+	text-align:right;
+	padding-top: 10px ;
+	padding-right:15px;
+	background-color:#2E9AFE;
+}
+
+.popups>.popup_cookie_close span{
+	padding-top:2px;
+	padding-left:5px;
+	color:#FFFFFF;
+}
+
+#eventpopOut{
+	/*background: url('/portal/popup/joinPopup.jpg');*/
+	background: url('/portal/popup/appDownPopup_500.jpg');
+	background-repeat: no-repeat;
+	position:fixed;
+	top:3%;
+	margin:0 auto;
+	padding:0px;
+	z-index:99999;
+	width:500px;
+	height:855px;
+	display:none;
+}
+.eventContentbox { width: 600px; height: 802px; background: url('/portal/popup/event/201703/2017_03_event.jpg');}
+.eventContentbox div { padding: 0px; }
+/* .eventContentbox .eventPopup_contents {height:400px;} */
+.eventContentbox .eventPopup_contents {padding: 5px; position:absolute; border: 1px solid #DFDDDD; outline:none;resize:none; width:453px; height:211px; margin: 406px 77px; overflow:auto; background-color:#FFFFFF;}
+.eventContentbox input[type=text]:focus{ }
+.eventContentbox .eventPopup_name {float:left; padding: 619px 160px; width:60%; }
+.eventContentbox .popeventPname { width:80px; height: 25px; outline:none; border: 1px solid #DFDDDD;}
+.eventContentbox .eventPopup_phone { float:left;  padding: 619px 13px 0 0;}
+.eventContentbox .popeventPphone{ width:100px; height: 25px; outline:none; border: 1px solid #DFDDDD;}
+.eventContentbox .popeventPcontent{ width:100px; height: 25px; outline:none; border: 1px solid #DFDDDD; margin:1px;}
+.eventContentbox .eventAgreeCheck{ margin: 0; margin-left: 30px; height:22px; border: 1px solid #606060;}
+.eventFormImg {height:111px; position: absolute; margin: 7px 0px 0px 126px;}
+.eventContentbox .popup_cookie_close{width:100%;position:relative;text-align:right;margin-top: 111px; padding-right:15px;}
+.eventContentbox .eventPopup_send{ padding-top: 617px; }
+#popeventSend{ text-align:right; color:#FFFFFF; border:none;  padding: 5px 10px; background : #58D3F7;}
+#popeventSend:hover{  background : #0080FF; }
+
+/*.service-btn{position:absolute; right:8px; top:59px; border:none; border-radius:3px; background:#0168c1; color:#fff; font-size:12px; padding:4px 15px;}*/
+.service-btn{left:24px; top:59px; border:none; border-radius:3px; background:#0168c1; color:#fff; font-size:14px; padding:4px 6px;}
+.service-btn:hover{background:#325587; cursor:pointer;}
+/* 기타 추가 */
+*{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
+
+/* css 보정 추가  */
+
+
+
+/* 반응형 */
+@media all and (max-width:1300px){
+	#header .header_top{width:98%;}
+	#header .header_bottom, .main_slider_wrap .main_slider, .data_search, .main_cont, #footer .footer_link, #footer .footer_info{width:100%;}
+	.main_cont .box.notice{width:calc(100% - 763px);}
+	.main_slider_wrap{padding:40px 15px;}
+	.data_search_wrap{padding:0 15px;}
+	.footer_link_wrap .footer_link ul{padding:0 7px; display:inline-block; width:100%; height:100%;}
+	#footer .footer_link .site .select_btn{border-top:1px solid #ddd;}
+}
+@media all and (max-width:1023px){
+
+	/* main */
+	.data_search_box{width:calc(100% - 490px);}
+	.main_slider_wrap h2{margin-left:10px;}
+	.data_text_box{left:12px;}
+	.main_cont .box.tab{width:471px;}
+	.main_cont .box.notice{width:calc(100% - 780px); margin-left:10px;}
+	.main_slider_wrap{padding:40px 30px; }
+	.main_slider_wrap h2{text-align:center; width:100%; font-size:23px;}
+
+	/* 공공데이터 검색 */
+	.data_search{height:197px;}
+	.data_structure_search_box{position:relative; top:-90px; width:180px; margin:0 auto;}
+	.data_structure_search_box button{height:39px; line-height:39px; font-size:14px;}
+	.data_text_box{position:relative; top:62px; text-align:center; left:0;}
+	.data_text_box strong{font-size:18px;}
+	.data_text_box p{font-size:12px;}
+	.data_search_box{position:relative; top:74px; left:0; width:80%; margin:0 auto; }
+	.data_search_box input[type="text"]{height:40px; font-size:13px; }
+	.data_search_box button{height:39px; }
+
+	/* main content */
+	.main_cont_wrap{padding:30px 10px;}
+	.main_cont .box.notice{width:calc(100% - 453px); margin-right:7px; margin-left:0; }
+	.main_cont .box.tab{width:446px;}
+	.main_cont .box{margin-right:0;}
+	.main_cont .box.tab .list li a strong, .main_cont .box.notice .list li a strong{font-size:14px;}
+	.main_cont .box.notice .tit, .main_cont .box.tab .tit button, .main_cont .box.button button span{font-size:15px;}
+	.main_cont .box.button{width:100%; height:auto; margin-top:10px; border:none;}
+	.main_cont .box.button button{display:inline-block; width:32.8%; border:1px solid #d8d8d8;}
+	.main_cont .box.button button:last-child{border-bottom:1px solid #d8d8d8;}
+
+
+}
+/* 타블렛 */
+@media screen and (max-width:768px){
+	/* main content */
+	.main_cont .box.notice{width:100%; margin-left:0; margin-right:0; margin-bottom:10px;}
+	.main_cont .box.tab{width:100%;}
+}
+@media all and (min-width:480px) and (max-width:673px){
+	.main_cont .box.button button{width:32.5%; padding-left:45px; height:57px; background-position:center left 11px; background-size:23px; }
+	.main_cont .box.button button span{font-size:14px;}
+
+}
+/* 스마트폰 */
+@media screen and (max-width:576px) {
+	.main_cont .box.button {
+		border: 1px solid #d8d8d8;
+	}
+
+	.main_cont .box.button button {
+		width: 100%;
+		display: block;
+		border: none;
+		border-bottom: 1px solid #d8d8d8;
+	}
+
+	.main_cont .box.button button:last-child {
+		border-bottom: none;
+	}
+}
+@media screen and (max-width:375px){
+	.main_slider_wrap{padding:40px 8px;}
+	.main_slider_wrap .main_slider{padding:0 30px;}
+	.main_slider_wrap h2{margin-left:0;}
+	.main_cont .box.notice .tit, .main_cont .box.tab .tit button, .main_cont .box.button button spanP{font-size:13px;}
+}

@@ -1,0 +1,2771 @@
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta http-equiv="X-UA-Compatible" id="document_mode" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>식품안전나라
+        
+    </title>
+
+    <!-- 새로 추가  -->
+    <!-- <link type="text/css" href="/css/api/common.css" rel="stylesheet"> -->
+    <!-- <link type="text/css" href="/css/api/layout.css" rel="stylesheet"> -->
+    <!-- <link type="text/css" href="/css/api/slick.css" rel="stylesheet"> -->
+    <!-- <link type="text/css" href="/css/api/sub.css" rel="stylesheet"> -->
+    <link rel="shortcut icon" href="/images/common/favicon.ico"/>
+    <link type="text/css" href="/css/api/main.css" rel="stylesheet">
+    <link type="text/css" href="/css/api/slick-theme.css" rel="stylesheet">
+
+    <!-- <script src="/js/api/jquery-3.3.1.js"></script> -->
+    <script src="/js/jquery.js"></script>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery.sidr.min.js"></script>
+    <script src="/js/api/slick.js"></script>
+    <script src="/js/api/common.js"></script>
+    <script src="/js/api/main.js"></script>
+    <script src="/js/jquery.selecter.min.js"></script>
+    <script src="/js/jquery.fancybox.js"></script>
+    <script type="text/javascript" src="/js/fusioncharts/js/fusioncharts.js"></script>
+    <script type="text/javascript"
+            src="/js/fusioncharts/js/themes/fusioncharts.theme.fint.js"></script>
+    <script type="text/javascript"
+            src="/js/fusioncharts/js/fusioncharts-jquery-plugin.js"></script>
+    
+
+
+
+    <script>
+        var anyidAdaptor = anyidAdaptor || {};
+
+
+        /*이용기관 수정 영역 Start*/
+        anyidAdaptor.orgLogin = function(data){
+            // alert("이용기관 자체 로그인!!!");
+            //정부 통합인증SDK_연계가이드 4.4.1.3 이용기관 로그인(토글 off) 참조
+            //제공되는 라이브러리 메소드로 인증데이터 decrypt 이후 자체 로그인 로직 개발
+            if (data.ssob){
+                anyidAdaptor.goAnyIdLogin(data);
+            }else{
+                anyidAdaptor.goLogin();
+            }
+
+        }
+        /*이용기관 수정 영역 End*/
+        
+        
+        /*이용기관 문구수정 영역 Start*/
+        anyidAdaptor.JoinConfirm = function(portalJoinUri, memberData){
+            if(!confirm('Any-ID 사용자등록 하시겠습니까?')) {
+                anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                return;
+            }else{
+                anyidAdaptor.receiveAnyIdJoin(portalJoinUri, memberData);
+            }
+        }
+        /*이용기관 문구수정 영역 End*/
+        
+        
+        
+
+        anyidAdaptor.portalJoinUri = "null";
+        anyidAdaptor.certData = null;
+        anyidAdaptor.ssoByPass = "0";
+        anyidAdaptor.niRegYn = "null";
+        anyidAdaptor.agencyContextPath = "";
+        
+        
+        anyidAdaptor.success = function(data){
+            if(anyidAdaptor.ssoByPass != 0 || !data.useSso) {
+                anyidAdaptor.orgLogin(data);
+            } else {
+                anyidAdaptor.certData = data;
+                anyidAdaptor.userCheck();
+            }  
+        }
+        
+        anyidAdaptor.userCheck = function(){
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", anyidAdaptor.agencyContextPath + "/oidc/userCheck", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        anyidAdaptor.ssoLogin();
+                    } else {
+                        setTimeout(function() {
+                            anyidAdaptor.receiveAnyIdJoin(response.uri, response.data);
+                        }, 100);  
+                    }
+                }
+            };
+
+            let jsonObject = new Object();
+            jsonObject.txId = anyidAdaptor.certData.txId;
+            jsonObject.ssob = anyidAdaptor.certData.ssob;
+            jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
+            
+            let jsonStr = JSON.stringify(jsonObject);
+            let encodedString = btoa(jsonStr);
+            
+            var data = "data=" + encodedString + "&txId=" + anyidAdaptor.certData.txId;
+            xhr.send(data);
+            
+        }
+
+        //anyid가입
+        anyidAdaptor.receiveAnyIdJoin = function(portalJoinUri, memberData){
+        
+            var url = portalJoinUri+encodeURIComponent(memberData);
+            anyidAdaptor.popup(url,"openAnyIdRegistUserIdv",700,740);
+
+            window.addEventListener("message", function(event) {
+                var result;
+                try {
+                    result = JSON.parse(event.data);
+                } catch (error) {
+                    console.error("Received message is not valid JSON:", error);
+                    return;
+                }
+                
+                if(!result.funcName || (result.funcName !== "trmsAgreComplete" && result.funcName !== "registUserComplete")) {
+                    return;
+                }
+                if(result.status === "success") {
+                    if(result.trmsAgreYn == "Y"){
+                        anyidAdaptor.ssoLogin();
+                    }else{
+                        anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                    }
+                }else{
+                    
+                    anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                }
+
+            }, false);
+        }
+
+        // 팝업 호출
+        anyidAdaptor.popup = function(url, name, width, height){
+            let left = (screen.width) ? (screen.width-width)/2 : 0;
+            let top = (screen.height) ? (screen.height-height)/2 : 0;
+            let popup=window.open(url, name ,"resizable=yes,toolbar=no,scrollbars=yes,location=no,top="+top+"px,left="+left+"px,width="+width+"px,height="+height+"px");
+            if(popup){
+                popup.focus();
+            }
+        }
+
+        anyidAdaptor.ssoLogin = function(){
+            let jsonObject = new Object();
+            jsonObject.txId = anyidAdaptor.certData.txId;
+            jsonObject.ssob = anyidAdaptor.certData.ssob;
+            jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
+            jsonObject.afData = anyidAdaptor.certData.afData;
+            let jsonStr = JSON.stringify(jsonObject);
+            
+            let encodedString = btoa(jsonStr);
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogin";
+            var urlWithParams = baseUrl + "?data=" + encodedString;
+            window.location.href = urlWithParams;
+            
+        }
+        
+        anyidAdaptor.ssoLoginPageSub = function(baseUrl, endPoint, acrValues){
+            var subUrl = "";
+            
+            if (endPoint && endPoint.trim() !== "") {
+                subUrl = "?endPoint=" + encodeURIComponent(endPoint);
+            }
+            
+            if (!acrValues && acrValues.trim() == "") {
+                acrValues = "3";
+            }
+            
+            if (acrValues && acrValues.trim() !== "") {
+                if(subUrl == ""){
+                    subUrl = "?";
+                }else{
+                    subUrl = subUrl + "&";
+                }
+                subUrl = subUrl + "acrValues=" + acrValues;
+            }
+            
+            window.location.replace(baseUrl+subUrl);
+        }
+        
+        /**/
+        anyidAdaptor.ssoLogout = function(endPoint) {
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogout";
+            baseUrl = baseUrl + "?endPoint=" + encodeURIComponent(endPoint);
+            window.location.replace(baseUrl);
+        }
+        /**/
+        anyidAdaptor.reAuthLevel = function(endPoint, acrValues){
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/reAuthLevel";
+            anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
+
+        }
+        /**/
+        anyidAdaptor.ssoLoginPage = function(endPoint, acrValues){
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/auth";
+            anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
+        }
+        
+        /**/
+        anyidAdaptor.ssoSvcToSvc = function(url, endPoint){
+            var baseUrl = url + "/oidc/svcToSvc?endPoint=" + encodeURIComponent(endPoint);
+            window.open(baseUrl, "_blank");
+        }
+        anyidAdaptor.goAnyIdLogin = function (data) {
+            const params = new URLSearchParams(location.search);
+
+            var obj = {
+                ssob: data.ssob,
+                tag: params.get("tx")
+            };
+
+            $.ajax({
+                url : "/chkLoginAnyid.do",
+                type : "POST",
+                dataType:"json",
+                data: obj,
+                beforeSend: function() { _cfn_loading.show(); },
+                complete: function() { _cfn_loading.hide(); },
+                success:function (response) {
+                    if (response.status === "success") {
+                        console.log("success");
+                        location.href = "/minwonMainNew.do";
+                    }else{
+                        console.log("fail");
+                        anyidAdaptor.goLogin();
+                    }
+                },
+                error:function (xhr, status,error) {
+                    alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+                }
+            })
+        }
+        // 이용기과 로그인 함수 추가
+        anyidAdaptor.goLogin = function () {
+            var nowUrl = window.location.protocol;
+
+            var urlSplit = nowUrl.split(":");
+            var firstUrl = urlSplit[0];
+            var fullUrl;
+
+            if(firstUrl == "https"){
+                console.log("url : " + firstUrl);
+                fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+            }else if (firstUrl == "http"){
+                console.log("url : " + firstUrl);
+                fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+            }else{
+                console.log("else");
+            }
+
+            console.log("fullUrl : " + fullUrl);
+            location.href=fullUrl;
+        }
+
+
+    </script>
+
+    <script type="text/javascript">
+        // 로그아웃 후 뒤로가기로 캐시 복원 시 강제 새로고침해서 세션 갱신 유도
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted ||
+                (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        //Chart 그리기
+        var column2dChart = new FusionCharts({
+            //type : 'doughnut2d',
+            type: 'column3d',
+            renderAt: 'chart-container',
+            width: '100%',
+            height: '100%',
+            dataFormat: 'json',
+            dataSource: {
+                "chart": {
+                    //"showLegend" : "1",
+                    "showLabels": "0",
+                    "showValues": "0",
+                    //"doughnutRadius" : "40",
+                    "legendItemFontSize": "16",
+                    //"chartLeftMargin" : "-50",
+                    //"NumberSuffix" : "건",
+                    "xAxisName": "상위 10위 데이터(2026년 05월)",
+                    //"defaultCenterLabel" : "상위10위 데이터",
+                    //"centerLabelFontSize" : "12",
+                    //"yAxisValuesStep" : "1",
+                    //"yAxisMinValue" : "100000",
+                    //"yAxisMaxValue" : "800000",
+                    //"showDivLineValues" : "100",
+                    "baseFont": "NanumGothic",
+                    "baseFontSize": "16",
+                    "outCnvBaseFontSize": "11",
+                    //"valueFontSize" : "16",
+                    "xAxisNameFontSize": "16",
+                    //"yAxisValueFontSize" : "10",
+                    "formatNumberScale": "0",
+                    "sFormatNumberScale": "0",
+                    //"numberScaleValue" : "500",
+                    "decimals": "0",
+                    //"paletteColors" : "#dd1212,#adc901,#5f8efc,#feb500,#adc901",
+                    "paletteColors": "#dd1212,#adc901,#5f8efc,#f8e987,#f887c5,#f8c587,#feb500,#f887f4,#87f8e7,#9e87f8,#f887f4",
+                    //"theme" : "fusion"
+                    "theme": "fint"
+                },
+                "data": [{
+                    
+                    "label": "음식점업소 인허가 변경 정보",
+                    "value": "517012",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "식품접객업정보",
+                    "value": "218956",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "식품(첨가물)품목제조보고",
+                    "value": "131661",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "인허가 업소 정보",
+                    "value": "115097",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "식품(첨가물)품목제조보고(원재료)",
+                    "value": "97996",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "건강기능식품 품목제조 신고사항 현황",
+                    "value": "56984",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "수거검사 계획 및 실적 관련 현황",
+                    "value": "43839",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "건강기능식품 품목제조신고(원재료)",
+                    "value": "34517",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "식품업소 인허가 변경 정보",
+                    "value": "29947",
+                    /*"color" : "#000000"*/
+                    
+                }, {
+                    
+                    
+                    "label": "회수.판매중지 정보",
+                    "value": "28200",
+                    /*"color" : "#000000"*/
+                    
+                    
+                }]
+            }
+        });
+
+        function closeWinAt(winName, expiredays) {
+            setCookieAt00(winName, "done", expiredays);
+            $("#" + winName).hide();
+        }
+
+        function popclose(id) {
+            $("#" + id).hide();
+        }
+
+        function setCookieAt00(name, value, expiredays) {
+            var todayDate = new Date();
+            todayDate = new Date(parseInt(todayDate.getTime() / 86400000) * 86400000 + 54000000);
+            if (todayDate > new Date()) {
+                expiredays = expiredays - 1;
+            }
+            todayDate.setDate(todayDate.getDate() + expiredays);
+            document.cookie = name + "=" + escape(value) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+        }
+
+        function getCookie(cookieName) {
+            cookieName = cookieName + "=";
+            var cookieData = document.cookie;
+            var start = cookieData.indexOf(cookieName);
+            var cookieValue;
+            if (start != -1) {
+                start += cookieName.length;
+                var end = cookieData.indexOf(";", start);
+                if (end == -1) {
+                    end = cookieData.length;
+                }
+                cookieValue = cookieData.substring(start, end);
+            }
+            console.log(cookieValue);
+            return cookieValue;
+        }
+
+        // $(document).ready(function () {
+        //     var blnCookie = getCookie("popuptable");
+        //     if (blnCookie != "done") {
+        //         $("#popuptable").show();
+        //     }
+        //     var blnCookie2 = getCookie("popuptable2");
+        //     if (blnCookie2 != "done") {
+        //         $("#popuptable2").show();
+        //     }
+        // });
+
+
+        //페이지 로드 초기화 함수 호출
+        window.onload = main_init;
+
+        //init 함수 호출
+        function main_init() {
+            var nowDateObj = new Date();
+            var year = nowDateObj.getFullYear();
+            var month = (nowDateObj.getMonth() + 1).toString().padStart(2, '0');
+            var day = nowDateObj.getDate().toString().padStart(2, '0');
+            var hh = nowDateObj.getHours().toString().padStart(2, '0');
+            var mm = nowDateObj.getMinutes().toString().padStart(2, '0');
+            var nowDate = year + month + day + hh + mm;
+            var chk = true;
+            list = $(".draggable-popup");
+            for (i = 0, len = list.length; i < len; i++) {
+
+                obj = list[i];
+                chk = true;
+
+                // 오늘하루창닫기 체크
+                if (getCookie(obj.getAttribute("id")) != "done") {
+                    $("#" + obj.getAttribute("id")).show();
+                } else {
+                    chk = false;
+                }
+
+                var start_time = obj.getAttribute("start_to");
+                var end_time = obj.getAttribute("end_to");
+
+                if (start_time == null || start_time == "") {
+                    //시작시간이 없으면 끝나는 시간만 본다.
+                    //현재시간이 설정한 끝나는 시간보다 크면 hide 처리
+                    if (parseInt(nowDate) > parseInt(end_time)) {
+                        $(obj).hide();
+                    }
+                } else {
+                    //시작시간이 있는 팝업은 시작시간부터 확인한다.
+                    //현재시간이 설정한 끝나는 시간보다 크면 hide 처리
+                    if (parseInt(nowDate) > parseInt(end_time)) {
+                        $(obj).hide();
+                    } else {
+                        //현재시간이 설정한 끝나는 시간보다 작으면 시작시간 확인
+                        if (parseInt(nowDate) >= parseInt(start_time) && chk) {
+                            //현재시간이 설정한 시작시간보다 크고 오늘 하루 창닫기 하지 않은경우 show 처리
+                            // if((parseInt(nowDate) >= 2024062400) && (parseInt(nowDate) < 2024062511)){
+                            //     $("#popuptable4img").attr("src","/ifsn/images/20240618_1_popup.png");
+                            // }
+                            // if((parseInt(nowDate) >= 2024062511) && (parseInt(nowDate) < 2024062611)){
+                            //     $("#popuptable4img").attr("src","/ifsn/images/20240618_2_popup.png");
+                            // }
+                            // if((parseInt(nowDate) >= 2024062611) && (parseInt(nowDate) < 2024062711)){
+                            //     $("#popuptable4img").attr("src","/ifsn/images/20240618_3_popup.png");
+                            // }
+                            // if((parseInt(nowDate) >= 2024062711) && (parseInt(nowDate) < 2024062811)){
+                            //     $("#popuptable4img").attr("src","/ifsn/images/20240618_4_popup.png");
+                            // }
+                            $(obj).show();
+                        } else {
+                            //현재시간이 설정한 시작시간보다 작으면 hide 처리
+                            $(obj).hide();
+                        }
+                    }
+                }
+            }
+            let imgTag = document.getElementById('popuptableImg');
+            imgTag.onclick = function(){
+                window.open('https://www.foodsafetykorea.go.kr/api/newDatasetDetail.do?menu_no=661&menu_grp=MENU_GRP31&start_idx=1&svc_no=I1200&p_svcTypeCd=API_TYPE06&svc_type_cd=&cl_cd=&provd_instt=&svcChkArr=&svc_nm=%EC%8B%9D%ED%92%88%EC%A0%91%EA%B0%9D%EC%97%85%EC%A0%95%EB%B3%B4&search_clCdCode=&search_provdInsttCode=&search_svcTypeCode=&search_keyword=%EC%8B%9D%ED%92%88%EC%A0%91%EA%B0%9D%EC%97%85&show_cnt=10');
+            };
+        }
+
+
+        function closeWinToday(winName, expiredays) {
+            setCookieAt00(winName, "done", expiredays);
+            $("#" + winName).hide();
+        }
+
+        function setCookie(cookieName, value, exdays) {
+            var exdate = new Date();
+            exdate.setDate(exdate.getDate() + exdays);
+            var cookieValue = escape(value) + ((exdays == null) ? "" : "; expires=" + exdate.toGMTString());
+            document.cookie = cookieName + "=" + cookieValue;
+        }
+
+        function deleteCookie(cookieName) {
+            var expireDate = new Date();
+            expireDate.setDate(expireDate.getDate() - 1);
+            document.cookie = cookieName + "= ;expires=" + expireDate.toGMTString();
+        }
+
+        function getCookie(name) {
+            var nameOfCookie = name + "=";
+            var x = 0;
+            while (x <= document.cookie.length) {
+                var y = (x + nameOfCookie.length);
+                if (document.cookie.substring(x, y) == nameOfCookie) {
+                    if ((endOfCookie = document.cookie.indexOf(";", y)) == -1)
+                        endOfCookie = document.cookie.length;
+                    return unescape(document.cookie.substring(y, endOfCookie));
+                }
+                x = document.cookie.indexOf(" ", x) + 1;
+                if (x == 0)
+                    break;
+            }
+            return "";
+        }
+
+        function closeWinAt00(winName, expiredays) {
+            setCookieAt00(winName, "done", expiredays);
+            $('#' + winName).hide();
+        }
+
+        //00:00 시 기준 쿠키 설정
+        function setCookieAt00(name, value, expiredays) {
+            var todayDate = new Date();
+            todayDate = new Date(parseInt(todayDate.getTime() / 86400000) * 86400000 + 54000000);
+            if (todayDate > new Date()) {
+                expiredays = expiredays - 1;
+            }
+            todayDate.setDate(todayDate.getDate() + expiredays);
+            document.cookie = name + "=" + escape(value) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+        }
+
+        function openWin(winName) {
+            var blnCookie = getCookie(winName);
+            if (!blnCookie) {
+                $('#' + winName).show();
+            }
+        }
+
+        function popclose(id) {
+            $("#" + id).hide();
+        }
+
+    </script>
+
+    
+    <style>
+        /* 리셋 CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ul, li {
+            list-style: none;
+        }
+
+        .slidebox {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .slidebox .slidelist {
+            position: relative;
+            white-space: nowrap;
+            font-size: 0;
+            overflow: hidden;
+        }
+
+        .slidebox .slidelist .slideitem {
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+            background-color: #fff;
+            width: 100%;
+            transition: all 1s;
+        }
+
+        .slidebox .slidelist .slideitem > a {
+            display: block;
+            width: auto;
+            position: relative;
+        }
+
+        .slidebox .slidelist .slideitem > a p {
+            max-width: 100%;
+        }
+
+        .slidebox .slide-control [class*="control"] label {
+            position: absolute;
+            z-index: 10;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slidebox .slide-control [class*="control"] label.prev {
+            left: 20px;
+            font-weight: bold;
+        }
+
+        .slidebox .slide-control [class*="control"] label.next {
+            right: -57px;
+            font-weight: bold;
+        }
+
+        [name="slide"] {
+            display: none;
+        }
+
+        #slide01:checked ~ .slidelist .slideitem {
+            left: 0;
+        }
+
+        #slide02:checked ~ .slidelist .slideitem {
+            left: -100%;
+        }
+
+        .slide-control [class*="control"] {
+            display: none;
+        }
+
+        #slide01:checked ~ .slide-control .control01 {
+            display: block;
+        }
+
+        #slide02:checked ~ .slide-control .control02 {
+            display: block;
+        }
+
+        #popuptable {
+            z-index: 10000;
+            position: absolute;
+            top: 155px;
+            left: 155px;
+            height: auto;
+        }
+
+        #popuptable2 {
+            z-index: 10000;
+            position: absolute;
+            top: 155px;
+            left: 785px;
+            height: auto;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<!-- 팝업 -->
+
+<div id="popuptable" style="display: none;" class="draggable-popup" start_to="202603100000" >
+    <img id="popuptableImg" src="/img/main/popup/20260324_popup_api.png" alt="" style="cursor: pointer;"/>
+    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
+        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable', 1);"/>오늘 하루 이 창 열지않기
+        <a href="javascript:popclose('popuptable')" style="color:white;">[닫기]</a>
+    </div>
+</div>
+<div id="popuptable2" style="display: none;" class="draggable-popup" start_to="202511100000" end_to="202511302359">
+    <img src="/img/main/popup/20251107_popup.png" alt=""/>
+    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
+        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable2', 1);"/>오늘 하루 이 창
+        열지않기 <a href="javascript:popclose('popuptable2')" style="color:white;">[닫기]</a>
+    </div>
+</div>
+
+
+<form id="baseForm" name="baseForm" method="post" onsubmit="return false;">
+    <!-- 공통영역 -->
+    <input type="hidden" id="menu_no" name="menu_no" value="">
+    <input type="hidden" id="menu_grp" name="menu_grp" value="">
+    <input type="hidden" id="filePath" name="filePath"/>
+    <input type="hidden" id="fileName" name="fileName"/>
+    <input type="hidden" id="orgFileName" name="orgFileName"/>
+
+    <!-- 공통영역 -->
+
+    <div id="skipContent">
+        <h2>바로가기 모음</h2>
+        <a href="#gnb">주메뉴 바로가기</a>
+        <a href="#container">본문 바로가기</a>
+    </div>
+
+    <div id="wrap">
+        <!-- 헤더 -->
+        <header id="header">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+        var anyidAdaptor = anyidAdaptor || {};
+
+
+        /*이용기관 수정 영역 Start*/
+        anyidAdaptor.orgLogin = function(data){
+            // alert("이용기관 자체 로그인!!!");
+            //정부 통합인증SDK_연계가이드 4.4.1.3 이용기관 로그인(토글 off) 참조
+            //제공되는 라이브러리 메소드로 인증데이터 decrypt 이후 자체 로그인 로직 개발
+            if (data.ssob){
+                anyidAdaptor.goAnyIdLogin(data);
+            }else{
+                anyidAdaptor.goLogin();
+            }
+
+        }
+        /*이용기관 수정 영역 End*/
+        
+        
+        /*이용기관 문구수정 영역 Start*/
+        anyidAdaptor.JoinConfirm = function(portalJoinUri, memberData){
+            if(!confirm('Any-ID 사용자등록 하시겠습니까?')) {
+                anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                return;
+            }else{
+                anyidAdaptor.receiveAnyIdJoin(portalJoinUri, memberData);
+            }
+        }
+        /*이용기관 문구수정 영역 End*/
+        
+        
+        
+
+        anyidAdaptor.portalJoinUri = "null";
+        anyidAdaptor.certData = null;
+        anyidAdaptor.ssoByPass = "0";
+        anyidAdaptor.niRegYn = "null";
+        anyidAdaptor.agencyContextPath = "";
+        
+        
+        anyidAdaptor.success = function(data){
+            if(anyidAdaptor.ssoByPass != 0 || !data.useSso) {
+                anyidAdaptor.orgLogin(data);
+            } else {
+                anyidAdaptor.certData = data;
+                anyidAdaptor.userCheck();
+            }  
+        }
+        
+        anyidAdaptor.userCheck = function(){
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", anyidAdaptor.agencyContextPath + "/oidc/userCheck", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        anyidAdaptor.ssoLogin();
+                    } else {
+                        setTimeout(function() {
+                            anyidAdaptor.receiveAnyIdJoin(response.uri, response.data);
+                        }, 100);  
+                    }
+                }
+            };
+
+            let jsonObject = new Object();
+            jsonObject.txId = anyidAdaptor.certData.txId;
+            jsonObject.ssob = anyidAdaptor.certData.ssob;
+            jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
+            
+            let jsonStr = JSON.stringify(jsonObject);
+            let encodedString = btoa(jsonStr);
+            
+            var data = "data=" + encodedString + "&txId=" + anyidAdaptor.certData.txId;
+            xhr.send(data);
+            
+        }
+
+        //anyid가입
+        anyidAdaptor.receiveAnyIdJoin = function(portalJoinUri, memberData){
+        
+            var url = portalJoinUri+encodeURIComponent(memberData);
+            anyidAdaptor.popup(url,"openAnyIdRegistUserIdv",700,740);
+
+            window.addEventListener("message", function(event) {
+                var result;
+                try {
+                    result = JSON.parse(event.data);
+                } catch (error) {
+                    console.error("Received message is not valid JSON:", error);
+                    return;
+                }
+                
+                if(!result.funcName || (result.funcName !== "trmsAgreComplete" && result.funcName !== "registUserComplete")) {
+                    return;
+                }
+                if(result.status === "success") {
+                    if(result.trmsAgreYn == "Y"){
+                        anyidAdaptor.ssoLogin();
+                    }else{
+                        anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                    }
+                }else{
+                    
+                    anyidAdaptor.orgLogin(anyidAdaptor.certData);
+                }
+
+            }, false);
+        }
+
+        // 팝업 호출
+        anyidAdaptor.popup = function(url, name, width, height){
+            let left = (screen.width) ? (screen.width-width)/2 : 0;
+            let top = (screen.height) ? (screen.height-height)/2 : 0;
+            let popup=window.open(url, name ,"resizable=yes,toolbar=no,scrollbars=yes,location=no,top="+top+"px,left="+left+"px,width="+width+"px,height="+height+"px");
+            if(popup){
+                popup.focus();
+            }
+        }
+
+        anyidAdaptor.ssoLogin = function(){
+            let jsonObject = new Object();
+            jsonObject.txId = anyidAdaptor.certData.txId;
+            jsonObject.ssob = anyidAdaptor.certData.ssob;
+            jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
+            jsonObject.afData = anyidAdaptor.certData.afData;
+            let jsonStr = JSON.stringify(jsonObject);
+            
+            let encodedString = btoa(jsonStr);
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogin";
+            var urlWithParams = baseUrl + "?data=" + encodedString;
+            window.location.href = urlWithParams;
+            
+        }
+        
+        anyidAdaptor.ssoLoginPageSub = function(baseUrl, endPoint, acrValues){
+            var subUrl = "";
+            
+            if (endPoint && endPoint.trim() !== "") {
+                subUrl = "?endPoint=" + encodeURIComponent(endPoint);
+            }
+            
+            if (!acrValues && acrValues.trim() == "") {
+                acrValues = "3";
+            }
+            
+            if (acrValues && acrValues.trim() !== "") {
+                if(subUrl == ""){
+                    subUrl = "?";
+                }else{
+                    subUrl = subUrl + "&";
+                }
+                subUrl = subUrl + "acrValues=" + acrValues;
+            }
+            
+            window.location.replace(baseUrl+subUrl);
+        }
+        
+        /**/
+        anyidAdaptor.ssoLogout = function(endPoint) {
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogout";
+            baseUrl = baseUrl + "?endPoint=" + encodeURIComponent(endPoint);
+            window.location.replace(baseUrl);
+        }
+        /**/
+        anyidAdaptor.reAuthLevel = function(endPoint, acrValues){
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/reAuthLevel";
+            anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
+
+        }
+        /**/
+        anyidAdaptor.ssoLoginPage = function(endPoint, acrValues){
+            endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
+            var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/auth";
+            anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
+        }
+        
+        /**/
+        anyidAdaptor.ssoSvcToSvc = function(url, endPoint){
+            var baseUrl = url + "/oidc/svcToSvc?endPoint=" + encodeURIComponent(endPoint);
+            window.open(baseUrl, "_blank");
+        }
+        anyidAdaptor.goAnyIdLogin = function (data) {
+            const params = new URLSearchParams(location.search);
+
+            var obj = {
+                ssob: data.ssob,
+                tag: params.get("tx")
+            };
+
+            $.ajax({
+                url : "/chkLoginAnyid.do",
+                type : "POST",
+                dataType:"json",
+                data: obj,
+                beforeSend: function() { _cfn_loading.show(); },
+                complete: function() { _cfn_loading.hide(); },
+                success:function (response) {
+                    if (response.status === "success") {
+                        console.log("success");
+                        location.href = "/minwonMainNew.do";
+                    }else{
+                        console.log("fail");
+                        anyidAdaptor.goLogin();
+                    }
+                },
+                error:function (xhr, status,error) {
+                    alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+                }
+            })
+        }
+        // 이용기과 로그인 함수 추가
+        anyidAdaptor.goLogin = function () {
+            var nowUrl = window.location.protocol;
+
+            var urlSplit = nowUrl.split(":");
+            var firstUrl = urlSplit[0];
+            var fullUrl;
+
+            if(firstUrl == "https"){
+                console.log("url : " + firstUrl);
+                fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+            }else if (firstUrl == "http"){
+                console.log("url : " + firstUrl);
+                fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+            }else{
+                console.log("else");
+            }
+
+            console.log("fullUrl : " + fullUrl);
+            location.href=fullUrl;
+        }
+
+
+    </script>
+
+		<div class="header_top_wrap">
+	        <div class="header_top">
+	          <ul class="site">
+	            <li><a href="/main.do" title="식품안전나라">식품안전나라</a></li>
+
+	            <li><a href="/minwonMainNew.do" title="통합민원창구">통합민원창구</a></li>
+	            
+	          	
+					<li class="util_left_bg3">
+						
+						
+					</li>
+				
+				
+	          
+	          </ul>
+	          <h1 class="logo"><a href="/apiMain.do">식품의약품안전처 데이터활용서비스</a></h1>
+	          <ul class="utill">
+	            
+	            
+					
+					
+
+			            <li><a href="http://www.foodsafetykorea.go.kr/portal/member/joinAgreeView.do">회원가입</a></li>
+
+			            <li><a href="#" onclick="anyidAdaptor.ssoLoginPage('/portal/member/ssoLoginResultView.do','3');">로그인</a></li>
+					
+				
+				
+	          </ul>
+	        </div>
+	      </div>
+		
+		<div class="top_m sub" style="height:0px !important;z-index:1000;">
+			
+			
+		</div>
+	<!-- search end -->
+
+<script id="commonOptionList" type="text/html">
+	<option value="{optionValue}">{optionName}</option>
+</script>
+
+<script>
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+/*
+location.href = "/portal/main_sub.html";
+//*/
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+//로딩바 처리
+$.loading();
+$(document).ajaxStart(function() { $.disable(); }).ajaxStop(function() { $.enable(); });
+
+var spinOpts = {
+		lines: 9,				// The number of lines to draw
+		length: 0,			// The length of each line
+		width: 4,				// The line thickness
+		radius: 6,			// The radius of the inner circle
+		corners: 1,			// Corner roundness (0..1)
+		rotate: 4,			// The rotation offset
+		direction: 1,			// 1: clockwise, -1: counterclockwise
+		color: '#000',		// #rgb or #rrggbb or array of colors
+		speed: 1,				// Rounds per second
+		trail: 60,			// Afterglow percentage
+		shadow: false,		// Whether to render a shadow
+		hwaccel: false,		// Whether to use hardware acceleration
+		className: 'spinner',	// The CSS class to assign to the spinner
+		zIndex: 2e9,			// The z-index (defaults to 2000000000)
+		top: '50%',			// Top position relative to parent
+		left: '50%'			// Left position relative to parent
+	};
+
+
+
+//무한 로딩바 방지
+window.onerror = function(){
+	$.enable();
+};
+
+$(document).ready(function(){
+	//포탈일 때만 검색엔진인기검색어 목록 실행
+	if('SITE03' == 'SITE01'){
+		getSearchTrandList();
+	}
+	else if('SITE03' == 'SITE04'){
+		fn_selectLcnsNoListForSafety();
+	}
+});
+
+$(function(){
+	$(".csmOpner").fancybox({
+		maxWidth: 300,
+		maxHeight: 330,
+		minHeight: 330,
+		fitToView: false,
+		width: '70%',
+		height: '80%',
+		autoSize: false,
+		closeClick: false,
+		openEffect: 'fade',
+		closeEffect: 'fade',
+// 		tpl: {next : '', prev : ''},
+		helpers: {overlay : {locked : false}}
+	});
+});
+
+//검색엔진인기검색어 목록
+function getSearchTrandList(){
+	/*
+	// 운영 COMMIT 금지			2016.09.30:임재록
+	$.ajax({
+        dataType:'json',
+        type:'POST',
+        url:"/ajax/getSearchTrandList.do",
+        success:function(listTrend){
+        	var htmlStr = '인기검색어 ';
+        	var cnt = 3;
+        	if(listTrend != null){
+        		cnt = listTrend.length;
+        		if(listTrend.length > 0){
+        			if(listTrend.length > 3){
+        				cnt = 3;
+        			}
+        			for(var i=0; i<cnt; i++){
+        				htmlStr += "<a href=\'javascript:fn_searchTranTop(\""+listTrend[i].KEYWORD+"\");\'>"+listTrend[i].KEYWORDM+"</a>";
+        			}
+        		}
+        	}
+
+        	$('#keyword').html(htmlStr);
+
+        },
+        error:function(request,status,error){
+            //alert("left 실패코드111 : " + request.status+"\n메세지 : " + request.error);
+        }
+    });
+	//*/
+}
+
+function fn_goMinwon(){
+    document.baseForm.action = '/minwon/myCivil.do?menu_grp=MENU_GRP21&menu_no=627';
+    document.baseForm.target="_self";
+    document.baseForm.method="post";
+    document.baseForm.submit();
+}
+
+//우리회사안전관리 콜백
+function fn_callbackCsm(url){
+	$.fancybox.close();
+	location.href = url;
+}
+
+// 권한이 없다는 메세지 띄우기
+function fn_Alert(){
+	alert('기업회원이 아니거나 위임받은 인허가번호가 없어서 우리회사안전서비스를 이용할 수 없습니다.');
+}
+
+//통합검색 페이지이동
+function fn_searchTop(){
+
+	//통합검색 SELECTBOX 선택에 따른 메뉴 네비게이션 SET
+	var topColTarget = $('#topColTarget').val();
+	var menuNoTarget = '3090';
+
+	if(topColTarget == 'TOTAL01') {
+		menuNoTarget = '3090';
+	} else if(topColTarget == 'IPO_NEW_GRP01') {
+		menuNoTarget = '3085';
+	} else if(topColTarget == 'IPO_NEW_GRP02') {
+		menuNoTarget = '3086';
+	} else if(topColTarget == 'IPO_NEW_GRP03') {
+		menuNoTarget = '3087';
+	} else if(topColTarget == 'IPO_NEW_GRP06') {
+		menuNoTarget = '3088';
+	} else if(topColTarget == 'IPO_NEW_GRP04') {
+		menuNoTarget = '3089';
+	} else if(topColTarget == 'IPO_NEW_GRP08') {
+		menuNoTarget = '3090';
+	} else if(topColTarget == 'IPO_WEB') {
+		menuNoTarget = '3091';
+	}
+
+	$("#searchMode").val("search");
+	document.searchForm.action="/portal/search/searchSelect.do";
+	$("input[name=menu_no]").val(menuNoTarget);
+	$("input[name=menu_grp]").val('MENU_NEW07');
+
+	document.searchForm.target="_self";
+	document.searchForm.method="post";
+	document.searchForm.submit();
+}
+//통합검색 페이지이동(엔터키)
+function fn_searchKeyTop() {
+	if(window.event.keyCode == 13)
+		fn_searchTop();
+}
+//통합검색 인기검색어 페이지이동
+function fn_searchTranTop(word){
+
+	$("#searchTermTop").val(word);
+	document.searchForm.action="/portal/search/searchSelect.do";
+	$("#menu_no").val('3090');
+	$("#menu_grp").val('MENU_NEW07');
+	document.searchForm.target="_self";
+	document.searchForm.method="post";
+	document.searchForm.submit();
+}
+
+//인허가 회원 수정 페이지로 이동
+function fn_moveEditLcnsMemberView(userId, userPw){
+	var form = $('<form/>', {method: 'post', action: '/portal/member/editLcnsMemberView.do'});
+	form.append($('<input/>', {type: 'hidden', name: 'userId', value: userId}));
+	form.append($('<input/>', {type: 'hidden', name: 'userPw', value: userPw}));
+
+	$(document.body).append(form);
+	form.submit();
+}
+
+//회원정보와 관련된 인허가번호를 가져온다.
+function fn_selectLcnsNoListForSafety(){
+
+  	$.ajax({
+  		data: {id: ''},
+  		dataType: 'json',
+  		type: 'POST',
+ 		url: '/csm/safetyinfo/selectLcnsNoListForSafety.do'
+  	}).done(function(rstData){
+  		var data;
+  		var strHtml = '<option value="">선택하세요</option>';
+
+  		if(rstData != null && rstData.length > 0){
+  			$.each(rstData, function(idx) {
+  	  			data = null;
+  	  			data = {optionValue: this['lcns_req_no'], optionName: this['entrps_nm']};
+
+  	  			strHtml += innerHtmlMaker('#commonOptionList', data);
+  	  		});
+
+  		}
+
+  		$('#select_ourCompany').html(strHtml);
+  		$('#select_ourCompany').selecter('update');
+  		fn_selectEntrpsNoToLcnsNo();
+
+  	}).fail(function(request ,status, error){
+  		alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+  	});
+}
+
+//기업번호로 인허가번호를 가져와서 셀렉트 박스를 set 한다.
+function fn_selectEntrpsNoToLcnsNo(){
+	var entrps_esntl_no = '';
+
+  	$.ajax({
+  		data: {entrps_esntl_no: entrps_esntl_no},
+  		dataType: 'json',
+  		type: 'POST',
+ 		url: '/csm/safetyinfo/selectEntrpsNoToLcnsNo.do'
+  	}).done(function(rstData){
+  		if(rstData != null){
+  			$('#select_ourCompany option').each(function(i){
+
+  				if(rstData.lcns_crtfc_no == $(this).val())
+  				{
+
+  					$("#select_ourCompany option:eq(" + i + ")").prop("selected", true);
+  					$("#select_ourCompany").val(rstData.lcns_crtfc_no);
+  				}
+
+  			});
+
+  		}
+
+  	}).fail(function(request ,status, error){
+  		alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+  	});
+}
+
+//gnb onchange
+//해당 인허가번호로 세션을 set한다.
+function changeInfo() {
+	// 업종을 가져와서 set 한다.
+	fn_setSesstionForSafety($('#select_ourCompany').val());
+
+}
+
+//해당 인허가 번호로 세션을 set한다.
+function fn_setSesstionForSafety(lcns_no){
+	$.ajax({
+		data: {lcns_no: lcns_no},
+		dataType: 'json',
+		type: 'POST',
+		url: '/csm/safetyinfo/setSesstionForSafety.do'
+	}).done(function(rstData){
+		var returnCode = rstData.returnCode;
+		var returnMessage = rstData.returnMessage;
+
+		if (returnCode == "01") {
+
+	 		alert(returnMessage);
+	 		//location.reload();
+	 		location.href = '/csm/main.do?menu_no=757&menu_grp=MENU_GRP40';
+		}
+		else {
+			alert(returnMessage);
+		}
+
+	}).fail(function(request ,status, error){
+		alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+	});
+}
+function fn_skip(){
+	return;
+}
+
+//gpki 로그인 오류로인한 로그인페이지 방식 변경
+function goLogin(){
+    var nowUrl = "https://www.foodsafetykorea.go.kr/WEB-INF/jsp/newMain/apiMain_new.jsp";
+    console.log("nowUrl : " + nowUrl);
+
+    var urlSplit = nowUrl.split(":");
+    var firstUrl = urlSplit[0];
+    var fullUrl;
+
+    if(firstUrl == "https"){
+        console.log("url : " + firstUrl);
+        fullUrl = "https://www.foodsafetykorea.go.kr/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+    }else if (firstUrl == "http"){
+        console.log("url : " + firstUrl);
+        fullUrl = "http://www.foodsafetykorea.go.kr/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
+    }else{
+        console.log("else");
+    }
+
+    console.log("fullUrl : " + fullUrl);
+    location.href=fullUrl;
+
+}
+
+</script>
+
+            <!-- GNB start -->
+            
+
+
+
+
+
+
+
+
+
+
+<div class="header_bottom_wrap">
+  <div class="header_bottom">
+    <button type="button" class="total_menu tm_view" title="데이터활용서비스 한눈에 보기">전체메뉴</button>
+    <nav id="gnb">
+      <div class="gnb_area">
+        <h2>전체 메뉴</h2>
+        <ul class="depth_01">
+          <li>
+            <a href="javascript:fn_skip();"><span>서비스안내</span></a>
+            <div class="depth_02">
+              <ul>
+                <li><a href="/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686">서비스 소개</a></li>
+                <li><a href="/api/howToUseApi.do?menu_grp=MENU_GRP34&menu_no=687">서비스 이용방법</a></li>
+              </ul>
+            </div>
+          </li>
+
+          <li>
+            <a href="javascript:fn_skip();"><span>데이터공개</span></a>
+            <div class="depth_02">
+              <ul>
+                
+
+                  <li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=17879&cl_cd=API_SRT01">분류별</a></li>
+                  <li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=849&provd_instt=ORGN01">제공기관별</a></li>
+                  <li><a href="/api/datasetList.do?svc_type_cd=API_TYPE06&menu_no=661&menu_grp=MENU_GRP31">유형별</a></li>              </ul>
+            </div>
+          </li>
+
+          <li>
+            <a href="javascript:fn_skip();"><span>인증키 관리</span></a>
+            <div class="depth_02">
+              <ul>
+                <li><a href="/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995">인증키 신청 현황</a></li>
+              </ul>
+            </div>
+          </li>
+
+          <li>
+            <a href="javascript:fn_skip();"><span>정보공유</span></a>
+            <div class="depth_02">
+              <ul>
+                <!--<li><a href="/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3898">개발자 의견공유</a></li>-->
+		         <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688">공지사항</a></li>
+                <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=5208">자료실</a></li>
+                <li><a href="/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899">데이터활용 갤러리</a></li>
+              </ul>
+            </div>
+          </li>
+
+          <li>
+            <a href="javascript:fn_skip();"><span>고객센터</span></a>
+            <div class="depth_02">
+              <ul>
+                <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689">자주하는 질문</a></li> <!-- FAQ -->
+                <li class="last"><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690">묻고 답하기</a></li> <!-- Q&A  -->
+              </ul>
+            </div>
+          </li>
+
+        </ul>
+      </div>
+      <div class="gnb_bg"></div>
+    </nav>
+  </div>
+</div>
+
+
+
+<button type="button" id="btn_mobi_open" class="btn_mobi btn_mobi_open">전체메뉴</button>
+<div class="header_mobi_wrap">
+  <nav id="mobi_gnb">
+    <div class="mobi_utill">
+      <ul>
+
+      </ul>
+    </div>
+    <div class="gnb_area">
+      <button type="button" class="btn_mobi btn_mobi_close">전체메뉴 닫기</button>
+      <ul class="mobi_depth_01">
+        <li>
+          <a href="javascript:fn_skip();"><span>서비스안내</span></a>
+          <ul class="mobi_depth_02">
+            <li><a href="/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686">서비스 소개</a></li>
+            <li><a href="/api/howToUseApi.do?menu_grp=MENU_GRP34&menu_no=687">서비스 이용방법</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript:fn_skip();"><span>데이터공개</span></a>
+          <ul class="mobi_depth_02">
+            
+
+            <li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=17879&cl_cd=API_SRT01">분류별</a></li>
+            <li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=849&provd_instt=ORGN01">제공기관별</a></li>
+            <li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=656">유형별</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript:fn_skip();"><span>인증키 관리</span></a>
+          <ul class="mobi_depth_02">
+            <li><a href="/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995">인증키 신청 현황</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript:fn_skip();"><span>정보공유</span></a>
+          <ul class="mobi_depth_02">
+            <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688">공지사항</a></li>
+            <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=5208">자료실</a></li>
+            <li><a href="/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899">데이터활용 갤러리</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="javascript:fn_skip();"><span>고객센터</span></a>
+          <ul class="mobi_depth_02">
+            <li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689">자주하는 질문</a></li> <!-- FAQ -->
+            <li class="last"><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690">묻고 답하기</a></li> <!-- Q&A  -->
+          </ul>
+        </li>
+
+      </ul>
+    </div>
+        <div class="mobi_site">
+          <ul>
+            <li><a href="/main.do" target="_blank" title="식품안전나라">식품안전나라</a></li>
+           <!--2023-07-31 SR64483 문구 수정 요청-->
+            <!--<li><a href="/minwonMainNew.do" target="_blank" title="통합민원상담서비스">통합민원상담서비스</a></li>-->
+            <li><a href="/minwonMainNew.do" target="_blank" title="통합민원상담">통합민원상담</a></li>
+            
+            
+              <li class="util_left_bg3">
+                <a href="/portal/member/csmLoginNew.do" onclick="" title="알림새창열림">우리회사 안전관리</a>
+              </li>
+            
+            
+            
+          </ul>
+        </div>
+  </nav>
+</div>
+<script>
+
+  $(document).ready(function(){
+    /* 2021 고도화 gog 추가 - 반응형으로 모바일 창으로 축소했을때 UserVO가 지워지는 현상으로 추가 */
+    fn_getMobileSession();
+  });
+
+  function fn_skip(){
+    return;
+  }
+
+  // 권한이 없다는 메세지 띄우기
+  function fn_Alert(){
+    alert('기업회원이 아니거나 위임받은 인허가번호가 없어서 우리회사안전서비스를 이용할 수 없습니다.');
+  }
+
+  function fn_getMobileSession() { //gog - 모바일 창 세션 다시 가져오기
+    $.ajax({
+      type: "post",
+      url: "/ajax/getMobileSession.do",
+      dataType: "html",
+      cache: false,
+      success: function(result) {
+        $(".mobi_utill ul").append(result);
+      },
+      error: function(request,status,error) {
+      }
+    });
+  }
+</script>
+            <!-- GNB end -->
+
+        </header>
+
+        <!-- 각 메인화면 진입시 -->
+        <input type="hidden" id="svc_type_cd" name="svc_type_cd">    <!-- svc_type_cd 서비스타입 -->
+        <input type="hidden" id="cl_cd" name="cl_cd">      <!-- 서비스 분류 -->
+        <input type="hidden" id="svc_no" name="svc_no">    <!-- svc_no 서비스번호 -->
+        <!-- <input type="hidden" id="svc_nm" name="svc_nm"> -->    <!-- svc_nm 서비스명 -->
+
+        <!-- 게시판상세페이지전용 -->
+        <input type="hidden" id="ntctxt_no" name="ntctxt_no">
+        <input type="hidden" id="bbs_no" name="bbs_no">
+
+        <!--본문-->
+        <div id="container">
+
+            <!-- 메인 비주얼 -->
+            <div class="main_slider_wrap">
+                <h2>분류별 데이터 서비스</h2>
+                <div class="main_slider">
+
+                    
+                        
+                            
+                                
+                                <div class="item icon_01"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879"><span
+                                        class="txt">기준규격정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_02"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880"><span
+                                        class="txt">코드정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_03"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881"><span
+                                        class="txt">식품영양정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_04"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882"><span
+                                        class="txt">수질환경정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_05"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883"><span
+                                        class="txt">검사기관정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_06"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884"><span
+                                        class="txt">식품위해관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_07"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885"><span
+                                        class="txt">식품안전관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_08"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886"><span
+                                        class="txt">이력추적관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_09"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887"><span
+                                        class="txt">어린이식품안전관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_10"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888"><span
+                                        class="txt">HACCP지정현황</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_11"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889"><span
+                                        class="txt">업체인허가현황</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_12"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890"><span
+                                        class="txt">위생용품</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_13"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891"><span
+                                        class="txt">축산물</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_14"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892"><span
+                                        class="txt">건강기능식품</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_15"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893"><span
+                                        class="txt">수입식품 등</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_16"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894"><span
+                                        class="txt">식품 등</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_17"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895"><span
+                                        class="txt">자료실</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_18"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT18&menu_grp=MENU_GRP31&menu_no=4327"><span
+                                        class="txt">폐업정보</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_19"><a
+                                        href="/api/datasetList.do?cl_cd=API_SRT19&menu_grp=MENU_GRP31&menu_no=4328"><span
+                                        class="txt">용어사전</span></a></div>
+                            
+                        
+                    
+                </div>
+            </div>
+            <!-- //메인 비주얼 -->
+
+            <!-- 데이터검색 -->
+            <div class="data_search_wrap">
+
+                <div class="data_search">
+
+                    <div class="data_text_box">
+                        <strong>공공데이터 검색</strong>
+                        <p>식품의약품안전처 및 연계기관에서 개방하는<br>데이터를 검색할 수 있습니다. </p>
+                    </div>
+
+                    <div class="data_search_box">
+                        <!-- <label for="data_search_input">검색어를 입력하세요.</label> -->
+                        <input type="text" id="search_keyword" name="search_keyword" placeholder="검색어를 입력하세요">
+                        <!--data_search_input-->
+                        <button type="button" onclick="datasetAllSearch('661', 'MENU_GRP31');">검색</button>
+                    </div>
+
+                    <div class="data_structure_search_box">
+                        <button type="button" class="datastruct_view">데이터구조 검색</button>
+                    </div>
+
+                </div>
+
+            </div>
+            <!-- //데이터검색 -->
+
+            <!-- 메인게시판 START -->
+            <div class="main_cont_wrap">
+                <div class="main_cont">
+
+                    <div class="box notice">
+                        <strong class="tit">공지사항
+                            
+                        </strong>
+                        <ul class="list" style="padding: 15px 25px 0;">
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 활용 안내 영상 바로가기 "
+                                       onclick="javascript:goVideoUrl('1091230','MENU_NEW05','2882','VODINFO01');"/>
+                            </li>
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 이용 안내서 내려받기 " onclick="javascript:downloadFile('openApi');"/></li>
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 개방 목록 한눈에 보기 " onclick="javascript:downloadFile2('openApi');"/>
+                            </li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1109983');"><strong>반려동물 동반출입 음식점 정보 신규 제공 안내 </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1108922');"><strong>Open API 제한적 운영 공지(&#039;26. 2. 2. ~ &#039;26. 2. 28.) </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1108897');"><strong>2025년 식품안전나라 공공데이터활용 안내서 발간 </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1107495');"><strong>공공데이터 OPEN-API 일부 제한 </strong><span class="date"></span></a></li>
+                            
+                        </ul>
+                        <a href="javascript:fn_movePage('/api/board/board.do', '688', 'MENU_GRP33');"
+                           class="more">더보기</a>
+                    </div>
+
+                    <div class="box tab">
+                        <div class="tit">
+                            <button type="button" data-tab="tab-1" class="on"><strong>인기데이터</strong></button>
+                            <button type="button" data-tab="tab-2"><strong>최근등록데이터</strong></button>
+                        </div>
+                        <div id="tab-1" class="tab-content on">
+                            
+                            <div class="chart" id="chart-container"
+                                 style="height: 242px; width: 45%; float: left; margin-top: 1px; margin-left: 0.5px;">
+                                <script>column2dChart.render();</script>
+                            </div>
+
+                            
+                            <div style="float:left; height: 243px; width: 39%;">
+                                <table style="height: 100%; width: 100%;">
+                                    <tr>
+                                        <td>
+                                            <div class="slidebox" style="height: 88%; padding-left: 67px;">
+                                                <input type="radio" name="slide" id="slide01" checked>
+                                                <input type="radio" name="slide" id="slide02">
+                                                <ul class="slidelist" style="width: 170px; margin-left: 18px;">
+                                                    <li class="slideitem">
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I2861');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>1위&nbsp;&nbsp;</b>
+                                                                            음식점업소 인허가 ..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I1200');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>2위&nbsp;&nbsp;</b>
+                                                                            식품접객업정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I1250');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>3위&nbsp;&nbsp;</b>
+                                                                            식품(첨가물)품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT11', 'I2500');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>4위&nbsp;&nbsp;</b>
+                                                                            인허가 업소 정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'C002');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>5위&nbsp;&nbsp;</b>
+                                                                            식품(첨가물)품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                    </li>
+                                                    <li class="slideitem">
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT14', 'I0030');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>6위&nbsp;&nbsp;</b>
+                                                                            건강기능식품 품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT07', 'I0460');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>7위&nbsp;&nbsp;</b>
+                                                                            수거검사 계획 및 ..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT14', 'C003');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>8위&nbsp;&nbsp;</b>
+                                                                            건강기능식품 품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I2859');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>9위&nbsp;&nbsp;</b>
+                                                                            식품업소 인허가 변..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT06', 'I0490');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>10위&nbsp;&nbsp;</b>
+                                                                            회수.판매중지 정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                    </li>
+
+                                                </ul>
+                                                <div class="slide-control">
+                                                    <div class="control01">
+                                                        <label for="slide02" class="prev">〈</label>
+                                                        <label for="slide02" class="next">〉</label>
+                                                    </div>
+                                                    <div class="control02">
+                                                        <label for="slide01" class="prev">〈</label>
+                                                        <label for="slide01" class="next">〉</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        
+                                        
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div id="tab-2" class="tab-content" style="height: 242px">
+                            <ul class="list">
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT16', 'I2861');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;식품 등</span>
+                                                <span class="date" style="font-size: 15px;">2024.12.09</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">음식점업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT14', 'I2860');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;식품의약품안전처&#93;건강기능식품</span>
+                                                <span class="date" style="font-size: 15px;">2024.10.21</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">건강기능식품업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT16', 'I2859');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;식품 등</span>
+                                                <span class="date" style="font-size: 15px;">2024.09.23</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">식품업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT11', 'I2858');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;업체인허가현황</span>
+                                                <span class="date" style="font-size: 15px;">2024.03.27</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">도축업 인허가 대장</strong>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+
+                            
+                        </div>
+                    </div>
+
+                    <div class="box button">
+
+                        <!--             <button type="button" class="application" onclick="javascript:moveToDatasetClcdList('API_SRT01', '17879', 'MENU_GRP31');"><span>인증키 신청</span></button>  -->
+                        <!--             <button type="button" class="application" onclick="javascript:fn_movePage('/api/datasetList.do', '661', 'MENU_GRP31');"><span>인증키 신청</span></button>  -->
+                        <!--             <button type="button" class="revise" onclick="javascript:fn_movePage('/api/newUserApiAplcKey.do', '691', 'MENU_GRP32');"><span>인증키 수정</span></button> -->
+                        <button type="button" class="application"
+                                onclick="javascript:fn_movePage('/api/datasetList.do', '866', 'MENU_GRP31');"><span>인증키 신청</span>
+                        </button>
+                        <button type="button" class="revise"
+                                onclick="javascript:fn_movePage('/api/newUserApiAplcDtl.do', '3995', 'MENU_GRP32');">
+                            <span>인증키 수정</span></button>
+                        <button type="button" class="guide"
+                                onclick="javascript:fn_movePage('/api/howToUseApi.do', '687', 'MENU_GRP34');"><span>서비스 이용방법</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            <!-- //메인게시판 END-->
+
+        </div>
+        <!--본문-->
+
+        <!-- footer start -->
+        <footer id="footer">
+            
+	<div class="footer_link_wrap">
+        <div class="footer_link">
+          <ul class="link">
+				
+				<!-- <li><a href="/portal/board/board.do?menu_no=2933&menu_grp=MENU_NEW07">개인정보처리방침</a></li> -->
+				
+				<li><a href="https://www.foodinfo.or.kr/portal/bbs/selectBoardList.do?bbsId=10000000000000000460&catId=36&bbsView=HTML&goMenuNo=9000001115&topMenuNo=9000001110&upperMenuNo=9000001110" target="_blank" title="개인정보처리방침 사이트로 이동합니다.">개인정보처리방침</a></li>
+				<li><a href="http://www.mfds.go.kr/wpge/m_34/de010803l001.do" target="_blank">저작권정책</a></li>
+				<li><a href="/portal/board/board.do?menu_no=2922&menu_grp=MENU_NEW07" target="_blank">포털이용관련 질의응답</a></li>
+				<li><a href="/portal/board/board.do?menu_no=2938&menu_grp=MENU_NEW07" target="_blank">관련 누리집</a></li>
+				
+			  	
+				
+				<li><a href="/portal/board/board.do?menu_no=2928&menu_grp=MENU_NEW07" target="_blank">정보오류 신고</a></li>
+
+				<li><a href="/minwon/counsel/ePeople.do" target="_blank" >국민신문고</a></li>
+
+				<li><a href="http://113366.com/foodinfo" class="blue" target="_blank">원격 지원</a></li>
+			</ul>
+			
+			 <div class="site">
+	            <button type="button" class="select_btn">관련부처사이트</button>
+	            <div class="select_box">
+	              <ul>
+	                <li><a href="#" onclick="javascript:goSite_new('0');" title="관련 부처 사이트">관련 부처 사이트</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('1');" title="식품의약품안전처">식품의약품안전처</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('2');" title="교육부">교육부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('3');" title="법무부">법무부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('4');" title="국방부">국방부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('5');" title="행정안전부">행정안전부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('6');" title="농림축산식품부">농림축산식품부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('7');" title="산업통상자원부">산업통상자원부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('8');" title="보건복지부">보건복지부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('9');" title="환경부">환경부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('10');" title="해양수산부">해양수산부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('11');" title="관세청">관세청</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('12');"  title="방위사업청">방위사업청</a></li>
+	              </ul>
+	            </div>
+	          </div>
+			</div>
+		</div>
+		<div class="footer_info_wrap">
+          <div class="footer_info">
+            <div class="footer_logo" style="top: 14px;">
+            <img id="logo1" src="/images/api/common/footer_logo.jpg" alt="식품안전정보포털 식품의약품안전처">
+            <img id="logo2" src="/images/api/common/footer_logo_02.png" alt="식품안전정보포털 식품안전정보원">
+            </div>
+            <address style="top: 17px;">
+             <p style="line-height: 22px;">
+               우)28159 충청북도 청주시 흥덕구 오송읍 오송생명2로 187 오송보건의료행정타운 식품의약품안전처<br>
+               Copyright ⓒ Ministry of Food and Drug Safety. All Rights Reserved.<br>
+				 통합망 고객지원센터(시스템문의) : 1899-5590(유료), 식약처 종합상담센터 : 1577-1255(유료)
+             </p>
+            </address>
+          </div>
+        </div>
+
+        </footer>
+        <!-- footer end -->
+
+        <!-- 식품정보 한눈에 보기 start -->
+        
+
+
+
+	<div class="sitemap_op">&nbsp;</div>
+	<div class="sitemap">
+		<div class="title">데이터활용서비스 한눈에 보기<a href="#"><img src="/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
+		<div class="site_cnt">
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h05">서비스안내</h1>
+					<ul>
+						<li><a href="/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686" class="dpt01">·  서비스 소개</a></li>
+						<li><a href="/api/howToUseApi.do?menu_grp=MENU_GRP34&menu_no=687" class="dpt01">·  서비스 사용방법</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h01">데이터공개</h1>
+					<ul>
+						<!-- <li><a href="/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt01">·  분류별</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=845" class="dpt02">·  시험분석</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=846" class="dpt02">·  기준규격</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=847" class="dpt02">·  인허가정보</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=848" class="dpt02">·  자료실</a></li> -->
+
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt01">·  분류별</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt02">·  기준규격</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880" class="dpt02">·  코드정보</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881" class="dpt02">·  식품영양정보</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882" class="dpt02">·  수질환경정보</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883" class="dpt02">·  검사기관정보</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884" class="dpt02">·  식품위해관리</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886" class="dpt02">·  이력추적관리</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887" class="dpt02">·  어린이식품안전관리</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888" class="dpt02">·  HACCP지정현황</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889" class="dpt02">·  업체인허가현황</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890" class="dpt02">·  위생용품</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891" class="dpt02">·  축산물</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892" class="dpt02">·  건강기능식품</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893" class="dpt02">·  수입식품 등</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894" class="dpt02">·  식품 등</a></li>
+						<li><a href="/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895" class="dpt02">·  자료실</a></li>
+
+						<li><a href="/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt01">·  제공기관별</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt02">·  식품의약품안전처</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN10&menu_grp=MENU_GRP31&menu_no=858" class="dpt02">·  해양수산부</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN13&menu_grp=MENU_GRP31&menu_no=861" class="dpt02">·  산업통상자원부</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN09&menu_grp=MENU_GRP31&menu_no=857" class="dpt02">·  농촌진흥청</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN05&menu_grp=MENU_GRP31&menu_no=853" class="dpt02">·  농림축산검역본부</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN08&menu_grp=MENU_GRP31&menu_no=856" class="dpt02">·  국립농산물품질관리원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN15&menu_grp=MENU_GRP31&menu_no=863" class="dpt02">·  국립환경과학원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN12&menu_grp=MENU_GRP31&menu_no=860" class="dpt02">·  국립수산물품질관리원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN11&menu_grp=MENU_GRP31&menu_no=859" class="dpt02">·  국립수산과학원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN16&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  행정안전부</a></li>
+						<!-- li><a href="/api/datasetList.do?provd_instt=ORGN04&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  시도, 시군구</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN03&menu_grp=MENU_GRP31&menu_no=851" class="dpt02">·  시군구</a></li-->
+						<li><a href="/api/datasetList.do?provd_instt=ORGN02&menu_grp=MENU_GRP31&menu_no=850" class="dpt02">·  한국식품안전관리인증원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN07&menu_grp=MENU_GRP31&menu_no=855" class="dpt02">·  축산물품질평가원</a></li>
+						<li><a href="/api/datasetList.do?provd_instt=ORGN14&menu_grp=MENU_GRP31&menu_no=862" class="dpt02">·  한국환경공단</a></li>
+						<!-- <li><a href="/api/datasetList.do?provd_instt=ORGN06&menu_grp=MENU_GRP31&menu_no=854" class="dpt02">·  농림수산식품</a></li> -->
+
+						<li><a href="/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=938" class="dpt01">·  유형별</a></li>
+						<!-- <li><a href="/api/datasetList.do?svc_type_cd=API_TYPE01&menu_grp=MENU_GRP31&menu_no=656" class="dpt02">·  SHEET</a></li>
+						<li><a href="/api/datasetList.do?svc_type_cd=API_TYPE02&menu_grp=MENU_GRP31&menu_no=657" class="dpt02">·  CHART</a></li>
+						<li><a href="/api/datasetList.do?svc_type_cd=API_TYPE05&menu_grp=MENU_GRP31&menu_no=660" class="dpt02">·  LINK</a></li> -->
+						<li><a href="/api/datasetList.do?svc_type_cd=API_TYPE06&menu_grp=MENU_GRP31&menu_no=661" class="dpt02">·  OPEN-API</a></li>
+						<li><a href="/api/datasetList.do?svc_type_cd=API_TYPE03&menu_grp=MENU_GRP31&menu_no=658" class="dpt02">·  FILE</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">인증키 관리</h1>
+					<ul>
+						<li><a href="/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995" class="dpt01">·  인증키 신청현황</a></li>
+<!-- 						<li><a href="/api/newUserApiKey.do?menu_grp=MENU_GRP32&menu_no=691" class="dpt01">·  인증키 신청</a></li> -->
+<!-- 						<li><a href="/api/userApiKey.do?menu_grp=MENU_GRP32&menu_no=692" class="dpt01">·  인증키 발급 및 확인</a></li> -->
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">정보공유</h1>
+					<ul>
+						<!--<li><a href="/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3898" class="dpt01">·  개발자 의견공유</a></li> -->
+						<li><a href="/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899" class="dpt01">·  데이터활용 갤러리</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h04">고객센터</h1>
+					<ul>
+						<li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688" class="dpt01">·  공지사항</a></li>
+						<li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689" class="dpt01">·  자주하는 질문</a></li>
+						<li><a href="/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690" class="dpt01">·  묻고답하기</a></li>
+					</ul>
+				</div>
+			</div>
+
+		</div>
+	</div>
+        <!-- 식품정보 한눈에 보기 end -->
+
+        <!-- 데이터구조검색 보기 start -->
+        
+
+
+
+	
+	<!-- jsTree -->
+	<script src="/js/mkisna/jquery-1.9.1/plugins/jstree-3.0.2/src/jstree.js"></script>
+	<link type="text/css" href="/js/mkisna/jquery-1.9.1/plugins/jstree-3.0.2/dist/themes/default/style.min.css" rel="stylesheet">
+
+    <input type="hidden" id="svc_no" name="svc_no">             <!-- svc_no 서비스번호 -->
+    <input type="hidden" id="p_svcTypeCd" name="p_svcTypeCd" >    <!-- svc_type_cd 서비스타입 -->
+    <input type="hidden" id="svc_nm" name="svc_nm">             <!-- svc_nm 서비스명 -->
+	
+	<script>
+	$(document).ready(function() {
+		
+		// jsTree
+		$('#layerTree').jstree({
+			"temes" :{
+				"theme":"classic",
+				"dots":true,
+				"icons":false				
+			},
+			"plugins":["themes", "html_data" ]
+		});
+		
+		// init 데이터구조 조회
+		fn_dataStrutList( '기준규격정보', '' , 'API_SRT01' , '');
+		
+	});
+	
+	
+	//데이터구조 검색 조회
+	function fn_dataStrutList(subjct ,svcTypeCode, clCdCode, provdInsttCode) {
+		
+		$.ajax({
+			data: {
+				search_svcTypeCode : svcTypeCode
+				, search_clCdCode : clCdCode
+				, search_provdInsttCode :provdInsttCode
+			},
+			dataType:'json',
+			type:'POST',
+			url:"/ajax/datasetSearch.do",
+			success:function(resultList){
+
+				var list = resultList.dataStrutList;
+				
+				var listLength = list.length;
+				var totCnt = 0;
+				
+				$("#datasetSjct").text(subjct); 
+				
+				if(listLength > 0){
+					var strHtml = '';
+					
+					for(var i in list ){
+					                            /*230627 정보원요청으로 숨김처리 ydj*/
+					    if(list[i].svc_nm != '품목제조보고번호유효성확인(대한상공회의소사용)' && list[i].svc_nm != '불량식품 신고이력 조회(내부용)' && list[i].svc_nm != '불량식품 신고정보 조회(내부용)'){
+                            strHtml += '<tr>';
+                            strHtml += '<td>'+ list[i].provd_instt_nm  +'</td>';
+                            strHtml += '<td>'+ list[i].cl_cd_nm  +'</td>';
+                          //strHtml += '<td class=taL >'+ list[i].svc_nm  +'</td>';
+                            strHtml += '<td class=taL><a href=\'javascript:fn_listMoveDetail('+'"'+list[i].svc_no+'"'+','+'"'+list[i].svc_type_cd+'"'+','+'"'+list[i].svc_nm+'"' +');\'>'+list[i].svc_nm+'</a></td>';
+
+                            if( list[i].svc_type_cd == 'API_TYPE03' ){
+                                strHtml += '<td>'+ 'F'  +'</td>';
+                            }else if( list[i].svc_type_cd == 'API_TYPE06' ){
+                                strHtml += '<td>'+ 'O'  +'</td>';
+                            }else {
+                                strHtml += '<td></td>';
+                            }
+                            strHtml += '</tr>';
+						}
+					}
+
+					//$('#sp_total3 strong').text(totCnt);
+					$("#tb_struct_list").html(strHtml);
+				} else {
+					//$('#sp_total3 strong').text('0');
+					$("#tb_struct_list").html("<tr><td colspan='4'>검색된 정보가 없습니다.</td></tr>");
+				}
+				
+			},
+			error:function(request,status,error){
+				alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');   //시스템에러
+			}
+		});
+	}
+
+    // 서비스유형 상세 화면
+    function fn_listMoveDetail(svcNo, types, svcNm){
+       // 파라미터
+       $("#svc_no").val(svcNo);
+       $("#p_svcTypeCd").val(types);
+       $("#svc_nm").val(svcNm);
+
+       document.baseForm.action="/api/newDatasetDetail.do";
+       document.baseForm.target="_self";
+       document.baseForm.method="post";
+       document.baseForm.submit();
+
+    }
+
+
+	
+	</script>
+	
+	<div class="datastruct_op">&nbsp;</div>
+	<div class="datastruct">
+		<div class="title">데이터구조 검색<a href="#"><img src="/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
+		<div class="site_cnt">
+			
+			<div class="fl w_317 m_r_6">
+				<div class="box">
+				
+					<h1 class="h05">데이터카테고리</h1>
+					
+					<!-- tree 구조 구현 (서비스)  -->
+					<div id="layerTree" >
+						<ul >
+							<li class="jstree-open"><a href="#" class="">전체</a>
+								<ul >
+									<li class="jstree-open"><a href="#" class="">분류별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList( '기준규격정보', '','API_SRT01','' );"><a href="#" class="">기준규격정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '코드정보', '','API_SRT02','' );"><a href="#" class="">코드정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품영양정보', '','API_SRT03','' );"><a href="#" class="">식품영양정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '수질환경정보', '','API_SRT04','' );"><a href="#" class="">수질환경정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '검사기관정보', '','API_SRT05','' );"><a href="#" class="">검사기관정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품위해관리', '','API_SRT06','' );"><a href="#" class="">식품위해관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품안전관리', '','API_SRT07','' );"><a href="#" class="">식품안전관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '이력추적관리', '','API_SRT08','' );"><a href="#" class="">이력추적관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '어린이식품안전관리', '','API_SRT09','' );"><a href="#" class="">어린이식품안전관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( 'HACCP지정현황', '','API_SRT10','' );"><a href="#" class="">HACCP지정현황  </a></li>
+											
+												<li onclick="fn_dataStrutList( '업체인허가현황', '','API_SRT11','' );"><a href="#" class="">업체인허가현황  </a></li>
+											
+												<li onclick="fn_dataStrutList( '위생용품', '','API_SRT12','' );"><a href="#" class="">위생용품  </a></li>
+											
+												<li onclick="fn_dataStrutList( '축산물', '','API_SRT13','' );"><a href="#" class="">축산물  </a></li>
+											
+												<li onclick="fn_dataStrutList( '건강기능식품', '','API_SRT14','' );"><a href="#" class="">건강기능식품  </a></li>
+											
+												<li onclick="fn_dataStrutList( '수입식품 등', '','API_SRT15','' );"><a href="#" class="">수입식품 등  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품 등', '','API_SRT16','' );"><a href="#" class="">식품 등  </a></li>
+											
+												<li onclick="fn_dataStrutList( '자료실', '','API_SRT17','' );"><a href="#" class="">자료실  </a></li>
+											
+												<li onclick="fn_dataStrutList( '폐업정보', '','API_SRT18','' );"><a href="#" class="">폐업정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '용어사전', '','API_SRT19','' );"><a href="#" class="">용어사전  </a></li>
+											
+										</ul>
+									</li>
+									
+									<li class="jstree-open"><a href="#" class="">제공기관별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList('식품의약품안전처', '','','ORGN01' );"><a href="#" class="">식품의약품안전처  </a></li>
+											
+												<li onclick="fn_dataStrutList('해양수산부', '','','ORGN10' );"><a href="#" class="">해양수산부  </a></li>
+											
+												<li onclick="fn_dataStrutList('산업통상자원부', '','','ORGN13' );"><a href="#" class="">산업통상자원부  </a></li>
+											
+												<li onclick="fn_dataStrutList('농촌진흥청', '','','ORGN09' );"><a href="#" class="">농촌진흥청  </a></li>
+											
+												<li onclick="fn_dataStrutList('농림축산검역본부', '','','ORGN05' );"><a href="#" class="">농림축산검역본부  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립농산물품질관리원', '','','ORGN08' );"><a href="#" class="">국립농산물품질관리원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립환경과학원', '','','ORGN15' );"><a href="#" class="">국립환경과학원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립수산물품질관리원', '','','ORGN12' );"><a href="#" class="">국립수산물품질관리원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립수산과학원', '','','ORGN11' );"><a href="#" class="">국립수산과학원  </a></li>
+											
+												<li onclick="fn_dataStrutList('행정안전부', '','','ORGN16' );"><a href="#" class="">행정안전부  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국식품안전관리인증원', '','','ORGN02' );"><a href="#" class="">한국식품안전관리인증원  </a></li>
+											
+												<li onclick="fn_dataStrutList('축산물품질평가원', '','','ORGN07' );"><a href="#" class="">축산물품질평가원  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국환경공단', '','','ORGN14' );"><a href="#" class="">한국환경공단  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국수자원공사', '','','ORGN17' );"><a href="#" class="">한국수자원공사  </a></li>
+											
+										</ul>
+									</li>
+									
+									<li class="jstree-open"><a href="#" class="">유형별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList('File', 'API_TYPE03','','' );"><a href="#" class="">File  </a></li>
+											
+												<li onclick="fn_dataStrutList('Link', 'API_TYPE05','','' );"><a href="#" class="">Link  </a></li>
+											
+												<li onclick="fn_dataStrutList('XML/JSON', 'API_TYPE06','','' );"><a href="#" class="">XML/JSON  </a></li>
+											
+										</ul>
+									</li>
+									
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			
+			
+			<!-- API 데이터 정보  -->
+			<div class="fl w_850 m_r_6">
+				<div class="box">
+<!-- 				    <h3 class="subtitle">데이터</h3> -->
+
+					<h1 class="h05" id="datasetSjct">데이터카테고리</h1>
+					
+					<div id="struct_div">
+					    <table class="struct_tb">
+					        <caption>
+					        데이터
+					        </caption>
+					        <colgroup>
+						        <col style="width:20%;">
+						        <col style="width:15%;">
+						        <col style="width:50%;">
+						        <col style="width:15%;">
+					        </colgroup>
+					        <thead class=""> <!-- tb_scroll  -->
+					            <tr>
+					                <th scope="col">제공기관</th>
+					                <th scope="col">분류</th>
+					                <th scope="col">서비스명</th>
+					                <th scope="col">유형</th>
+					            </tr>
+					        </thead>
+					        <tbody id="tb_struct_list" class=""> <!-- tb_scroll  -->
+					            <tr>
+					                <td>식품의약품안전처</td>
+					                <td>인허가정보</td>
+					                <td class="taL" >LMO생산승인현황</td>
+					                <td>O</td>
+					            </tr>
+					        </tbody>
+					    </table>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+        <!-- 데이터구조검색 보기 end -->
+
+        <script>
+
+            $(document).ready(function () {
+
+                var nowDate = new Date();
+                var elementLeft = 0;
+
+                /* 팝업 open 날짜 검증 */
+                $.each($('.popups'), function () {
+
+                    var openDtEl = $(this).attr("data-open");
+                    var openCheckDt = new Date(openDtEl);
+                    var ElementID = $(this).attr("id");
+
+                    if (nowDate.getTime() < openCheckDt.getTime()) {
+                        openWin(ElementID);
+                    }
+                })
+
+                /* 임시 팝업 닫기*/
+                $(".closePopLay").on('click', function () {
+                    $(this).parents('.popups').eq(0).hide();
+                });
+
+                /* 팝업위치 지정*/
+                $.each($(".popups"), function () {
+                    $(this).css("left", elementLeft);
+                    if ($(this).css("display") != 'none') {
+                        elementLeft = elementLeft + ($(this).width() + 10);
+                    }
+                });
+
+                /* 팝업 드레그 */
+//	$(".popups").draggable();
+
+                // 한눈에 보기
+                $(".tm_view").click(function () {
+                    $(".sitemap_op,.sitemap").show();
+                });
+                $(".tm_view2").click(function () {
+                    $(".sitemap_op,.sitemap").show();
+                });
+                $(".sitemap .title a").click(function () {
+                    $(".sitemap_op,.sitemap").hide();
+                });
+
+                // 데이터구조 검색 레이어 팝업
+                $(".datastruct_view").on("click", function () {
+                    $(".datastruct_op,.datastruct").show();
+                });
+                $(".datastruct .title a").on("click", function () {
+                    $(".datastruct_op,.datastruct").hide();
+                });
+
+            });
+
+            // footer 관련부처 사이트 이동
+            function goSite_new(siteNo) {
+                var url = "";
+                var itm = siteNo;
+
+                if (itm == "1") {
+                    url = "https://www.mfds.go.kr"; //식품의약품안전처
+                } else if (itm == "2") {
+                    url = "https://www.moe.go.kr"; //교육부
+                } else if (itm == "3") {
+                    url = "https://www.moj.go.kr"; //법무부
+                } else if (itm == "4") {
+                    url = "https://www.mnd.go.kr"; //국방부
+                } else if (itm == "5") {
+                    url = "https://www.mois.go.kr"; //행정자치부
+                } else if (itm == "6") {
+                    url = "https://www.mafra.go.kr"; //농림축산식품부
+                } else if (itm == "7") {
+                    url = "https://www.motie.go.kr"; //산업통상자원부
+                } else if (itm == "8") {
+                    url = "https://www.mohw.go.kr"; //보건복지부
+                } else if (itm == "9") {
+                    url = "https://www.me.go.kr"; //환경부
+                } else if (itm == "10") {
+                    url = "https://www.mof.go.kr"; //해양수산부
+                } else if (itm == "11") {
+                    url = "https://www.customs.go.kr"; //관세청
+                } else if (itm == "12") {
+                    url = "https://www.dapa.go.kr"; //방위사업청
+                }
+
+                if (url != '') {
+                    document.baseForm.action = url;
+                    document.baseForm.target = "_blank";
+                    document.baseForm.submit();
+                }
+
+            }
+
+            function getCook(vName) {
+                //alert("all cookie="+document.cookie);
+                var y;
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i].substr(0, ca[i].indexOf("="));
+                    y = ca[i].substr(ca[i].indexOf("=") + 1);
+                    c = c.replace(/^\s+|\s+$/g, "");
+                    if (c == vName) {
+                        return unescape(y);
+                    }
+
+                }
+
+                return null;
+            }
+
+            // 유형별데이터 서비스 이동
+            function moveToDatasetList(svcType, menu_no, menu_grp) {
+
+                $("#svc_type_cd").val(svcType);
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+
+                document.baseForm.action = "/api/datasetList.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 분류별데이터 서비스 이동
+            function moveToDatasetClcdList(cl_cd, menu_no, menu_grp) {
+
+                $("#cl_cd").val(cl_cd);
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+
+                document.baseForm.action = "/api/datasetList.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 데이터통합검색
+            function datasetAllSearch(menu_no, menu_grp) {
+
+                if ($("#search_keyword").val() == "") {
+                    alert("검색어를 입력해주세요.");
+                    $("#search_keyword").focus();
+                    return;
+                }
+
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+
+// 	 document.baseForm.action="/api/datasetList.do";
+
+                document.baseForm.action = "/api/datasetAllSearch.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            //게시글페이지(공지사항)
+            function fn_moveDetail(bbs_no, ntctxt_no) {
+
+                $("#bbs_no").val(bbs_no);
+                $("#ntctxt_no").val(ntctxt_no);
+                $("#menu_no").val("688");      		   //공지사항메뉴번호
+                $("#menu_grp").val("MENU_GRP33");      //공지사항메뉴그룹번호
+
+                document.baseForm.action = "/api/board/boardDetail.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            //해당 서비스의 API 상세페이지로 이동
+            function fn_moveApiInfo(cl_cd, svc_no) {
+
+                $("#cl_cd").val(cl_cd);
+                $("#svc_no").val(svc_no);
+//     $("#svc_nm").val(svc_nm);
+                //$("#svc_type_cd").val("API_TYPE06");  // 서비스 타입
+                $("#menu_no").val("661");				// /api/datasetList.do?svc_type_cd=API_TYPE06
+                $("#menu_grp").val("MENU_GRP31");
+
+                document.baseForm.action = "/api/newDatasetDetail.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+
+            }
+
+            //페이지이동
+            function fn_movePage(url, menu_no, menu_grp) {
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+                document.baseForm.action = "" + url;
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function downloadFile(sVal) {
+                /* $('#repsImgYn').val(sVal); */
+                $('#filePath').val("/upload/openApi");
+                //$('#fileName').val("openApiGuide.pdf");
+                //$('#fileName').val("2023_OpenAPI_Guidebook.pdf");
+                //$('#fileName').val("2024+OpenAPI_Guidebook.pdf");
+                $('#fileName').val("2025_OpenAPI_Guidebook.pdf");
+
+                $('#orgFileName').val("식품안전나라_공공데이터_가이드북.pdf");
+
+                document.baseForm.action = "/common/downloadAttchdFile.do";
+                document.baseForm.target = "_self";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function downloadFile2(sVal) {
+                /* $('#repsImgYn').val(sVal); */
+                $('#filePath').val("/upload/openApi");
+                $('#fileName').val("openApiList.zip");
+                $('#orgFileName').val("식품안전나라_공공데이터_개방_목록.zip");
+
+                document.baseForm.action = "/common/downloadAttchdFile.do";
+                document.baseForm.target = "_self";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function goVideoUrl(no, grp, mno, bno) {
+                location.href = "/portal/board/boardDetail.do?ntctxt_no=" + no + "&menu_grp=" + grp + "&menu_no=" + mno + "&bbs_no=" + bno;
+            }
+
+        </script>
+
+        <script type="text/javascript">
+            /*window.onload = function() {
+
+                // 매달 01, 30, 31 일에는 공공데이터 최초 한번 머지문 실행
+                var nowYear = '2026';
+                var nowMonth = '05';
+                var nowMonth2 = '06';
+                var nowDay = '03';
+                var nowDate = '20260603';
+                var uselogCnt = '1';
+
+                // 매달 01, 30, 31
+                if(nowDay == "01" || nowDay == "30" || nowDay == "31"){
+                    if(uselogCnt == "0"){
+
+                        $.ajax({
+                            data: {nowYear: nowYear, nowMonth : nowMonth, nowMonth2 : nowMonth2, nowDay : nowDay, nowDate : nowDate, uselogCnt : uselogCnt},
+                            dataType:'json',
+                            type:'POST',
+                            url:"/ajax/popularListMerge.do",
+                            async : true,
+                            success:function(arg){
+
+                                //alert(arg);
+                                console.log("인기데이터 MERGE : " + arg);
+
+                            },
+                            error:function(request,status,error){
+                                //alert("실패");
+
+                            }
+                        });
+                    }
+                }
+            };*/
+        </script>
+    </div>
+</form>
+</body>
+</html>

@@ -62,9 +62,9 @@ const {
 // 섹션 0. 기본 설정
 // =============================================================================
 
-const DEFAULT_CACHE   = path.join(__dirname, '..', 'crawl_cache.json');
+const DEFAULT_CACHE   = path.join(__dirname, '../crawler/crawl_cache.json');
 const DEFAULT_DB      = path.join(__dirname, 'foodsafety.db');
-const DEFAULT_SAMPLES = path.join(__dirname, '..', 'samples');
+const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
 const DEFAULT_ERD     = path.join(__dirname, 'foodsafety_erd.sql');
 
 // 샘플 JSON에 섞일 수 있는 API 응답 메타 필드 제외

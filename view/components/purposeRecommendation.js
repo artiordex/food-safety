@@ -4,9 +4,9 @@ import {
   subjectColorMap
 } from '../datasetData.js';
 
-export function renderPurposeRecommendation(container, onSelectDataset) {
+export function renderPurposeRecommendation(container, onSelectDataset, initialMode = "beginner") {
   let selectedPurposeId = null;
-  let mode = "beginner"; // "beginner" or "developer"
+  let mode = initialMode; // "beginner" or "developer"
 
   const getDatasetById = (id) => datasets.find((d) => d.id === id);
 
@@ -157,18 +157,6 @@ export function renderPurposeRecommendation(container, onSelectDataset) {
             <p class="text-sm text-slate-500 max-w-xl mx-auto">목적을 선택하면 적합한 데이터세트와 활용 방법을 추천해 드립니다.</p>
           </div>
 
-          <!-- Mode toggle -->
-          <div class="flex justify-center mb-8 md:mb-10">
-            <div class="inline-flex bg-slate-100 rounded-full p-1 border border-slate-200">
-              <button id="mode-beginner" class="px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${mode === 'beginner' ? 'bg-white text-gov-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}">
-                <i class="ri-user-line mr-1.5"></i> 초보자 안내 모드
-              </button>
-              <button id="mode-developer" class="px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${mode === 'developer' ? 'bg-white text-gov-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}">
-                <i class="ri-code-box-line mr-1.5"></i> 개발자 안내 모드
-              </button>
-            </div>
-          </div>
-
           <!-- Purpose cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-10 md:mb-14">
             ${renderPurposeCards()}
@@ -184,22 +172,6 @@ export function renderPurposeRecommendation(container, onSelectDataset) {
   };
 
   const bindEvents = () => {
-    const btnBeginner = container.querySelector('#mode-beginner');
-    const btnDeveloper = container.querySelector('#mode-developer');
-
-    if (btnBeginner) {
-      btnBeginner.addEventListener('click', () => {
-        mode = "beginner";
-        render();
-      });
-    }
-
-    if (btnDeveloper) {
-      btnDeveloper.addEventListener('click', () => {
-        mode = "developer";
-        render();
-      });
-    }
 
     container.querySelectorAll('.purpose-card').forEach(card => {
       card.addEventListener('click', (e) => {

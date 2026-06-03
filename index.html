@@ -1,318 +1,1268 @@
-<!doctype html>
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>식품안전나라 공공데이터활용 - 데이터 세트 서비스 시안</title>
-    <meta name="description" content="식품안전나라 공공데이터 169종을 목적별 데이터세트로 제공하는 대국민 서비스 화면 시안입니다." />
-    <meta name="keywords" content="식품안전, 공공데이터, 데이터세트, Open API, 식품안전나라" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              gov: {
-                50: "#eef5ff", 100: "#d9e8ff", 200: "#bcd8ff", 300: "#8ebeff",
-                400: "#5999ff", 500: "#3374f6", 600: "#1a5fb4", 700: "#154a8c",
-                800: "#164074", 900: "#173862", 950: "#0f2340",
-              },
-              teal: {
-                50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4",
-                400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
-                800: "#115e59", 900: "#134e4a",
-              },
-              emerald: {
-                50: "#ecfdf5", 100: "#d1fae5", 500: "#10b981", 600: "#059669", 700: "#047857",
-              },
-              rose: {
-                50: "#fff1f2", 100: "#ffe4e6", 500: "#f43f5e", 600: "#e11d48",
-              },
-            },
-            fontFamily: {
-              sans: ["Inter", "Pretendard", "system-ui", "-apple-system", "sans-serif"],
-            },
-          }
-        }
-      }
-    </script>
-    <!-- Mermaid.js for interactive ERD rendering -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <!-- Vis.js Network Standalone for beautiful force-directed data map relationship visualization -->
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <!-- React 18 + ReactDOM for keyword data map component -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- html2canvas for full-page screenshot capture -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="index.css">
+<head>
+    <!-- INCLUDE_HEAD -->
+</head>
 
-  </head>
-  <body>
-    <div class="min-h-screen bg-white flex flex-col">
-      
-      <!-- Header -->
-      <header class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-        <div class="bg-gov-800 text-white">
-          <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-1.5 flex items-center justify-between text-xs">
-            <span class="opacity-90">대한민국 식품의약품안전처</span>
-            <div class="flex items-center gap-4 opacity-90">
-              <a href="#" class="hover:underline">English</a>
-              <a href="#" class="hover:underline">로그인</a>
-              <a href="#" class="hover:underline">회원가입</a>
-            </div>
-          </div>
-        </div>
-        <div class="max-w-[1400px] mx-auto px-4 md:px-8">
-          <div class="flex items-center justify-between h-16 md:h-20">
-            <a href="#" class="flex items-center gap-3 shrink-0">
-              <div class="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gov-600 flex items-center justify-center">
-                <i class="ri-shield-check-line text-white text-lg md:text-xl"></i>
-              </div>
-              <div class="flex flex-col">
-                <span class="font-bold text-sm md:text-base text-gov-800 leading-tight">식품안전나라</span>
-                <span class="text-[10px] md:text-xs text-slate-500 leading-tight">공공데이터활용</span>
-              </div>
-            </a>
-            <div class="hidden lg:flex items-center flex-1 max-w-md mx-8">
-              <div class="flex items-center w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2 focus-within:border-gov-400 focus-within:ring-2 focus-within:ring-gov-100 transition-all">
-                <i class="ri-search-line text-slate-400 mr-2"></i>
-                <input type="text" placeholder="데이터세트, 공공데이터 검색" class="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
-                <button class="ml-2 px-4 py-1.5 bg-gov-600 text-white text-xs font-medium rounded-full hover:bg-gov-700 transition-colors whitespace-nowrap">검색</button>
-              </div>
-            </div>
-            <nav class="hidden lg:flex items-center gap-1">
-              <button data-nav="explorer" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap bg-gov-50 text-gov-700">데이터세트 찾기</button>
-              <button data-nav="recommend" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">목적별 추천</button>
-              <button data-nav="datamap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">데이터맵</button>
-              <button data-nav="erdmap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">ERD 데이터맵</button>
-              <button data-nav="super-erdmap" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">핵심 공공-민간 초융합형 ERD 데이터맵</button>
-              <button data-nav="nongshim-spec" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">사내 규격 데이터 세트</button>
-              <button data-nav="sql-playground" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
-              <button data-nav="api-explorer" class="nav-menu-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">로컬 API Explorer (169종)</button>
-              <button class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap text-slate-600 hover:text-gov-700 hover:bg-slate-50">FAQ</button>
-              <a href="#" class="ml-2 px-4 py-2 rounded-lg bg-gov-600 text-white text-sm font-medium hover:bg-gov-700 transition-colors whitespace-nowrap">사용자 안내</a>
-            </nav>
-            <button id="mobile-menu-btn" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-700">
-              <i class="ri-menu-line text-xl" id="mobile-menu-icon"></i>
-            </button>
-          </div>
-        </div>
-        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-100 bg-white animate-fade-in">
-          <div class="px-4 py-4 flex flex-col gap-2">
-            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 mb-2">
-              <i class="ri-search-line text-slate-400 mr-2"></i>
-              <input type="text" placeholder="데이터세트 검색" class="flex-1 bg-transparent text-sm outline-none" />
-              <button class="ml-2 px-4 py-1.5 bg-gov-600 text-white text-xs rounded-full">검색</button>
-            </div>
-            <button data-nav="explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors bg-gov-50 text-gov-700">데이터세트 찾기</button>
-            <button data-nav="recommend" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">목적별 추천</button>
-            <button data-nav="datamap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">데이터맵</button>
-            <button data-nav="erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">ERD 데이터맵</button>
-            <button data-nav="health-erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-bold text-left transition-colors text-rose-600 bg-rose-50 border border-rose-100">건강기능식품 ERD 맵</button>
-            <button data-nav="super-erdmap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">핵심 공공-민간 초융합형 ERD 데이터맵</button>
-            <button data-nav="sql-playground" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">실시간 DB 분석 (SQL)</button>
-            <button data-nav="api-explorer" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-medium text-left transition-colors text-slate-600 hover:bg-slate-50">로컬 API Explorer (169종)</button>
-            <button data-nav="keyword-datamap" class="mobile-nav-btn px-4 py-3 rounded-lg text-sm font-bold text-left transition-colors text-amber-700 bg-amber-50 border border-amber-200">🔍 키워드 데이터맵</button>
-            <a href="#" class="mt-1 px-4 py-3 rounded-lg bg-gov-600 text-white text-sm font-medium text-center">사용자 안내</a>
-          </div>
-        </div>
-      </header>
+<body>
 
-      <main class="flex-1">
-        <!-- Hero Stats -->
-        <section class="bg-gradient-to-b from-gov-50 to-white pt-12 md:pt-20 pb-8 md:pb-12 px-4 md:px-8">
-          <div class="max-w-[1400px] mx-auto text-center">
-            <p class="text-xs md:text-sm font-semibold text-gov-600 uppercase tracking-wider mb-3">식품안전나라 공공데이터활용</p>
-            <h1 class="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-4">
-              식품안전 공공데이터를<br class="hidden sm:block" />
-              <span class="text-gov-600"> 목적별 데이터세트</span>로<br class="hidden sm:block" />
-              한눈에 활용하세요
-            </h1>
-            <p class="text-sm md:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed mb-8 md:mb-10">
-              식품안전나라의 169종 공공데이터를 사용자 목적에 맞게 묶어 데이터세트 형태로 제공합니다.
-              <br class="hidden md:block" />
-              제품 검색부터 업체 조회, 영양 분석까지 한 번에 찾아보세요.
-            </p>
-            <div class="flex flex-wrap justify-center gap-3 mb-8 md:mb-12">
-              <button id="btn-hero-recommend" class="px-6 py-3 rounded-full bg-gov-600 text-white text-sm font-semibold hover:bg-gov-700 transition-colors shadow-sm">
-                <i class="ri-search-line mr-1.5"></i>데이터세트 찾아보기
-              </button>
-              <button id="btn-hero-recommend-2" class="px-6 py-3 rounded-full border-2 border-gov-600 text-gov-700 text-sm font-semibold hover:bg-gov-50 transition-colors">
-                <i class="ri-lightbulb-line mr-1.5"></i>목적별 추천 받기
-              </button>
-            </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto">
-              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-gov-50 flex items-center justify-center mx-auto mb-3">
-                  <i class="ri-database-2-line text-gov-600 text-lg md:text-xl"></i>
-                </div>
-                <div class="flex items-baseline justify-center gap-0.5">
-                  <span class="text-xl md:text-2xl font-bold text-slate-900">169</span>
-                  <span class="text-sm font-medium text-slate-500">종</span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">개방 공공데이터</p>
-              </div>
-              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-teal-50 flex items-center justify-center mx-auto mb-3">
-                  <i class="ri-folder-open-line text-teal-600 text-lg md:text-xl"></i>
-                </div>
-                <div class="flex items-baseline justify-center gap-0.5">
-                  <span class="text-xl md:text-2xl font-bold text-slate-900">8</span>
-                  <span class="text-sm font-medium text-slate-500">종</span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">추천 데이터세트</p>
-              </div>
-              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-emerald-50 flex items-center justify-center mx-auto mb-3">
-                  <i class="ri-grid-line text-emerald-600 text-lg md:text-xl"></i>
-                </div>
-                <div class="flex items-baseline justify-center gap-0.5">
-                  <span class="text-xl md:text-2xl font-bold text-slate-900">10</span>
-                  <span class="text-sm font-medium text-slate-500">개</span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">주요 분야</p>
-              </div>
-              <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div class="w-10 h-10 md:w-11 md:h-11 rounded-lg bg-slate-50 flex items-center justify-center mx-auto mb-3">
-                  <i class="ri-book-open-line text-slate-600 text-lg md:text-xl"></i>
-                </div>
-                <div class="flex items-baseline justify-center gap-0.5">
-                  <span class="text-xl md:text-2xl font-bold text-slate-900">2</span>
-                  <span class="text-sm font-medium text-slate-500">종+</span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">활용 가이드</p>
-              </div>
-            </div>
-          </div>
-        </section>
+<!-- 팝업 -->
 
-        <!-- Tab Pills -->
-        <div class="sticky top-[60px] md:top-[76px] z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
-          <div class="max-w-[1400px] mx-auto px-4 md:px-8">
-            <div class="flex items-center gap-1 py-3 overflow-x-auto" id="tab-pills-container">
-              <button data-tab="explorer" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm">
-                데이터세트 찾기
-              </button>
-              <button data-tab="recommend" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
-                목적별 추천
-              </button>
-              <button data-tab="datamap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
-                데이터맵
-              </button>
-              <button data-tab="erdmap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
-                ERD 데이터맵
-              </button>
-              <button data-tab="health-erdmap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm flex items-center gap-1">
-                <i class="ri-heart-pulse-fill"></i> 건강기능식품 ERD 맵
-              </button>
-              <button data-tab="sql-playground" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
-                실시간 DB 분석 (SQL)
-              </button>
-              <button data-tab="api-explorer" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1">
-                로컬 API Explorer (169종)
-              </button>
-              <button data-tab="api-live-join" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1">
-                <i class="ri-flashlight-fill"></i> 실시간 API 전체 조인
-              </button>
-              <button data-tab="api-hygiene" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 shadow-sm flex items-center gap-1">
-                <i class="ri-restaurant-line"></i> 지역 기반 위생 안심 요식업소 조회
-              </button>
-              <button data-tab="api-barcode" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm flex items-center gap-1">
-                <i class="ri-barcode-box-line"></i> 바코드 기반 안전 식품 조회
-              </button>
-              <button data-tab="keyword-datamap" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-amber-700 bg-amber-50 border border-amber-300 hover:bg-amber-100 shadow-sm flex items-center gap-1">
-                <i class="ri-share-circle-line"></i> 키워드 데이터맵
-              </button>
-              <button data-tab="nongshim-spec" class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-teal-700 bg-teal-50 border border-teal-300 hover:bg-teal-100 shadow-sm flex items-center gap-1">
-                <i class="ri-building-4-line"></i> 농심 사내 규격 데이터 세트
-              </button>
-            </div>
-          </div>
-        </div>
+<div id="popuptable" style="display: none;" class="draggable-popup" start_to="202603100000" >
+    <img id="popuptableImg" src="https://www.foodsafetykorea.go.kr/img/main/popup/20260324_popup_api.png" alt="" style="cursor: pointer;"/>
+    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
+        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable', 1);"/>오늘 하루 이 창 열지않기
+        <a href="javascript:popclose('popuptable')" style="color:white;">[닫기]</a>
+    </div>
+</div>
+<div id="popuptable2" style="display: none;" class="draggable-popup" start_to="202511100000" end_to="202511302359">
+    <img src="https://www.foodsafetykorea.go.kr/img/main/popup/20251107_popup.png" alt=""/>
+    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
+        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable2', 1);"/>오늘 하루 이 창
+        열지않기 <a href="javascript:popclose('popuptable2')" style="color:white;">[닫기]</a>
+    </div>
+</div>
 
-        <!-- Tab Content -->
-        <div class="bg-slate-50/50 min-h-[600px]" id="tab-content">
-          <!-- Dynamic content will be injected here by app.js -->
-        </div>
-      </main>
 
-      <!-- Footer -->
-      <footer class="bg-slate-900 text-white mt-0">
-        <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-12 md:py-16">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6">
-            <div class="lg:col-span-1">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-9 h-9 rounded-lg bg-gov-600 flex items-center justify-center">
-                  <i class="ri-shield-check-line text-white text-base"></i>
-                </div>
-                <div>
-                  <p class="font-bold text-sm">식품안전나라</p>
-                  <p class="text-[10px] text-slate-400">공공데이터활용</p>
-                </div>
-              </div>
-              <p class="text-xs text-slate-400 leading-relaxed max-w-xs">
-                식품의약품안전처가 운영하는 식품안전 정보 포털입니다. 169종 공공데이터를 제공합니다.
-              </p>
-            </div>
-            <div>
-              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">데이터 서비스</h4>
-              <ul class="space-y-2.5">
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">데이터세트 찾기</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">목적별 추천</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">데이터맵</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">Open API 포털</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">파일 다운로드</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">지원 안내</h4>
-              <ul class="space-y-2.5">
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">활용가이드</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">API 문서</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">FAQ</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">공지사항</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">문의하기</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">관련 기관</h4>
-              <ul class="space-y-2.5">
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">식품의약품안전처</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">식품안전정보원</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">공공데이터포털</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">정부24</a></li>
-                <li><a href="#" class="text-sm text-slate-400 hover:text-white transition-colors">e-people</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="border-t border-slate-800">
-          <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p class="text-xs text-slate-500">© 식품의약품안전처. All rights reserved. 본 화면은 시안입니다.</p>
-            <div class="flex items-center gap-4">
-              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">개인정보처리방침</a>
-              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">이용약관</a>
-              <a href="#" class="text-xs text-slate-500 hover:text-white transition-colors">저작권정책</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-      
-      <!-- Detail Panel Container -->
-      <div id="detail-panel-container"></div>
+<form id="baseForm" name="baseForm" method="post" onsubmit="return false;">
+    <!-- 공통영역 -->
+    <input type="hidden" id="menu_no" name="menu_no" value="">
+    <input type="hidden" id="menu_grp" name="menu_grp" value="">
+    <input type="hidden" id="filePath" name="filePath"/>
+    <input type="hidden" id="fileName" name="fileName"/>
+    <input type="hidden" id="orgFileName" name="orgFileName"/>
+
+    <!-- 공통영역 -->
+
+    <div id="skipContent">
+        <h2>바로가기 모음</h2>
+        <a href="#gnb">주메뉴 바로가기</a>
+        <a href="#container">본문 바로가기</a>
     </div>
 
-    <!-- JavaScript -->
-    <script type="module" src="view/app.js?v=2"></script>
-  </body>
+    <div id="wrap">
+        <!-- 헤더 -->
+        <!-- INCLUDE_HEADER -->
+
+        <!-- 각 메인화면 진입시 -->
+        <input type="hidden" id="svc_type_cd" name="svc_type_cd">    <!-- svc_type_cd 서비스타입 -->
+        <input type="hidden" id="cl_cd" name="cl_cd">      <!-- 서비스 분류 -->
+        <input type="hidden" id="svc_no" name="svc_no">    <!-- svc_no 서비스번호 -->
+        <!-- <input type="hidden" id="svc_nm" name="svc_nm"> -->    <!-- svc_nm 서비스명 -->
+
+        <!-- 게시판상세페이지전용 -->
+        <input type="hidden" id="ntctxt_no" name="ntctxt_no">
+        <input type="hidden" id="bbs_no" name="bbs_no">
+
+        <!--본문-->
+        <div id="container">
+
+            <!-- 메인 비주얼 -->
+            <div class="main_slider_wrap">
+                <h2>분류별 데이터 서비스</h2>
+                <div class="main_slider">
+
+                    
+                        
+                            
+                                
+                                <div class="item icon_01"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879"><span
+                                        class="txt">기준규격정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_02"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880"><span
+                                        class="txt">코드정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_03"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881"><span
+                                        class="txt">식품영양정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_04"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882"><span
+                                        class="txt">수질환경정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_05"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883"><span
+                                        class="txt">검사기관정보</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_06"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884"><span
+                                        class="txt">식품위해관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_07"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885"><span
+                                        class="txt">식품안전관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_08"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886"><span
+                                        class="txt">이력추적관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                                
+                                <div class="item icon_09"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887"><span
+                                        class="txt">어린이식품안전관리</span></a></div>
+                            
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_10"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888"><span
+                                        class="txt">HACCP지정현황</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_11"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889"><span
+                                        class="txt">업체인허가현황</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_12"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890"><span
+                                        class="txt">위생용품</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_13"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891"><span
+                                        class="txt">축산물</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_14"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892"><span
+                                        class="txt">건강기능식품</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_15"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893"><span
+                                        class="txt">수입식품 등</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_16"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894"><span
+                                        class="txt">식품 등</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_17"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895"><span
+                                        class="txt">자료실</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_18"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT18&menu_grp=MENU_GRP31&menu_no=4327"><span
+                                        class="txt">폐업정보</span></a></div>
+                            
+                        
+                    
+                        
+                            
+                            
+                                <div class="item icon_19"><a
+                                        href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT19&menu_grp=MENU_GRP31&menu_no=4328"><span
+                                        class="txt">용어사전</span></a></div>
+                            
+                        
+                    
+                </div>
+            </div>
+            <!-- //메인 비주얼 -->
+
+            <!-- 데이터검색 -->
+            <div class="data_search_wrap">
+
+                <div class="data_search">
+
+                    <div class="data_text_box">
+                        <strong>공공데이터 검색</strong>
+                        <p>식품의약품안전처 및 연계기관에서 개방하는<br>데이터를 검색할 수 있습니다. </p>
+                    </div>
+
+                    <div class="data_search_box">
+                        <!-- <label for="data_search_input">검색어를 입력하세요.</label> -->
+                        <input type="text" id="search_keyword" name="search_keyword" placeholder="검색어를 입력하세요" onkeypress="if(event.keyCode===13){ datasetAllSearch('661', 'MENU_GRP31'); return false; }">
+                        <!--data_search_input-->
+                        <button type="button" onclick="datasetAllSearch('661', 'MENU_GRP31');">검색</button>
+                    </div>
+
+                    <div class="data_structure_search_box">
+                        <button type="button" class="datastruct_view">데이터구조 검색</button>
+                    </div>
+
+                </div>
+
+            </div>
+            <!-- //데이터검색 -->
+
+            <!-- 메인게시판 START -->
+            <div class="main_cont_wrap">
+                <div class="main_cont">
+
+                    <div class="box notice">
+                        <strong class="tit">공지사항
+                            
+                        </strong>
+                        <ul class="list" style="padding: 15px 25px 0;">
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 활용 안내 영상 바로가기 "
+                                       onclick="javascript:goVideoUrl('1091230','MENU_NEW05','2882','VODINFO01');"/>
+                            </li>
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 이용 안내서 내려받기 " onclick="javascript:downloadFile('openApi');"/></li>
+                            <li><input type="button" name="buttclassname" class="service-btn"
+                                       value=" 공공데이터 개방 목록 한눈에 보기 " onclick="javascript:downloadFile2('openApi');"/>
+                            </li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1109983');"><strong>반려동물 동반출입 음식점 정보 신규 제공 안내 </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1108922');"><strong>Open API 제한적 운영 공지(&#039;26. 2. 2. ~ &#039;26. 2. 28.) </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1108897');"><strong>2025년 식품안전나라 공공데이터활용 안내서 발간 </strong><span class="date"></span></a></li>
+                            
+                                <li>
+                                    <a href="javascript:fn_moveDetail( 'apiNotice','1107495');"><strong>공공데이터 OPEN-API 일부 제한 </strong><span class="date"></span></a></li>
+                            
+                        </ul>
+                        <a href="javascript:fn_movePage('/api/board/board.do', '688', 'MENU_GRP33');"
+                           class="more">더보기</a>
+                    </div>
+
+                    <div class="box tab">
+                        <div class="tit">
+                            <button type="button" data-tab="tab-1" class="on"><strong>인기데이터</strong></button>
+                            <button type="button" data-tab="tab-2"><strong>최근등록데이터</strong></button>
+                        </div>
+                        <div id="tab-1" class="tab-content on">
+                            
+                            <div class="chart" id="chart-container"
+                                 style="height: 242px; width: 45%; float: left; margin-top: 1px; margin-left: 0.5px;">
+                                <script>
+                                    FusionCharts.ready(function () {
+                                        var chartData = {
+                                            "chart": {
+                                                "showLabels": "0",
+                                                "showValues": "0",
+                                                "legendItemFontSize": "16",
+                                                "xAxisName": "상위 10위 데이터(2026년 05월)",
+                                                "baseFont": "NanumGothic",
+                                                "baseFontSize": "16",
+                                                "outCnvBaseFontSize": "11",
+                                                "xAxisNameFontSize": "16",
+                                                "formatNumberScale": "0",
+                                                "sFormatNumberScale": "0",
+                                                "decimals": "0",
+                                                "paletteColors": "#dd1212,#adc901,#5f8efc,#f8e987,#f887c5,#f8c587,#feb500,#f887f4,#87f8e7,#9e87f8,#f887f4",
+                                                "theme": "fusion"
+                                            },
+                                            "data": [
+                                                { "label": "음식점업소 인허가 변경 정보", "value": "517012" },
+                                                { "label": "식품접객업정보", "value": "218956" },
+                                                { "label": "식품(첨가물)품목제조보고", "value": "131661" },
+                                                { "label": "인허가 업소 정보", "value": "115097" },
+                                                { "label": "식품(첨가물)품목제조보고(원재료)", "value": "97996" },
+                                                { "label": "건강기능식품 품목제조 신고사항 현황", "value": "56984" },
+                                                { "label": "수거검사 계획 및 실적 관련 현황", "value": "43839" },
+                                                { "label": "건강기능식품 품목제조신고(원재료)", "value": "34517" },
+                                                { "label": "식품업소 인허가 변경 정보", "value": "29947" },
+                                                { "label": "회수.판매중지 정보", "value": "28200" }
+                                            ]
+                                        };
+                                        var columnChart = new FusionCharts({
+                                            type: 'column2d',
+                                            renderAt: 'chart-container',
+                                            width: '100%',
+                                            height: '100%',
+                                            dataFormat: 'json',
+                                            dataSource: chartData
+                                        });
+                                        columnChart.render();
+                                    });
+                                </script>
+                            </div>
+
+                            
+                            <div style="float:left; height: 243px; width: 39%;">
+                                <table style="height: 100%; width: 100%;">
+                                    <tr>
+                                        <td>
+                                            <div class="slidebox" style="height: 88%; padding-left: 67px;">
+                                                <input type="radio" name="slide" id="slide01" checked>
+                                                <input type="radio" name="slide" id="slide02">
+                                                <ul class="slidelist" style="width: 170px; margin-left: 18px;">
+                                                    <li class="slideitem">
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I2861');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>1위&nbsp;&nbsp;</b>
+                                                                            음식점업소 인허가 ..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I1200');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>2위&nbsp;&nbsp;</b>
+                                                                            식품접객업정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I1250');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>3위&nbsp;&nbsp;</b>
+                                                                            식품(첨가물)품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT11', 'I2500');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>4위&nbsp;&nbsp;</b>
+                                                                            인허가 업소 정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'C002');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%; font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>5위&nbsp;&nbsp;</b>
+                                                                            식품(첨가물)품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                    </li>
+                                                    <li class="slideitem">
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT14', 'I0030');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>6위&nbsp;&nbsp;</b>
+                                                                            건강기능식품 품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT07', 'I0460');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>7위&nbsp;&nbsp;</b>
+                                                                            수거검사 계획 및 ..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT14', 'C003');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>8위&nbsp;&nbsp;</b>
+                                                                            건강기능식품 품목제..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT16', 'I2859');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                            <b>9위&nbsp;&nbsp;</b>
+                                                                            식품업소 인허가 변..
+                                                                        
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                            <a href="javascript:fn_moveApiInfo('API_SRT06', 'I0490');">
+                                                                    
+                                                                <p style="padding-top: 7%; padding-bottom: 7%;  font-size: 16px;">
+                                                                    
+                                                                        
+                                                                        
+                                                                            <b>10위&nbsp;&nbsp;</b>
+                                                                            회수.판매중지 정보
+                                                                        
+                                                                    
+                                                                </p>
+                                                            </a>
+                                                        
+                                                    </li>
+
+                                                </ul>
+                                                <div class="slide-control">
+                                                    <div class="control01">
+                                                        <label for="slide02" class="prev">〈</label>
+                                                        <label for="slide02" class="next">〉</label>
+                                                    </div>
+                                                    <div class="control02">
+                                                        <label for="slide01" class="prev">〈</label>
+                                                        <label for="slide01" class="next">〉</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        
+                                        
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div id="tab-2" class="tab-content" style="height: 242px">
+                            <ul class="list">
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT16', 'I2861');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;식품 등</span>
+                                                <span class="date" style="font-size: 15px;">2024.12.09</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">음식점업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT14', 'I2860');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;식품의약품안전처&#93;건강기능식품</span>
+                                                <span class="date" style="font-size: 15px;">2024.10.21</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">건강기능식품업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT16', 'I2859');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;식품 등</span>
+                                                <span class="date" style="font-size: 15px;">2024.09.23</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">식품업소 인허가 변경 정보</strong>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="javascript:fn_moveApiInfo( 'API_SRT11', 'I2858');">
+                                            <div class="txt">
+                                                <span class="stit" style="font-size: 14px;">&#91;행정안전부&#93;업체인허가현황</span>
+                                                <span class="date" style="font-size: 15px;">2024.03.27</span>
+                                            </div>
+                                            <strong style="font-size: 16px;line-height:26px;">도축업 인허가 대장</strong>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+
+                            
+                        </div>
+                    </div>
+
+                    <div class="box button">
+
+                        <!--             <button type="button" class="application" onclick="javascript:moveToDatasetClcdList('API_SRT01', '17879', 'MENU_GRP31');"><span>인증키 신청</span></button>  -->
+                        <!--             <button type="button" class="application" onclick="javascript:fn_movePage('/api/datasetList.do', '661', 'MENU_GRP31');"><span>인증키 신청</span></button>  -->
+                        <!--             <button type="button" class="revise" onclick="javascript:fn_movePage('/api/newUserApiAplcKey.do', '691', 'MENU_GRP32');"><span>인증키 수정</span></button> -->
+                        <button type="button" class="application"
+                                onclick="javascript:fn_movePage('/api/datasetList.do', '866', 'MENU_GRP31');"><span>인증키 신청</span>
+                        </button>
+                        <button type="button" class="revise"
+                                onclick="javascript:fn_movePage('/api/newUserApiAplcDtl.do', '3995', 'MENU_GRP32');">
+                            <span>인증키 수정</span></button>
+                        <button type="button" class="guide"
+                                onclick="javascript:location.href='ebook.html';"><span>서비스이용방법Ebook</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            <!-- //메인게시판 END-->
+
+        </div>
+        <!--본문-->
+
+        <!-- footer start -->
+        <footer id="footer">
+            
+	<div class="footer_link_wrap">
+        <div class="footer_link">
+          <ul class="link">
+				
+				<!-- <li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2933&menu_grp=MENU_NEW07">개인정보처리방침</a></li> -->
+				
+				<li><a href="https://www.foodinfo.or.kr/portal/bbs/selectBoardList.do?bbsId=10000000000000000460&catId=36&bbsView=HTML&goMenuNo=9000001115&topMenuNo=9000001110&upperMenuNo=9000001110" target="_blank" title="개인정보처리방침 사이트로 이동합니다.">개인정보처리방침</a></li>
+				<li><a href="http://www.mfds.go.kr/wpge/m_34/de010803l001.do" target="_blank">저작권정책</a></li>
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2922&menu_grp=MENU_NEW07" target="_blank">포털이용관련 질의응답</a></li>
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2938&menu_grp=MENU_NEW07" target="_blank">관련 누리집</a></li>
+				
+			  	
+				
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2928&menu_grp=MENU_NEW07" target="_blank">정보오류 신고</a></li>
+
+				<li><a href="https://www.foodsafetykorea.go.kr/minwon/counsel/ePeople.do" target="_blank" >국민신문고</a></li>
+
+				<li><a href="http://113366.com/foodinfo" class="blue" target="_blank">원격 지원</a></li>
+			</ul>
+			
+			 <div class="site">
+	            <button type="button" class="select_btn">관련부처사이트</button>
+	            <div class="select_box">
+	              <ul>
+	                <li><a href="#" onclick="javascript:goSite_new('0');" title="관련 부처 사이트">관련 부처 사이트</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('1');" title="식품의약품안전처">식품의약품안전처</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('2');" title="교육부">교육부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('3');" title="법무부">법무부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('4');" title="국방부">국방부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('5');" title="행정안전부">행정안전부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('6');" title="농림축산식품부">농림축산식품부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('7');" title="산업통상자원부">산업통상자원부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('8');" title="보건복지부">보건복지부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('9');" title="환경부">환경부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('10');" title="해양수산부">해양수산부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('11');" title="관세청">관세청</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('12');"  title="방위사업청">방위사업청</a></li>
+	              </ul>
+	            </div>
+	          </div>
+			</div>
+		</div>
+		<div class="footer_info_wrap">
+          <div class="footer_info">
+            <div class="footer_logo" style="top: 14px;">
+            <img id="logo1" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo.jpg" alt="식품안전정보포털 식품의약품안전처">
+            <img id="logo2" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo_02.png" alt="식품안전정보포털 식품안전정보원">
+            </div>
+            <address style="top: 17px;">
+             <p style="line-height: 22px;">
+               우)28159 충청북도 청주시 흥덕구 오송읍 오송생명2로 187 오송보건의료행정타운 식품의약품안전처<br>
+               Copyright ⓒ Ministry of Food and Drug Safety. All Rights Reserved.<br>
+				 통합망 고객지원센터(시스템문의) : 1899-5590(유료), 식약처 종합상담센터 : 1577-1255(유료)
+             </p>
+            </address>
+          </div>
+        </div>
+
+        </footer>
+        <!-- footer end -->
+
+        <!-- 식품정보 한눈에 보기 start -->
+        
+
+
+
+	<div class="sitemap_op">&nbsp;</div>
+	<div class="sitemap">
+		<div class="title">데이터활용서비스 한눈에 보기<a href="#"><img src="https://www.foodsafetykorea.go.kr/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
+		<div class="site_cnt">
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h05">서비스안내</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686" class="dpt01">·  서비스 소개</a></li>
+						<li><a href="ebook.html" class="dpt01">·  서비스사용방법Ebook</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h01">데이터공개</h1>
+					<ul>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt01">·  분류별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=845" class="dpt02">·  시험분석</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=846" class="dpt02">·  기준규격</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=847" class="dpt02">·  인허가정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=848" class="dpt02">·  자료실</a></li> -->
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt01">·  분류별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt02">·  기준규격</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880" class="dpt02">·  코드정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881" class="dpt02">·  식품영양정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882" class="dpt02">·  수질환경정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883" class="dpt02">·  검사기관정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884" class="dpt02">·  식품위해관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886" class="dpt02">·  이력추적관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887" class="dpt02">·  어린이식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888" class="dpt02">·  HACCP지정현황</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889" class="dpt02">·  업체인허가현황</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890" class="dpt02">·  위생용품</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891" class="dpt02">·  축산물</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892" class="dpt02">·  건강기능식품</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893" class="dpt02">·  수입식품 등</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894" class="dpt02">·  식품 등</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895" class="dpt02">·  자료실</a></li>
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt01">·  제공기관별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt02">·  식품의약품안전처</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN10&menu_grp=MENU_GRP31&menu_no=858" class="dpt02">·  해양수산부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN13&menu_grp=MENU_GRP31&menu_no=861" class="dpt02">·  산업통상자원부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN09&menu_grp=MENU_GRP31&menu_no=857" class="dpt02">·  농촌진흥청</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN05&menu_grp=MENU_GRP31&menu_no=853" class="dpt02">·  농림축산검역본부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN08&menu_grp=MENU_GRP31&menu_no=856" class="dpt02">·  국립농산물품질관리원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN15&menu_grp=MENU_GRP31&menu_no=863" class="dpt02">·  국립환경과학원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN12&menu_grp=MENU_GRP31&menu_no=860" class="dpt02">·  국립수산물품질관리원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN11&menu_grp=MENU_GRP31&menu_no=859" class="dpt02">·  국립수산과학원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN16&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  행정안전부</a></li>
+						<!-- li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN04&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  시도, 시군구</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN03&menu_grp=MENU_GRP31&menu_no=851" class="dpt02">·  시군구</a></li-->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN02&menu_grp=MENU_GRP31&menu_no=850" class="dpt02">·  한국식품안전관리인증원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN07&menu_grp=MENU_GRP31&menu_no=855" class="dpt02">·  축산물품질평가원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN14&menu_grp=MENU_GRP31&menu_no=862" class="dpt02">·  한국환경공단</a></li>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN06&menu_grp=MENU_GRP31&menu_no=854" class="dpt02">·  농림수산식품</a></li> -->
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=938" class="dpt01">·  유형별</a></li>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE01&menu_grp=MENU_GRP31&menu_no=656" class="dpt02">·  SHEET</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE02&menu_grp=MENU_GRP31&menu_no=657" class="dpt02">·  CHART</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE05&menu_grp=MENU_GRP31&menu_no=660" class="dpt02">·  LINK</a></li> -->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE06&menu_grp=MENU_GRP31&menu_no=661" class="dpt02">·  OPEN-API</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE03&menu_grp=MENU_GRP31&menu_no=658" class="dpt02">·  FILE</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">인증키 관리</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995" class="dpt01">·  인증키 신청현황</a></li>
+<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiKey.do?menu_grp=MENU_GRP32&menu_no=691" class="dpt01">·  인증키 신청</a></li> -->
+<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/userApiKey.do?menu_grp=MENU_GRP32&menu_no=692" class="dpt01">·  인증키 발급 및 확인</a></li> -->
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">정보공유</h1>
+					<ul>
+						<!--<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3898" class="dpt01">·  개발자 의견공유</a></li> -->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899" class="dpt01">·  데이터활용 갤러리</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h04">고객센터</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688" class="dpt01">·  공지사항</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689" class="dpt01">·  자주하는 질문</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690" class="dpt01">·  묻고답하기</a></li>
+					</ul>
+				</div>
+			</div>
+
+		</div>
+	</div>
+        <!-- 식품정보 한눈에 보기 end -->
+
+        <!-- 데이터구조검색 보기 start -->
+        
+
+
+
+	
+	<!-- jsTree -->
+	<script src="https://www.foodsafetykorea.go.kr/js/mkisna/jquery-1.9.1/plugins/jstree-3.0.2/src/jstree.js"></script>
+	<link type="text/css" href="https://www.foodsafetykorea.go.kr/js/mkisna/jquery-1.9.1/plugins/jstree-3.0.2/dist/themes/default/style.min.css" rel="stylesheet">
+
+    <input type="hidden" id="svc_no" name="svc_no">             <!-- svc_no 서비스번호 -->
+    <input type="hidden" id="p_svcTypeCd" name="p_svcTypeCd" >    <!-- svc_type_cd 서비스타입 -->
+    <input type="hidden" id="svc_nm" name="svc_nm">             <!-- svc_nm 서비스명 -->
+	
+	<script>
+	$(document).ready(function() {
+		
+		// jsTree
+		$('#layerTree').jstree({
+			"temes" :{
+				"theme":"classic",
+				"dots":true,
+				"icons":false				
+			},
+			"plugins":["themes", "html_data" ]
+		});
+		
+		// init 데이터구조 조회
+		fn_dataStrutList( '기준규격정보', '' , 'API_SRT01' , '');
+		
+	});
+	
+	
+	//데이터구조 검색 조회
+	function fn_dataStrutList(subjct ,svcTypeCode, clCdCode, provdInsttCode) {
+		
+		$.ajax({
+			data: {
+				search_svcTypeCode : svcTypeCode
+				, search_clCdCode : clCdCode
+				, search_provdInsttCode :provdInsttCode
+			},
+			dataType:'json',
+			type:'POST',
+			url:"/ajax/datasetSearch.do",
+			success:function(resultList){
+
+				var list = resultList.dataStrutList;
+				
+				var listLength = list.length;
+				var totCnt = 0;
+				
+				$("#datasetSjct").text(subjct); 
+				
+				if(listLength > 0){
+					var strHtml = '';
+					
+					for(var i in list ){
+					                            /*230627 정보원요청으로 숨김처리 ydj*/
+					    if(list[i].svc_nm != '품목제조보고번호유효성확인(대한상공회의소사용)' && list[i].svc_nm != '불량식품 신고이력 조회(내부용)' && list[i].svc_nm != '불량식품 신고정보 조회(내부용)'){
+                            strHtml += '<tr>';
+                            strHtml += '<td>'+ list[i].provd_instt_nm  +'</td>';
+                            strHtml += '<td>'+ list[i].cl_cd_nm  +'</td>';
+                          //strHtml += '<td class=taL >'+ list[i].svc_nm  +'</td>';
+                            strHtml += '<td class=taL><a href=\'javascript:fn_listMoveDetail('+'"'+list[i].svc_no+'"'+','+'"'+list[i].svc_type_cd+'"'+','+'"'+list[i].svc_nm+'"' +');\'>'+list[i].svc_nm+'</a></td>';
+
+                            if( list[i].svc_type_cd == 'API_TYPE03' ){
+                                strHtml += '<td>'+ 'F'  +'</td>';
+                            }else if( list[i].svc_type_cd == 'API_TYPE06' ){
+                                strHtml += '<td>'+ 'O'  +'</td>';
+                            }else {
+                                strHtml += '<td></td>';
+                            }
+                            strHtml += '</tr>';
+						}
+					}
+
+					//$('#sp_total3 strong').text(totCnt);
+					$("#tb_struct_list").html(strHtml);
+				} else {
+					//$('#sp_total3 strong').text('0');
+					$("#tb_struct_list").html("<tr><td colspan='4'>검색된 정보가 없습니다.</td></tr>");
+				}
+				
+			},
+			error:function(request,status,error){
+				console.error('API Error (No Local Backend)');   //시스템에러
+			}
+		});
+	}
+
+    // 서비스유형 상세 화면
+    function fn_listMoveDetail(svcNo, types, svcNm){
+       // 파라미터
+       $("#svc_no").val(svcNo);
+       $("#p_svcTypeCd").val(types);
+       $("#svc_nm").val(svcNm);
+
+       document.baseForm.action="/api/newDatasetDetail.do";
+       document.baseForm.target="_self";
+       document.baseForm.method="post";
+       document.baseForm.submit();
+
+    }
+
+
+	
+	</script>
+	
+	<div class="datastruct_op">&nbsp;</div>
+	<div class="datastruct">
+		<div class="title">데이터구조 검색<a href="#"><img src="https://www.foodsafetykorea.go.kr/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
+		<div class="site_cnt">
+			
+			<div class="fl w_317 m_r_6">
+				<div class="box">
+				
+					<h1 class="h05">데이터카테고리</h1>
+					
+					<!-- tree 구조 구현 (서비스)  -->
+					<div id="layerTree" >
+						<ul >
+							<li class="jstree-open"><a href="#" class="">전체</a>
+								<ul >
+									<li class="jstree-open"><a href="#" class="">분류별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList( '기준규격정보', '','API_SRT01','' );"><a href="#" class="">기준규격정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '코드정보', '','API_SRT02','' );"><a href="#" class="">코드정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품영양정보', '','API_SRT03','' );"><a href="#" class="">식품영양정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '수질환경정보', '','API_SRT04','' );"><a href="#" class="">수질환경정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '검사기관정보', '','API_SRT05','' );"><a href="#" class="">검사기관정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품위해관리', '','API_SRT06','' );"><a href="#" class="">식품위해관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품안전관리', '','API_SRT07','' );"><a href="#" class="">식품안전관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '이력추적관리', '','API_SRT08','' );"><a href="#" class="">이력추적관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( '어린이식품안전관리', '','API_SRT09','' );"><a href="#" class="">어린이식품안전관리  </a></li>
+											
+												<li onclick="fn_dataStrutList( 'HACCP지정현황', '','API_SRT10','' );"><a href="#" class="">HACCP지정현황  </a></li>
+											
+												<li onclick="fn_dataStrutList( '업체인허가현황', '','API_SRT11','' );"><a href="#" class="">업체인허가현황  </a></li>
+											
+												<li onclick="fn_dataStrutList( '위생용품', '','API_SRT12','' );"><a href="#" class="">위생용품  </a></li>
+											
+												<li onclick="fn_dataStrutList( '축산물', '','API_SRT13','' );"><a href="#" class="">축산물  </a></li>
+											
+												<li onclick="fn_dataStrutList( '건강기능식품', '','API_SRT14','' );"><a href="#" class="">건강기능식품  </a></li>
+											
+												<li onclick="fn_dataStrutList( '수입식품 등', '','API_SRT15','' );"><a href="#" class="">수입식품 등  </a></li>
+											
+												<li onclick="fn_dataStrutList( '식품 등', '','API_SRT16','' );"><a href="#" class="">식품 등  </a></li>
+											
+												<li onclick="fn_dataStrutList( '자료실', '','API_SRT17','' );"><a href="#" class="">자료실  </a></li>
+											
+												<li onclick="fn_dataStrutList( '폐업정보', '','API_SRT18','' );"><a href="#" class="">폐업정보  </a></li>
+											
+												<li onclick="fn_dataStrutList( '용어사전', '','API_SRT19','' );"><a href="#" class="">용어사전  </a></li>
+											
+										</ul>
+									</li>
+									
+									<li class="jstree-open"><a href="#" class="">제공기관별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList('식품의약품안전처', '','','ORGN01' );"><a href="#" class="">식품의약품안전처  </a></li>
+											
+												<li onclick="fn_dataStrutList('해양수산부', '','','ORGN10' );"><a href="#" class="">해양수산부  </a></li>
+											
+												<li onclick="fn_dataStrutList('산업통상자원부', '','','ORGN13' );"><a href="#" class="">산업통상자원부  </a></li>
+											
+												<li onclick="fn_dataStrutList('농촌진흥청', '','','ORGN09' );"><a href="#" class="">농촌진흥청  </a></li>
+											
+												<li onclick="fn_dataStrutList('농림축산검역본부', '','','ORGN05' );"><a href="#" class="">농림축산검역본부  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립농산물품질관리원', '','','ORGN08' );"><a href="#" class="">국립농산물품질관리원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립환경과학원', '','','ORGN15' );"><a href="#" class="">국립환경과학원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립수산물품질관리원', '','','ORGN12' );"><a href="#" class="">국립수산물품질관리원  </a></li>
+											
+												<li onclick="fn_dataStrutList('국립수산과학원', '','','ORGN11' );"><a href="#" class="">국립수산과학원  </a></li>
+											
+												<li onclick="fn_dataStrutList('행정안전부', '','','ORGN16' );"><a href="#" class="">행정안전부  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국식품안전관리인증원', '','','ORGN02' );"><a href="#" class="">한국식품안전관리인증원  </a></li>
+											
+												<li onclick="fn_dataStrutList('축산물품질평가원', '','','ORGN07' );"><a href="#" class="">축산물품질평가원  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국환경공단', '','','ORGN14' );"><a href="#" class="">한국환경공단  </a></li>
+											
+												<li onclick="fn_dataStrutList('한국수자원공사', '','','ORGN17' );"><a href="#" class="">한국수자원공사  </a></li>
+											
+										</ul>
+									</li>
+									
+									<li class="jstree-open"><a href="#" class="">유형별</a>
+										<ul >
+											
+												<li onclick="fn_dataStrutList('File', 'API_TYPE03','','' );"><a href="#" class="">File  </a></li>
+											
+												<li onclick="fn_dataStrutList('Link', 'API_TYPE05','','' );"><a href="#" class="">Link  </a></li>
+											
+												<li onclick="fn_dataStrutList('XML/JSON', 'API_TYPE06','','' );"><a href="#" class="">XML/JSON  </a></li>
+											
+										</ul>
+									</li>
+									
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			
+			
+			<!-- API 데이터 정보  -->
+			<div class="fl w_850 m_r_6">
+				<div class="box">
+<!-- 				    <h3 class="subtitle">데이터</h3> -->
+
+					<h1 class="h05" id="datasetSjct">데이터카테고리</h1>
+					
+					<div id="struct_div">
+					    <table class="struct_tb">
+					        <caption>
+					        데이터
+					        </caption>
+					        <colgroup>
+						        <col style="width:20%;">
+						        <col style="width:15%;">
+						        <col style="width:50%;">
+						        <col style="width:15%;">
+					        </colgroup>
+					        <thead class=""> <!-- tb_scroll  -->
+					            <tr>
+					                <th scope="col">제공기관</th>
+					                <th scope="col">분류</th>
+					                <th scope="col">서비스명</th>
+					                <th scope="col">유형</th>
+					            </tr>
+					        </thead>
+					        <tbody id="tb_struct_list" class=""> <!-- tb_scroll  -->
+					            <tr>
+					                <td>식품의약품안전처</td>
+					                <td>인허가정보</td>
+					                <td class="taL" >LMO생산승인현황</td>
+					                <td>O</td>
+					            </tr>
+					        </tbody>
+					    </table>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+        <!-- 데이터구조검색 보기 end -->
+
+        <script>
+
+            $(document).ready(function () {
+
+                var nowDate = new Date();
+                var elementLeft = 0;
+
+                /* 팝업 open 날짜 검증 */
+                $.each($('.popups'), function () {
+
+                    var openDtEl = $(this).attr("data-open");
+                    var openCheckDt = new Date(openDtEl);
+                    var ElementID = $(this).attr("id");
+
+                    if (nowDate.getTime() < openCheckDt.getTime()) {
+                        openWin(ElementID);
+                    }
+                })
+
+                /* 임시 팝업 닫기*/
+                $(".closePopLay").on('click', function () {
+                    $(this).parents('.popups').eq(0).hide();
+                });
+
+                /* 팝업위치 지정*/
+                $.each($(".popups"), function () {
+                    $(this).css("left", elementLeft);
+                    if ($(this).css("display") != 'none') {
+                        elementLeft = elementLeft + ($(this).width() + 10);
+                    }
+                });
+
+                /* 팝업 드레그 */
+//	$(".popups").draggable();
+
+                // 한눈에 보기
+                $(".tm_view").click(function () {
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+
+                document.baseForm.action = "/api/datasetList.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 분류별데이터 서비스 이동
+            function moveToDatasetClcdList(cl_cd, menu_no, menu_grp) {
+
+                $("#cl_cd").val(cl_cd);
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+
+                document.baseForm.action = "/api/datasetList.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 데이터통합검색
+            function datasetAllSearch(menu_no, menu_grp) {
+
+                if ($("#search_keyword").val() == "") {
+                    alert("검색어를 입력해주세요.");
+                    $("#search_keyword").focus();
+                    return;
+                }
+
+                var keyword = encodeURIComponent($("#search_keyword").val());
+                location.href = "search.html?search_keyword=" + keyword;
+            }
+
+            //게시글페이지(공지사항)
+            function fn_moveDetail(bbs_no, ntctxt_no) {
+
+                $("#bbs_no").val(bbs_no);
+                $("#ntctxt_no").val(ntctxt_no);
+                $("#menu_no").val("688");      		   //공지사항메뉴번호
+                $("#menu_grp").val("MENU_GRP33");      //공지사항메뉴그룹번호
+
+                document.baseForm.action = "/api/board/boardDetail.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            //해당 서비스의 API 상세페이지로 이동
+            function fn_moveApiInfo(cl_cd, svc_no) {
+
+                $("#cl_cd").val(cl_cd);
+                $("#svc_no").val(svc_no);
+//     $("#svc_nm").val(svc_nm);
+                //$("#svc_type_cd").val("API_TYPE06");  // 서비스 타입
+                $("#menu_no").val("661");				// /api/datasetList.do?svc_type_cd=API_TYPE06
+                $("#menu_grp").val("MENU_GRP31");
+
+                document.baseForm.action = "/api/newDatasetDetail.do";
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+
+            }
+
+            //페이지이동
+            function fn_movePage(url, menu_no, menu_grp) {
+                $("#menu_no").val(menu_no);
+                $("#menu_grp").val(menu_grp);
+                document.baseForm.action = "" + url;
+                document.baseForm.target = "_self";
+                document.baseForm.method = "post";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function downloadFile(sVal) {
+                /* $('#repsImgYn').val(sVal); */
+                $('#filePath').val("/upload/openApi");
+                //$('#fileName').val("openApiGuide.pdf");
+                //$('#fileName').val("2023_OpenAPI_Guidebook.pdf");
+                //$('#fileName').val("2024+OpenAPI_Guidebook.pdf");
+                $('#fileName').val("2025_OpenAPI_Guidebook.pdf");
+
+                $('#orgFileName').val("식품안전나라_공공데이터_가이드북.pdf");
+
+                document.baseForm.action = "/common/downloadAttchdFile.do";
+                document.baseForm.target = "_self";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function downloadFile2(sVal) {
+                /* $('#repsImgYn').val(sVal); */
+                $('#filePath').val("/upload/openApi");
+                $('#fileName').val("openApiList.zip");
+                $('#orgFileName').val("식품안전나라_공공데이터_개방_목록.zip");
+
+                document.baseForm.action = "/common/downloadAttchdFile.do";
+                document.baseForm.target = "_self";
+                document.baseForm.submit();
+            }
+
+            // 파일 다운로드
+            function goVideoUrl(no, grp, mno, bno) {
+                location.href = "/portal/board/boardDetail.do?ntctxt_no=" + no + "&menu_grp=" + grp + "&menu_no=" + mno + "&bbs_no=" + bno;
+            }
+
+        </script>
+
+        <script type="text/javascript">
+            /*window.onload = function() {
+
+                // 매달 01, 30, 31 일에는 공공데이터 최초 한번 머지문 실행
+                var nowYear = '2026';
+                var nowMonth = '05';
+                var nowMonth2 = '06';
+                var nowDay = '03';
+                var nowDate = '20260603';
+                var uselogCnt = '1';
+
+                // 매달 01, 30, 31
+                if(nowDay == "01" || nowDay == "30" || nowDay == "31"){
+                    if(uselogCnt == "0"){
+
+                        $.ajax({
+                            data: {nowYear: nowYear, nowMonth : nowMonth, nowMonth2 : nowMonth2, nowDay : nowDay, nowDate : nowDate, uselogCnt : uselogCnt},
+                            dataType:'json',
+                            type:'POST',
+                            url:"/ajax/popularListMerge.do",
+                            async : true,
+                            success:function(arg){
+
+                                //alert(arg);
+                                console.log("인기데이터 MERGE : " + arg);
+
+                            },
+                            error:function(request,status,error){
+                                //alert("실패");
+
+                            }
+                        });
+                    }
+                }
+            };*/
+        </script>
+    </div>
+</form>
+<script>
+	// 카테고리 클릭 시 로컬 검색 페이지로 이동하도록 가로채기
+	$(document).ready(function() {
+		$("a[href*='datasetList.do']").click(function(e) {
+			e.preventDefault();
+			
+			// a 태그 내부의 텍스트 추출 (예: '·  기준규격정보' -> '기준규격정보')
+			let text = $(this).text().replace(/·/g, '').trim();
+			
+			// 로컬 검색 매칭률을 높이기 위해 접미어 제거 (예: '기준규격정보' -> '기준규격')
+			let keyword = text.replace(/정보|관리|현황/g, '').trim();
+			
+			// 텍스트가 없으면 그냥 search.html 로 이동
+			if (!keyword) {
+				location.href = "search.html";
+			} else {
+				location.href = "search.html?search_keyword=" + encodeURIComponent(keyword);
+			}
+		});
+	});
+
+</script>
+</body>
 </html>

@@ -18,6 +18,17 @@ if (!fs.existsSync(candidatesPath)) {
 const db = new sqlite3.Database(dbPath);
 const candidates = JSON.parse(fs.readFileSync(candidatesPath, 'utf8'));
 
+// Load cache to get korean names
+const cachePath = path.join(__dirname, '../crawler/crawl_cache.json');
+let cache = [];
+if (fs.existsSync(cachePath)) {
+    cache = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+}
+const tableCols = {};
+cache.forEach(ds => {
+    tableCols[ds.svc_no] = ds.fields || [];
+});
+
 async function runQuery(sql) {
     return new Promise((resolve, reject) => {
         db.all(sql, [], (err, rows) => {
@@ -111,7 +122,18 @@ async function verifyJoins() {
         sqlContent += `--   - 실제 JOIN 레코드 수 : ${v.actualJoinCount.toLocaleString()}건 매칭됨\n`;
         sqlContent += `--   - 매칭된 샘플 데이터   : ${JSON.stringify(v.samples)}\n`;
         sqlContent += `-- -----------------------------------------------------------------------------\n`;
-        sqlContent += `SELECT A.*, B.*\n`;
+        let selectCols = [];
+        const colsA = tableCols[v.fromTable] || [];
+        const colsB = tableCols[v.toTable] || [];
+        
+        colsA.forEach(c => selectCols.push(`A."${c.field}" AS "A_${c.kor_nm || c.field}"`));
+        colsB.forEach(c => selectCols.push(`B."${c.field}" AS "B_${c.kor_nm || c.field}"`));
+        
+        if (selectCols.length === 0) {
+            sqlContent += `SELECT A.*, B.*\n`;
+        } else {
+            sqlContent += `SELECT \n    ${selectCols.join(',\n    ')}\n`;
+        }
         sqlContent += `FROM "${v.fromTable}" A\n`;
         sqlContent += `INNER JOIN "${v.toTable}" B ON A."${v.fromField}" = B."${v.toField}"\n`;
         sqlContent += `WHERE A."${v.fromField}" IS NOT NULL AND A."${v.fromField}" != ''\n`;

@@ -3,20 +3,20 @@ import { datasets } from '../datasetData.js';
 
 export function renderApiExplorer(container, onSelectDataset) {
   let searchQuery = "";
-  
+
   // 타 컴포넌트(예: 데이터맵)로부터 연계된 API 코드 자동 필터 및 포커싱 연동
   if (window.apiExplorerAutoSearch) {
     searchQuery = window.apiExplorerAutoSearch;
     window.apiExplorerAutoSearch = null; // 단회성 소비 후 즉시 초기화
   }
 
-  let selectedApi = datasets.find(d => 
+  let selectedApi = datasets.find(d =>
     d.id.toLowerCase() === searchQuery.toLowerCase()
   ) || datasets.find(d => d.id === 'I0580') || datasets[0]; // 기본선택: HACCP 적용업소(I0580)
-  
+
   // API 데이터 소스 상태
   let apiSource = 'external'; // 'local' (로컬 DB 에뮬레이터), 'external' (실제 외부 식약처 라이브 OpenAPI)
-  
+
   // API 테스트 베드 상태
   let startIdx = 1;
   let endIdx = 5;
@@ -32,7 +32,7 @@ export function renderApiExplorer(container, onSelectDataset) {
     render();
 
     const startTime = performance.now();
-    
+
     // API 소스 모드에 따른 URL 분기
     const baseUrl = apiSource === 'external' ? '/api/external' : '/api/sample_key';
     const testUrl = `${baseUrl}/${selectedApi.id}/json/${startIdx}/${endIdx}`;
@@ -62,8 +62,8 @@ export function renderApiExplorer(container, onSelectDataset) {
 
   const render = () => {
     // API 리스트 필터링
-    const filteredApis = datasets.filter(ds => 
-      ds.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredApis = datasets.filter(ds =>
+      ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ds.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ds.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -122,7 +122,7 @@ export function renderApiExplorer(container, onSelectDataset) {
       `;
     } else if (apiResponse) {
       const prettyJson = JSON.stringify(apiResponse, null, 2);
-      
+
       // 결과 데이터로부터 실제 total_count 파싱
       const totalCountVal = apiResponse[selectedApi.id] ? apiResponse[selectedApi.id].total_count : 'Unknown';
       const rowCount = apiResponse[selectedApi.id] && apiResponse[selectedApi.id].row ? apiResponse[selectedApi.id].row.length : 0;
@@ -175,18 +175,6 @@ export function renderApiExplorer(container, onSelectDataset) {
           <div class="mb-8 md:mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">식약처 로컬 & 외부 실시간 OpenAPI Explorer (168종 완벽 연동)</h2>
-              <p class="text-sm text-slate-500">
-                로컬 SQLite 캐시 데이터베이스뿐만 아니라 **실제 외부 식약처 공공데이터 포털 서버(openapi.foodsafetykorea.go.kr)와의 실시간 라이브 연동**을 완비하였습니다.
-                로컬 에뮬레이팅 응답과 실제 인터넷 실시간 응답을 자유롭게 교차 검증하며 고도의 데이터 연동 테스트를 구현합니다.
-              </p>
-            </div>
-            <div class="shrink-0 flex items-center gap-2.5 bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-              <i class="ri-wifi-line text-emerald-600 text-xl animate-pulse"></i>
-              <div>
-                <p class="text-[10px] text-slate-400 leading-none">실시간 연동 상태</p>
-                <p class="text-xs font-bold text-slate-700 leading-tight mt-1">식약처 Live Connected</p>
-              </div>
-            </div>
           </div>
 
           <!-- Grid: Left API Browser & Right API Sandbox -->
@@ -241,9 +229,9 @@ export function renderApiExplorer(container, onSelectDataset) {
                   </button>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2.5 leading-relaxed">
-                  ${apiSource === 'external' 
-                    ? '📢 <strong>[실시간 라이브 통신 활성화]</strong> 현재 외부 식약처 공공 포털 서버와 직접 소켓 통신을 하여 가장 최신의 식약처 데이터를 무제한 조회합니다.'
-                    : '📢 <strong>[로컬 SQLite 통신 활성화]</strong> 네트워크 미연결 시에도 168종 전체 데이터를 100% 식약처 규격으로 모방 에뮬레이팅하여 초고속으로 조회합니다.'}
+                  ${apiSource === 'external'
+        ? '📢 <strong>[실시간 라이브 통신 활성화]</strong> 현재 외부 식약처 공공 포털 서버와 직접 소켓 통신을 하여 가장 최신의 식약처 데이터를 무제한 조회합니다.'
+        : '📢 <strong>[로컬 SQLite 통신 활성화]</strong> 네트워크 미연결 시에도 168종 전체 데이터를 100% 식약처 규격으로 모방 에뮬레이팅하여 초고속으로 조회합니다.'}
                 </p>
               </div>
 
@@ -267,8 +255,8 @@ export function renderApiExplorer(container, onSelectDataset) {
                     </h4>
                     <div class="bg-gov-50/50 border border-gov-200 rounded-lg p-3 font-mono text-[11px] text-gov-800 break-all select-all">
                       ${apiSource === 'external'
-                        ? `http://localhost:8000/api/external/${selectedApi.id}/json/<span class="text-gov-600 font-bold">${startIdx}</span>/<span class="text-gov-600 font-bold">${endIdx}</span> <span class="text-slate-400 text-[10px] block mt-1">(내부 호출 시 인증키 77183c01c07d44798948 로 치환됨)</span>`
-                        : `http://localhost:8000/api/sample_key/${selectedApi.id}/json/<span class="text-gov-600 font-bold">${startIdx}</span>/<span class="text-gov-600 font-bold">${endIdx}</span>`}
+        ? `http://localhost:8000/api/external/${selectedApi.id}/json/<span class="text-gov-600 font-bold">${startIdx}</span>/<span class="text-gov-600 font-bold">${endIdx}</span> <span class="text-slate-400 text-[10px] block mt-1">(내부 호출 시 인증키 77183c01c07d44798948 로 치환됨)</span>`
+        : `http://localhost:8000/api/sample_key/${selectedApi.id}/json/<span class="text-gov-600 font-bold">${startIdx}</span>/<span class="text-gov-600 font-bold">${endIdx}</span>`}
                     </div>
                   </div>
                 </div>
@@ -419,14 +407,14 @@ export function renderApiExplorer(container, onSelectDataset) {
         } else if (selectedApi.id === 'I2500') {
           totalCount = 500; // 인허가
         }
-        
+
         endIdx = totalCount;
-        
+
         const startInEl = container.querySelector('#test-start-idx');
         const endInEl = container.querySelector('#test-end-idx');
         if (startInEl) startInEl.value = startIdx;
         if (endInEl) endInEl.value = endIdx;
-        
+
         // 시각적으로 전체 범위 설정 완료를 알리기 위해 마이크로 변경 알림
         setAllBtn.textContent = `전체설정 완료 (${totalCount}건)`;
         setAllBtn.classList.remove('bg-gov-50/50', 'text-gov-700', 'border-gov-200');

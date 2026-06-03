@@ -1,0 +1,161 @@
+@charset "utf-8";
+
+@import url('common.css');
+@import url('layout.css');
+
+.contents_wrap {width:995px; margin:43px auto 70px; overflow:hidden;}
+
+section {margin-top:45px;}
+
+h2 {color:#222222 !important; font-size:30px !important; margin-bottom:50px !important;}
+h3.subtitle {color:#222222 !important; font-size:20px !important; line-height:20px !important; margin-bottom:18px !important; padding-left:27px !important; background: url(https://www.foodsafetykorea.go.kr/images/api/sub/h3_icon.png) no-repeat 0 0 !important;}
+
+/*TAB CSS*/
+ul.tabs {margin: 0; padding: 0; height: 50px; border-bottom: 1px solid #dadada; width: 100%; background:#f0f1f1;}
+ul.tabs li {float: left; margin: 0; padding: 0; height: 50px; line-height: 50px; overflow: hidden; position: relative;}
+ul.tabs li a {color: #666; display: block; font-size: 18px; padding: 0 35px;}
+ul.tabs li.active {background: #fff; border: 1px solid #dadada; border-bottom: 1px solid #fff; position:relative;}
+ul.tabs li.active a {color: #222; font-weight:600;}
+ul.tabs li.active:after {content:''; display:block; position:absolute; top:0; left:0; width:100%; height:3px; background:#287cc4;}
+
+/*Tab Conent CSS*/
+.tab_container {overflow: hidden; width: 100%;}
+.tab_content {display:none;}
+.tab_content.active {display:block;}
+
+/*TAB2 CSS*/
+ul.tabs2 {margin-bottom:18px; padding: 0; overflow:hidden;}
+ul.tabs2 li {float: left; margin: 0; padding: 0; height: 32px; line-height: 32px; overflow: hidden; position: relative;}
+/*ul.tabs2 li:after {content:''; display:block; position:absolute; top:7px; right:0; width:1px; height:20px; background:#cccccc;}*/
+ul.tabs2 li a {color: #666; display: block; font-size: 20px; padding: 0 25px;}
+ul.tabs2 li.active {}
+ul.tabs2 li.active a {color: #222; font-weight:600; border-radius:3px; background:#1b7ddb; color:#fff;}
+
+/*Tab Conent CSS*/
+.tab_container {overflow: hidden; width: 100%;}
+.tab_content2 {display:none;}
+.tab_content2.active {display:block;}
+
+
+/*table CSS*/
+.table1 {border-top:1px solid #dddddd; border-left:1px solid #dddddd; table-layout: fixed; width:100%;}
+.table1 th, .table1 td {padding: 11px 13px; border-right:1px solid #dddddd; border-bottom:1px solid #dddddd; font-size:15px;}
+.table1 tbody th {background:#f4f6f7; font-size:15px; color:#222222; letter-spacing:-0.1em;}
+.table1 tbody td {color:#666666; letter-spacing:-0.05em; overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.table2 {border-top:2px solid #333333; width:100%; background:#f4f6f7;}
+.table2 th, .table2 td {padding: 11px 13px; border-bottom:1px solid #dddddd; font-size:15px; text-align:center;}
+.table2 thead th {background:#f4f6f7; font-size:15px; color:#222222; letter-spacing:-0.1em;}
+.table2 tbody td {background:#fff; color:#666666; letter-spacing:-0.05em; overflow:hidden;text-overflow:ellipsis;white-space:nowrap; height:20px;}
+.table2 tbody.tb_scroll {display: block; overflow-y:auto; overflow-x:hidden; width:100%; height:250px;}
+.table2 thead.tb_scroll, .table2 tbody.tb_scroll tr {display:table; width:100%; table-layout:fixed;/* even columns width , fix width of table too*/}
+/* .table2 tbody.tb_scroll {display: block; overflow-y:auto; overflow-x:hidden; width:100%; height:387px;} */
+/* .table2 thead.tb_scroll, .table2 tbody.tb_scroll tr {display:table; width:100%; table-layout:fixed;even columns width , fix width of table too} */
+.table2 thead.tb_scroll {width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */}
+
+.table3 {border-top:2px solid #333333; width:100%; background:#f4f6f7;}
+.table3 th, .table3 td {padding: 11px 13px; border-bottom:1px solid #dddddd; font-size:15px; text-align:center;}
+.table3 thead th {background:#f4f6f7; font-size:15px; color:#222222; letter-spacing:-0.1em;}
+.table3 tbody td {background:#fff; color:#666666; letter-spacing:-0.05em; overflow:hidden;text-overflow:ellipsis;white-space:nowrap; height:20px;}
+.table3 tbody.tb_scroll {display: block; overflow-y:auto; overflow-x:hidden; width:100%; height:300px;}
+.table3 thead.tb_scroll, .table3 tbody.tb_scroll tr {display:table; width:100%;table-layout:fixed; /* even columns width , fix width of table too  */}
+.table3 thead.tb_scroll {width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */}
+
+.table4 {border-top:2px solid #333333; width:100%; background:#f4f6f7;}
+.table4 th, .table4 td {padding: 11px 13px; border-bottom:1px solid #dddddd; font-size:15px; text-align:center;}
+.table4 thead th {background:#f4f6f7; font-size:15px; color:#222222; letter-spacing:-0.1em;}
+.table4 tbody td {background:#fff; color:#666666; letter-spacing:-0.05em; overflow:hidden;text-overflow:ellipsis;white-space:nowrap; height:20px;}
+.table4 tbody.tb_scroll {display: block; overflow-y:auto; overflow-x:hidden; width:100%; height:250px;}
+.table4 thead.tb_scroll, .table4 tbody.tb_scroll tr {display:table; width:100%; table-layout:fixed;/* even columns width , fix width of table too*/}
+
+/*btn CSS*/
+.api_btn_area {margin-top:25px;}
+a.api_btn1 {display:inline-block; background:#1b7ddb; color:#fff; font-size:18px; line-height:18px; padding: 13px 30px 17px;}
+a.api_btn1.gray {background:#969b9c;}
+
+.info_txt {font-size:16px; color:#333; margin-bottom:22px; line-height:24px; font-weight:600; padding-left:20px; position:relative;}
+.info_txt:before {content:'※'; display:block; position:absolute; top:0; left:0;}
+
+
+/* 이용약관 */
+.terms_cont {border: 1px solid #dddddd; height: 310px; padding: 15px 25px; overflow: auto; font-size: 14px; line-height:22px; font-weight:500; margin-bottom:17px;}
+.terms_cont strong {color:#287cc4; text-decoration:underline;}
+.agree label {margin-left:5px; font-size:15px; color:#333; font-weight:600;}
+.agree input[type="checkbox"] {padding:2px; position: absolute; clip: rect(0,0,0,0);}
+.agree input[type="checkbox"] + label:before {content: ' '; display: inline-block; width: 17px; height: 17px; margin-right: 8px; border: 1px solid #69696B; top: 3px; position: relative;}
+.agree input[type="checkbox"]:checked + label:before {background: url(https://www.foodsafetykorea.go.kr/images/api/sub/checkbox.png) #fff no-repeat center; background-size: 17px; border: 1px solid #0c3681;}
+.agree input[type="checkbox"]:focus + label:before {border: 1px solid #0c3681; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);}
+
+.select1 {width: 200px; padding: 0 .5em; background: url(https://www.foodsafetykorea.go.kr/images/api/sub/select_arrow.gif) no-repeat 95% 50%; border: 1px solid #ccc;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none; line-height:15px; height:32px;}
+.select1::-ms-expand { display: none; } /* IE 10, 11의 네이티브 화살표 숨기기 */
+
+
+/* 반응형 */
+@media all and (max-width:1024px) {
+    /* layout */
+    ul.tabs{height:40px;}
+    ul.tabs li{height:40px; line-height:40px;}
+    ul.tabs li a{font-size:14px; padding:0 20px;}
+    ul.tabs2 li a{font-size:16px;}
+
+    h3.subtitle{font-size:18px !important;}
+
+    /* button */
+    a.api_btn1{padding:8px 20px 8px; font-size:15px;}
+
+    /* layout */
+    main{width:100% !important; margin:0 auto !important; padding:0 15px;}
+    .contents_wrap{width:100%  !important; margin:17px auto 15px  !important;}
+    article{width:100%  !important;}
+    h2{font-size:20px !important; margin-bottom:48px !important;}
+    p.precess{background-size:100%  !important; width:100%  !important; height:0  !important; padding-top:calc(160 / 800 * 100%)  !important;}
+    .page-container{padding-top:15px  !important;}
+    .page-container article h2{margin:14px 0 30px 0  !important;}
+    .page-container .emphasis, .emphasis{font-size:13px  !important;}
+    .guide_txt{margin:0  !important; width:100%  !important;}
+    .contents_wrap > h2{text-align:center  !important; font-size:22px  !important;}
+    .dpt02_ul{background:url('https://www.foodsafetykorea.go.kr/images/common/arrow_right.png') no-repeat 94% 17px !important;}
+    .dpt02_ul ul{left: 100% !important;}
+    .list-container table th, .list-container table td, .category li a, .category li span{font-size:13px  !important;}
+
+
+
+
+}
+@media all and (max-width:576px){
+    /* table */
+    .list-container > table colgroup col{width:100% !important;}
+    .list-container > table thead th, .list-container > table tbody td{display:block !important; text-align:left !important; border-bottom:none !important; padding:5px 5px !important;}
+    .list-container > table thead th, .list-container > table thead{background:#f1f1f1;}
+    .list-container > table tbody td.tc{text-align:left !important;}
+    .list-container > table tbody td.num{font-size:14px !important; padding:5px 5px !important;}
+    .list-container > table thead th:last-child{border-bottom:1px solid #0070bd !important;}
+    .list-container > table tbody td:last-child{border-bottom:1px solid #a7a7a7 !important;}
+
+    .table3 thead th, .table3 tbody td{display:block;}
+    .table3 thead th, .table3 tbody td{border-bottom:none !important; text-align:left !important; padding:7px 5px !important }
+    .table3 tbody td:last-child{border-bottom:1px solid #ddd !important;}
+    .table3 tbody td{width:100% !important; height:100%;}
+    .table3 thead.tb_scroll{border-bottom:1px solid #0070bd;}
+
+    .table1 colgroup col{width:100%;}
+    .table1{display:block;}
+    .table1 tbody th{background:#f1f1f1 !important;}
+    .table1 tbody th, .table1 tbody td{display:inline-block; width:100%; font-size:14px; word-break:break-all; text-align:center !important; white-space:normal; padding:13px 12px !important;}
+
+
+    .list-container table.cert th, .list-container table.cert th{display:inline-block; width:100%; padding:5px 5px !important;}
+    .table2.vw tbody td{line-height:16px; height:100%;}
+    .list-container table.cert th{background:#f1f1f1;}
+
+    .responsive-table{overflow:auto; margin-bottom:30px; border-top:1px solid #1b7ddb;}
+    .responsive-table table{min-width:600px; width:100%; margin-bottom:0 !important;}
+
+    /* search */
+    .search-wrap{float:none !important; display:block !important;}
+    .search-wrap > #search_keyword{width:calc(100% - 85px);}
+    .search-wrap > a.btn{width:100%; margin:5px 0;}
+
+    .category li a, .category li span{width:calc(100% - 49vw) !important; font-size:13px !important;}
+}

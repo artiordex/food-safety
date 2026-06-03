@@ -1,0 +1,237 @@
+@charset "utf-8";
+
+/*헤더*/
+#header {position:relative; width:100%; background:#fff; z-index:9999;}
+#header .header_top_wrap {width:100%; height:85px; border-bottom:1px solid #ccd2d7;}
+#header .header_top {position:relative; margin:0 auto; width:1220px;}
+#header .header_top .site {position:absolute; top:20px; left:0;}
+#header .header_top .site li {float:left; margin-right:10px;}
+#header .header_top .site li:last-child {margin-right:0;}
+#header .header_top .site li a {position:relative; padding:0 12px 0 24px; height:20px; line-height:20px; font-size:14px; color:#444;}
+#header .header_top .site li a:hover {text-decoration:underline;}
+#header .header_top .site li:last-child a {padding-right:0;}
+#header .header_top .site li a:before {content:''; display:block; position:absolute; top:0; left:0; width:20px; height:20px; border-radius:100px; background-color:#005baa; background-repeat:no-repeat; background-position:center;}
+#header .header_top .site li a:after {content:''; display:block; position:absolute; top:3px; right:0; width:1px; height:14px; background-color:#ccd2d7;}
+#header .header_top .site li:first-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_01.png");}
+#header .header_top .site li:nth-child(2) a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_02.png");}
+#header .header_top .site li:last-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_03.png");}
+#header .header_top .site li:last-child a:after {display:none;}
+#header .header_top .logo {position:relative; margin:0 auto; width:230px; height:85px; text-indent:-9999px; background:url("https://www.foodsafetykorea.go.kr/images/api/common/logo.jpg") no-repeat center; overflow:hidden;}
+#header .header_top .logo a {display:block; width:100%; height:100%;}
+#header .header_top .utill {position:absolute; top:20px; right:0;}
+#header .header_top .utill li {float:left; margin-right:10px;}
+#header .header_top .utill li:last-child {margin-right:0;}
+#header .header_top .utill li a {position:relative; padding:0 12px 0 24px; height:20px; line-height:20px; font-size:14px; color:#444;}
+#header .header_top .utill li a:hover {text-decoration:underline;}
+#header .header_top .utill li:last-child a {padding-right:0;}
+#header .header_top .utill li a:before {content:''; display:block; position:absolute; top:0; left:0; width:20px; height:20px; background-repeat:no-repeat; background-position:center;}
+#header .header_top .utill li a:after {content:''; display:block; position:absolute; top:3px; right:0; width:1px; height:14px; background-color:#ccd2d7;}
+#header .header_top .utill li:first-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_01.png");}
+#header .header_top .utill li:nth-child(2) a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_02.png");}
+#header .header_top .utill li:last-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_03.png");}
+#header .header_top .utill li:last-child a:after {display:none;}
+#header .header_bottom_wrap {position:relative; width:100%; height:60px; border-bottom:1px solid #ccd2d7; box-sizing:border-box;}
+#header .header_bottom {margin:0 auto; width:1220px; height:60px;}
+#header .header_bottom .total_menu {float:left; display:block; width:60px; height:60px; text-indent:-9999px; background:#005baa url("https://www.foodsafetykorea.go.kr/images/api/common/btn_total_menu.png") no-repeat center;}
+#header .header_bottom #gnb {float:right; width:calc(100% - 60px);}
+#header .header_bottom #gnb .depth_01 > li {position:relative; float:left; width:20%;}
+#header .header_bottom #gnb .depth_01 > li > a {display:block; width:100%; height:60px; line-height:60px; color:#262626; font-size:18px; font-weight:bold; font-family:'Nanum Square'; text-align:center; background:url("https://www.foodsafetykorea.go.kr/images/api/common/bg_gnb_depth_01_line.jpg") no-repeat center right; box-sizing:border-box;}
+#header .header_bottom #gnb .depth_01 > li:last-child > a {background:none; border-right:1px solid #ccd2d7;}
+#header .header_bottom #gnb .depth_01 > li > a > span {position:relative; padding:8px 10px; border-radius:5px;}
+#header .header_bottom #gnb .depth_01 > li.on > a > span {color:#fff; background:#005baa;}
+#header .header_bottom #gnb .depth_01 > li.on > a > span:after {content:''; display:block; position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); width:13px; height:6px; background:url("https://www.foodsafetykorea.go.kr/images/api/common/bg_gnb_depth_01_hover.png") no-repeat center;}
+#header .header_bottom #gnb .depth_01 > li.on .depth_02 {background:#ddedf7;}
+#header .header_bottom #gnb .depth_02 {display:none; position:absolute; padding-top:24px; width:100%; height:150px; border-right:1px solid #ccd2d7; background:#fff; box-sizing:border-box;}
+#header .header_bottom #gnb .depth_01 li:first-child > .depth_02 {border-left:1px solid #ccd2d7;}
+#header .header_bottom #gnb .depth_02 a {display:block; padding:5px 30px; width:100%; line-height:20px; color:#565656; font-size:14px; box-sizing:border-box;}
+#header .header_bottom #gnb .depth_02 a:hover {color:#005baa; font-weight:bold; text-decoration:underline;}
+#header .header_bottom #gnb .gnb_bg {display:none; position:absolute; top:62px; left:0; width:100%; height:150px; border-bottom:2px solid #005baa; background:#fff; z-index:-1;}
+#header .btn_mobi_close, #header .btn_mobi_open,  #gnb .gnb_area h2{display:none;}
+
+
+/*LNB*/
+.path{border-bottom:1px solid #5396d0;height:51px;z-index:3; background:#287cc4;}
+.path .inner {width:1220px;margin:0 auto;height:50px;border-left:1px solid #5396d0;}
+.path .inner .home {width:59px;height:50px; line-height:50px; display:block;padding:0; text-align:center; vertical-align:middle;}
+.path .inner .home img {vertical-align:middle;}
+.path .catn01 {float:left;position:relative;display:inline-block;border-right:1px solid #5396d0;}
+.path .prt00 {background: url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 184px 21px;display:block;font-size:14px;color:#fff;padding-left:20px;}
+.path .prt00:hover {background:#005198 url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 184px 21px;}
+.path .prt01 {background:#f9f9f9 ;display:block;font-size:14px;color:#222;padding-left:20px;}
+.path .prt {background:url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 184px 21px;display:block;font-size:14px;color:#fff;padding-left:20px;}
+.path .prt:hover {background:#005198 url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 184px 21px;}
+.path .prt02 {display:block;font-size:13px;color:#666;padding-left:11px;}
+.path .catn02 {float:left;width:212px;position:relative;display:inline-block;line-height:50px;border-right:1px solid #5396d0;}
+.path .catn02_1 {float:left;width:212px;position:relative;display:inline-block;line-height:50px;border-right:1px solid #5396d0; letter-spacing: -1px; word-spacing: -2px;}
+.path .catn02 ul {display:none;width:auto;min-width:212px;position:absolute;left:-1px;top:52px;border:1px solid #dedede;padding:0;background-color:#fff;z-index:10;width:173px;}
+.path .catn02 ul li {position:relative;height:18px;line-height:18px;border-bottom:1px solid #dedede;height:39px;}
+.path .catn02 ul li:last-child {border-bottom:none;}
+.path .catn02 ul li:hover {background-color:#e4f4ff;color:#0062a6;font-weight:600;}
+.path .catn02 ul li a {display:block;padding:0;background:none;white-space:nowrap;font-size:13px;line-height:38px;letter-spacing:-1px;padding:0 8px 0 20px;color:#222;}
+.path .catn02 ul li a:hover {color:#1785d9;}
+.path .catn02 ul li.on {background:#f9f9f9;}
+.path span {margin:0 20px;display:inline-block;}
+.dpt02_ul {background:url('https://www.foodsafetykorea.go.kr/images/api/common/arrow_right.png') no-repeat 190px 17px;}
+.dpt02_ul.on {background:#f9f9f9 url('https://www.foodsafetykorea.go.kr/images/api/common/arrow_right.png') no-repeat 190px 17px !important;}
+.dpt02_ul ul {left:211px !important;top:-1px !important;}
+.dpt02_ul ul a {font-weight:500 !important;}
+.dpt03_ul {background:url('https://www.foodsafetykorea.go.kr/images/api/common/arrow_right.png') no-repeat 190px 17px;}
+.dpt03_ul ul {left:211px !important;top:-1px !important;}
+.dpt03_ul ul a {font-weight:500 !important;}
+.dpt03_ul.on {background:#f9f9f9 url('https://www.foodsafetykorea.go.kr/images/api/common/arrow_right.png') no-repeat 190px 17px !important;}
+
+
+/*footer*/
+#footer {width:100%; border-top:1px solid #d0d0d0;}
+#footer .footer_link_wrap {width:100%;}
+#footer .footer_link {position:relative; margin:0 auto; width:1220px; height:50px;}
+#footer .footer_link ul.link li {float:left;}
+#footer .footer_link ul.link li a {position:relative; display:block; padding:0 9px; height:50px; line-height:50px; font-size:14px; color:#262626;}
+#footer .footer_link ul.link li a:after {content:''; display:block; position:absolute; top:20px; right:0; width:1px; height:13px; background:#c2c2c2;}
+#footer .footer_link ul.link li:last-child a:after {display:none;}
+#footer .footer_link ul.link li a.blue {font-weight:bold;}
+#footer .footer_link ul.link li a:hover {text-decoration:underline;}
+#footer .footer_link .site {position:absolute; top:0; right:0;}
+#footer .footer_link .site .select_btn {padding-left:20px; width:210px; height:50px; line-height:50px; font-size:14px; color:#444; text-align:left; border-left:1px solid #d0d0d0; border-right:1px solid #d0d0d0; background:#f2f2f2 url('https://www.foodsafetykorea.go.kr/images/api/common/btn_footer_site_up.png') no-repeat center right 20px; box-sizing:border-box;}
+#footer .footer_link .site .select_btn.on {background-image:url('https://www.foodsafetykorea.go.kr/images/api/common/btn_footer_site_down.png')}
+#footer .footer_link .site .select_box {z-index:10; position:absolute; padding:20px; width:210px; height:200px; left:0; bottom:50px; border:1px solid #d0d0d0; background:#fff; box-sizing:border-box; overflow-y:auto;}
+#footer .footer_link .site .select_box ul li {margin-bottom:5px;}
+#footer .footer_link .site .select_box ul li:last-child {margin-bottom:0px;}
+#footer .footer_link .site .select_box ul li a {line-height:20px; font-size:14px; color:#262626;}
+#footer .footer_link .site .select_box ul li a:hover {text-decoration:underline;}
+#footer .footer_info_wrap {width:100%; height:100px; background:#50555c;}
+#footer .footer_info {position:relative; margin:0 auto; width:1220px; height:100%;}
+
+#footer .footer_info .footer_logo {position:absolute; top:12px; left:0;}
+#footer .footer_info .footer_logo #logo1 {display: block;}
+#footer .footer_info .footer_logo #logo2 {width: 130px; margin-top: 5px; margin-left: 20px; display: block; opacity: 0.5;}
+#footer .footer_info address {position:absolute; top:23px; left:190px; font-size:14px; font-style:normal; color:#fff;}
+
+#overlay{display:none;position:fixed;background:rgba(0,0,0,0.5);top:0;left:0;right:0;bottom:0;cursor:pointer;z-index:9999;}
+/* css 보정 추가  */
+.table1.vw tbody td {line-height:24px; white-space:normal; text-overflow:initial;}
+.table2.vw tbody td {line-height:24px; white-space:normal; text-overflow:initial;}
+.text-overflow-nomral {line-height:24px; white-space:normal; text-overflow:initial;}
+#footer .footer_link ul.link li:first-child a {padding-left:0;}
+#mobi_gnb{display:none;}
+/* 반응형 */
+@media all and (max-width:1300px){
+    #header .header_top, #header .header_bottom, #footer .footer_info, #footer .footer_link, .path .inner{width:100%;}
+    #header .header_top .site li a, #header .header_top .utill li a{font-size:12px;}
+    #header .header_top .logo{background-size:77%;}
+
+    /* footer */
+    #footer .footer_link{height:auto;}
+    #footer .footer_link .site{position:relative;}
+
+
+}
+@media all and (max-width:1023px){
+    body{overflow-x:hidden;}
+    /* header */
+    #header .header_top{width:100%;}
+    #header .header_bottom, .main_slider_wrap .main_slider, .data_search, .main_cont, #footer .footer_link, #footer .footer_info{width:100%;}
+    #footer .footer_link ul.link li a{margin-left:3px; font-size:12px;}
+    #footer .footer_link .site .select_btn{font-size:12px; width:145px;}
+    #header .header_top .utill{right:17px;}
+    #header .header_top .site{left:7px;}
+    #header .header_top .utill li a, #header .header_top .site li a{font-size:12px;}
+    #header .header_top .logo{background-size:73%; height:60px;}
+    #header{z-index:99999;}
+    #header .header_bottom .total_menu, .total_menu, .utill, #header .site{display:none;}
+    .btn_mobi_open{display:block !important; position:absolute; top:0; right:0; width:59px; height:59px; text-indent:-9999em; background:url(https://www.foodsafetykorea.go.kr/images/mobile/btn_nav.png) no-repeat center center; border-left:1px #d7d7d7 solid; border-right:1px solid #d7d7d7;}
+    .btn_mobi_close{display:block !important; position:absolute; top:3px; right:5px; width:35px; height:35px; text-indent:-9999em; border:none !important; background:#fff url(https://www.foodsafetykorea.go.kr/images/mobile/btn_allNavCloseBk.png) no-repeat center center; z-index:9999;}
+    #mobi_gnb .gnb_area h2{display:block; font-size:19px !important; font-weight:bold; padding-left:17px; line-height:3.2em; margin-bottom:0 !important;}
+    #header .header_top_wrap{height:60px;}
+    #header .header_bottom{height:0;}
+    #header .header_bottom_wrap{display:none;}
+    #header .header_mobi_wrap #mobi_gnb .gnb_area{clear:both;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul{padding:7px 5px; min-height:43px;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li a:before {content:''; display:block; position:absolute; top:6px; left:0; width:20px; height:20px; background-repeat:no-repeat; background-position:center;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li a{position:relative; display:inline-block; width:auto; font-size:13px; font-weight:bold; height:30px; line-height:30px; padding-right:16px; margin-right:3px;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.my_minwon a,  #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_name a{display:block; width:80%; padding-left:20px;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_info a,  #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_logout a, #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_join a, #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_login a{background:#4e5052; color:#fff; padding:0 20px;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_info,  #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_logout, #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_join, #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_login{display:inline-block;}
+    /*#header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_login a, #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_logout a{padding-left:19px;}*/
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.my_minwon a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_01.png");}
+    #header .header_mobi_wrap #mobi_gnb .mobi_utill ul li.user_name a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_02.png");}
+    /*#header .header_mobi_wrap #mobi_gnb .mobi_utill ul li:last-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_utill_03.png");}*/
+
+    #header .header_mobi_wrap #mobi_gnb .mobi_site ul li a{position:relative; display:block; height:35px; line-height:35px; font-size:15px; bordeR:1px solid #ddd; margin:6px 5px; padding-left:38px; font-weight:bold;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_site ul li a:before {content:''; display:block; position:absolute; top:7px; left:10px; width:20px; height:20px; border-radius:100px; background-color:#005baa; background-repeat:no-repeat; background-position:center;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_site ul li:first-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_01.png");}
+    #header .header_mobi_wrap #mobi_gnb .mobi_site ul li:nth-child(2) a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_02.png");}
+    #header .header_mobi_wrap #mobi_gnb .mobi_site ul li:last-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_03.png");}
+    #header .header_mobi_wrap #mobi_gnb > ul > li.hasSub{display:block;}
+    #header .header_mobi_wrap #mobi_gnb ul ul {display:none;}
+    #header .header_mobi_wrap #mobi_gnb{width:280px; height:100vh; background:#fff; position:fixed; top:60px;right:0; z-index: 99999;  }
+    #header .header_mobi_wrap #mobi_gnb .mobi_depth_01 > li{float:none; width:100%;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_depth_01 > li > a{display:block; font-weight:bold; text-align:left; background:#365a99 url(https://www.foodsafetykorea.go.kr/images/mobile/btn_allNavDepth1.png) no-repeat 95% center; color:#fff; font-size:15px; height:45px; line-height:45px; padding:0 10px 0 10px;}
+    #header .header_mobi_wrap #mobi_gnb .mobi_depth_01 > li.active > a{background:#365a99 url(https://www.foodsafetykorea.go.kr/images/mobile/btn_allNavDepth1_on.png) no-repeat 95% center;}
+
+    #header .header_mobi_wrap #mobi_gnb ul > li > ul > li > a{padding:0 10px; display:block; height:35px; line-height:35px; font-size:0.9em; font-weight:bold;border-bottom:1px solid #ddd;}
+    #header .header_top .site li:first-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_01.png");}
+    #header .header_top .site li:nth-child(2) a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_02.png");}
+    #header .header_top .site li:last-child a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/common/icon_header_site_03.png");}
+
+    /* LNB */
+    .path{height:40px;}
+    .path .prt, .path .prt00{font-size:12px;}
+    .path .prt00{background:url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 96% 17px; color:#fff; padding-left:7px;}
+    .path .prt, .path .prt00{background:url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 96% 17px; overflow:hidden; white-space: nowrap; text-overflow:ellipsis; padding-right:19px;}
+    .path .prt:hover{background:url('https://www.foodsafetykorea.go.kr/images/api/common/lnb_arrow.png') no-repeat 96% 17px;}
+    .path .catn02{height:40px; line-height:40px; width:28%;}
+    .path .catn02 ul{width:100%; min-width:auto; top:40px;}
+    .path .catn02 ul li{min-height:39px; height:auto;}
+    .path .catn02 ul li a{font-size:12px; padding:0 7px 0 10px; white-space:normal;}
+    .path .catn02:last-child{border-right:none;}
+    .path .catn02 > div {width:100%;}
+    .path .inner{height:40px; width:100%;}
+    .path .inner .home{height:40px; line-height:35px; width:40px;}
+
+
+    /* modal */
+    .datastruct{margin-left:0px; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; transform: none;}
+    .datastruct .title{font-size:20px;}
+    .datastruct .site_cnt{width:100%; height:100%; overflow:auto;}
+    .datastruct .site_cnt .box h1{font-size:15px;}
+    .datastruct .site_cnt > div:nth-child(1){width:38% !important;}
+    #layerTree, #struct_div{overflow-y:auto; height:100%; font-size:13px;}
+    .datastruct .site_cnt > div:nth-child(2){width:60% !important;}
+    .struct_tb thead th, .struct_tb th, .struct_tb td{font-size:13px;}
+
+    .usehist{position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; margin-left:0;}
+
+
+
+
+    /* footer */
+    #footer .footer_link{height:100%;}
+    #footer .footer_link ul.link li:nth-child(1){margin-left:10px;}
+    #footer .footer_link ul.link li a{height:35px; line-height:35px;}
+    #footer .footer_link ul.link li a:after{top:12px;}
+    #footer .footer_info .footer_logo #logo1, #footer .footer_info .footer_logo #logo2{display:inline-block;}
+    #footer .footer_link .site{position:relative; display:block; width:100%;}
+    #footer .footer_link .site .select_btn{width:100% !important; border-right:none; border-top:1px solid #d0d0d0; background:#dadada url(https://www.foodsafetykorea.go.kr/images/api/common/btn_footer_site_up.png) no-repeat center right 20px;}
+    #footer .footer_link .site .select_box{width:100%;}
+    #footer .footer_info .footer_logo{position:relative; text-align:center; top:0; left:0; }
+    #footer .footer_info_wrap{height:100%; padding:18px;}
+    #footer .footer_info address{position:relative; text-align:center; top:0; left:0; margin-top:20px; font-size:13px;}
+
+
+}
+@media all and (min-width:1024px){
+    #gnb{display:block !important;}
+    #overlay{display:none !important;}
+}
+@media all and (min-width:768px) and (max-width:1023px){
+
+
+}
+@media all and (max-width:768px){
+    /* modal*/
+    .datastruct .site_cnt{height:95%;}
+    .datastruct .site_cnt ul{padding:0;}
+    .datastruct .site_cnt > div:nth-child(1), .datastruct .site_cnt > div:nth-child(2){width:100% !important; float:none;}
+    .datastruct .site_cnt > div:nth-child(1){height:300px; overflow:auto; border-bottom:2px solid #ddd; margin-bottom:20px;}
+}

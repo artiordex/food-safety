@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <!-- INCLUDE_HEAD -->
+  <!-- Mermaid.js for interactive ERD rendering -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- Vis.js Network Standalone -->
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+  <div id="wrap">
+    <!-- INCLUDE_HEADER -->
+
+    <!-- Tab Pills -->
+    <div class="bg-white border-b border-slate-200" id="datamap-tab-bar">
+      <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+        <div class="flex items-center gap-1 py-3 overflow-x-auto" id="datamap-tabs">
+          <button data-tab="sql-playground"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+            실시간 DB 분석
+          </button>
+          <button data-tab="health-erdmap"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm flex items-center gap-1">
+            <i class="ri-heart-pulse-fill"></i> 건강기능식품 ERD 맵
+          </button>
+          <button data-tab="api-explorer"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1">
+            로컬 API Explorer (169종)
+          </button>
+          <button data-tab="api-live-join"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1">
+            <i class="ri-flashlight-fill"></i> 실시간 API 전체 조인
+          </button>
+          <button data-tab="api-hygiene"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 shadow-sm flex items-center gap-1">
+            <i class="ri-restaurant-line"></i> 지역 기반 위생 안심 요식업소 조회
+          </button>
+          <button data-tab="api-barcode"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm flex items-center gap-1">
+            <i class="ri-barcode-box-line"></i> 바코드 기반 안전 식품 조회
+          </button>
+          <button data-tab="nongshim-spec"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-teal-700 bg-teal-50 border border-teal-300 hover:bg-teal-100 shadow-sm flex items-center gap-1">
+            <i class="ri-building-4-line"></i> 농심 사내 규격 데이터 세트
+          </button>
+        </div>
+        <div class="flex items-center gap-1 py-3 overflow-x-auto" id="scenario-tabs" style="display: none;">
+          <button data-tab="recommend-beginner"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+            1안 (일반인용)
+          </button>
+          <button data-tab="recommend-developer"
+            class="tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50">
+            2안 (개발자용)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="bg-slate-50/50 min-h-[600px]" id="tab-content">
+      <!-- Dynamic content will be injected here by app.js -->
+    </div>
+
+    <!-- Detail Panel Container -->
+    <div id="detail-panel-container"></div>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="view/app.js?v=2"></script>
+</body>
+
+</html>

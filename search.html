@@ -1,0 +1,1939 @@
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8 ]><html lang="ko" class="ie8"><![endif]-->
+<!--[if IE 9 ]><html lang="ko" class="ie9"><![endif]-->
+<!--[if IE 10 ]><html lang="ko" class="ie10"><![endif]-->
+<!--[if IE 11 ]><html lang="ko" class="ie11"><![endif]-->
+<!--[if (gt IE 11)|!(IE)]><!-->
+<html lang="ko">
+<!--<![endif]-->
+<head>
+    <!-- INCLUDE_HEAD -->
+</head>
+
+
+	
+	
+		<body class="sub" onload="SearchCookieView();">
+	
+
+<!-- <div id="u_skip">
+	<a href="#gnb" onclick="document.getElementById('gnb').tabIndex = -1;document.getElementById('gnb').focus();return false;"><span>메뉴 영역으로 바로가기</span></a>
+	<a href="#main" onclick="document.getElementById('main').tabIndex = -1;document.getElementById('main').focus();return false;"><span>본문 영역으로 바로가기</span></a>
+</div> -->
+<form id="baseForm" name="baseForm" method="post" onsubmit="return false;">
+	<!-- 공통영역 -->
+	<input type="hidden" id="menu_no" name="menu_no" value="">
+	<input type="hidden" id="menu_grp" name="menu_grp" value="">
+	<!-- 공통영역 -->
+
+	<div id="container">
+		<!-- INCLUDE_HEADER -->
+
+		
+
+
+
+
+
+	<!-- LNB start -->
+	<div class="path">
+		<div class="inner">
+			<div class="catn01" id="cdsn00">
+			
+			
+			<a href="index.html" class="home"><img src="https://www.foodsafetykorea.go.kr/images/api/common/location_home_icon.png" alt="홈"/></a>
+			
+			</div>
+			
+			<div class="catn02" id="cdsn01">
+			</div>
+			<div class="catn02" id="cdsn02">
+			</div>
+			<div class="catn02" id="cdsn03">
+			</div>
+			<div class="catn02" id="cdsn04">
+			</div>
+			
+			<!-- <div class="catn02" id="cdsn01">
+				<a href="#" class="prt">식품·안전정보</a>
+				<ul style="display: none;">
+					<li><a href="#">식품·안전정보</a></li>
+					<li class="dpt02_ul">
+						<a href="#">위해·예방정보</a>
+						<ul style="display: none;">
+							<li><a href="#">식품·안전정보</a></li>
+							<li><a href="#">위해·예방정보</a></li>
+							<li><a href="#">건강·영양정보</a></li>
+							<li><a href="#">식품전문정보</a></li>
+							<li><a href="#">이슈·뉴스·식품·홍보·교육</a></li>
+						</ul>
+					</li>
+					<li><a href="#">건강·영양정보</a></li>
+					<li class="on"><a href="#">식품전문정보</a></li>
+					<li><a href="#">이슈·뉴스·식품·홍보·교육</a></li>
+				</ul>
+			</div>
+			<div class="catn02" id="cdsn02">
+				<a href="#" class="prt">국내식품부적합</a>
+				<ul style="display: none;">
+					<li><a href="#">식품·안전정보</a></li>
+					<li class="on"><a href="#">위해·예방정보</a></li>
+					<li class="dpt02_ul">
+						<a href="#">건강·영양정보</a>
+						<ul style="display: none;">
+							<li><a href="#">식품·안전정보</a></li>
+							<li><a href="#">위해·예방정보</a></li>
+							<li><a href="#">건강·영양정보</a></li>
+							<li><a href="#">식품전문정보</a></li>
+							<li><a href="#">이슈·뉴스·식품·홍보·교육</a></li>
+						</ul>
+					</li>
+					<li><a href="#">수입식품부적합</a></li>
+					<li><a href="#">회수판매중지</a></li>
+					<li><a href="#">행정처분</a></li>
+					<li><a href="#">허위과대광고</a></li>
+					<li><a href="#">식중독정보</a></li>
+					<li><a href="#">원산지표시관고</a></li>
+					<li><a href="#">해외직구정보</a></li>
+				</ul>
+			</div>
+			<div class="catn02" id="cdsn03">
+				<a href="#" class="prt">식품등 광고의 이해</a>
+				<ul style="display: none;">
+					<li><a href="#">식품·안전정보</a></li>
+					<li><a href="#">위해·예방정보</a></li>
+					<li class="on"><a href="#">건강·영양정보</a></li>
+					<li><a href="#">식품전문정보</a></li>
+					<li><a href="#">이슈·뉴스·식품·홍보·교육</a></li>
+				</ul>
+			</div>
+			<div class="catn02" id="cdsn04">
+				<a href="#" class="prt">건강·영양정보</a>
+				<ul style="display: none;">
+					<li><a href="#">식품·안전정보</a></li>
+					<li><a href="#">위해·예방정보</a></li>
+					<li class="on"><a href="#">건강·영양정보</a></li>
+					<li><a href="#">식품전문정보</a></li>
+					<li><a href="#">이슈·뉴스·식품·홍보·교육</a></li>
+				</ul>
+			</div> -->
+		</div>
+	</div>
+	<!-- LNB end -->
+    <script>
+
+
+    function moveMenu(index){
+
+		//alert("moveMenu start index["+index+"]");
+	    	var baseBbsUrl = "/api/board/board.do";    //게시판 기본 url
+	    	var menu_no = data[index].menu_no;
+	    	var menu_type_cd = data[index].menu_type_cd;
+	    	var url = "";
+
+	    	if(menu_type_cd != "MENU01"){
+		     	if(menu_type_cd == "MENU03"){    //링크메뉴
+		     		if(data[index].menu_no == '976'){
+		     			fn_rtrvlDsuse(data[index].url);
+		     		}else if(data[index].menu_no == '536'){    //GMO시간여행
+		     			window.open(data[index].url, '', 'width=750, height=390, scrollbars=yes, resizable=yes, toolbar=no, status=yes');
+		     		}else{
+		     			window.open(data[index].url, "");
+		     		}
+
+		    	}else{
+		    		if(menu_type_cd == "MENU02"){   //일반메뉴
+		    			url = data[index].url;
+
+		    		}else if(menu_type_cd == "MENU04"){   //게시판메뉴
+		    			url = baseBbsUrl;
+		    		}
+		    		if(url == ''){
+	    				url = "/portal/none.do";
+	    			}
+		    		var checkGetUrl = url.split("?");
+		    		if(checkGetUrl.length < 2){
+
+		    			$("#menu_grp").val('');    //gnb.jsp 에 있는 menu_grp 변수
+	                    $("#menu_no").val(menu_no);
+
+	                    var frm = document.baseForm;
+
+	                    // menu_no, menu_grp				화면이동간 필수값
+	                    fn_addRequiredClassForId('menu_no');
+	                    fn_addRequiredClassForId('menu_grp');
+	                    fn_removeFormInputElementsForId('baseForm');
+
+	                    frm.action=(""+url);
+
+	                    frm.submit();
+		    		}else{
+	                    location.href=""+url+"&menu_no="+menu_no+"&menu_grp="+'';
+		    		}
+		    	}
+	    	}
+	    }
+
+	// 3depth 에서는 data 가 아니라 Depth3Data 에서 가져와야 한다.
+	// 2016.12.26 cho yong dong change
+    function moveMenu2(index){
+
+		//alert("moveMenu start index["+index+"]");
+	    	var baseBbsUrl = "/api/board/board.do";    //게시판 기본 url
+	    	var menu_no = Depth3Data[index].menu_no;
+	    	var menu_type_cd = Depth3Data[index].menu_type_cd;
+	    	var url = "";
+
+	    	if(menu_type_cd != "MENU01"){
+		     	if(menu_type_cd == "MENU03"){    //링크메뉴
+		     		if(data[index].menu_no == '976'){
+		     			fn_rtrvlDsuse(Depth3Data[index].url);
+		     		}else if(Depth3Data[index].menu_no == '536'){    //GMO시간여행
+		     			window.open(Depth3Data[index].url, '', 'width=750, height=390, scrollbars=yes, resizable=yes, toolbar=no, status=yes');
+		     		}else if(Depth3Data[index].menu_no == '2926'){    //CODEX규격및지침
+		     			location.href=Depth3Data[index].url.replace('2927','2926');
+		     		}else if(Depth3Data[index].menu_no == '2994' || Depth3Data[index].menu_no == '2993' || Depth3Data[index].menu_no == '2998'
+		     			|| Depth3Data[index].menu_no == '2999' || Depth3Data[index].menu_no == '3008'){    //건강.영양정보 > 오감만족식단
+		     			location.href=Depth3Data[index].url;
+		     		}else{
+		     			window.open(Depth3Data[index].url, "");
+		     		}
+
+		    	}else{
+		    		if(menu_type_cd == "MENU02"){   //일반메뉴
+		    			url = Depth3Data[index].url;
+
+		    		}else if(menu_type_cd == "MENU04"){   //게시판메뉴
+		    			url = baseBbsUrl;
+		    		}
+		    		if(url == ''){
+	    				url = "/portal/none.do";
+	    			}
+		    		var checkGetUrl = url.split("?");
+		    		if(checkGetUrl.length < 2){
+
+		    			$("#menu_grp").val('');    //gnb.jsp 에 있는 menu_grp 변수
+	                    $("#menu_no").val(menu_no);
+
+	                    var frm = document.baseForm;
+
+	                    // menu_no, menu_grp				화면이동간 필수값
+	                    fn_addRequiredClassForId('menu_no');
+	                    fn_addRequiredClassForId('menu_grp');
+	                    fn_removeFormInputElementsForId('baseForm');
+
+	                    frm.action=(""+url);
+
+	                    frm.submit();
+		    		}else{
+	                    location.href=""+url+"&menu_no="+menu_no+"&menu_grp="+'';
+		    		}
+		    	}
+	    	}
+	    }
+
+    var menu_grp_data = new Array();
+    //  setLeftMenu 를 cho yong dong 2016.12.23 수정한다.
+    function setTopMenu(value){
+
+   	var leftUrl = "";
+//   	if('SITE03' == 'SITE01')		{	leftUrl = '/portal/left.do';	}
+   	if('SITE03' == 'SITE01')		{	leftUrl = '/portal/topMenu.do';	}
+   	else if('SITE03' == 'SITE02'){	leftUrl = '/minwon/topMenu.do';	}
+   	else if('SITE03' == 'SITE03'){	leftUrl = '/api/topMenu.do';		}
+   	else if('SITE03' == 'SITE04'){	leftUrl = '/csm/topMenu.do';		}
+
+   	$.ajax({
+           data: {menu_no : ''
+           	  ,menu_grp : ''
+           	  ,sys_dvs_cd : 'SITE03'
+           	  ,entrps_esntl_no : $("#entrps_esntl_no").val()},
+           dataType:'json',
+           type:'POST',
+           async:false,
+           url:""+leftUrl,
+           success:function(data){
+           	//alert("topMenu.do success !!!");
+           	/// 1depth , 2depth 세팅
+           	
+           	set2DepthMenuTree(data.topMenuList);
+
+           	//alert("setTopMenu end !!!");
+    		if(v3DepthMenuNo != ""){
+    			// 3,4 depth 데이터
+    			Depth3List(v2DepthMenuNo);
+    		}else{
+    			// 3,4 depth 초기화
+                $("#cdsn03").html("");
+                $("#cdsn04").html("");
+    		}
+
+
+
+
+           	if('SITE03' == 'SITE04') {
+           		drawMyCompany(data.myCompanyList);
+           	}
+           },
+           error:function(request,status,error){
+               //alert("left 실패코드111 : " + request.status+"\n메세지 : " + request.error);
+           }
+       });
+	}
+
+
+    function Depth3List(v_2menu_no){
+    	//alert("Depth3List start v_2menu_no["+v_2menu_no+"]");
+    	$.ajax({
+            data: {menu_no : v_2menu_no
+            	  ,menu_grp : ''
+            	  ,sys_dvs_cd : 'SITE03'
+            	  ,entrps_esntl_no : $("#entrps_esntl_no").val()},
+            dataType:'json',
+            type:'POST',
+            async:false,
+            url:""+"/portal/topDepth3List.do",
+            success:function(data){
+            	//alert("success Depth3List !!!");
+            	set3DepthMenuTree(data.topDepth3List);
+
+            },
+            error:function(request,status,error){
+                //alert("left 실패코드111 : " + request.status+"\n메세지 : " + request.error);
+            }
+        });
+ 	}
+
+    // data 변수는 최초에 가지고 와서 계속 쓴다.
+    var data = new Array();
+    // 3depth 이하에서는 아래 를 사용한다.
+	var Depth3Data = new Array();
+
+    //메뉴다시그리기 setLeftMenuTree 를 cho yong dong 2016.12.22 일 수정한다.
+    // 전체 가져온 리스트로 tnb 세팅 하고 셀렉트 박스 설정 한다.
+
+    var v1DepthMenuNo = "";
+    var v2DepthMenuNo = "238";
+    var v3DepthMenuNo = "";
+    var v4DepthMenuNo = "";
+
+    var vDepthString = "";
+
+    var v2DepthMenuName = "";
+    var v3DepthMenuName = "";
+    var v4DepthMenuName = "";
+
+    var v_menu_name = "";
+    var v_parent_nm = "";
+
+
+    function set2DepthMenuTree(leftList){
+    	
+    	//*
+    	var v_menu_no = $("#menu_no").val();
+    	if (v_menu_no == null || v_menu_no == undefined || v_menu_no == "") {
+    		if (location.href.indexOf("sitemap.do") > -1) {
+    			var menuStr = "<h2>사이트맵</h2>";
+                $("#cdsn01").html("");
+                $("#cdsn02").html("");
+                $("#cdsn03").html("");
+                $("#cdsn04").html("");
+
+                $("#cdsn01").html(menuStr);
+	    		return;
+    		}
+    	}
+    	//*/
+
+        data = leftList;
+
+    	var vFindLvl = "2";
+    	var vHrnk_menu_no = "2";
+    	// menu_no 를 가지고 2,3,4 depth 세팅할 menu_no 를 찾는다.
+        if(data != null && v_menu_no != null && v_menu_no != undefined && v_menu_no != ""){
+            if(data.length > 0){
+                for(var k=0; k<data.length; k++){
+                	if(data[k].menu_no == v_menu_no){
+                		vFindLvl = data[k].lv;
+                		vHrnk_menu_no = data[k].hrnk_menu_no;
+                		v_menu_name = data[k].menu_nm;
+                		v_parent_nm = data[k].parent_nm;
+                		//alert("Find v_menu_no["+v_menu_no+"] lv["+vFindLvl+"]vHrnk_menu_no["+vHrnk_menu_no+"]");
+                	}
+                }
+            }
+        }
+
+        /************************************************************************************************************************************
+                               2 depth menu_no         						3 deph menu_no              			4 depth menu_no
+        ---------------------------------------------------------------------------------------------------------------------------------------
+        vFindLvl = 2 : 2depth Menu_no = v_menu_no           					x                            				x
+        vFindLvl = 3 : 2depth Menu_no = menu_no.hrnk_menu_no    			3depth Menu_no = v_menu_no          			x
+        vFindLvl = 4 : 2depth Menu_no = menu_no.hrnk_menu_no.hrnk_menu_no   3depth Menu_no = menu_no.hrnk_menu_no         4depth Menu_no = v_menu_no
+        ****************************************************************************************************************************************/
+        if(vFindLvl == "2"){
+        	v2DepthMenuNo = v_menu_no;
+     	    v3DepthMenuNo = "";
+     	    v4DepthMenuNo = "";
+
+    	    v2DepthMenuName = v_menu_name;
+    	    v3DepthMenuName = "";
+    	    v4DepthMenuName = "";
+        }else if(vFindLvl == "3"){
+        	v2DepthMenuNo = vHrnk_menu_no;
+     	    v3DepthMenuNo = v_menu_no;
+     	    v4DepthMenuNo = "";
+
+    	    v2DepthMenuName = v_parent_nm;
+    	    v3DepthMenuName = v_menu_name;
+    	    v4DepthMenuName = "";
+
+        }else if(vFindLvl == "4"){
+
+        	v2DepthMenuNo = "";
+     	    v3DepthMenuNo = vHrnk_menu_no;
+     	    v4DepthMenuNo = v_menu_no;
+
+    	    v2DepthMenuName = "";
+    	    v3DepthMenuName = v_parent_nm;
+    	    v4DepthMenuName = v_menu_name;
+
+
+     	    if(data.length > 0){
+                for(var l=0; l<data.length; l++){
+                	if(data[l].lv == "3"){
+	                	if(data[l].menu_no == vHrnk_menu_no){
+	                		v2DepthMenuNo = data[l].hrnk_menu_no;
+	        	    	    v2DepthMenuName = data[l].parent_nm;
+	                	}
+                	}
+                }
+            }
+        }
+
+
+
+		//alert("Find v_menu_no["+v_menu_no+"] vFindLvl["+vFindLvl+"] v2DepthMenuNo["+v2DepthMenuNo+"]v3DepthMenuNo["+v3DepthMenuNo+"]v4DepthMenuNo["+v4DepthMenuNo+"]");
+		//alert("Find v_menu_no["+v_menu_no+"] vFindLvl["+vFindLvl+"] v2DepthMenuName["+v2DepthMenuName+"]v3DepthMenuName["+v3DepthMenuName+"]v4DepthMenuName["+v4DepthMenuName+"]");
+
+
+        //$("#left_front_contents").html("");
+        menuStr = "";
+        menu1DepthStr = "";
+        menu2DepthStr = "";
+        menu3DepthStr = "";
+        menu4DepthStr = "";
+
+        vDepthString = "";
+
+        if(data != null){
+            if(data.length > 0){
+                var start = 0;
+                var lv2 = 0;
+                var lv3 = 0;
+                var lv4 = 0;
+                var vLevel2Start = false;
+                var vLevel3Start = false;
+                var vLevel4Start = false;
+                var vCurrentLevel = "1";
+
+                if(v2DepthMenuName.length>=15) {
+                    menu2DepthStr += "<div class='catn02_1' id='cdsn02'>\n";
+            	} else {
+            		menu2DepthStr += "<div class='catn02' id='cdsn02'>\n";
+            	}
+                
+//                 menu2DepthStr += "<a href='#' class='prt00'>"+v2DepthMenuName+"</a>\n";
+                menu2DepthStr += "<a href='#' class='prt'>"+v2DepthMenuName+"</a>\n";
+                menu2DepthStr += "<ul style='display: none;'>\n";
+
+                for(var i=0; i<data.length; i++){
+
+                	var v_style = "";
+					
+                    if(data[i].lv == "1"){     //1레벨
+                        if(start == 0){
+//                     		menu1DepthStr += "<a href='#' class='prt00'>"+data[i].menu_nm+"  </a>  \n";
+                    		menu1DepthStr += "<a href='#' class='prt'>"+data[i].menu_nm+"  </a>  \n";
+                    		//menu1DepthStr += " " + data[i].menu_nm+" \n";
+                    		//menu1DepthStr += "<a href='#'>"+data[i].menu_nm+"</a>\n";
+
+                        }
+                        //start++;
+
+                    }else{
+                		//if(start < 5){
+                		//	alert("level check ["+i+"] lv=["+data[i].lv+"] vCurrentLevel["+vCurrentLevel+"]");
+                		//}
+                    	if(data[i].lv > vCurrentLevel){
+                    		if(data[i].lv == "2"){
+
+                    			//vCurrentLevel = "2";
+                    			vLevel2Start = true;
+                    			vLevel3Start = false;
+                    			vLevel4Start = false;
+                    		}else if(data[i].lv == "3"){
+                    			//vCurrentLevel = "3";
+                    			vLevel2Start = false;
+                    			vLevel3Start = true;
+                    			vLevel4Start = false;
+                    		}else if(data[i].lv == "4"){
+                    			//vCurrentLevel = "4";
+                    			vLevel2Start = false;
+                    			vLevel3Start = false;
+                    			vLevel4Start = true;
+                    		}else{
+                    			//vCurrentLevel = "1";
+                    			vLevel2Start = false;
+                    			vLevel3Start = false;
+                    			vLevel4Start = false;
+                    		}
+
+                    	}
+
+                		if(start > 2){
+                			if(data[i].lv < vCurrentLevel){
+                				if((vCurrentLevel - data[i].lv) == 1){
+                					menu2DepthStr += "</ul></li>\n";
+                				}else{
+                					menu2DepthStr += "</ul></li>\n";
+                					menu2DepthStr += "</ul></li>\n";
+                				}
+                			}
+                		}
+
+
+                   	}
+
+
+                	// 현재 버젼을 세팅한다.
+                	vCurrentLevel = data[i].lv;
+
+                    if(data[i].lv == "2"){
+	                    // 2depth start
+	                    if(vLevel2Start){
+
+                        	// 하위 뎁스가 있므면 표시를 한다.
+                        	if(data[i].depthCount > 0){
+                        		// 쿼리상에서 2depth 1번째 오는것이 1depth 의 총 하위숫자를 같이 가지고 와서 수정 한다.
+                        		// 다음에 나오는게 하위 depth 게 오는지 확인한후 , 있으면 dpt02_ul 붙이고, 없으면 하위가 없는거로 판단한다.
+                        		// 마지막이 아니고, 다음것의 lv 가 현재거 보다 작을때 ...
+                        		if(start < (data.length - 1) ){
+                        			if(vCurrentLevel <  data[i+1].lv){
+                        				menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"' class='dpt02_ul'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                        			}else{
+                                		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                        			}
+                        		}else{
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                        		}
+
+                        	}else{
+                        		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                        	}
+
+	                    }else{
+                        	// 하위 뎁스가 있므면 표시를 한다.
+                        	if(data[i].depthCount > 0){
+
+                        		if(start < (data.length - 1) ){
+                        			if(vCurrentLevel <  data[i+1].lv){
+                                		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"' class='dpt02_ul'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                        			}else{
+                                		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                        			}
+                        		}else{
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                        		}
+                        	}else{
+                        		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                        	}
+	                    }
+
+
+
+	                    vLevel2Start = false;
+	                    lv2++;
+                    }
+
+
+                    if(data[i].lv == "3"){
+	                    // 3depth start
+	                    if(vLevel3Start){
+	                    	menu2DepthStr += "<ul style='display: none;'>\n";
+	                    }
+                    	// 하위 뎁스가 있므면 표시를 한다.
+                    	if(data[i].depthCount > 0){
+
+                    		if(start < (data.length - 1) ){
+                    			if(vCurrentLevel <  data[i+1].lv){
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'  class='dpt03_ul'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                    			}else{
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                    			}
+                    		}else{
+                        		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a>\n";
+                    		}
+                    	}else{
+                    		if(start < (data.length - 1) ){
+                    			if(vCurrentLevel <  data[i+1].lv){
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"' class='dpt03_ul'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                    			}else{
+                            		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                    			}
+                    		}else{
+                        		menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+                    		}
+
+
+
+                    	}
+
+	                    vLevel3Start = false;
+	                    lv3++;
+                    }
+
+                    if(data[i].lv == "4"){
+	                    // 2depth start
+	                    if(vLevel4Start){
+	                    	menu2DepthStr += "<ul style='display: none;'>\n";
+	                    }
+
+	                    menu2DepthStr += "<li id='menu_li_"+data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+data[i].menu_nm+"</a></li>\n";
+
+	                    vLevel4Start = false;
+	                    lv4++;
+                    }
+
+                    start++;
+
+                }
+
+                menu2DepthStr += "</ul></div>\n";
+
+//              $("#left_front_contents").html(menuStr);
+
+              $("#cdsn01").html("");
+              $("#cdsn02").html("");
+              //$("#cdsn03").html("");
+              //$("#cdsn04").html("");
+
+              //alert(menu1DepthStr);
+              $("#cdsn01").html(menu1DepthStr);
+
+              //alert(menu2DepthStr);
+              $("#cdsn02").html(menu2DepthStr);
+              //$("#htmnl_check").html(menu2DepthStr);
+
+              //alert(menu3DepthStr);
+              //$("#cdsn03").html(menu3DepthStr);
+
+              //alert(menu4DepthStr);
+              //$("#cdsn04").html(menu4DepthStr);
+            }
+        }
+
+    }
+
+
+        function set3DepthMenuTree(dataList){
+        	//alert("set3DepthpMenuTree start !!!111111");
+
+
+        	Depth3Data = dataList;
+
+            var menu3DepthStr = "";
+            var menu4DepthStr = "";
+
+            //alert(Depth3Data.length);
+            if(Depth3Data != null){
+                if(Depth3Data.length > 0){
+                    var start = 0;
+                    var lv3 = 0;
+                    var lv4 = 0;
+                    var vLevel3Start = false;
+                    var vLevel4Start = false;
+                    var vMenu4Exists = false;
+                    var vCurrentLevel = "1";
+
+                    menu3DepthStr = "";
+                    menu4DepthStr = "";
+
+                    if(v3DepthMenuName.length>=15) {
+                    	menu3DepthStr += "<div class='catn02_1' id='cdsn03'>\n";
+                	} else {
+                		menu3DepthStr += "<div class='catn02' id='cdsn03'>\n";
+                	}
+                    v4DepthMenuNo
+                    if(v4DepthMenuNo != ""){
+//                     menu3DepthStr += "<a href='#' class='prt00'>"+v3DepthMenuName+"</a>\n";
+                    menu3DepthStr += "<a href='#' class='prt'>"+v3DepthMenuName+"</a>\n";
+                    }else{
+//                         menu3DepthStr += "<a href='#' class='prt01'>"+v3DepthMenuName+"</a>\n";
+                        menu3DepthStr += "<a href='#' class='prt00'>"+v3DepthMenuName+"</a>\n";
+                    }
+                    menu3DepthStr += "<ul style='display: none;'>\n";
+
+                    if(v3DepthMenuNo != "" && v4DepthMenuNo != "" && v4DepthMenuName != ""){
+                    	if(v4DepthMenuName.length>=15) {
+	                        menu4DepthStr += "<div class='catn02_1' id='cdsn04'>\n";
+                    	} else {
+	                        menu4DepthStr += "<div class='catn02' id='cdsn04'>\n";
+                    	}
+                        menu4DepthStr += "<a href='#' class='prt01'>"+v4DepthMenuName+"</a>\n";
+                        menu4DepthStr += "<ul style='display: none;'>\n";
+                        vMenu4Exists = true;
+                    }
+
+
+                    for(var i=0; i<Depth3Data.length; i++){
+
+                    	// 3,4 level 이고,
+                        if((Depth3Data[i].lv == "3" || Depth3Data[i].lv == "4") ){
+
+                        	if(Depth3Data[i].lv > vCurrentLevel){
+                        		if(Depth3Data[i].lv == "3"){
+                        			vLevel3Start = true;
+                        			vLevel4Start = false;
+                        		}else if(Depth3Data[i].lv == "4"){
+                        			vLevel3Start = false;
+                        			vLevel4Start = true;
+                        		}else{
+                        			vLevel3Start = false;
+                        			vLevel4Start = false;
+                        		}
+                        	}
+
+                    		if(start > 2){
+                    			if(Depth3Data[i].lv < vCurrentLevel){
+                    				menu3DepthStr += "</ul></li>\n";
+                    			}
+                    		}
+
+                    		// 현재 버젼을 세팅한다.
+                    		vCurrentLevel = Depth3Data[i].lv;
+
+	                        if(Depth3Data[i].lv == "3"){
+	                        	// 하위 뎁스가 있므면 표시를 한다.
+	                        	//if(Depth3Data[i].depthCount > 0){
+	                        		if(i < (Depth3Data.length - 1) ){
+	                        			if(vCurrentLevel <  Depth3Data[i+1].lv){
+	    	                        		menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'  class='dpt03_ul'><a href='#' onclick='javascript:moveMenu2("+i+")'>"+Depth3Data[i].menu_nm+"</a>\n";
+	                        			}else{
+	    	                        		menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu2("+i+")'>"+Depth3Data[i].menu_nm+"</a>\n";
+	                        			}
+	                        		}else{	// 리스트 마지막 이면
+	                        			//if(vCurrentLevel <  data[i+1].lv){
+			                        	//	menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'  class='dpt03_ul'><a href='#' onclick='javascript:moveMenu("+i+")'>"+Depth3Data[i].menu_nm+"[3ac]</a>\n";
+	                        			//}else{
+			                        		menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu2("+i+")'>"+Depth3Data[i].menu_nm+"</a>\n";
+	                        			//}
+	                        		}
+	                        	//}else{
+	                        	//	menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu("+i+")'>"+Depth3Data[i].menu_nm+"[3ae][]"+Depth3Data[i].depthCount+"]</a></li>\n";
+	                        	//}
+
+	    	                    vLevel3Start = false;
+	    	                    lv3++;
+	                        }
+
+	                        if(Depth3Data[i].lv == "4"){
+	    	                    // 2depth start
+	    	                    if(vLevel4Start){
+	    	                    	menu3DepthStr += "<ul style='display: none;'>\n";
+	    	                    }
+
+	    	                    menu3DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu2("+i+")'>"+Depth3Data[i].menu_nm+"</a></li>\n";
+
+	    	                    if(vMenu4Exists && Depth3Data[i].hrnk_menu_no == v3DepthMenuNo){
+	    	                    	menu4DepthStr += "<li id='menu_li_"+Depth3Data[i].menu_no+"'><a href='#' onclick='javascript:moveMenu2("+i+")'>"+Depth3Data[i].menu_nm+"</a></li>\n";
+	    	                    }
+
+	    	                    vLevel4Start = false;
+	    	                    lv4++;
+	                        }
+                        }
+	                        start++;
+                    }	// for end
+
+                    menu3DepthStr += "</ul></div>\n";
+                    if(vMenu4Exists){
+                        menu4DepthStr += "</ul></div>\n";
+                    }
+
+
+//                  $("#left_front_contents").html(menuStr);
+
+                  //$("#cdsn01").html("");
+                  //$("#cdsn02").html("");
+                  $("#cdsn03").html("");
+                  $("#cdsn04").html("");
+
+                  //alert(menu1DepthStr);
+                  //$("#cdsn01").html(menu1DepthStr);
+
+                  //alert(menu2DepthStr);
+                  //$("#cdsn02").html(menu2DepthStr);
+                  //$("#htmnl_check").html(menu2DepthStr);
+
+                  //alert(menu3DepthStr);
+                  $("#cdsn03").html(menu3DepthStr);
+
+                  //alert(menu4DepthStr);
+                  $("#cdsn04").html(menu4DepthStr);
+                }
+            }
+        }
+
+
+
+		     function drawMyCompany(compList) {
+
+					var html = "";
+					var company = null;
+					var entrps_esntl_no = "";
+
+					//html += "<div id='companyListDiv'>";
+					//html += "<select id=\"entrps_esntl_no\" name=\"entrps_esntl_no\" onchange=\"fn_setCurrentCompanySummary('Y')\">";
+
+					var selected = "";
+					for(var i = 0; i < compList.length; i++) {
+						company = compList[i];
+
+						selected = (entrps_esntl_no == company.entrps_esntl_no) ? "selected" : "";
+						if(entrps_esntl_no == company.entrps_esntl_no)
+							html += "<option value='"+company.entrps_esntl_no+"' selected="+selected+" >"+nvl(company.entrps_nm)+"</option>";
+						else
+							html += "<option value='"+company.entrps_esntl_no+"'>"+nvl(company.entrps_nm)+"</option>";
+					}
+
+					//html += "</select>";
+					//html += "</div>";
+
+					//$("#companyListDiv").append(html);
+					$("#entrps_esntl_no").append(html);
+					$('#entrps_esntl_no').selecter('update');
+
+					 fn_setCurrentCompanySummary();
+				}
+
+				//회사 정보 셋팅
+				function fn_setCurrentCompanySummary(redirectYn) {
+
+					$.ajax({
+			            type	:"post",
+		    			data    : $("#baseForm").serialize(),
+		    			url		:"/csm/company/getMyCompanySummary.do",
+		    			dataType:"json",
+		    			async   :false,
+			            success:function(company) {
+
+			            	if(redirectYn == 'Y') {
+			            		var url = location.href;
+
+			            		if(url.indexOf('/csm/company/facilityRegt.do') > -1 || url.indexOf('/csm/company/reportsDetail.do') > -1){
+			            			fn_moveListPage();
+			            		}else{
+			            			fn_changeEntrps();
+			            		}
+
+			            	} else {
+				            	var html = "";
+
+				            	return;
+
+				    			$("#entrpsNmArea").text(company.entrps_nm);
+
+				    			if(nvl(company.atch_file_no) != ''){
+				    				//$("#curLogo").css("background-image","url(http://www.foodsafetykorea.go.kr/uploadimg/20160421/20160421035905_1461221945463.jpg");
+				    				$("#curLogo").css("background-image","url("+company.file_save_path+"/"+company.physic_file_nm+")");
+				    			}else{
+				    				$("#curLogo").css("background-image","url(/img/no-img-220x220.png)");
+				    			}
+				    			html += "<dt>대표자</dt><dd>"+company.prsdnt_nm+"</dd>";
+				    			if(company.mngr_nm != null && company.mngr_nm != '')
+				    				html += "<dt>관리자</dt><dd>"+company.mngr_nm+"</dd>";
+				    			//html += "<dt>등록사원</dt><dd>"+company.emplye_co+"</dd>";
+				    			//html += "<dt>대기사원</dt><dd>"+company.aplc_co+"</dd>";
+
+				    			$("#curCompDl").html("");
+				    			$("#curCompDl").append(html);
+				            }
+			            },
+			            error:function(request,status,error) {
+			                //alert("left 실패코드111 : " + request.status+"\n메세지 : " + request.error);   //시스템에러
+			            }
+			        });
+				}
+
+				//회사 선택
+				function fn_changeEntrps() {
+
+					var frm = document.baseForm;
+
+				    var url = "";
+
+		            if(location.href.indexOf("?") > 0) url = location.href.slice(0, location.href.indexOf("?"));
+		            else url = location.href;
+
+		            url += '?menu_grp='+$('#menu_grp').val()+'&menu_no='+$('#menu_no').val();
+
+					frm.action = url;
+					frm.method = "POST";
+			        frm.target = "_self";
+			        frm.submit();
+
+			        /*
+					$("#baseForm").attr("method","POST");
+
+					var url = "";
+
+					if(location.href.indexOf("?") > 0) url = location.href.slice(0, location.href.indexOf("?"));
+					else url = location.href;
+
+					url += '?menu_grp='+$('#menu_grp').val()+'&menu_no='+$('#menu_no').val();
+
+					$("#baseForm").attr("action", url );
+					$("#baseForm").submit();
+					*/
+
+				}
+
+				//뉴스레터 신청하기
+				function fn_joinNewsletter(){
+					var email = $("#e_mail").val();
+
+					if($("#email_agree").prop("checked") == false){
+						alert("정보수집에 동의해 주세요.");
+						$("#email_agree").focus();
+						return false;
+					}
+					if(email == null || email == ''){
+						return false;
+					}
+					if(fn_email("#e_mail",'이메일 형식에 맞게 입력해 주세요') == false){	//email 형식 체크
+						$("#e_mail").focus();
+						return false;
+					}
+
+					var param = "?save_type=insert&email="+email+"&id=guest&cretr_id=guest";
+					$.ajax({
+						type	:"post",
+						url		:"/popup/commonPopup/newsLetterSave.do"+param,
+						dataType:"json",
+						success:function(data){
+							if(data == '1'){
+								alert("정상 처리 되었습니다.");
+								$("#e_mail").val("");
+							}else if(data == '2'){
+								alert("이미 신청한 이메일 입니다.");
+							}else{
+								alert("뉴스레터 신청에 실패 하였습니다. 관리자에게 문의해 주세요.");
+							}
+						},
+				        error:function(request,status,error){
+				            alert("실패코드 : " + request.status+"\n메세지 : " + request.error);
+				        }
+					});
+				}
+
+				//회수폐기 실적 클릭시
+				//function fn_rtrvlDsuse(url){
+					//alert('test');
+					//var moveFlag = false
+					//야긴 테스트용으로 박아놓는다.
+					//if($('#entrps_esntl_no').val() == '26'){
+						//moveFlag = true;
+						//url = 'http://coop.foodsafetykorea.go.kr/websquare/websquare.html?w2xPath=/ui/foodadmin/afterfact/disusemngt/rtrvlDsuseMngt.xml&USE_MNGT=2&LCNS_NO=20130018037';
+
+					//}else{
+
+						//moveFlag = false;
+
+						//$.ajax({
+					  		//data: {entrpsEsntlNo: $('#entrps_esntl_no').val()},
+					  		//dataType: 'json',
+					  		//type: 'POST',
+					  		//async: false,
+					  		//url: '/csm/company/selectLcnsNo.do'
+					  	//}).done(function(rstData){
+
+					  		//url += '&USE_MNGT=2&LCNS_NO=';
+
+					  		//if(rstData != null && rstData.length > 0){
+					  			//url += rstData[0];
+					  			//moveFlag = true;
+
+					  		//}
+
+					  	//});
+					//}
+
+					//if(moveFlag)
+						//window.open(url, '', 'width=1024, height=768, scrollbars=yes, resizable=yes, toolbar=no, status=yes');
+					//else
+						//alert('시스템에러가 발생하였습니다. 관리자에게 문의하십시오.');
+
+				//}
+
+				/****************************2015마지막 닷맛미각추가***************************/
+				//레이어팝업 셋팅
+				$(".fileUpload").fancybox({
+					maxWidth	: 530,
+					maxHeight	: 450,
+					minHeight	: 100,
+					fitToView	: false,
+					width		: '70%',
+					height		: '45%',
+					autoSize	: false,
+					closeClick	: false,
+					openEffect	: 'fade',
+					closeEffect	: 'fade',
+//			 		tpl: {next : '', prev : ''},
+					padding : 0,
+					helpers : {overlay : {locked : false}}
+				});
+
+				//레이어팝업 셋팅
+				$(".fileDownload").fancybox({
+					maxWidth	: 530,
+					maxHeight	: 450,
+					minHeight	: 80,
+					fitToView	: false,
+					width		: '70%',
+					height		: '35%',
+					autoSize	: false,
+					closeClick	: false,
+					openEffect	: 'fade',
+					closeEffect	: 'fade',
+//			 		tpl: {next : '', prev : ''},
+					padding : 0,
+					helpers : {overlay : {locked : false}}
+				});
+				//레이어팝업 셋팅
+				$(".guideDownload").fancybox({
+					maxWidth	: 688,
+					maxHeight	: 495,
+					minHeight	: 80,
+					fitToView	: false,
+					width		: '100%',
+					height		: '100%',
+					autoSize	: false,
+					closeClick	: false,
+					openEffect	: 'fade',
+					closeEffect	: 'fade',
+//			 		tpl: {next : '', prev : ''},
+					padding : 0,
+					helpers : {overlay : {locked : false}}
+				});
+				//레이어팝업 셋팅
+				$(".bookDownload").fancybox({
+					maxWidth	: 720,
+					maxHeight	: 495,
+					minHeight	: 80,
+					fitToView	: false,
+					width		: '100%',
+					height		: '100%',
+					autoSize	: false,
+					closeClick	: false,
+					openEffect	: 'fade',
+					closeEffect	: 'fade',
+//			 		tpl: {next : '', prev : ''},
+					padding : 0,
+					helpers : {overlay : {locked : false}}
+				});
+
+
+</script>
+
+<script>
+	$(document).ready(function(){
+		//setLeftMenu();
+		//alert("start ready....");
+		setTopMenu();
+		 //v3DepthMenuNo = "";
+  	    //v4DepthMenuNo = "";
+		//leftDepth1List();
+		//leftDepth2List();
+		if($("#menu_no").val()=='3067')	{	//건강.영양정보 > 오감만족식단 > 테마식단 > 녹색식단
+			$('#aside_bottom').hide();
+		}
+	});
+
+
+	$(function(){
+		locatoin();
+	});
+
+	function locatoin(){
+		$('#cdsn01>a, #cdsn02>a, #cdsn03>a, #cdsn04>a').mouseover(function(ev){
+			ev.preventDefault();
+			if($(this).next('ul').is(':visible')){
+				$(this).next('ul').slideUp('fast');
+			}else{
+				$('#cdsn01 ul:visible, #cdsn02 ul:visible, #cdsn03 ul:visible, #cdsn04 ul:visible').slideUp('fast')
+				$(this).next('ul').slideDown();
+			}
+		});
+		$('#cdsn01, #cdsn02, #cdsn03, #cdsn03').mouseleave(function(){
+			$('#cdsn01 ul:visible, #cdsn02 ul:visible, #cdsn03 ul:visible, #cdsn04 ul:visible').slideUp('fast')
+		});
+	};
+
+	$(document).ready(function(){
+
+	  $(".tm_view").on("click", function(){
+		  $(".sitemap_op,.sitemap").show();
+	  });
+	  $(".tm_view2").on("click", function(){
+		  $(".sitemap_op,.sitemap").show();
+	  });
+	  $(".sitemap .title a").on("click", function(){
+		$(".sitemap_op,.sitemap").hide();
+	  });
+
+	  $("#top-nav a").on("click", function(){
+		$(".sub-nav").hide();
+		$(this).addClass("on");
+		$(this).next("div").slideDown('fast');
+	  });
+	  $(".sub-nav").mouseleave(function(){
+		$("#top-nav a").removeClass("on");
+		$(this).slideUp('fast');
+	  });
+
+	  $(".dpt02_ul").mouseover(function(){
+		$(this).children("ul").show();
+	  });
+
+	  $(".dpt02_ul").mouseleave(function(){
+		$(this).children("ul").hide();
+	  });
+
+	  $(".dpt03_ul").mouseover(function(){
+		$(this).children("ul").show();
+	  });
+
+	  $(".dpt03_ul").mouseleave(function(){
+		$(this).children("ul").hide();
+	  });
+
+
+	});
+
+
+    </script>
+
+    <!--  TEXTAREA ID="htmnl_check" width="100" height="100"></TEXTAREA -->
+
+		<main>
+			<!--본문-->
+			<div id="container">
+				
+
+
+
+
+
+
+<input type="hidden" id="start_idx" name="start_idx" value="">                <!-- start_idx -->
+<input type="hidden" id="svc_no" name="svc_no">             <!-- svc_no 서비스번호 -->
+<input type="hidden" id="p_svcTypeCd" name="p_svcTypeCd" >    <!-- svc_type_cd 서비스타입 -->
+<input type="hidden" id="svc_type_cd" name="svc_type_cd" value="">    <!-- svc_type_cd 서비스타입 -->
+<input type="hidden" id="cl_cd" name="cl_cd" value="">    <!-- cl_cd 분류타입 -->
+<input type="hidden" id="provd_instt" name="provd_instt" value="">    <!-- provd_instt 제공기관 -->
+<input type="hidden" id="svcChkArr" name="svcChkArr" value="">    <!-- 여러 개 svc_no 추가 KSB추가 -->
+<input type="hidden" id="svc_nm" name="svc_nm">             <!-- svc_nm 서비스명 -->
+
+<!--contents_wrap-->
+<div class="contents_wrap">
+    <div id="header">
+        <div class="board-head">
+            <!--
+            <ol class="breadcrumb">
+                <li id="menuTree"></li>
+            </ol>
+             -->
+        </div>
+    </div>
+
+    <h2>데이터 검색</h2>
+
+    <div class="page-container" style="border-top:0; padding-top:0;">
+        <!-- 페이지 내용 -->
+        <article>
+            <!--         	<h2 class="hidden">서비스유형</h2> -->
+
+            <div id="insertAplcApiKey" class="api_btn_area2 taR"><a href="javascript:fn_insertOpenAPI();" class="api_btn1">OpenAPI 이용신청</a></div>
+
+            <div class="list-container">
+                <div class="search-form">
+                    <fieldset>
+                        <legend>검색</legend>
+                        <ul>
+
+                            <li>
+                                <div class="select-container w160">
+                                    <label for="search_clCdCode" class="noHideLabel">분류별</label>
+                                    <select id="search_clCdCode" name="search_clCdCode" class="selecter_basic">
+                                        <option value="">전체</option>
+                                        
+                                            
+                                                <option value="API_SRT01">기준규격정보</option>
+                                            
+                                                <option value="API_SRT02">코드정보</option>
+                                            
+                                                <option value="API_SRT03">식품영양정보</option>
+                                            
+                                                <option value="API_SRT04">수질환경정보</option>
+                                            
+                                                <option value="API_SRT05">검사기관정보</option>
+                                            
+                                                <option value="API_SRT06">식품위해관리</option>
+                                            
+                                                <option value="API_SRT07">식품안전관리</option>
+                                            
+                                                <option value="API_SRT08">이력추적관리</option>
+                                            
+                                                <option value="API_SRT09">어린이식품안전관리</option>
+                                            
+                                                <option value="API_SRT10">HACCP지정현황</option>
+                                            
+                                                <option value="API_SRT11">업체인허가현황</option>
+                                            
+                                                <option value="API_SRT12">위생용품</option>
+                                            
+                                                <option value="API_SRT13">축산물</option>
+                                            
+                                                <option value="API_SRT14">건강기능식품</option>
+                                            
+                                                <option value="API_SRT15">수입식품 등</option>
+                                            
+                                                <option value="API_SRT16">식품 등</option>
+                                            
+                                                <option value="API_SRT17">자료실</option>
+                                            
+                                                <option value="API_SRT18">폐업정보</option>
+                                            
+                                                <option value="API_SRT19">용어사전</option>
+                                            
+                                        
+                                    </select>
+                                </div>
+                            </li>
+
+                            <li>
+                                <div class="select-container w200">
+                                    <label for="search_provdInsttCode" class="noHideLabel">제공기관별</label>
+                                    <select id="search_provdInsttCode" name="search_provdInsttCode" class="selecter_basic">
+                                        <option value="">전체</option>
+
+                                        
+                                            
+                                                <option value="ORGN01">식품의약품안전처</option>
+                                            
+                                                <option value="ORGN10">해양수산부</option>
+                                            
+                                                <option value="ORGN13">산업통상자원부</option>
+                                            
+                                                <option value="ORGN09">농촌진흥청</option>
+                                            
+                                                <option value="ORGN05">농림축산검역본부</option>
+                                            
+                                                <option value="ORGN08">국립농산물품질관리원</option>
+                                            
+                                                <option value="ORGN15">국립환경과학원</option>
+                                            
+                                                <option value="ORGN12">국립수산물품질관리원</option>
+                                            
+                                                <option value="ORGN11">국립수산과학원</option>
+                                            
+                                                <option value="ORGN16">행정안전부</option>
+                                            
+                                                <option value="ORGN02">한국식품안전관리인증원</option>
+                                            
+                                                <option value="ORGN07">축산물품질평가원</option>
+                                            
+                                                <option value="ORGN14">한국환경공단</option>
+                                            
+                                                <option value="ORGN17">한국수자원공사</option>
+                                            
+                                        
+                                    </select>
+                                </div>
+                            </li>
+
+                            <li>        <!-- API_TYPE03 => FILE // API_TYPE06 => OPENAPI  -->
+                                <div class="select-container w160">
+                                    <label for="search_svcTypeCode" class="noHideLabel">유형별</label>
+                                    <select id="search_svcTypeCode" name="search_svcTypeCode" class="selecter_basic">
+                                        <option value="">전체</option>
+                                        
+                                            
+                                                <option value="API_TYPE03">File</option>
+                                            
+                                                <option value="API_TYPE05">Link</option>
+                                            
+                                                <option value="API_TYPE06">XML/JSON</option>
+                                            
+                                        
+                                    </select>
+                                </div>
+                            </li>
+
+                            <li>
+                                <label for="search_keyword" class="noHideLabel">서비스명</label>
+                                <input type="text" title="검색어" id="search_keyword" name="search_keyword" value="" onkeyup="if(event.keyCode==13){javascript:setDefault(); }">
+                            </li>
+                            <li><a href="javascript:setDefault();" class="btn btn-default_new" role="button">검색</a> </li>
+                        </ul>
+                    </fieldset>
+                </div>
+                <div class="total-container">
+                    <span class="total">Total: <strong id="total_cnt">0</strong></span>
+                    <div class="list-wrap">
+                        <fieldset>
+                            <legend>페이지당 게시글 수</legend>
+                            <ul style="margin-top:10px;">
+                                <li style="margin-right: 5px;">
+                                    
+                                    <div>
+                                        <label for="show_cnt">목록게시글수</label>
+                                        <select id="show_cnt" name="show_cnt" class="selecter_basic">
+                                            <option value="10">10개씩</option>
+                                            <option value="20">20개씩</option>
+                                            <option value="30">30개씩</option>
+                                            <option value="40">40개씩</option>
+                                            <option value="50">50개씩</option>
+                                        </select>
+                                    </div>
+                                </li>
+                                <li><a href="javascript:setDefault();" class="btn btn-default" role="button">보기</a></li>
+                            </ul>
+                        </fieldset>
+                    </div>
+                </div>
+                <table class="table-list">
+                    <caption>
+                        데이터셋 목록
+                    </caption>
+                    <colgroup>
+                        <col style="width:5%;">
+                        <col style="width:8%;">
+                        <col style="width:15%;">
+                        <col style="width:auto;">
+                        <col style="width:17%;">
+                        <col style="width:17%;">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th scope="col"><input type="checkbox" id="chkAll" ></th>
+                        <th scope="col">번호</th>
+                        <th scope="col">분류</th>
+                        <th scope="col">서비스명</th>
+                        <th scope="col">제공기관</th>
+                        <th scope="col">서비스유형</th>
+                    </tr>
+                    </thead>
+                    <tbody id="listFrame">
+                    <!--
+                        <tr>
+                            <td scope="row" class="num">5863</td>
+                            <td>기준규격</td>
+                            <td class="tl"><a href="#">
+                            식품위해정보</a></td>
+                            <td>식품의약품안전처</td>
+                            <td>
+                                <a href="#" class="label label-primary">S</a>
+                                <a href="#" class="label label-info">C</a>
+                                <a href="#" class="label label-success">F</a>
+                                <a href="#" class="label label-warning">L</a>
+                                <a href="#" class="label label-danger">O</a>
+                            </td>
+                        </tr>
+                         -->
+                    </tbody>
+                </table>
+                <div class="board-footer">
+                    <div class="pagination"></div>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+<script>
+
+    /****************************************
+     * Variable
+     ****************************************/
+    var total_cnt_onPage = 0;
+    var show_cnt_onPage = 0;
+    /****************************************
+     * Init
+     ****************************************/
+
+    $(document).ready(function(){
+
+        // init
+        if('' == ''){
+            $('#start_idx').val("1");
+        }
+
+        // 분류
+        if('' != ''){
+            $("#search_clCdCode").val('');
+        }
+        // 제공기관
+        if('' != ''){
+            $("#search_provdInsttCode").val('');
+        }
+        // 유형
+        if('' != ''){
+            $("#search_svcTypeCode").val('')
+        }
+
+        // 검색명
+        const urlParams = new URLSearchParams(window.location.search);
+        let keyword = urlParams.get('search_keyword');
+        if(keyword != null && keyword != ''){
+            $("#search_keyword").val(keyword);
+        }
+
+        // 서비스 목록 조회
+        searchList();
+
+    });
+
+    /****************************************
+     * Button Action
+     ****************************************/
+    // list 보기 Btn
+    function setDefault(){
+        $('#start_idx').val("1");
+        searchList();
+    }
+
+    //리스트개수
+    $('#show_cnt').change(function (){
+        //searchList();
+    });
+
+    //페이징 변수셋팅
+    function setPaginationVars(){
+        //total_cnt_onPage = total_cnt;
+        show_cnt_onPage = $('#show_cnt').val();
+
+        $('.pagination').pagination("updateItems", total_cnt_onPage);
+        $('.pagination').pagination("updateItemsOnPage", show_cnt_onPage);
+        //$('.pagination').pagination('redraw');
+        var pageNum = $('#start_idx').val();
+        if(pageNum == null || pageNum == ''){
+            pageNum = 1;
+        }
+
+        $('.pagination').pagination('drawPage', pageNum);
+    }
+
+    //페이징
+    $(function() {
+        $('.pagination').pagination({
+            items: total_cnt_onPage,
+            itemsOnPage: show_cnt_onPage,
+            cssStyle: 'compact-theme'
+        });
+    });
+
+    $('.pagination').click(function(){
+        var page = $('.pagination').pagination('getCurrentPage');
+        if($('#start_idx').val() != page){
+            $('#start_idx').val(page);
+            searchList();
+        }
+        return false;
+    });
+
+    // 전체 체크 박스 선택 또는 해제.
+    $("#chkAll").on("click", function(){
+
+        var strChecked = $(this).is(":checked");
+
+        $(":checkbox[name='svcChk']").each(function(){
+            $(this).prop("checked", strChecked );
+        });
+
+    });
+
+    /****************************************
+     * Function
+     ****************************************/
+    // 서비스 검색
+    function searchList(){
+
+        // 전체 선택 초기화
+        $("#chkAll").prop("checked", false);
+
+        //특수문자제거
+        fn_replaceSpecialChar('#search_keyword');
+
+        $.ajax({
+            data: $('#baseForm').serialize(),
+            dataType:'json',
+            type:'POST',
+            url:"/api/searchDatasetList.do",
+            success:function(arg){
+
+                //total 개수
+                total_cnt_onPage = arg.total_cnt;
+                $('#total_cnt').text(total_cnt_onPage);
+
+                //페이징 셋팅
+                setPaginationVars();
+
+                var list = new Array();
+                list = arg.list;
+
+                fn_drawList(list);
+            },
+            error:function(request,status,error){
+                alert("실패코드 : " + request.status+"\n메세지 : " + request.error);
+            }
+        });
+    }
+
+    //목록 그리기
+    function fn_drawList(list){
+
+        var listLangth = list.length;
+        var content = "";
+
+        // 2019-10-28 현재 사용하는 서비스는 sample, openAPI(xml/json), File
+        if( listLangth > 0 ){
+
+            for(var i=0; i<listLangth; i++){
+                /* // sheet X
+                if(list[i].sheet_yn == "Y"){
+                    types += "S";
+                }
+                // Chart X
+                if(list[i].chart_yn == "Y"){
+                    types += "C";
+                }*/
+
+				var types = "";
+
+                // Link O
+                if(list[i].link_yn == "Y"){
+                    types += "L";
+                } 
+
+                // file
+                if(list[i].file_yn == "Y"){
+                    types += "F";
+                }
+                // openAPI
+                if(list[i].openapi_yn == "Y"){
+                    types += "O";
+                }
+
+                content += "<tr>";
+                content += "  <td class='tc' >";
+
+                // 신청한 적이 없는 서비스만 show
+                if( list[i].mber_svc_yn != 'Y' ){
+                    content += 	"<input type='checkbox' id='"+ list[i].svc_no +"' name='svcChk'>" ;
+                }
+
+                content += "</td>";
+                content += "  <td scope='row' class='num'>"+list[i].no+"</td>";
+                content += "  <td class='tc' >"+list[i].cl_cd_nm+"</td>";
+
+//                if(list[i].svc_no == "I2791"){
+ //                  content += "  <td class='tl'> <a href=\"https://www.data.go.kr/data/15127578/openapi.do\">"+list[i].svc_nm+"</a></td>";
+ //              <a href="https://www.data.go.kr/data/15127578/openapi.do"></a>
+//               } else{
+                  content += "  <td class='tl'><a href=\"javascript:fn_listMoveDetail('"+list[i].svc_no+"','"+types+"', '"+list[i].svc_nm+"');\">"+list[i].svc_nm+"</a></td>";
+//                }
+
+                content += "  <td class='tc' >"+list[i].provd_instt_nm+"</td>";
+                content += "  <td class='tc' >";
+//                 if(list[i].sheet_yn == "Y"){
+//     	            content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE01', '"+list[i].svc_no+"');\" class='label label-primary'>S</a>";
+//                 }
+//                 if(list[i].chart_yn == "Y"){
+//                     content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE02', '"+list[i].svc_no+"');\" class='label label-success'>C</a>";
+//                 }
+                if(list[i].file_yn == "Y"){
+                    content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE03', '"+list[i].svc_no+"', '"+list[i].svc_nm+"');\" class='label label-info'>F</a>";
+                }
+//                 if(list[i].map_yn == "Y"){
+//                     content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE04', '"+list[i].svc_no+"');\" class='label label-default'>M</a>";
+//                 }
+                if(list[i].link_yn == "Y"){
+                    content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE05', '"+list[i].svc_no+"');\" class='label label-warning'>L</a>";
+                }
+                if(list[i].openapi_yn == "Y"){
+                    content += "    <a onclick=\"javascript:fn_moveDetail('API_TYPE06', '"+list[i].svc_no+"', '"+list[i].svc_nm+"');\" class='label label-danger'>O</a>";
+                }
+
+
+
+                content += "  </td>";
+                content += "</tr>";
+            }
+
+        }else{
+            content += "<tr>";
+            content += "  <td class='tc' colspan='6' >"+"해당하는 데이터가 없습니다."+"</td>";
+            content += "</tr>";
+        }
+
+
+
+        $('#listFrame').html(content);
+    }
+
+    // 체크항목 OpenAPI 활용 신청 버튼 클릭 추가 ( KSB추가 )
+    function fn_insertOpenAPI(){
+        var svcChkStr = "";
+        // 체크한 정보
+        $(":checkbox[name='svcChk']:checked").each(function(){
+            svcChkStr += $(this).attr("id") + "/";
+        });
+
+        if(svcChkStr.length > 0){
+            $("#svcChkArr").val(svcChkStr.substring(0, svcChkStr.length-1));
+            document.baseForm.action = "/api/newUserApiAplcKey.do";
+            document.baseForm.method="post";
+            document.baseForm.submit();
+        }else{
+            alert("신청할 서비스를 체크해 주세요.");
+        }
+
+    }
+
+    // 서비스유형 상세 화면
+    function fn_listMoveDetail(svc_no, types, svc_nm){
+
+        var setType = "";
+
+        types = types.substr(0,1);
+
+        if($("#search_svcTypeCode").val() == null || $("#search_svcTypeCode").val() == ''){
+            if(types == "S"){
+                setType = "API_TYPE01";
+            }
+            if(types == "C"){
+                setType = "API_TYPE02";
+            }
+            if(types == "F"){
+                setType = "API_TYPE03";
+            }
+            if(types == "L"){
+                setType = "API_TYPE05";
+            }
+            if(types == "O"){
+                setType = "API_TYPE06";
+            }
+        }else{
+            setType = $("#search_svcTypeCode").val();
+        }
+
+        fn_moveDetail(setType, svc_no, svc_nm);
+    }
+
+    //상세페이지
+    function fn_moveDetail(svcTypeCd, svcNo, svcNm){
+
+        // 파라미터
+        $("#svc_no").val(svcNo);
+        $("#p_svcTypeCd").val(svcTypeCd);
+        $("#svc_nm").val(svcNm);
+
+        // 검색조건
+        $("#svc_type_cd").val($("#search_svcTypeCode").val());
+        $("#cl_cd").val($("#search_clCdCode").val());
+        $("#provd_instt").val($("#search_provdInsttCode").val());
+
+        /*  if(svc_type_cd == "API_TYPE01"){
+             document.baseForm.action="/api/sheetInfo.do";
+	   }else if(svc_type_cd == "API_TYPE02"){
+		   document.baseForm.action="/api/chartInfo.do";
+	   }else if(svc_type_cd == "API_TYPE03"){
+		   document.baseForm.action="/api/fileInfo.do";
+// 	   }else if(svc_type_cd == "API_TYPE04"){
+// 		   alert('map 페이지 준비중');
+	   }else if(svc_type_cd == "API_TYPE05"){
+		   document.baseForm.action="/api/linkInfo.do";
+	   }else if(svc_type_cd == "API_TYPE06"){
+		   document.baseForm.action="/api/openApiAplcInfo.do";
+	   } */
+
+        var url = "detail.html?svc_no=" + encodeURIComponent(svcNo) + "&svc_nm=" + encodeURIComponent(svcNm) + "&svc_type=" + encodeURIComponent(svcTypeCd);
+        location.href = url;
+
+    }
+
+</script>
+			</div>
+		</main>
+	</div>
+
+	<!-- footer start -->
+	<footer id="footer">
+		
+	<div class="footer_link_wrap">
+        <div class="footer_link">
+          <ul class="link">
+				
+				<!-- <li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2933&menu_grp=MENU_NEW07">개인정보처리방침</a></li> -->
+				
+				<li><a href="https://www.foodinfo.or.kr/portal/bbs/selectBoardList.do?bbsId=10000000000000000460&catId=36&bbsView=HTML&goMenuNo=9000001115&topMenuNo=9000001110&upperMenuNo=9000001110" target="_blank" title="개인정보처리방침 사이트로 이동합니다.">개인정보처리방침</a></li>
+				<li><a href="http://www.mfds.go.kr/wpge/m_34/de010803l001.do" target="_blank">저작권정책</a></li>
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2922&menu_grp=MENU_NEW07" target="_blank">포털이용관련 질의응답</a></li>
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2938&menu_grp=MENU_NEW07" target="_blank">관련 누리집</a></li>
+				
+			  	
+				
+				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2928&menu_grp=MENU_NEW07" target="_blank">정보오류 신고</a></li>
+
+				<li><a href="https://www.foodsafetykorea.go.kr/minwon/counsel/ePeople.do" target="_blank" >국민신문고</a></li>
+
+				<li><a href="http://113366.com/foodinfo" class="blue" target="_blank">원격 지원</a></li>
+			</ul>
+			
+			 <div class="site">
+	            <button type="button" class="select_btn">관련부처사이트</button>
+	            <div class="select_box">
+	              <ul>
+	                <li><a href="#" onclick="javascript:goSite_new('0');" title="관련 부처 사이트">관련 부처 사이트</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('1');" title="식품의약품안전처">식품의약품안전처</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('2');" title="교육부">교육부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('3');" title="법무부">법무부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('4');" title="국방부">국방부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('5');" title="행정안전부">행정안전부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('6');" title="농림축산식품부">농림축산식품부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('7');" title="산업통상자원부">산업통상자원부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('8');" title="보건복지부">보건복지부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('9');" title="환경부">환경부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('10');" title="해양수산부">해양수산부</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('11');" title="관세청">관세청</a></li>
+					<li><a href="#" onclick="javascript:goSite_new('12');"  title="방위사업청">방위사업청</a></li>
+	              </ul>
+	            </div>
+	          </div>
+			</div>
+		</div>
+		<div class="footer_info_wrap">
+          <div class="footer_info">
+            <div class="footer_logo" style="top: 14px;">
+            <img id="logo1" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo.jpg" alt="식품안전정보포털 식품의약품안전처">
+            <img id="logo2" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo_02.png" alt="식품안전정보포털 식품안전정보원">
+            </div>
+            <address style="top: 17px;">
+             <p style="line-height: 22px;">
+               우)28159 충청북도 청주시 흥덕구 오송읍 오송생명2로 187 오송보건의료행정타운 식품의약품안전처<br>
+               Copyright ⓒ Ministry of Food and Drug Safety. All Rights Reserved.<br>
+				 통합망 고객지원센터(시스템문의) : 1899-5590(유료), 식약처 종합상담센터 : 1577-1255(유료)
+             </p>
+            </address>
+          </div>
+        </div>
+
+
+		<!-- 데이터활용서비스 한눈에 보기 start -->
+		
+
+
+
+	<div class="sitemap_op">&nbsp;</div>
+	<div class="sitemap">
+		<div class="title">데이터활용서비스 한눈에 보기<a href="#"><img src="https://www.foodsafetykorea.go.kr/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
+		<div class="site_cnt">
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h05">서비스안내</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686" class="dpt01">·  서비스 소개</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/howToUseApi.do?menu_grp=MENU_GRP34&menu_no=687" class="dpt01">·  서비스 사용방법</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h01">데이터공개</h1>
+					<ul>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt01">·  분류별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=845" class="dpt02">·  시험분석</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=846" class="dpt02">·  기준규격</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=847" class="dpt02">·  인허가정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=848" class="dpt02">·  자료실</a></li> -->
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt01">·  분류별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt02">·  기준규격</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880" class="dpt02">·  코드정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881" class="dpt02">·  식품영양정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882" class="dpt02">·  수질환경정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883" class="dpt02">·  검사기관정보</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884" class="dpt02">·  식품위해관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885" class="dpt02">·  식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886" class="dpt02">·  이력추적관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887" class="dpt02">·  어린이식품안전관리</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888" class="dpt02">·  HACCP지정현황</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889" class="dpt02">·  업체인허가현황</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890" class="dpt02">·  위생용품</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891" class="dpt02">·  축산물</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892" class="dpt02">·  건강기능식품</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893" class="dpt02">·  수입식품 등</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894" class="dpt02">·  식품 등</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895" class="dpt02">·  자료실</a></li>
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt01">·  제공기관별</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt02">·  식품의약품안전처</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN10&menu_grp=MENU_GRP31&menu_no=858" class="dpt02">·  해양수산부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN13&menu_grp=MENU_GRP31&menu_no=861" class="dpt02">·  산업통상자원부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN09&menu_grp=MENU_GRP31&menu_no=857" class="dpt02">·  농촌진흥청</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN05&menu_grp=MENU_GRP31&menu_no=853" class="dpt02">·  농림축산검역본부</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN08&menu_grp=MENU_GRP31&menu_no=856" class="dpt02">·  국립농산물품질관리원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN15&menu_grp=MENU_GRP31&menu_no=863" class="dpt02">·  국립환경과학원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN12&menu_grp=MENU_GRP31&menu_no=860" class="dpt02">·  국립수산물품질관리원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN11&menu_grp=MENU_GRP31&menu_no=859" class="dpt02">·  국립수산과학원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN16&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  행정안전부</a></li>
+						<!-- li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN04&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  시도, 시군구</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN03&menu_grp=MENU_GRP31&menu_no=851" class="dpt02">·  시군구</a></li-->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN02&menu_grp=MENU_GRP31&menu_no=850" class="dpt02">·  한국식품안전관리인증원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN07&menu_grp=MENU_GRP31&menu_no=855" class="dpt02">·  축산물품질평가원</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN14&menu_grp=MENU_GRP31&menu_no=862" class="dpt02">·  한국환경공단</a></li>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN06&menu_grp=MENU_GRP31&menu_no=854" class="dpt02">·  농림수산식품</a></li> -->
+
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=938" class="dpt01">·  유형별</a></li>
+						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE01&menu_grp=MENU_GRP31&menu_no=656" class="dpt02">·  SHEET</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE02&menu_grp=MENU_GRP31&menu_no=657" class="dpt02">·  CHART</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE05&menu_grp=MENU_GRP31&menu_no=660" class="dpt02">·  LINK</a></li> -->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE06&menu_grp=MENU_GRP31&menu_no=661" class="dpt02">·  OPEN-API</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE03&menu_grp=MENU_GRP31&menu_no=658" class="dpt02">·  FILE</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">인증키 관리</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995" class="dpt01">·  인증키 신청현황</a></li>
+<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiKey.do?menu_grp=MENU_GRP32&menu_no=691" class="dpt01">·  인증키 신청</a></li> -->
+<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/userApiKey.do?menu_grp=MENU_GRP32&menu_no=692" class="dpt01">·  인증키 발급 및 확인</a></li> -->
+					</ul>
+				</div>
+			</div>
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h03">정보공유</h1>
+					<ul>
+						<!--<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3898" class="dpt01">·  개발자 의견공유</a></li> -->
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899" class="dpt01">·  데이터활용 갤러리</a></li>
+					</ul>
+				</div>
+			</div>
+
+
+			<div class="fl w_317 m_r_6">
+				<div class="box1">
+					<h1 class="h04">고객센터</h1>
+					<ul>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688" class="dpt01">·  공지사항</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689" class="dpt01">·  자주하는 질문</a></li>
+						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690" class="dpt01">·  묻고답하기</a></li>
+					</ul>
+				</div>
+			</div>
+
+		</div>
+	</div>
+		<!-- 데이터활용서비스 한눈에 보기 end -->
+	</footer>
+	<!-- footer end -->
+
+</form>
+<script>
+	$(document).ready(function() {
+		$("#content-wrap select").selecter();
+
+		$("#btnSitePop").bind("click", function(){
+			goSite();
+		});
+
+		// CKEDITOR 적용
+		// 정보공유, 고객센터만 관리만 적용
+		//20240313 묻고답하기 게시판만 제외
+		if(  $("#bbs_no").val() != "aipQna"){
+			if($("#content").length > 0){
+				CKEDITOR.replace('content', {
+					height:500
+				});
+			}
+		}
+
+	});
+
+
+	function goSite() {
+		var url = "";
+		var itm = $("#baseForm #selcet option:selected").val();
+
+		if( itm == "1" ){
+			url = "http://www.mfds.go.kr"; //식품의약품안전처
+		} else if ( itm == "2" ) {
+			url = "http://www.moe.go.kr"; //교육부
+		} else if ( itm == "3" ) {
+			url = "http://www.moj.go.kr"; //법무부
+		} else if ( itm == "4" ) {
+			url = "http://www.mnd.go.kr"; //국방부
+		} else if ( itm == "5" ) {
+			url = "http://www.mogaha.go.kr"; //행정자치부
+		} else if ( itm == "6" ) {
+			url = "http://www.mafra.go.kr"; //농림축산식품부
+		} else if ( itm == "7" ) {
+			url = "http://www.motie.go.kr"; //산업통상자원부
+		} else if ( itm == "8" ) {
+			url = "http://www.mohw.go.kr"; //보건복지부
+		} else if ( itm == "9" ) {
+			url = "http://www.me.go.kr"; //환경부
+		} else if ( itm == "10" ) {
+			url = "http://www.mof.go.kr"; //해양수산부
+		} else if ( itm == "11" ) {
+			url = "http://www.customs.go.kr"; //관세청
+		} else if ( itm == "12" ) {
+			url = "http://www.dapa.go.kr"; //방위사업청
+		}
+
+		if( url != ''){
+			document.baseForm.action = url;
+			document.baseForm.target="_blank";
+			document.baseForm.submit();
+		}
+
+	}
+</script>
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-67138433-1', 'auto');
+	ga('send', 'pageview');
+</script>
+</body>
+</html>

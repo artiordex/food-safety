@@ -22,20 +22,24 @@ const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   }
 });
 
-// 1. DB 테이블 목록 조회 API (뷰(View)도 포함하여 조회 가능하도록 고도화)
+// 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
 app.get('/api/tables', (req, res) => {
   const query = `
-    SELECT name 
-    FROM sqlite_master 
-    WHERE (type='table' OR type='view') AND name NOT LIKE 'sqlite_%'
-    ORDER BY name;
+    SELECT m.name, a.svc_nm AS logical_name
+    FROM sqlite_master m
+    LEFT JOIN api_tables a ON m.name = a.svc_no
+    WHERE m.type = 'table' AND m.name NOT LIKE 'sqlite_%' AND m.name NOT LIKE 'v_%'
+    ORDER BY m.name;
   `;
   db.all(query, [], (err, rows) => {
     if (err) {
       console.error('테이블 목록 조회 중 오류:', err.message);
       return res.status(500).json({ error: err.message });
     }
-    res.json(rows.map(row => row.name));
+    res.json(rows.map(row => ({
+      name: row.name,
+      logicalName: row.logical_name || row.name
+    })));
   });
 });
 
@@ -85,6 +89,66 @@ app.get('/api/tables/:tableName/data', (req, res) => {
   });
 });
 
+// 3.5 join.sql 파일에서 검증된 JOIN 시나리오 목록을 파싱하여 반환하는 API
+app.get('/api/join-scenarios', (req, res) => {
+  const joinSqlPath = path.join(__dirname, 'db', 'join.sql');
+  try {
+    const content = fs.readFileSync(joinSqlPath, 'utf-8');
+    const lines = content.split('\n');
+    const scenarios = [];
+    let currentBlock = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // 제목 주석 추출: -- N. [HIGH] TableA.KEY ↔ TableB.KEY
+      const titleMatch = line.match(/^--\s+(\d+)\.\s+\[([A-Z]+)\]\s+(.+)$/);
+      if (titleMatch) {
+        // 새 블록 시작
+        currentBlock = {
+          no: parseInt(titleMatch[1]),
+          grade: titleMatch[2],
+          relation: titleMatch[3].trim(),
+          descLines: [],
+          sqlLines: []
+        };
+        scenarios.push(currentBlock);
+        continue;
+      }
+
+      if (!currentBlock) continue;
+
+      // 구분선(---- 또는 ====)은 건너뜀
+      if (/^--\s*[-=]{10,}/.test(line)) continue;
+
+      // 주석 줄 → 설명에 추가
+      if (line.trim().startsWith('--')) {
+        currentBlock.descLines.push(line.replace(/^--\s*/, '').trim());
+      } else if (line.trim() !== '') {
+        // SQL 줄
+        currentBlock.sqlLines.push(line);
+      }
+    }
+
+    const result = scenarios.map(block => {
+      const description = block.descLines.filter(Boolean).join(' | ');
+      const sql = block.sqlLines.join('\n').trim();
+      return {
+        no: block.no,
+        grade: block.grade,
+        title: `${block.no}. ${block.relation}`,
+        description,
+        sql
+      };
+    }).filter(s => s.sql);
+
+    res.json(result);
+  } catch (err) {
+    console.error('join.sql 파싱 오류:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 4. 임의의 SQL 쿼리 실행 API
 app.post('/api/query', (req, res) => {
   const { query } = req.body;
@@ -107,6 +171,132 @@ app.post('/api/query', (req, res) => {
     }
     res.json(rows);
   });
+});
+
+// 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
+app.post('/api/datasetAllSearch.do', (req, res) => {
+    let keyword = req.body.search_keyword || '';
+    let html = fs.readFileSync(path.join(__dirname, 'search.html'), 'utf8');
+    html = html.replace(/\[\[KEYWORD\]\]/g, keyword);
+    
+    // <!-- INCLUDE_HEAD --> 치환
+    if (html.includes('<!-- INCLUDE_HEAD -->')) {
+        let headPath = path.join(__dirname, 'public/includes/head.html');
+        if (fs.existsSync(headPath)) {
+            let headContent = fs.readFileSync(headPath, 'utf8');
+            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
+            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
+        }
+    }
+    
+    // <!-- INCLUDE_HEADER --> 치환
+    if (html.includes('<!-- INCLUDE_HEADER -->')) {
+        let headerPath = path.join(__dirname, 'public/includes/header.html');
+        if (fs.existsSync(headerPath)) {
+            let headerContent = fs.readFileSync(headerPath, 'utf8');
+            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
+        }
+    }
+    
+    res.send(html);
+});
+
+app.get('/api/datasetAllSearch.do', (req, res) => {
+    let keyword = req.query.search_keyword || '';
+    let html = fs.readFileSync(path.join(__dirname, 'search.html'), 'utf8');
+    html = html.replace(/\[\[KEYWORD\]\]/g, keyword);
+    
+    // <!-- INCLUDE_HEAD --> 치환
+    if (html.includes('<!-- INCLUDE_HEAD -->')) {
+        let headPath = path.join(__dirname, 'public/includes/head.html');
+        if (fs.existsSync(headPath)) {
+            let headContent = fs.readFileSync(headPath, 'utf8');
+            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
+            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
+        }
+    }
+    
+    // <!-- INCLUDE_HEADER --> 치환
+    if (html.includes('<!-- INCLUDE_HEADER -->')) {
+        let headerPath = path.join(__dirname, 'public/includes/header.html');
+        if (fs.existsSync(headerPath)) {
+            let headerContent = fs.readFileSync(headerPath, 'utf8');
+            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
+        }
+    }
+    
+    res.send(html);
+});
+
+// 4.2 통합 데이터 검색 결과 API (searchDatasetList.do) - SQLite view 기반 동적 생성
+app.post('/api/searchDatasetList.do', (req, res) => {
+    let keyword = req.body.search_keyword || '';
+    
+    // api_tables에서 메타데이터 추출 (분류 카테고리 포함)
+    let query = `SELECT svc_no, svc_nm, cat FROM api_tables`;
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        
+        let list = [];
+        let index = 1;
+        
+        rows.forEach(row => {
+            let svc_no = row.svc_no;
+            let svc_nm = row.svc_nm;
+            let cat = row.cat || "공공데이터";
+            
+            // 검색 키워드 필터링 (키워드가 비어있거나 매칭되면 포함)
+            if(!keyword || svc_nm.includes(keyword) || svc_no.includes(keyword) || cat.includes(keyword)) {
+                
+                let isLink = "N";
+                let isOpenApi = "Y";
+                
+                // 특수 케이스: 식품영양성분 DB정보는 Link(L) 유형으로 설정
+                // 또는 원래 이름 '식품영양성분_DB정보' 등 다양한 포맷 지원
+                if(svc_nm.includes('식품영양성분 DB정보') || svc_nm === 'v_1471000_식품영양성분_DB정보') {
+                    isLink = "Y";
+                    isOpenApi = "N";
+                }
+
+                list.push({
+                    no: index++,
+                    cl_cd_nm: cat,
+                    svc_no: svc_no,
+                    svc_nm: svc_nm,
+                    provd_instt_nm: "식품의약품안전처",
+                    link_yn: isLink,
+                    file_yn: "N",
+                    openapi_yn: isOpenApi
+                });
+            }
+        });
+        
+        // Paging 처리
+        let start_idx = parseInt(req.body.start_idx) || 1;
+        let show_cnt = parseInt(req.body.show_cnt) || 10;
+        let startIndex = (start_idx - 1) * show_cnt;
+        let endIndex = startIndex + show_cnt;
+        let pagedList = list.slice(startIndex, endIndex);
+        
+        res.json({
+            total_cnt: list.length,
+            list: pagedList
+        });
+    });
+});
+
+// 4.3 데이터셋 메타데이터 (컬럼 정의) API - detail.html 용
+app.get('/api/datasetMetadata.do', (req, res) => {
+    let svc_no = req.query.svc_no;
+    if(!svc_no) return res.status(400).json({error: 'svc_no is required'});
+    
+    let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
+    db.all(query, [svc_no], (err, rows) => {
+        if(err) return res.status(500).json({error: err.message});
+        res.json(rows);
+    });
 });
 
 // 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원) -> 직접 식약처 실시간 호출로 전격 개조!
@@ -982,51 +1172,39 @@ app.get('/api/keyword-datamap', async (req, res) => {
   });
 
   try {
-    // 1. Get all table names
-    const tables = await dbAll(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`);
+    // 1. Get all table names, excluding system and metadata tables
+    const tables = await dbAll(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('api_tables', 'api_columns')`);
 
-    // Table label mapping (Korean names) dynamically loaded from metadata
-    let tableLabels = {
-      'C005': '유통바코드', 'C002': '원재료', 'C006': '원재료현황'
-    };
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const metaPath = path.join(__dirname, 'db/foodsafety_key_candidates.json');
-      if (fs.existsSync(metaPath)) {
-        const metadata = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
-        if (metadata.tables) {
-          metadata.tables.forEach(t => {
-            if (t.svc_no && t.svc_nm) {
-              tableLabels[t.svc_no] = t.svc_nm;
-            }
-          });
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load dynamic table labels:', e.message);
-    }
-
-    // Domain classification for color coding
-    const domainMap = {
-      'C005': 'product', 'I1250': 'product',
-      'I2500': 'business', 'I1290': 'business', 'I2020': 'business', 'I1230': 'business',
-      'C002': 'material', 'C006': 'material', 'I0300': 'material', 'I2710': 'material',
-      'I1030': 'health', 'I0980': 'health', 'I1420': 'health',
-      'I2852': 'import', 'I2854': 'import', 'I2570': 'import', 'I1380': 'import', 'I1350': 'import', 'I2851': 'import',
-      'COOKRCP01': 'farm', 'I0080': 'farm', 'I0250': 'farm',
-      'I0580': 'other', 'I0470': 'other', 'I0460': 'other', 'I1860': 'other', 'I2630': 'other', 'I0480': 'other', 'I0490': 'other',
-      'I2824': 'other', 'I2825': 'other', 'I2831': 'other', 'I0320': 'other', 'I0960': 'other', 'I1310': 'other', 'I2810': 'other'
-    };
+    // 1.5. Dynamic category and label mapping from api_tables (normalizing hyphens to match table names)
+    const catRows = await dbAll(`SELECT svc_no, svc_nm, cat FROM api_tables`);
+    const domainMap = {};
+    const tableLabels = {};
+    catRows.forEach(row => {
+      const normalizedSvcNo = (row.svc_no || '').replace(/-/g, '');
+      domainMap[normalizedSvcNo] = row.cat || '기타';
+      tableLabels[normalizedSvcNo] = row.svc_nm;
+    });
 
     const domainColors = {
-      product: { bg: '#0d9488', border: '#0f766e', light: '#ccfbf1' },
-      business: { bg: '#1a5fb4', border: '#1e40af', light: '#dbeafe' },
-      material: { bg: '#7c3aed', border: '#6d28d9', light: '#ede9fe' },
-      health: { bg: '#e11d48', border: '#be123c', light: '#ffe4e6' },
-      import: { bg: '#d97706', border: '#b45309', light: '#fef3c7' },
-      farm: { bg: '#059669', border: '#047857', light: '#d1fae5' },
-      other: { bg: '#64748b', border: '#475569', light: '#f1f5f9' }
+      '식품영양정보': { bg: '#0d9488', border: '#0f766e', light: '#ccfbf1' },
+      '기준규격정보': { bg: '#1a5fb4', border: '#1e40af', light: '#dbeafe' },
+      '코드정보': { bg: '#7c3aed', border: '#6d28d9', light: '#ede9fe' },
+      '수질환경정보': { bg: '#e11d48', border: '#be123c', light: '#ffe4e6' },
+      '검사기관정보': { bg: '#d97706', border: '#b45309', light: '#fef3c7' },
+      '식품위해관리': { bg: '#059669', border: '#047857', light: '#d1fae5' },
+      '식품안전관리': { bg: '#2563eb', border: '#1d4ed8', light: '#dbeafe' },
+      '이력추적관리': { bg: '#db2777', border: '#be185d', light: '#fce7f3' },
+      '어린이식품안전관리': { bg: '#ca8a04', border: '#a16207', light: '#fef9c3' },
+      'HACCP지정현황': { bg: '#4f46e5', border: '#3730a3', light: '#e0e7ff' },
+      '업체인허가현황': { bg: '#0891b2', border: '#0e7490', light: '#ecfeff' },
+      '위생용품': { bg: '#ea580c', border: '#c2410c', light: '#ffedd5' },
+      '축산물': { bg: '#16a34a', border: '#15803d', light: '#dcfce7' },
+      '건강기능식품': { bg: '#9333ea', border: '#7e22ce', light: '#f3e8ff' },
+      '수입식품 등': { bg: '#be123c', border: '#9f1239', light: '#ffe4e6' },
+      '식품 등': { bg: '#0369a1', border: '#075985', light: '#e0f2fe' },
+      '폐업정보': { bg: '#475569', border: '#334155', light: '#f1f5f9' },
+      '용어사전': { bg: '#854d0e', border: '#713f12', light: '#fef9c3' },
+      '기타': { bg: '#57534e', border: '#44403c', light: '#f5f5f4' }
     };
 
     const nodes = [];
@@ -1065,8 +1243,8 @@ app.get('/api/keyword-datamap', async (req, res) => {
       if (!matchingCols.length) return null;
 
       const totalCount = matchingCols.reduce((s, c) => s + c.count, 0);
-      const domain = domainMap[tableName] || 'other';
-      const colColors = domainColors[domain];
+      const domain = domainMap[tableName] || '기타';
+      const colColors = domainColors[domain] || domainColors['기타'];
       const tableLabel = tableLabels[tableName] || tableName;
       const bestCol = matchingCols.sort((a, b) => b.count - a.count)[0];
 
@@ -1144,6 +1322,42 @@ app.get('/api/keyword-datamap', async (req, res) => {
 });
 
 // 프론트엔드 정적 리소스 서빙
+// HTML 파일 요청을 가로채서 헤더와 헤드 컴포넌트를 주입 (Server-Side Includes)
+app.get(/^\/(.*\.html)?$/, (req, res, next) => {
+    let requestPath = req.path;
+    if (requestPath === '/') {
+        requestPath = '/index.html';
+    }
+    
+    let filePath = path.join(__dirname, requestPath);
+    if (!fs.existsSync(filePath)) {
+        return next();
+    }
+    
+    let html = fs.readFileSync(filePath, 'utf8');
+    
+    // <!-- INCLUDE_HEAD --> 치환
+    if (html.includes('<!-- INCLUDE_HEAD -->')) {
+        let headPath = path.join(__dirname, 'public/includes/head.html');
+        if (fs.existsSync(headPath)) {
+            let headContent = fs.readFileSync(headPath, 'utf8');
+            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
+            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
+        }
+    }
+    
+    // <!-- INCLUDE_HEADER --> 치환
+    if (html.includes('<!-- INCLUDE_HEADER -->')) {
+        let headerPath = path.join(__dirname, 'public/includes/header.html');
+        if (fs.existsSync(headerPath)) {
+            let headerContent = fs.readFileSync(headerPath, 'utf8');
+            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
+        }
+    }
+    
+    res.send(html);
+});
+
 app.use(express.static(__dirname));
 
 // 서버 구동

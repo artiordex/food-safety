@@ -40,8 +40,8 @@ const path = require('path');
 // 섹션 0. 기본 설정
 // =============================================================================
 
-const DEFAULT_CACHE   = path.join(__dirname, '..', 'crawl_cache.json');
-const DEFAULT_SAMPLES = path.join(__dirname, '..', 'samples');
+const DEFAULT_CACHE   = path.join(__dirname, '../crawler/crawl_cache.json');
+const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
 const DEFAULT_JSON    = path.join(__dirname, 'foodsafety_key_candidates.json');
 const DEFAULT_MD      = path.join(__dirname, 'foodsafety_key_candidates.md');
 const DEFAULT_SQL     = path.join(__dirname, 'foodsafety_keys_erd.sql');
@@ -50,18 +50,16 @@ const MAX_COMPOSITE_KEY_SIZE = 2;
 
 // FK 후보 정제 기준
 // ── 변경 1/2 ──────────────────────────────────────────────────────────────
-// 사용자 요청 반영: 값 포함률이 10% 이상인 경우도 정상적인 조인 관계로 매핑하도록 기준을 대폭 완화
-const FK_MIN_INCLUSION_RATIO = 0.30;       // 30% 이상이면 확정 FK 후보
+// 사용자 요청 반영: 조인이 되는(1건이라도 포함되는) 경우만 매핑하도록 기준 변경
+const FK_MIN_INCLUSION_RATIO = 0.0001;     // 조인되는 값이 1개라도 있으면 확정 FK 후보
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
 // ─────────────────────────────────────────────────────────────────────────
-const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 추정 후보로 보존
+const FK_ALLOW_UNCHECKED = false;          // 샘플 부족 미검증 FK는 제거 (데이터가 있는 녀석만)
 const FK_MAX_PER_FROM_FIELD = 5;           // 동일 From Table.Field 기준 최대 후보 수
 
 // 추정 FK 후보 기준
-// - 샘플 5건 수준에서는 실제 관계가 있어도 값이 우연히 안 겹쳐 0%가 나올 수 있음
-// - 따라서 확정 FK와 추정 FK를 분리한다.
 const FK_SUGGESTED_MIN_SCORE = 65;         // 이 점수 이상이면 추정 후보로 보존
-const FK_INCLUDE_SUGGESTED_IN_SQL = true;  // DBeaver ERD 표시용 FK 제약조건에 추정 후보도 포함
+const FK_INCLUDE_SUGGESTED_IN_SQL = false; // 불확실한 추정 후보는 SQL ERD에서 제외
 
 /**
  * 방향 B — 업무 명칭 기반 부모-자식 관계 규칙
@@ -798,6 +796,18 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
     }
 
     const inclusion = getInclusionStats(fromRecords, toRecords, fieldName, target.pk.fields[0]);
+    
+    // ==== 사용자 요청 반영: 데이터가 있고, 조인이 되는(포함률 > 0) 경우만 허용 ====
+    if (!inclusion.checked || inclusion.inclusion_ratio <= 0) {
+        return {
+            skip: true,
+            skip_reason: '데이터가 없거나 조인(교집합)되는 값이 없음',
+            inclusion,
+            score: 0,
+            reasons: []
+        };
+    }
+    
     let relationType = 'SUGGESTED';
 
     // ── 방향 B: 업무 명칭 기반 부모-자식 관계 규칙 ──────────────────────────
