@@ -2035,7 +2035,7 @@ LIMIT 10;
 SELECT
     A."PRDLST_NM" AS "품목제조_제품명",
     A."PRDLST_DCNM" AS "품목유형",
-    A."RAWMTRL_NM" AS "원재료",
+    A."BSSH_NM" AS "제조업소명",
     B."BSSH_NM" AS "허가업소명",
     B."PRSDNT_NM" AS "대표자명",
     B."INDUTY_NM" AS "업종",

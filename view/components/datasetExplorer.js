@@ -30,142 +30,156 @@ export function renderDatasetExplorer(container, onSelectDataset) {
       return matchesSearch && matchesSubject && matchesProcess && matchesIssue && matchesTheme;
     });
 
-    const createFilterButtons = (filters, currentValue, onClick) => {
-      return filters.map(f => {
-        const isActive = currentValue === f.value;
-        const baseClass = "px-3 py-1.5 rounded-full text-xs font-medium transition-colors border";
-        const activeClass = "bg-gov-600 text-white border-gov-600";
-        const inactiveClass = "bg-white text-slate-600 border-slate-200 hover:border-gov-300 hover:text-gov-700";
-        
-        return `<button data-value="${f.value}" class="filter-btn ${baseClass} ${isActive ? activeClass : inactiveClass}">
-          ${f.label}
-        </button>`;
-      }).join('');
-    };
+    const makeOptions = (filters, current) => filters.map(f =>
+      `<option value="${f.value}" ${current === f.value ? 'selected' : ''}>${f.label}</option>`
+    ).join('');
 
     container.innerHTML = `
-      <section class="py-10 md:py-14 px-4 md:px-8">
-        <div class="max-w-[1400px] mx-auto">
-          <!-- Section title -->
-          <div class="mb-8 md:mb-10">
-            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">데이터세트 찾기</h2>
-            <p class="text-sm text-slate-500">주제별, 업무별, 이슈별 다차원 필터를 사용하여 원하는 데이터를 정밀하게 탐색하세요.</p>
+      <section style="padding:40px 0; background:#f8f9fb;">
+        <div style="max-width:1220px; margin:0 auto; padding:0 20px;">
+
+          <!-- 섹션 헤더 (식품안전나라 스타일) -->
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #0168c1;">
+            <div>
+              <h2 style="font-size:22px; font-weight:700; color:#1a1a2e; margin:0 0 4px 0; font-family:'Nanum Square',sans-serif;">
+                <span style="color:#0168c1;">■</span> 데이터 세트
+              </h2>
+              <p style="font-size:13px; color:#666; margin:0;">주제별·업무별·이슈별 다차원 필터로 원하는 데이터를 탐색하세요.</p>
+            </div>
+            <span style="font-size:13px; color:#555;">
+              검색결과 <strong style="color:#0168c1; font-size:16px;">${filtered.length}</strong>건 / 전체 ${datasets.length}건
+            </span>
           </div>
 
-          <!-- Filters -->
-          <div class="bg-white border border-slate-200 rounded-xl p-4 md:p-6 mb-6 md:mb-8 shadow-sm">
-            <!-- Search -->
-            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 mb-5 focus-within:border-gov-400 focus-within:ring-2 focus-within:ring-gov-100 transition-all">
-              <i class="ri-search-line text-slate-400"></i>
-              <input type="text" id="search-input" value="${search}" placeholder="데이터세트명 또는 포함 데이터명 검색" class="flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
-              ${search ? `<button id="clear-search-btn" class="text-slate-400 hover:text-slate-600"><i class="ri-close-line"></i></button>` : ''}
-            </div>
-
-            <!-- Filter groups -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">1. 주제별 (대상)</label>
-                <div class="flex flex-wrap gap-2" id="subject-filters">
-                  ${createFilterButtons(subjectFilters, subject)}
-                </div>
+          <!-- 필터 영역 (식품안전나라 search-form 스타일) -->
+          <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 24px; margin-bottom:24px;">
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+              <!-- 검색어 -->
+              <div style="flex:1; min-width:220px; position:relative;">
+                <input type="text" id="ds-search-input" value="${search}"
+                  placeholder="데이터 세트명 검색"
+                  style="width:100%; height:40px; padding:0 40px 0 14px; border:1px solid #cdd1d8; border-radius:4px; font-size:14px; box-sizing:border-box; outline:none;"
+                  onfocus="this.style.borderColor='#0168c1'" onblur="this.style.borderColor='#cdd1d8'">
+                <i class="ri-search-line" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#999; font-size:16px;"></i>
               </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">2. 업무별 (프로세스)</label>
-                <div class="flex flex-wrap gap-2" id="process-filters">
-                  ${createFilterButtons(processFilters, process)}
-                </div>
+              <!-- 주제별 -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; color:#555; white-space:nowrap; font-weight:600;">주제별</label>
+                <select id="ds-subject-sel" style="height:40px; padding:0 10px; border:1px solid #cdd1d8; border-radius:4px; font-size:13px; min-width:120px;">
+                  ${makeOptions(subjectFilters, subject)}
+                </select>
               </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">3. 이슈별 (관심사)</label>
-                <div class="flex flex-wrap gap-2" id="issue-filters">
-                  ${createFilterButtons(issueFilters, issue)}
-                </div>
+              <!-- 업무별 -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; color:#555; white-space:nowrap; font-weight:600;">업무별</label>
+                <select id="ds-process-sel" style="height:40px; padding:0 10px; border:1px solid #cdd1d8; border-radius:4px; font-size:13px; min-width:120px;">
+                  ${makeOptions(processFilters, process)}
+                </select>
               </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">4. 테마별 (활용목적)</label>
-                <div class="flex flex-wrap gap-2" id="theme-filters">
-                  ${createFilterButtons(themeFilters, theme)}
-                </div>
+              <!-- 이슈별 -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; color:#555; white-space:nowrap; font-weight:600;">이슈별</label>
+                <select id="ds-issue-sel" style="height:40px; padding:0 10px; border:1px solid #cdd1d8; border-radius:4px; font-size:13px; min-width:120px;">
+                  ${makeOptions(issueFilters, issue)}
+                </select>
               </div>
-            </div>
-
-            <!-- Active filter count -->
-            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span class="text-sm text-slate-500">
-                검색 결과 <strong class="text-gov-700">${filtered.length}건</strong> / 전체 ${datasets.length}건
-              </span>
-              ${(subject !== "all" || process !== "all" || issue !== "all" || theme !== "all") ? `
-                <button id="reset-filters-btn" class="text-xs text-gov-600 hover:text-gov-800 font-medium">필터 초기화</button>
-              ` : ''}
+              <!-- 테마별 -->
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; color:#555; white-space:nowrap; font-weight:600;">테마별</label>
+                <select id="ds-theme-sel" style="height:40px; padding:0 10px; border:1px solid #cdd1d8; border-radius:4px; font-size:13px; min-width:120px;">
+                  ${makeOptions(themeFilters, theme)}
+                </select>
+              </div>
+              <!-- 초기화 버튼 -->
+              <button id="ds-reset-btn"
+                style="height:40px; padding:0 18px; background:#68727f; color:#fff; border:none; border-radius:4px; font-size:13px; cursor:pointer; white-space:nowrap;">
+                초기화
+              </button>
             </div>
           </div>
 
-          <!-- Dataset cards grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
-            ${filtered.map(ds => `
-              <div data-id="${ds.id}" class="dataset-card flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-gov-200 transition-all duration-300 cursor-pointer group h-full">
-                <div class="p-5 md:p-6 flex-1">
-                  <!-- Tags -->
-                  <div class="flex items-center gap-2 mb-3 flex-wrap">
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border ${subjectColorMap[ds.subject] || "bg-slate-50 text-slate-600 border-slate-200"}">
-                      ${ds.subject}
-                    </span>
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-slate-50 text-slate-600 border-slate-200">
-                      ${ds.process}
-                    </span>
-                    ${ds.issue !== '해당없음' ? `
-                      <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-rose-50 text-rose-700 border-rose-200">
-                        ${ds.issue}
-                      </span>
-                    ` : ''}
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-600 border border-slate-200">
-                      데이터 ${ds.dataCount}개
-                    </span>
-                  </div>
-                  
-                  <h3 class="text-base md:text-lg font-bold text-slate-900 mb-2 group-hover:text-gov-700 transition-colors">
-                    ${ds.name}
-                  </h3>
-                  <p class="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-2">
-                    ${ds.description}
-                  </p>
-                  
-                  <div class="flex items-center gap-1.5 mb-4 flex-wrap">
-                    <span class="text-xs text-slate-400 font-medium">추천 테마:</span>
-                    <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[11px] font-medium border border-blue-100">${ds.theme}</span>
-                  </div>
-
-                  <div class="border-t border-slate-100 pt-3 mt-auto">
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">주요 컬럼 구성</p>
-                    <ul class="space-y-1">
-                      ${ds.includedData.slice(0, 3).map(item => `
-                        <li class="text-xs text-slate-600 flex items-start gap-1.5">
-                          <i class="ri-checkbox-circle-line text-teal-500 text-[10px] mt-0.5 shrink-0"></i>${item}
-                        </li>
-                      `).join('')}
-                      ${ds.includedData.length > 3 ? `
-                        <li class="text-xs text-slate-400 pl-4">외 ${ds.includedData.length - 3}개 데이터</li>
-                      ` : ''}
-                    </ul>
-                  </div>
-                </div>
-                <div class="px-5 md:px-6 pb-5 md:pb-6 pt-0 flex gap-2 mt-auto">
-                  <button class="flex-1 px-4 py-2.5 rounded-lg bg-gov-600 text-white text-xs font-semibold hover:bg-gov-700 transition-colors whitespace-nowrap">데이터셋 분석하기</button>
-                  <button class="px-4 py-2.5 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:border-gov-300 hover:text-gov-700 transition-colors whitespace-nowrap">스키마 보기</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-
+          <!-- 데이터 세트 카드 목록 -->
           ${filtered.length === 0 ? `
-            <div class="text-center py-16">
-              <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <i class="ri-search-line text-slate-400 text-2xl"></i>
-              </div>
-              <p class="text-slate-500 text-sm">다중 필터 조건에 일치하는 데이터세트가 없습니다.</p>
-              <button id="no-result-reset-btn" class="mt-3 text-sm text-gov-600 font-medium hover:text-gov-800">필터 초기화하기</button>
+            <div style="text-align:center; padding:60px 0; background:#fff; border:1px solid #dde1e7; border-radius:6px;">
+              <i class="ri-search-line" style="font-size:40px; color:#bbb;"></i>
+              <p style="margin-top:12px; color:#888; font-size:14px;">조건에 맞는 데이터 세트가 없습니다.</p>
+              <button id="ds-no-result-reset"
+                style="margin-top:12px; padding:8px 20px; background:#0168c1; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:13px;">
+                필터 초기화
+              </button>
             </div>
-          ` : ''}
+          ` : `
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px;">
+              ${filtered.map(ds => `
+                <div data-id="${ds.id}" class="ds-card"
+                  style="background:#fff; border:1px solid #dde1e7; border-radius:6px; overflow:hidden; cursor:pointer; transition:box-shadow .2s, border-color .2s;"
+                  onmouseover="this.style.boxShadow='0 4px 16px rgba(1,104,193,0.12)'; this.style.borderColor='#0168c1';"
+                  onmouseout="this.style.boxShadow='none'; this.style.borderColor='#dde1e7';">
+                  <!-- 카드 헤더 바 -->
+                  <div style="height:4px; background:#0168c1;"></div>
+                  <div style="padding:16px 18px;">
+                    <!-- 태그 -->
+                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                      <span style="padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; background:#e8f1fb; color:#0168c1; border:1px solid #c2d8f5;">
+                        ${ds.subject}
+                      </span>
+                      <span style="padding:3px 10px; border-radius:20px; font-size:11px; background:#f3f4f6; color:#555; border:1px solid #e2e4e8;">
+                        ${ds.process}
+                      </span>
+                      ${ds.issue !== '해당없음' ? `
+                        <span style="padding:3px 10px; border-radius:20px; font-size:11px; background:#fff3f3; color:#d44; border:1px solid #f5c5c5;">
+                          ${ds.issue}
+                        </span>
+                      ` : ''}
+                      <span style="padding:3px 10px; border-radius:20px; font-size:11px; background:#f3f4f6; color:#555; border:1px solid #e2e4e8;">
+                        데이터 ${ds.dataCount}개
+                      </span>
+                    </div>
+                    <!-- 제목 -->
+                    <h3 style="font-size:15px; font-weight:700; color:#1a1a2e; margin:0 0 6px 0; line-height:1.4;">
+                      ${ds.name}
+                    </h3>
+                    <!-- 설명 -->
+                    <p style="font-size:12px; color:#777; line-height:1.6; margin:0 0 12px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                      ${ds.description}
+                    </p>
+                    <!-- 추천 테마 -->
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:12px;">
+                      <span style="font-size:11px; color:#999;">추천 테마:</span>
+                      <span style="padding:2px 8px; border-radius:3px; background:#eef5ff; color:#0168c1; font-size:11px; font-weight:600; border:1px solid #c2d8f5;">
+                        ${ds.theme}
+                      </span>
+                    </div>
+                    <!-- 구분선 + 주요 컬럼 -->
+                    <div style="border-top:1px solid #f0f0f0; padding-top:10px;">
+                      <p style="font-size:11px; color:#aaa; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin:0 0 6px 0;">주요 컬럼 구성</p>
+                      <ul style="margin:0; padding:0; list-style:none;">
+                        ${ds.includedData.slice(0, 3).map(item => `
+                          <li style="font-size:12px; color:#555; padding:2px 0; display:flex; align-items:flex-start; gap:6px;">
+                            <i class="ri-checkbox-circle-line" style="color:#0168c1; font-size:12px; margin-top:2px; flex-shrink:0;"></i>${item}
+                          </li>
+                        `).join('')}
+                        ${ds.includedData.length > 3 ? `
+                          <li style="font-size:11px; color:#aaa; padding:2px 0 0 18px;">외 ${ds.includedData.length - 3}개 데이터</li>
+                        ` : ''}
+                      </ul>
+                    </div>
+                  </div>
+                  <!-- 카드 하단 버튼 -->
+                  <div style="padding:10px 18px 14px; display:flex; gap:8px; border-top:1px solid #f0f0f0;">
+                    <button class="ds-analyze-btn"
+                      style="flex:1; padding:8px 0; background:#0168c1; color:#fff; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer;">
+                      데이터 세트 분석하기
+                    </button>
+                    <button class="ds-schema-btn"
+                      style="padding:8px 14px; background:#fff; color:#555; border:1px solid #cdd1d8; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer;">
+                      스키마 보기
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
         </div>
       </section>
     `;
@@ -174,76 +188,40 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   };
 
   const bindEvents = () => {
-    const searchInput = container.querySelector('#search-input');
+    const searchInput = container.querySelector('#ds-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         search = e.target.value;
         render();
-        const newSearchInput = container.querySelector('#search-input');
-        if (newSearchInput) {
-          newSearchInput.focus();
-          const val = newSearchInput.value;
-          newSearchInput.value = '';
-          newSearchInput.value = val;
-        }
+        const el = container.querySelector('#ds-search-input');
+        if (el) { el.focus(); const v = el.value; el.value = ''; el.value = v; }
       });
     }
 
-    const clearSearchBtn = container.querySelector('#clear-search-btn');
-    if (clearSearchBtn) {
-      clearSearchBtn.addEventListener('click', () => {
-        search = "";
-        render();
-      });
-    }
-
-    const bindFilters = (id, setter) => {
-      const wrapper = container.querySelector(id);
-      if (wrapper) {
-        wrapper.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            setter(e.currentTarget.dataset.value);
-            render();
-          });
-        });
-      }
+    const bind = (id, setter) => {
+      const el = container.querySelector(id);
+      if (el) el.addEventListener('change', (e) => { setter(e.target.value); render(); });
     };
+    bind('#ds-subject-sel', v => subject = v);
+    bind('#ds-process-sel', v => process = v);
+    bind('#ds-issue-sel',   v => issue = v);
+    bind('#ds-theme-sel',   v => theme = v);
 
-    bindFilters('#subject-filters', (v) => subject = v);
-    bindFilters('#process-filters', (v) => process = v);
-    bindFilters('#issue-filters', (v) => issue = v);
-    bindFilters('#theme-filters', (v) => theme = v);
+    const resetAll = () => { search = ""; subject = "all"; process = "all"; issue = "all"; theme = "all"; render(); };
+    const resetBtn = container.querySelector('#ds-reset-btn');
+    if (resetBtn) resetBtn.addEventListener('click', resetAll);
+    const noResultReset = container.querySelector('#ds-no-result-reset');
+    if (noResultReset) noResultReset.addEventListener('click', resetAll);
 
-    const resetFiltersBtn = container.querySelector('#reset-filters-btn');
-    if (resetFiltersBtn) {
-      resetFiltersBtn.addEventListener('click', () => {
-        subject = "all";
-        process = "all";
-        issue = "all";
-        theme = "all";
-        render();
-      });
-    }
-
-    const noResultResetBtn = container.querySelector('#no-result-reset-btn');
-    if (noResultResetBtn) {
-      noResultResetBtn.addEventListener('click', () => {
-        search = "";
-        subject = "all";
-        process = "all";
-        issue = "all";
-        theme = "all";
-        render();
-      });
-    }
-
-    container.querySelectorAll('.dataset-card').forEach(card => {
+    container.querySelectorAll('.ds-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        const id = e.currentTarget.dataset.id;
-        const ds = datasets.find(d => d.id === id);
-        if (ds && onSelectDataset) {
-          onSelectDataset(ds);
-        }
+        if (e.target.closest('.ds-analyze-btn') || e.target.closest('.ds-schema-btn')) return;
+        const ds = datasets.find(d => d.id === card.dataset.id);
+        if (ds && onSelectDataset) onSelectDataset(ds);
+      });
+      card.querySelector('.ds-analyze-btn')?.addEventListener('click', () => {
+        const ds = datasets.find(d => d.id === card.dataset.id);
+        if (ds && onSelectDataset) onSelectDataset(ds);
       });
     });
   };

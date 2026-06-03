@@ -12,9 +12,11 @@
     <script>
       // 기존 페이지들과의 스타일 충돌 방지: index.html 등 기존 페이지에서는 Tailwind Preflight(스타일 초기화)를 꺼줍니다.
       const isTailwindPage = window.location.pathname.includes('datamap.html') || window.location.pathname.includes('analysis.html') || window.location.pathname.includes('ebook.html');
+      // search 페이지는 기존 CSS(common/layout/sub/search.css) 사용 → preflight OFF
+      const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('search.html');
       tailwind.config = {
         corePlugins: {
-          preflight: isTailwindPage
+          preflight: isTailwindPage && !isLegacyPage
         },
         theme: {
           extend: {
@@ -58,6 +60,7 @@
     <link type="text/css" href="/public/assets/layout.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/sub.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/main.css" rel="stylesheet">
+    <link type="text/css" href="/public/assets/search.css" rel="stylesheet">
     <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" rel="stylesheet">
     <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" rel="stylesheet">
 

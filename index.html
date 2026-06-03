@@ -1093,22 +1093,21 @@
 
                 // 한눈에 보기
                 $(".tm_view").click(function () {
-                $("#menu_no").val(menu_no);
-                $("#menu_grp").val(menu_grp);
+                    $("#menu_no").val(menu_no);
+                    $("#menu_grp").val(menu_grp);
+                    document.baseForm.action = "/api/datasetList.do";
+                    document.baseForm.target = "_self";
+                    document.baseForm.method = "post";
+                    document.baseForm.submit();
+                });
 
-                document.baseForm.action = "/api/datasetList.do";
-                document.baseForm.target = "_self";
-                document.baseForm.method = "post";
-                document.baseForm.submit();
-            }
+            }); // $(document).ready end
 
             // 분류별데이터 서비스 이동
             function moveToDatasetClcdList(cl_cd, menu_no, menu_grp) {
-
                 $("#cl_cd").val(cl_cd);
                 $("#menu_no").val(menu_no);
                 $("#menu_grp").val(menu_grp);
-
                 document.baseForm.action = "/api/datasetList.do";
                 document.baseForm.target = "_self";
                 document.baseForm.method = "post";
@@ -1117,15 +1116,14 @@
 
             // 데이터통합검색
             function datasetAllSearch(menu_no, menu_grp) {
-
-                if ($("#search_keyword").val() == "") {
+                var input = document.getElementById("search_keyword");
+                var keyword = input ? input.value.trim() : "";
+                if (!keyword) {
                     alert("검색어를 입력해주세요.");
-                    $("#search_keyword").focus();
+                    if (input) input.focus();
                     return;
                 }
-
-                var keyword = encodeURIComponent($("#search_keyword").val());
-                location.href = "search.html?search_keyword=" + keyword;
+                location.href = "/api/datasetAllSearch.do?search_keyword=" + encodeURIComponent(keyword);
             }
 
             //게시글페이지(공지사항)

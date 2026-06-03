@@ -5,6 +5,28 @@ const fs = require('fs');
 
 const REAL_API_KEY = '77183c01c07d44798948';
 
+// HTML 파일에 head/header/search include를 주입하는 공통 함수
+function applyIncludes(html, vars = {}) {
+    const includesDir = path.join(__dirname, 'public/includes');
+    const replacements = [
+        { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
+        { placeholder: '<!-- INCLUDE_HEAD_SEARCH -->', file: 'head_search.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
+        { placeholder: '<!-- INCLUDE_HEADER -->', file: 'header.html', transform: c => c },
+        { placeholder: '<!-- INCLUDE_SEARCH -->', file: 'search.html', transform: c => c },
+    ];
+    for (const { placeholder, file, transform } of replacements) {
+        if (html.includes(placeholder)) {
+            const filePath = path.join(includesDir, file);
+            if (fs.existsSync(filePath)) {
+                html = html.replace(placeholder, transform(fs.readFileSync(filePath, 'utf8')));
+            }
+        }
+    }
+    // 템플릿 변수 치환 (미지정 변수는 빈 문자열로)
+    html = html.replace(/\[\[KEYWORD\]\]/g, vars.keyword || '');
+    return html;
+}
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 const DB_PATH = path.join(__dirname, 'db', 'foodsafety.db');
@@ -175,114 +197,70 @@ app.post('/api/query', (req, res) => {
 
 // 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
 app.post('/api/datasetAllSearch.do', (req, res) => {
-    let keyword = req.body.search_keyword || '';
-    let html = fs.readFileSync(path.join(__dirname, 'search.html'), 'utf8');
-    html = html.replace(/\[\[KEYWORD\]\]/g, keyword);
-    
-    // <!-- INCLUDE_HEAD --> 치환
-    if (html.includes('<!-- INCLUDE_HEAD -->')) {
-        let headPath = path.join(__dirname, 'public/includes/head.html');
-        if (fs.existsSync(headPath)) {
-            let headContent = fs.readFileSync(headPath, 'utf8');
-            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
-            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
-        }
-    }
-    
-    // <!-- INCLUDE_HEADER --> 치환
-    if (html.includes('<!-- INCLUDE_HEADER -->')) {
-        let headerPath = path.join(__dirname, 'public/includes/header.html');
-        if (fs.existsSync(headerPath)) {
-            let headerContent = fs.readFileSync(headerPath, 'utf8');
-            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
-        }
-    }
-    
-    res.send(html);
+    const keyword = req.body.search_keyword || '';
+    const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
+    res.send(applyIncludes(html, { keyword }));
 });
 
 app.get('/api/datasetAllSearch.do', (req, res) => {
-    let keyword = req.query.search_keyword || '';
-    let html = fs.readFileSync(path.join(__dirname, 'search.html'), 'utf8');
-    html = html.replace(/\[\[KEYWORD\]\]/g, keyword);
-    
-    // <!-- INCLUDE_HEAD --> 치환
-    if (html.includes('<!-- INCLUDE_HEAD -->')) {
-        let headPath = path.join(__dirname, 'public/includes/head.html');
-        if (fs.existsSync(headPath)) {
-            let headContent = fs.readFileSync(headPath, 'utf8');
-            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
-            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
-        }
-    }
-    
-    // <!-- INCLUDE_HEADER --> 치환
-    if (html.includes('<!-- INCLUDE_HEADER -->')) {
-        let headerPath = path.join(__dirname, 'public/includes/header.html');
-        if (fs.existsSync(headerPath)) {
-            let headerContent = fs.readFileSync(headerPath, 'utf8');
-            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
-        }
-    }
-    
-    res.send(html);
+    const keyword = req.query.search_keyword || '';
+    const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
+    res.send(applyIncludes(html, { keyword }));
 });
 
-// 4.2 통합 데이터 검색 결과 API (searchDatasetList.do) - SQLite view 기반 동적 생성
+// 4.2a 카테고리 목록 API
+app.get('/api/categoryList.do', (req, res) => {
+    db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
+    });
+});
+
+// 4.2 통합 데이터 검색 결과 API (searchDatasetList.do)
 app.post('/api/searchDatasetList.do', (req, res) => {
-    let keyword = req.body.search_keyword || '';
-    
-    // api_tables에서 메타데이터 추출 (분류 카테고리 포함)
-    let query = `SELECT svc_no, svc_nm, cat FROM api_tables`;
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        
+    const keyword  = (req.body.search_keyword || '').trim();
+    const catFilter = (req.body.search_clCdCode || '').trim();  // 카테고리 한글명
+
+    db.all(`SELECT svc_no, svc_nm, cat, description FROM api_tables`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+
         let list = [];
         let index = 1;
-        
-        rows.forEach(row => {
-            let svc_no = row.svc_no;
-            let svc_nm = row.svc_nm;
-            let cat = row.cat || "공공데이터";
-            
-            // 검색 키워드 필터링 (키워드가 비어있거나 매칭되면 포함)
-            if(!keyword || svc_nm.includes(keyword) || svc_no.includes(keyword) || cat.includes(keyword)) {
-                
-                let isLink = "N";
-                let isOpenApi = "Y";
-                
-                // 특수 케이스: 식품영양성분 DB정보는 Link(L) 유형으로 설정
-                // 또는 원래 이름 '식품영양성분_DB정보' 등 다양한 포맷 지원
-                if(svc_nm.includes('식품영양성분 DB정보') || svc_nm === 'v_1471000_식품영양성분_DB정보') {
-                    isLink = "Y";
-                    isOpenApi = "N";
-                }
 
-                list.push({
-                    no: index++,
-                    cl_cd_nm: cat,
-                    svc_no: svc_no,
-                    svc_nm: svc_nm,
-                    provd_instt_nm: "식품의약품안전처",
-                    link_yn: isLink,
-                    file_yn: "N",
-                    openapi_yn: isOpenApi
-                });
-            }
+        rows.forEach(row => {
+            const svc_no = row.svc_no || '';
+            const svc_nm = row.svc_nm || '';
+            const cat    = row.cat || '공공데이터';
+            const desc   = row.description || '';
+
+            // 카테고리 필터
+            if (catFilter && cat !== catFilter) return;
+
+            // 키워드 필터 (서비스번호, 서비스명, 카테고리, 설명)
+            if (keyword && !svc_nm.includes(keyword) && !svc_no.includes(keyword) && !cat.includes(keyword) && !desc.includes(keyword)) return;
+
+            const isLink = (svc_nm.includes('식품영양성분 DB정보')) ? 'Y' : 'N';
+            const isOpenApi = isLink === 'Y' ? 'N' : 'Y';
+
+            list.push({
+                no: index++,
+                cl_cd_nm: cat,
+                svc_no,
+                svc_nm,
+                provd_instt_nm: '식품의약품안전처',
+                link_yn: isLink,
+                file_yn: 'N',
+                openapi_yn: isOpenApi
+            });
         });
-        
-        // Paging 처리
-        let start_idx = parseInt(req.body.start_idx) || 1;
-        let show_cnt = parseInt(req.body.show_cnt) || 10;
-        let startIndex = (start_idx - 1) * show_cnt;
-        let endIndex = startIndex + show_cnt;
-        let pagedList = list.slice(startIndex, endIndex);
-        
+
+        const start_idx = parseInt(req.body.start_idx) || 1;
+        const show_cnt  = parseInt(req.body.show_cnt)  || 10;
+        const startIndex = (start_idx - 1) * show_cnt;
+
         res.json({
             total_cnt: list.length,
-            list: pagedList
+            list: list.slice(startIndex, startIndex + show_cnt)
         });
     });
 });
@@ -1121,47 +1099,28 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
   }
 });
 
-// 건강기능식품 특화 ERD 데이터맵 API
-app.get('/api/bulk-ecosystem-health', (req, res) => {
-  try {
+    }
+
     const nodes = [
-      { id: 'I0030', label: 'I0030\\n건강기능식품 품목제조신고\\n[PK] PRDLST_REPORT_NO\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} },
-      { id: 'I0040', label: 'I0040\\n건강기능식품 개별 인정형\\n[PK] CRTFC_NO\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#e9d5ff', font: {size: 14, bold: true} },
-      { id: 'I0730', label: 'I0730\\n건강기능식품 영양DB\\n[PK] NUTR_NO\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#d1fae5', font: {size: 14, bold: true} },
-      { id: 'I2790', label: 'I2790\\n기능성 원료인정현황\\n[PK] RAW_MAT_NO\\n[FK] CRTFC_NO', shape: 'database', size: 50, color: '#fef3c7', font: {size: 14, bold: true} }
+      { id: 'I0030',  label: 'I0030\n건강기능식품 품목제조신고\n[PK] PRDLST_REPORT_NO\n[FK] LCNS_NO',             shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} },
+      { id: 'I-0040', label: 'I-0040\n기능성 원료 인정현황\n[PK] HF_FNCLTY_MTRAL_RCOGN_NO\n원료명 LIKE 조인',    shape: 'database', size: 45, color: '#e9d5ff', font: {size: 14, bold: true} },
+      { id: 'I0630',  label: 'I0630\n건강기능식품 GMP 지정\n[FK] LCNS_NO',                                        shape: 'database', size: 40, color: '#d1fae5', font: {size: 14, bold: true} },
+      { id: 'I-0050', label: 'I-0050\n개별인정형 정보\n[FK] HF_FNCLTY_MTRAL_RCOGN_NO',                           shape: 'database', size: 35, color: '#fef3c7', font: {size: 14, bold: true} }
     ];
 
     const edges = [
-      { from: 'I0030', to: 'I0040', label: 'PRDLST_REPORT_NO\\n(매칭: 3,245건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' },
-      { from: 'I0030', to: 'I0730', label: 'PRDLST_REPORT_NO\\n(매칭: 5,890건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' },
-      { from: 'I0040', to: 'I2790', label: 'CRTFC_NO\\n(매칭: 1,340건)', font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' }
+      { from: 'I0030',  to: 'I-0040', label: 'RAWMTRL_NM LIKE\n(매칭: 2,648건)', font: {align: 'horizontal', size: 13, color: '#475569'}, width: 3, color: '#94a3b8' },
+      { from: 'I0030',  to: 'I0630',  label: 'LCNS_NO\n(매칭: 994건)',            font: {align: 'horizontal', size: 13, color: '#475569'}, width: 2, color: '#94a3b8' },
+      { from: 'I-0040', to: 'I-0050', label: 'HF_FNCLTY_MTRAL_RCOGN_NO\n(매칭: 1건)', font: {align: 'horizontal', size: 13, color: '#475569'}, width: 1, color: '#94a3b8' }
     ];
 
-    const sample_joined_data = [];
-    for(let i = 1; i <= 100; i++) {
-        sample_joined_data.push({
-            '[I0030] 품목제조보고번호': '2015001' + String(i).padStart(3, '0'),
-            '[I0030] 제품명': '프리미엄 건강 홍삼 골드 ' + i,
-            '[I0030] 주원료명': '홍삼농축액(6년근)',
-            '[I0040] 인정번호': '제2015-' + i + '호',
-            '[I0040] 주된기능성': '면역력 증진, 피로개선에 도움을 줄 수 있음',
-            '[I0730] 영양성분명': '진세노사이드 Rg1, Rb1 및 Rg3의 합',
-            '[I0730] 단위/함량': (Math.random() * 10 + 5).toFixed(1) + ' mg/g',
-            '[I2790] 원료명': '홍삼농축분말',
-            '[I2790] 원료기능성': '혈소판 응집 억제를 통한 혈액흐름에 도움'
-        });
-    }
-
     res.json({
-       stats: { total: 100 },
-       nodes, 
-       edges, 
-       sample_joined_data
+      stats: { total: rows.length },
+      nodes,
+      edges,
+      sample_joined_data: rows
     });
-  } catch (err) {
-    console.error('Health ecosystem error:', err);
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
@@ -1334,27 +1293,7 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
         return next();
     }
     
-    let html = fs.readFileSync(filePath, 'utf8');
-    
-    // <!-- INCLUDE_HEAD --> 치환
-    if (html.includes('<!-- INCLUDE_HEAD -->')) {
-        let headPath = path.join(__dirname, 'public/includes/head.html');
-        if (fs.existsSync(headPath)) {
-            let headContent = fs.readFileSync(headPath, 'utf8');
-            headContent = headContent.replace(/<head>/i, '').replace(/<\/head>/i, '');
-            html = html.replace('<!-- INCLUDE_HEAD -->', headContent);
-        }
-    }
-    
-    // <!-- INCLUDE_HEADER --> 치환
-    if (html.includes('<!-- INCLUDE_HEADER -->')) {
-        let headerPath = path.join(__dirname, 'public/includes/header.html');
-        if (fs.existsSync(headerPath)) {
-            let headerContent = fs.readFileSync(headerPath, 'utf8');
-            html = html.replace('<!-- INCLUDE_HEADER -->', headerContent);
-        }
-    }
-    
+    let html = applyIncludes(fs.readFileSync(filePath, 'utf8'));
     res.send(html);
 });
 

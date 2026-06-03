@@ -10,7 +10,6 @@ import { renderApiLiveJoin } from './components/apiLiveJoin.js';
 import { renderLocalHygiene } from './components/localHygiene.js';
 import { renderBarcodeSearch } from './components/barcodeSearch.js';
 import { renderSuperErdMap } from './components/superErdMap.js';
-import { renderHealthErdMap } from './components/healthErdMap.js';
 import { renderSauceDataMap } from './components/sauceDataMap.js';
 import { renderNongshimDataset } from './components/nongshimDataset.js';
 
@@ -21,7 +20,7 @@ if (window.location.pathname.includes('datamap.html') && !urlParams.has('tab')) 
   activeTab = 'datamap';
 }
 if (window.location.pathname.includes('analysis.html') && !urlParams.has('tab')) {
-  activeTab = 'health-erdmap';
+  activeTab = 'api-explorer';
 }
 let initialSearchKeyword = '소스';
 let selectedDataset = null;
@@ -53,11 +52,6 @@ const renderTabContent = () => {
     renderErdMap(tabContent, onSelectDataset);
   } else if (activeTab === 'super-erdmap') {
     renderSuperErdMap(tabContent, onSelectDataset);
-  } else if (activeTab === 'health-erdmap') {
-    const healthContainer = document.createElement('div');
-    healthContainer.id = 'health-erd-container';
-    tabContent.appendChild(healthContainer);
-    renderHealthErdMap('health-erd-container');
   } else if (activeTab === 'sql-playground') {
     renderSqlPlayground(tabContent, onSelectDataset);
   } else if (activeTab === 'api-explorer') {
@@ -85,7 +79,6 @@ const updateActiveTabUI = () => {
       activeTab === 'keyword-datamap' ||
       activeTab === 'erdmap' ||
       activeTab === 'erd-inquiry' ||
-      activeTab === 'health-erdmap' ||
       activeTab === 'sql-playground' ||
       activeTab === 'api-explorer' ||
       activeTab === 'api-live-join' ||
@@ -109,33 +102,7 @@ const updateActiveTabUI = () => {
 
     if (btn.classList.contains('tab-pill')) {
       if (tabId === activeTab) {
-        if (tabId === 'health-erdmap') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-rose-600 text-white shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-live-join') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-emerald-600 text-white shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-hygiene') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-blue-600 text-white shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-barcode') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-indigo-600 text-white shadow-sm flex items-center gap-1";
-        } else if (tabId === 'nongshim-spec') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all bg-teal-700 text-white shadow-sm flex items-center gap-1";
-        } else {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all bg-gov-600 text-white shadow-sm flex items-center gap-1";
-        }
       } else {
-        if (tabId === 'health-erdmap') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-live-join') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-emerald-600 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-hygiene') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 shadow-sm flex items-center gap-1";
-        } else if (tabId === 'api-barcode') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm flex items-center gap-1";
-        } else if (tabId === 'nongshim-spec') {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all text-teal-700 bg-teal-50 border border-teal-300 hover:bg-teal-100 shadow-sm flex items-center gap-1";
-        } else {
-          btn.className = "tab-pill px-4 md:px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-slate-600 hover:text-gov-700 hover:bg-slate-50 flex items-center gap-1";
-        }
       }
     } else {
       if (tabId === activeTab) {

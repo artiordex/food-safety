@@ -305,14 +305,16 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
 
     container.innerHTML = `
-      <section class="py-10 md:py-14 px-4 md:px-8">
-        <div class="max-w-[1400px] mx-auto">
-          <!-- Section title -->
-          <div class="mb-8 md:mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section style="padding:40px 0; background:#f8f9fb;">
+        <div style="max-width:1220px; margin:0 auto; padding:0 20px;">
+
+          <!-- 섹션 헤더 -->
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #0168c1;">
             <div>
-              <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">실시간 데이터베이스 분석</h2>
-            </div>
-              </div>
+              <h2 style="font-size:22px; font-weight:700; color:#1a1a2e; margin:0 0 4px 0; font-family:'Nanum Square',sans-serif;">
+                <span style="color:#0168c1;">■</span> 데이터베이스 분석
+              </h2>
+              <p style="font-size:13px; color:#666; margin:0;">로컬 SQLite DB 테이블을 탐색하고 SQL 쿼리를 직접 실행하세요.</p>
             </div>
           </div>
 
@@ -396,7 +398,8 @@ export function renderSqlPlayground(container, onSelectDataset) {
               ${queryResultHTML}
             </div>
           </div>
-        </div>
+
+        </div><!-- max-width container -->
       </section>
     `;
 

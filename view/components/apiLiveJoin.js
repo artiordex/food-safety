@@ -8,16 +8,17 @@ export function renderApiLiveJoin(container, onSelectDataset) {
 
   const render = () => {
     container.innerHTML = `
-      <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
-        
-        <!-- Header -->
-        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section style="padding:40px 0; background:#f8f9fb;">
+        <div style="max-width:1220px; margin:0 auto; padding:0 20px;">
+
+        <!-- 섹션 헤더 -->
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #0168c1;">
           <div>
-            <h2 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <i class="ri-flashlight-fill text-emerald-500"></i> OpenAPI 실시간 전체 데이터 조인
+            <h2 style="font-size:22px; font-weight:700; color:#1a1a2e; margin:0 0 4px 0; font-family:'Nanum Square',sans-serif;">
+              <span style="color:#0168c1;">■</span> 실시간 DB 분석
             </h2>
-            <p class="text-xs text-slate-500 mt-1.5">
-              식약처 공식 OpenAPI 서버에서 두 테이블의 <b>전체 데이터</b>를 병렬 크롤링하여, 메모리 상에서 실시간으로 결합(Inner Join)합니다.
+            <p style="font-size:13px; color:#666; margin:0;">
+              식약처 공식 OpenAPI 서버에서 두 테이블의 전체 데이터를 병렬 크롤링하여 메모리 상에서 실시간으로 결합(Inner Join)합니다.
             </p>
           </div>
         </div>
@@ -94,6 +95,7 @@ export function renderApiLiveJoin(container, onSelectDataset) {
           </div>
         </div>
 
+        </div><!-- max-width container -->
       </section>
     `;
 
