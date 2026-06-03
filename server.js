@@ -1099,29 +1099,6 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
   }
 });
 
-    }
-
-    const nodes = [
-      { id: 'I0030',  label: 'I0030\n건강기능식품 품목제조신고\n[PK] PRDLST_REPORT_NO\n[FK] LCNS_NO',             shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} },
-      { id: 'I-0040', label: 'I-0040\n기능성 원료 인정현황\n[PK] HF_FNCLTY_MTRAL_RCOGN_NO\n원료명 LIKE 조인',    shape: 'database', size: 45, color: '#e9d5ff', font: {size: 14, bold: true} },
-      { id: 'I0630',  label: 'I0630\n건강기능식품 GMP 지정\n[FK] LCNS_NO',                                        shape: 'database', size: 40, color: '#d1fae5', font: {size: 14, bold: true} },
-      { id: 'I-0050', label: 'I-0050\n개별인정형 정보\n[FK] HF_FNCLTY_MTRAL_RCOGN_NO',                           shape: 'database', size: 35, color: '#fef3c7', font: {size: 14, bold: true} }
-    ];
-
-    const edges = [
-      { from: 'I0030',  to: 'I-0040', label: 'RAWMTRL_NM LIKE\n(매칭: 2,648건)', font: {align: 'horizontal', size: 13, color: '#475569'}, width: 3, color: '#94a3b8' },
-      { from: 'I0030',  to: 'I0630',  label: 'LCNS_NO\n(매칭: 994건)',            font: {align: 'horizontal', size: 13, color: '#475569'}, width: 2, color: '#94a3b8' },
-      { from: 'I-0040', to: 'I-0050', label: 'HF_FNCLTY_MTRAL_RCOGN_NO\n(매칭: 1건)', font: {align: 'horizontal', size: 13, color: '#475569'}, width: 1, color: '#94a3b8' }
-    ];
-
-    res.json({
-      stats: { total: rows.length },
-      nodes,
-      edges,
-      sample_joined_data: rows
-    });
-  });
-});
 
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
 app.get('/api/keyword-datamap', async (req, res) => {
