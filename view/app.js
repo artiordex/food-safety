@@ -102,7 +102,21 @@ const updateActiveTabUI = () => {
 
     if (btn.classList.contains('tab-pill')) {
       if (tabId === activeTab) {
+        if (tabId === 'recommend-beginner' || tabId === 'recommend-developer') {
+          btn.classList.add('border-gov-600', 'text-gov-700', 'font-bold');
+          btn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+        } else {
+          btn.classList.add('bg-gov-50', 'text-gov-700');
+          btn.classList.remove('text-slate-600', 'hover:bg-slate-50');
+        }
       } else {
+        if (tabId === 'recommend-beginner' || tabId === 'recommend-developer') {
+          btn.classList.remove('border-gov-600', 'text-gov-700', 'font-bold');
+          btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+        } else {
+          btn.classList.remove('bg-gov-50', 'text-gov-700');
+          btn.classList.add('text-slate-600', 'hover:bg-slate-50');
+        }
       }
     } else {
       if (tabId === activeTab) {

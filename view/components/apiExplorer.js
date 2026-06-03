@@ -162,6 +162,123 @@ export function renderApiExplorer(container, onSelectDataset) {
       <section style="padding:40px 0; background:#f8f9fb;">
         <div style="max-width:1220px; margin:0 auto; padding:0 20px;">
 
+          <!-- 추천 데이터셋 카드 섹션 -->
+          <div style="margin-bottom: 40px;">
+            <h2 style="font-size:18px; font-weight:700; color:#1a1a2e; margin-bottom:16px;">
+              <i class="ri-star-fill" style="color:#0168c1; margin-right:4px;"></i> 추천 데이터셋
+            </h2>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;">
+              
+              <!-- 카드 1 -->
+              <div style="background:#fff; border:1px solid #dde1e7; border-radius:8px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <i class="ri-alert-fill" style="font-size:28px; color:#e74c3c; margin-bottom:12px; display:block;"></i>
+                  <h3 style="font-size:15px; font-weight:700; color:#333; margin:0 0 8px 0;">회수·판매중지 정보</h3>
+                  <p style="font-size:12px; color:#666; line-height:1.5; margin:0 0 16px 0;">위해식품 및 회수 대상 식품에 대한 실시간 정보 제공</p>
+                </div>
+                <a href="#" style="font-size:12px; color:#0168c1; font-weight:700; text-decoration:none;">자세히 보기 &rarr;</a>
+              </div>
+
+              <!-- 카드 2 -->
+              <div style="background:#fff; border:1px solid #dde1e7; border-radius:8px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <i class="ri-leaf-fill" style="font-size:28px; color:#27ae60; margin-bottom:12px; display:block;"></i>
+                  <h3 style="font-size:15px; font-weight:700; color:#333; margin:0 0 8px 0;">알레르기·영양성분</h3>
+                  <p style="font-size:12px; color:#666; line-height:1.5; margin:0 0 16px 0;">가공식품 및 조리식품의 알레르기 유발 물질 데이터</p>
+                </div>
+                <a href="#" style="font-size:12px; color:#0168c1; font-weight:700; text-decoration:none;">자세히 보기 &rarr;</a>
+              </div>
+
+              <!-- 카드 3 -->
+              <div style="background:#fff; border:1px solid #dde1e7; border-radius:8px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <i class="ri-store-2-fill" style="font-size:28px; color:#f39c12; margin-bottom:12px; display:block;"></i>
+                  <h3 style="font-size:15px; font-weight:700; color:#333; margin:0 0 8px 0;">식품업체 정보</h3>
+                  <p style="font-size:12px; color:#666; line-height:1.5; margin:0 0 16px 0;">전국 식품 제조 및 판매 업소의 인허가 기본 정보</p>
+                </div>
+                <a href="#" style="font-size:12px; color:#0168c1; font-weight:700; text-decoration:none;">자세히 보기 &rarr;</a>
+              </div>
+
+              <!-- 카드 4 -->
+              <div style="background:#fff; border:1px solid #dde1e7; border-radius:8px; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <i class="ri-test-tube-fill" style="font-size:28px; color:#8e44ad; margin-bottom:12px; display:block;"></i>
+                  <h3 style="font-size:15px; font-weight:700; color:#333; margin:0 0 8px 0;">검사결과 정보</h3>
+                  <p style="font-size:12px; color:#666; line-height:1.5; margin:0 0 16px 0;">국내외 유통 식품에 대한 수거 및 검사 결과 확인</p>
+                </div>
+                <a href="#" style="font-size:12px; color:#0168c1; font-weight:700; text-decoration:none;">자세히 보기 &rarr;</a>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 서비스 아이콘 메뉴 -->
+          <div style="margin-bottom: 40px; display:grid; grid-template-columns: repeat(5, 1fr); gap:12px;">
+            <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 10px; text-align:center; cursor:pointer;">
+              <i class="ri-book-read-line" style="font-size:26px; color:#0168c1; margin-bottom:10px; display:block;"></i>
+              <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 4px 0;">활용 가이드 (e-book)</h4>
+              <p style="font-size:11px; color:#777; margin:0;">데이터 활용 안내서</p>
+            </div>
+            <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 10px; text-align:center; cursor:pointer;">
+              <i class="ri-braces-line" style="font-size:26px; color:#0168c1; margin-bottom:10px; display:block;"></i>
+              <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 4px 0;">API 활용 가이드</h4>
+              <p style="font-size:11px; color:#777; margin:0;">Open API 연동 방법</p>
+            </div>
+            <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 10px; text-align:center; cursor:pointer;">
+              <i class="ri-lightbulb-line" style="font-size:26px; color:#0168c1; margin-bottom:10px; display:block;"></i>
+              <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 4px 0;">활용 사례</h4>
+              <p style="font-size:11px; color:#777; margin:0;">우수 활용 사례 모음</p>
+            </div>
+            <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 10px; text-align:center; cursor:pointer;">
+              <i class="ri-download-cloud-2-line" style="font-size:26px; color:#0168c1; margin-bottom:10px; display:block;"></i>
+              <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 4px 0;">다운로드 센터</h4>
+              <p style="font-size:11px; color:#777; margin:0;">공통 코드 및 양식</p>
+            </div>
+            <div style="background:#fff; border:1px solid #dde1e7; border-radius:6px; padding:20px 10px; text-align:center; cursor:pointer;">
+              <i class="ri-question-answer-line" style="font-size:26px; color:#0168c1; margin-bottom:10px; display:block;"></i>
+              <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 4px 0;">FAQ / 문의</h4>
+              <p style="font-size:11px; color:#777; margin:0;">자주 묻는 질문 및 지원</p>
+            </div>
+          </div>
+
+          <!-- 이용 절차 -->
+          <div style="margin-bottom: 50px;">
+            <div style="display:flex; align-items:center; margin-bottom:30px;">
+              <h2 style="font-size:18px; font-weight:700; color:#1a1a2e; margin:0; white-space:nowrap; padding-right:16px;">데이터 이용 절차</h2>
+              <div style="flex:1; height:1px; background:#dde1e7;"></div>
+            </div>
+            
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; position:relative; padding:0 20px;">
+              <!-- Connecting Line Background -->
+              <div style="position:absolute; top:30px; left:60px; right:60px; height:2px; background:#e2e8f0; z-index:0;"></div>
+              
+              <!-- 단계별 렌더링 -->
+              ${['데이터 검색', '데이터 다운로드', '데이터 활용', '결과 적용', '성과 공유'].map((title, i) => {
+                const icons = ['ri-search-eye-line', 'ri-download-2-line', 'ri-pie-chart-line', 'ri-settings-4-line', 'ri-share-line'];
+                const descs = [
+                  '원하는 데이터를<br>검색합니다.',
+                  'API/CSV 형식으로<br>다운로드합니다.',
+                  '제공된 데이터를<br>분석·가공합니다.',
+                  '앱/웹 서비스에<br>결과를 적용합니다.',
+                  '우수 활용 사례로<br>성과를 공유합니다.'
+                ];
+                return `
+                <div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; text-align:center; flex:1;">
+                  <div style="width:60px; height:60px; background:#fff; border:2px solid #0168c1; border-radius:50%; margin:0 auto 12px auto; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.05); position:relative;">
+                    <i class="${icons[i]}" style="font-size:24px; color:#0168c1;"></i>
+                    <div style="position:absolute; top:-4px; right:-4px; width:20px; height:20px; background:#0168c1; color:#fff; font-size:10px; font-weight:bold; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff;">
+                      ${i + 1}
+                    </div>
+                  </div>
+                  <h4 style="font-size:14px; font-weight:700; color:#333; margin:0 0 6px 0;">${title}</h4>
+                  <p style="font-size:11px; color:#666; line-height:1.4; margin:0;">${descs[i]}</p>
+                </div>
+                ${i < 4 ? `<div style="z-index:1; margin-top:20px; color:#94a3b8; font-size:20px;"><i class="ri-arrow-right-s-line"></i></div>` : ''}
+                `;
+              }).join('')}
+            </div>
+          </div>
+
           <!-- 섹션 헤더 -->
           <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #0168c1;">
             <h2 style="font-size:22px; font-weight:700; color:#1a1a2e; margin:0 0 4px 0; font-family:'Nanum Square',sans-serif;">
