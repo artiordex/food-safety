@@ -19,18 +19,19 @@
     </style>
 </head>
 <body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
+    <div id="wrap" class="flex flex-col h-screen overflow-hidden">
+        <!-- INCLUDE_HEADER -->
 
-    <!-- INCLUDE_HEADER -->
+        <div id="container" class="flex-1 overflow-hidden relative flex flex-col">
+            <!-- Ebook Tabs (Sub-Navigation) -->
+            <div class="bg-white border-b border-gray-200 shrink-0 px-6 flex justify-center space-x-8">
+                <button onclick="switchTab('tab0')" id="btn-tab0" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">기존안 (공식 원본)</button>
+                <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">1안: 카카오 디벨로퍼스형 (일반인용)</button>
+                <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none active">2안: 카카오 디벨로퍼스형 (개발자용)</button>
+            </div>
 
-    <!-- Ebook Tabs (Sub-Navigation) -->
-    <div class="bg-white border-b border-gray-200 shrink-0 px-6 flex justify-center space-x-8">
-        <button onclick="switchTab('tab0')" id="btn-tab0" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">기존안 (공식 원본)</button>
-        <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">1안: 카카오 디벨로퍼스형 (일반인용)</button>
-        <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none active">2안: 카카오 디벨로퍼스형 (개발자용)</button>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 overflow-hidden relative">
+            <!-- Main Content Area -->
+            <div class="flex-1 overflow-hidden relative">
         
         <!-- 기존안 -->
         <div id="tab0" class="hidden absolute inset-0 overflow-y-auto bg-white">
@@ -69,7 +70,8 @@
         </div>
 
         <!-- 1안 (일반인용) -->
-        <div id="tab1" class="hidden absolute inset-0 flex">
+        <div id="tab1" class="hidden absolute inset-0 bg-gray-50 flex justify-center">
+            <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
             <!-- Sidebar -->
             <aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
                 <nav class="p-4 space-y-1">
@@ -141,10 +143,12 @@
                     </div>
                 </div>
             </main>
+            </div>
         </div>
 
         <!-- 2안 (카카오 디벨로퍼스 스타일) -->
-        <div id="tab2" class="absolute inset-0 flex">
+        <div id="tab2" class="absolute inset-0 bg-gray-50 flex justify-center">
+            <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
             <!-- Sidebar -->
             <aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
                 <nav class="p-4 space-y-1">
@@ -281,8 +285,11 @@
                     <a href="#" class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">요청 예시</a>
                 </nav>
             </aside>
+            </div>
         </div>
         
+    </div>
+        </div>
     </div>
 
     <script>
