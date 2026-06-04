@@ -421,6 +421,60 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
 });
 
 // 7. PK/FK 관계 데이터 조회 API (데이터맵 동적 연동용)
+// 실제 테이블 데이터 + 컬럼 메타 통합 키워드 검색 → 매칭 테이블 ID 목록 반환
+// keyword-datamap과 완전히 동일한 dbAll + processTable 패턴 사용
+app.get('/api/column-search', async (req, res) => {
+  const keyword = (req.query.keyword || '').trim();
+  if (!keyword) return res.json({ tables: [], count: 0 });
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  try {
+    const matched = new Set();
+
+    // 1) 컬럼 메타(물리명·한글명) 매칭
+    const metaRows = await dbAll(
+      `SELECT DISTINCT replace(svc_no, '-', '') AS id FROM api_columns WHERE field LIKE ? OR kor_nm LIKE ?`,
+      [`%${keyword}%`, `%${keyword}%`]
+    );
+    metaRows.forEach(r => r.id && matched.add(r.id));
+
+    // 2) 전체 테이블 데이터 스캔 (keyword-datamap와 동일 패턴)
+    const tables = await dbAll(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('api_tables', 'api_columns')`
+    );
+
+    const processTable = async (tableName) => {
+      let columns = [];
+      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch(e) { return; }
+      if (!columns.length) return;
+      const colResults = await Promise.all(columns.map(async col => {
+        try {
+          const rows = await dbAll(
+            `SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ?`,
+            [`%${keyword}%`]
+          );
+          return (rows[0] && rows[0].cnt > 0);
+        } catch(e) { return false; }
+      }));
+      if (colResults.some(Boolean)) matched.add(tableName);
+    };
+
+    const BATCH_SIZE = 20;
+    for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+      const batch = tables.slice(i, i + BATCH_SIZE).map(t => t.name);
+      await Promise.all(batch.map(processTable));
+    }
+
+    res.json({ tables: [...matched], count: matched.size });
+  } catch (err) {
+    console.error('[column-search error]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/relationships', (req, res) => {
   const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
   if (fs.existsSync(jsonPath)) {

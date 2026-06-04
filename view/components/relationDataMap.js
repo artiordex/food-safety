@@ -201,12 +201,14 @@ const subjectColors = {
 };
 
 export function renderRelationDataMap(container, onSelectDataset) {
-  let activeDomainId = 'all'; // 'all' 또는 domainKey
+  let activeDomainId = 'all';
   let maxNodesLimit = 30;
   let activePhysics = true;
   let selectedNodeId = null;
   let networkInstance = null;
   let relationships = [];
+  let activeKeyword = '';
+  let columnMatchedIds = new Set();
 
   const fetchRelationships = async () => {
     try {
@@ -239,18 +241,38 @@ export function renderRelationDataMap(container, onSelectDataset) {
       <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
         
         <!-- Premium Section Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 class="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 w-full">
+          <div class="w-full break-keep">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
               식품안전 공공데이터 융합 관계도 <span class="text-sm font-normal text-slate-500">(포스 디렉티드 버블 그래프 기반)</span>
             </h2>
           </div>
+
+          <!-- 키워드 검색 → 네트워크 맵 전환 -->
+          <div class="flex items-center gap-2 w-full md:w-auto shrink-0">
+            <div class="relative flex-1 md:w-72">
+              <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none" style="z-index:1;"></i>
+              <input type="text" id="rdm-keyword-input"
+                style="padding-left: 2rem !important;"
+                class="w-full pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-1 focus:ring-gov-500 bg-white"
+                placeholder="테이블명 또는 컬럼명 검색...">
+            </div>
+            <button id="rdm-keyword-btn"
+              class="px-4 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-sm">
+              <i class="ri-node-tree text-sm"></i> 검색
+            </button>
+            <button id="rdm-keyword-clear"
+              class="px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 rounded-lg text-sm transition-colors whitespace-nowrap">
+              초기화
+            </button>
+          </div>
+          <span id="rdm-keyword-badge" class="hidden mt-1 px-3 py-1 bg-gov-100 text-gov-700 text-xs font-semibold rounded-full border border-gov-200 self-start md:self-auto"></span>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-6">
+        <div class="flex flex-col lg:flex-row gap-6 w-full max-w-full overflow-hidden">
           
           <!-- [1] LEFT SIDEBAR: 필터링 및 통계 패널 (300px) -->
-          <div class="lg:w-[320px] shrink-0 flex flex-col gap-6">
+          <div class="w-full lg:w-[320px] shrink-0 flex flex-col gap-6">
             
             <!-- 1. 도메인 분류 체크박스 필터 -->
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
@@ -326,15 +348,15 @@ export function renderRelationDataMap(container, onSelectDataset) {
           </div>
 
           <!-- [2] CENTER/RIGHT MAIN: 버블 네트워크 캔버스 및 상세 패널 -->
-          <div class="flex-1 flex flex-col gap-6">
+          <div class="flex-1 flex flex-col gap-6 min-w-0 w-full">
             
             <!-- 메인 가동 캔버스 카드 -->
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[580px] relative">
               
               <!-- 캔버스 컨트롤 헤더 -->
-              <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4">
+              <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
                 <div class="flex items-center gap-2"></div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                   <!-- 피직스(Physics) 켜고 끄기 토글 -->
                   <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
                     <input type="checkbox" id="physics-toggle" class="w-3.5 h-3.5 rounded text-gov-600 border-slate-300" ${activePhysics ? 'checked' : ''} />
@@ -357,11 +379,15 @@ export function renderRelationDataMap(container, onSelectDataset) {
                   <button id="btn-fit-screen" class="px-2.5 py-1 text-xs border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-slate-600 shadow-sm transition-colors flex items-center gap-1">
                     <i class="ri-focus-3-line"></i> 한눈에 보기
                   </button>
+
+                  <button id="btn-capture-graph" class="px-2.5 py-1 text-xs border border-gov-200 bg-gov-50 hover:bg-gov-100 rounded-lg text-gov-700 shadow-sm transition-colors flex items-center gap-1">
+                    <i class="ri-camera-line"></i> PNG 저장
+                  </button>
                 </div>
               </div>
 
               <!-- 관계도 그리기 캔버스 영역 -->
-              <div class="flex-1 bg-slate-50/20 relative" id="network-graph-canvas" style="height: 520px; width: 100%;">
+              <div class="flex-1 bg-slate-50/20 relative" id="network-graph-canvas" style="height: clamp(400px, 60vw, 720px); width: 100%;">
                 <!-- Dynamic Network rendering here -->
               </div>
               
@@ -406,9 +432,39 @@ export function renderRelationDataMap(container, onSelectDataset) {
       }
     });
 
+    // 키워드 필터 적용 (테이블명·설명 + 컬럼명·한글명 통합 매칭)
+    let visibleNodes = dataMapNodes.filter(node => {
+      if (!filteredNodeIds.has(node.id)) return false;
+      if (!activeKeyword) return true;
+      const kw = activeKeyword.toLowerCase();
+      const ds = getDatasetById(node.id);
+      // 1) 컬럼 검색 API 매칭
+      if (columnMatchedIds.has(node.id)) return true;
+      // 2) 테이블 ID / 이름 / 설명 / 분류
+      return (
+        node.id.toLowerCase().includes(kw) ||
+        (node.label || '').toLowerCase().includes(kw) ||
+        (ds && ds.name && ds.name.toLowerCase().includes(kw)) ||
+        (ds && ds.description && ds.description.toLowerCase().includes(kw)) ||
+        (ds && ds.subject && ds.subject.toLowerCase().includes(kw))
+      );
+    });
+
+    // 키워드 적중 노드와 직접 연결된 노드도 함께 표시
+    if (activeKeyword && visibleNodes.length > 0) {
+      const matchedIds = new Set(visibleNodes.map(n => n.id));
+      const edgesToUseEarly = relationships.length > 0
+        ? relationships.map(r => ({ from: r.from_table, to: r.to_table }))
+        : dataMapEdges;
+      edgesToUseEarly.forEach(edge => {
+        if (matchedIds.has(edge.from) && filteredNodeIds.has(edge.to)) matchedIds.add(edge.to);
+        if (matchedIds.has(edge.to) && filteredNodeIds.has(edge.from)) matchedIds.add(edge.from);
+      });
+      visibleNodes = dataMapNodes.filter(n => matchedIds.has(n.id));
+    }
+
     // 노드 개수 리밋 적용
-    let visibleNodes = dataMapNodes.filter(node => filteredNodeIds.has(node.id));
-    if (visibleNodes.length > maxNodesLimit) {
+    if (visibleNodes.length > maxNodesLimit && !activeKeyword) {
       visibleNodes = visibleNodes.slice(0, maxNodesLimit);
     }
 
@@ -616,8 +672,8 @@ export function renderRelationDataMap(container, onSelectDataset) {
       <div class="flex flex-col gap-5">
         
         <!-- Header Info -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
-          <div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4 w-full min-w-0">
+          <div class="min-w-0 flex-1 break-words">
             <div class="flex items-center gap-2 mb-1.5">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
               <span class="font-mono text-sm font-bold text-slate-500">${nodeId}</span>
@@ -655,8 +711,8 @@ export function renderRelationDataMap(container, onSelectDataset) {
               </div>
             </div>
             
-            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white max-h-[380px] overflow-y-auto" id="inspect-content-wrapper">
-              <table class="w-full text-left border-collapse" id="schema-table-element">
+            <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto shadow-sm bg-white max-h-[380px] w-full" id="inspect-content-wrapper">
+              <table class="w-full text-left border-collapse min-w-[500px]" id="schema-table-element">
                 <thead>
                   <tr class="bg-slate-50/50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     <th class="px-4 py-3">컬럼 물리명 (field)</th>
@@ -891,6 +947,74 @@ export function renderRelationDataMap(container, onSelectDataset) {
   };
 
   const bindEvents = () => {
+    // 0. 키워드 검색 → 테이블명 + 컬럼명/한글명 통합 검색 후 인라인 필터링
+    const kwInput = container.querySelector('#rdm-keyword-input');
+    const kwBtn   = container.querySelector('#rdm-keyword-btn');
+    const kwClear = container.querySelector('#rdm-keyword-clear');
+
+    // (columnMatchedIds는 외부 스코프에 선언됨)
+
+    const updateKeywordUI = (kw) => {
+      const badge = container.querySelector('#rdm-keyword-badge');
+      if (!badge) return;
+      if (kw) {
+        const colCount = columnMatchedIds.size;
+        badge.textContent = `"${kw}" — 컬럼 매칭 ${colCount}개 테이블 포함`;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    };
+
+    const doSearch = async () => {
+      const kw = kwInput ? kwInput.value.trim() : '';
+      if (!kw) {
+        columnMatchedIds = new Set();
+        activeKeyword = '';
+        maxNodesLimit = 30;
+        updateKeywordUI('');
+        initNetwork();
+        return;
+      }
+
+      // 버튼 로딩 상태
+      kwBtn.disabled = true;
+      kwBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 스캔 중...';
+
+      const badge = container.querySelector('#rdm-keyword-badge');
+      if (badge) { badge.textContent = `"${kw}" 전체 데이터 스캔 중...`; badge.classList.remove('hidden'); }
+
+      // 실제 테이블 데이터 + 컬럼 메타 통합 검색
+      try {
+        const res = await fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`);
+        const json = await res.json();
+        columnMatchedIds = new Set(json.tables || []);
+      } catch (_) {
+        columnMatchedIds = new Set();
+      }
+
+      kwBtn.disabled = false;
+      kwBtn.innerHTML = '<i class="ri-node-tree text-sm"></i> 검색';
+
+      activeKeyword = kw;
+      maxNodesLimit = 9999;
+      updateKeywordUI(kw);
+      initNetwork();
+    };
+
+    if (kwBtn)   kwBtn.addEventListener('click', doSearch);
+    if (kwInput) kwInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    if (kwClear) {
+      kwClear.addEventListener('click', () => {
+        if (kwInput) kwInput.value = '';
+        columnMatchedIds = new Set();
+        activeKeyword = '';
+        maxNodesLimit = 30;
+        updateKeywordUI('');
+        initNetwork();
+      });
+    }
+
     // 1. 도메인 분류 필터 변경 시 관계도 실시간 갱신
     container.querySelectorAll('[data-filter="domain"]').forEach(chk => {
       chk.addEventListener('change', (e) => {
@@ -963,6 +1087,154 @@ export function renderRelationDataMap(container, onSelectDataset) {
             }
           });
         }
+      });
+    }
+
+    // 8. PNG 저장 버튼 — position:fixed 오프스크린 렌더링으로 클리핑 완전 방지
+    const btnCapture = container.querySelector('#btn-capture-graph');
+    if (btnCapture) {
+      btnCapture.addEventListener('click', () => {
+        if (!networkInstance) return;
+
+        btnCapture.disabled = true;
+        btnCapture.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 캡처 중...';
+
+        const EXPORT_W = 4000;
+        const EXPORT_H = 3000;
+
+        // ── 1. 렌더링 전용 오프스크린 컨테이너 생성 (fixed, 화면 밖) ──
+        const offEl = document.createElement('div');
+        offEl.style.cssText = `
+          position: fixed;
+          top: 0; left: 0;
+          width: ${EXPORT_W}px;
+          height: ${EXPORT_H}px;
+          z-index: -9999;
+          pointer-events: none;
+          overflow: visible;
+          background: #f8fafc;
+        `;
+        document.body.appendChild(offEl);
+
+        // ── 2. 노드·엣지 DataSet 백업 후 캡처용 스타일 적용 ─────────
+        const nodesDS = networkInstance.body.data.nodes;
+        const edgesDS = networkInstance.body.data.edges;
+
+        const origNodes = nodesDS.get().map(n => ({
+          id: n.id, size: n.size, font: n.font, borderWidth: n.borderWidth, shadow: n.shadow
+        }));
+        const origEdges = edgesDS.get().map(e => ({
+          id: e.id, font: e.font, width: e.width
+        }));
+
+        nodesDS.update(origNodes.map(n => ({
+          id: n.id,
+          size: (n.size || 20) * 1.3,
+          font: { size: 40, face: 'Pretendard, Inter, system-ui', color: '#0f172a', strokeWidth: 7, strokeColor: '#ffffff' },
+          borderWidth: 4,
+          shadow: { enabled: true, color: 'rgba(0,0,0,0.12)', size: 10, x: 0, y: 2 }
+        })));
+        edgesDS.update(origEdges.map(e => ({
+          id: e.id,
+          width: 4,
+          font: { size: 30, face: 'Pretendard, Inter, system-ui', color: '#0f172a', strokeWidth: 5, strokeColor: '#ffffff', background: '#ffffff' }
+        })));
+
+        // ── 3. 오프스크린 컨테이너에 새 Network 인스턴스 생성 ─────────
+        const positions = networkInstance.getPositions();
+        const currentData = {
+          nodes: new vis.DataSet(nodesDS.get()),
+          edges: new vis.DataSet(edgesDS.get())
+        };
+
+        const exportNet = new vis.Network(offEl, currentData, {
+          nodes: { borderWidthSelected: 4, scaling: { min: 10, max: 80 } },
+          edges: { hoverConnectedNodes: false },
+          interaction: { dragNodes: false, zoomView: false, dragView: false },
+          physics: { enabled: false },
+          layout: { improvedLayout: false }
+        });
+
+        // 현재 레이아웃 포지션 그대로 복사
+        exportNet.setOptions({ physics: { enabled: false } });
+        const posUpdate = Object.keys(positions).map(id => ({
+          id, x: positions[id].x, y: positions[id].y
+        }));
+        posUpdate.forEach(p => {
+          try { exportNet.moveNode(p.id, p.x, p.y); } catch(_) {}
+        });
+
+        exportNet.fit({ animation: false });
+
+        // ── 4. 렌더 완료 후 캔버스 캡처 및 픽셀 크롭 ─────────────────
+        setTimeout(() => {
+          exportNet.fit({ animation: false });
+
+          setTimeout(() => {
+            const canvas = offEl.querySelector('canvas');
+            if (!canvas) {
+              cleanup(); return;
+            }
+
+            // 흰 배경 합성
+            const full = document.createElement('canvas');
+            full.width  = canvas.width;
+            full.height = canvas.height;
+            const fCtx = full.getContext('2d', { willReadFrequently: true });
+            fCtx.fillStyle = '#f8fafc';
+            fCtx.fillRect(0, 0, full.width, full.height);
+            fCtx.drawImage(canvas, 0, 0);
+
+            // 픽셀 스캔으로 실제 콘텐츠 영역 탐색
+            const W = full.width, H = full.height;
+            const data = fCtx.getImageData(0, 0, W, H).data;
+            const bgR = 248, bgG = 250, bgB = 252;
+            const THR = 15;
+            let top = H, bottom = 0, left = W, right = 0;
+            for (let y = 0; y < H; y += 3) {
+              for (let x = 0; x < W; x += 3) {
+                const i = (y * W + x) * 4;
+                if (Math.abs(data[i]-bgR)>THR || Math.abs(data[i+1]-bgG)>THR || Math.abs(data[i+2]-bgB)>THR) {
+                  if (x < left)   left   = x;
+                  if (x > right)  right  = x;
+                  if (y < top)    top    = y;
+                  if (y > bottom) bottom = y;
+                }
+              }
+            }
+
+            const PAD = 100;
+            const cx = Math.max(0, left - PAD);
+            const cy = Math.max(0, top  - PAD);
+            const cw = Math.min(W, right  + PAD) - cx;
+            const ch = Math.min(H, bottom + PAD) - cy;
+
+            const out = document.createElement('canvas');
+            out.width  = cw > 0 ? cw : W;
+            out.height = ch > 0 ? ch : H;
+            const oCtx = out.getContext('2d');
+            oCtx.fillStyle = '#f8fafc';
+            oCtx.fillRect(0, 0, out.width, out.height);
+            oCtx.drawImage(full, cx, cy, out.width, out.height, 0, 0, out.width, out.height);
+
+            const link = document.createElement('a');
+            link.download = `식품안전_공공데이터_관계도_${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = out.toDataURL('image/png', 1.0);
+            link.click();
+
+            cleanup();
+          }, 400);
+        }, 600);
+
+        const cleanup = () => {
+          // 오프스크린 DOM 제거
+          try { document.body.removeChild(offEl); } catch(_) {}
+          // 원래 노드·엣지 복원
+          nodesDS.update(origNodes);
+          edgesDS.update(origEdges);
+          btnCapture.disabled = false;
+          btnCapture.innerHTML = '<i class="ri-camera-line"></i> PNG 저장';
+        };
       });
     }
   };

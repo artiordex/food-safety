@@ -412,10 +412,10 @@ erDiagram
           </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-6">
+        <div class="flex flex-col lg:flex-row gap-6 w-full max-w-full overflow-hidden">
           
           <!-- 1. LEFT SIDEBAR: ERD 도메인 목록 필터 -->
-          <div class="lg:w-[320px] shrink-0 flex flex-col gap-5">
+          <div class="w-full lg:w-[320px] shrink-0 flex flex-col gap-5">
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
                 📁 ERD 도메인 영역 선택
@@ -450,8 +450,8 @@ erDiagram
           </div>
 
           <!-- 2. MAIN CENTER: Mermaid 다이어그램 렌더링 캔버스 -->
-          <div class="flex-1 flex flex-col gap-6">
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[580px]">
+          <div class="flex-1 flex flex-col gap-6 min-w-0 w-full">
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[580px] w-full">
               
               <!-- 다이어그램 헤더 설명 패널 -->
               <div class="p-6 border-b border-slate-100 bg-slate-50/50">
