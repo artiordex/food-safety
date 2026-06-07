@@ -111,22 +111,44 @@ app.get('/api/tables/:tableName/data', (req, res) => {
   });
 });
 
-// 3.5 join.sql 파일에서 검증된 JOIN 시나리오 목록을 파싱하여 반환하는 API
 app.get('/api/join-scenarios', (req, res) => {
   const joinSqlPath = path.join(__dirname, 'db', 'join.sql');
   try {
+    // 1) 고품격 다중 (체인) 조인 시나리오 정의 (전체 데이터 연결 구조 예시)
+    const multiJoinScenarios = [
+      {
+        no: 101,
+        grade: "SUPER",
+        title: "★ [3차 JOIN] 식품 제조사 ↔ 품목제조보고 ↔ 원재료 성분 통합 분석",
+        description: "식품업체 인허가 마스터(I2500) ↔ 품목제조보고(I1250) ↔ 품목 원재료 상세(C002) 3차 연쇄 결합. 특정 제조회사 아래 어떤 제품이 등록되어 있고, 해당 제품의 실제 원재료 구성 성분이 무엇인지 정밀 분석합니다. (교집합 실존)",
+        sql: `SELECT \n    A.BSSH_NM AS "제조사명", \n    B.PRDLST_NM AS "제품명", \n    C.RAWMTRL_NM AS "원재료명"\nFROM "I2500" A\nINNER JOIN "I1250" B ON A.LCNS_NO = B.LCNS_NO\nINNER JOIN "C002" C ON B.PRDLST_REPORT_NO = C.PRDLST_REPORT_NO\nLIMIT 15;`
+      },
+      {
+        no: 102,
+        grade: "SUPER",
+        title: "★ [3차 JOIN] 위생법 위반 행정처분 업체 연락처/소재지 통합 조회",
+        description: "행정처분 통보 이력(I0470) ↔ 행정처분 상세(I0482) ↔ 업체 인허가(I2500) 3차 결합. 위생법 위반 등으로 행정처분을 받은 영업소의 실시간 주소와 연락처를 스캔하여 안전 관리에 활용합니다. (교집합 실존)",
+        sql: `SELECT \n    A.PRCSCITYPOINT_BSSHNM AS "업소명", \n    A.VILTCN AS "위반사항", \n    B.DSPSCN AS "처분내용",\n    C.ADDR AS "소재지주소",\n    C.TELNO AS "대표전화"\nFROM "I0470" A\nINNER JOIN "I0482" B ON A.DSPSDTLS_SEQ = B.DSPSDTLS_SEQ\nINNER JOIN "I2500" C ON A.PRCSCITYPOINT_BSSHNM = C.BSSH_NM\nLIMIT 10;`
+      },
+      {
+        no: 103,
+        grade: "SUPER",
+        title: "★ [5차 체인 JOIN] 시험항목 ↔ 규격 기준 ↔ 위해회수 ↔ 통관 ↔ 행정처분",
+        description: "db/chain_joins.sql의 입증된 5차 체인 조인 실데이터. 시험검사(I2530) ↔ 기준규격(I0940) ↔ 위해회수(I0490) ↔ 수입통관(C001) ↔ 행정처분(I1260)까지 전체 데이터 맵이 꼬리를 물고 유기적으로 엮인 연쇄 구조입니다.",
+        sql: `SELECT\n    A.TESTITM_CD AS "시험항목코드",\n    A.KOR_NM AS "시험항목한글명",\n    B.PRDLST_CD AS "품목코드",\n    B.PC_KOR_NM AS "품목한글명",\n    C.PRDTNM AS "위해제품명",\n    C.RTRVLPRVNS AS "회수사유",\n    D.BSSH_NM AS "수입사명",\n    E.BSSH_NM AS "처분업체명"\nFROM "I2530" A\nINNER JOIN "I0940" B ON A.TESTITM_CD = B.TESTITM_CD\nINNER JOIN "I0490" C ON B.PRDLST_CD = C.PRDLST_CD\nINNER JOIN "C001" D ON C.LCNS_NO = D.LCNS_NO\nINNER JOIN "I1260" E ON D.LCNS_NO = E.LCNS_NO\nWHERE A.TESTITM_CD IS NOT NULL AND A.TESTITM_CD != ''\nLIMIT 10;`
+      }
+    ];
+
+    // 2) 기존 join.sql 파일 파싱
     const content = fs.readFileSync(joinSqlPath, 'utf-8');
     const lines = content.split('\n');
-    const scenarios = [];
+    const fileScenarios = [];
     let currentBlock = null;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-
-      // 제목 주석 추출: -- N. [HIGH] TableA.KEY ↔ TableB.KEY
       const titleMatch = line.match(/^--\s+(\d+)\.\s+\[([A-Z]+)\]\s+(.+)$/);
       if (titleMatch) {
-        // 새 블록 시작
         currentBlock = {
           no: parseInt(titleMatch[1]),
           grade: titleMatch[2],
@@ -134,25 +156,20 @@ app.get('/api/join-scenarios', (req, res) => {
           descLines: [],
           sqlLines: []
         };
-        scenarios.push(currentBlock);
+        fileScenarios.push(currentBlock);
         continue;
       }
-
       if (!currentBlock) continue;
-
-      // 구분선(---- 또는 ====)은 건너뜀
       if (/^--\s*[-=]{10,}/.test(line)) continue;
 
-      // 주석 줄 → 설명에 추가
       if (line.trim().startsWith('--')) {
         currentBlock.descLines.push(line.replace(/^--\s*/, '').trim());
       } else if (line.trim() !== '') {
-        // SQL 줄
         currentBlock.sqlLines.push(line);
       }
     }
 
-    const result = scenarios.map(block => {
+    const parsedScenarios = fileScenarios.map(block => {
       const description = block.descLines.filter(Boolean).join(' | ');
       const sql = block.sqlLines.join('\n').trim();
       return {
@@ -164,7 +181,9 @@ app.get('/api/join-scenarios', (req, res) => {
       };
     }).filter(s => s.sql);
 
-    res.json(result);
+    // 3) 다중 조인 시나리오를 맨 위에 오도록 결합하여 반환
+    const finalResult = [...multiJoinScenarios, ...parsedScenarios];
+    res.json(finalResult);
   } catch (err) {
     console.error('join.sql 파싱 오류:', err.message);
     res.status(500).json({ error: err.message });
@@ -1380,6 +1399,188 @@ app.listen(PORT, () => {
   console.log(` 식품안전나라 통합 DB 웹 앱 서비스가 작동 중입니다.`);
   console.log(` 포트 번호: http://localhost:${PORT}`);
   console.log(`==================================================`);
+});
+
+// ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
+app.get('/api/db-schema', (req, res) => {
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  (async () => {
+    try {
+      // 1) 모든 base 테이블 목록 (뷰, sqlite 내부 테이블 제외)
+      const tables = await dbAll(
+        `SELECT m.name, a.svc_nm, a.cat
+         FROM sqlite_master m
+         LEFT JOIN api_tables a ON m.name = a.svc_no
+         WHERE m.type = 'table'
+           AND m.name NOT LIKE 'sqlite_%'
+           AND m.name NOT LIKE 'v_%'
+           AND m.name NOT IN ('api_tables', 'api_columns')
+         ORDER BY a.cat, m.name`
+      );
+
+      // 2) 각 테이블별 컬럼 정보 + 한글명 병합
+      const result = [];
+      for (const tbl of tables) {
+        const cols = await dbAll(`PRAGMA table_info("${tbl.name}")`);
+        const korNames = await dbAll(
+          `SELECT field, kor_nm FROM api_columns WHERE replace(svc_no,'-','') = replace(?,'-','')`,
+          [tbl.name]
+        );
+        const korMap = {};
+        korNames.forEach(r => { korMap[r.field] = r.kor_nm; });
+
+        result.push({
+          table: tbl.name,
+          label: tbl.svc_nm || tbl.name,
+          category: tbl.cat || '기타',
+          columns: cols.map(c => ({
+            name: c.name,
+            type: c.type || 'TEXT',
+            pk: c.pk > 0,
+            notNull: c.notnull > 0,
+            kor: korMap[c.name] || ''
+          }))
+        });
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error('[db-schema error]', err);
+      res.status(500).json({ error: err.message });
+    }
+  })();
+});
+
+// ── 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱) ─────────────────────────
+let cachedRelationships = null;
+
+app.get('/api/db-relationships', (req, res) => {
+  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p||[], (e,r) => e ? ng(e) : ok(r)));
+  
+  if (cachedRelationships) {
+    return res.json(cachedRelationships);
+  }
+
+  (async () => {
+    try {
+      // 1. 공통 컬럼 메타 데이터 조회
+      const colRows = await dbAll(
+        `SELECT replace(svc_no,'-','') as tbl, field, kor_nm FROM api_columns
+         WHERE field IS NOT NULL AND field != '' AND length(field) > 2`
+      );
+      // 2. 실제 SQLite에 적재된 전체 테이블 리스트 조회
+      const tables = await dbAll(
+        `SELECT name FROM sqlite_master WHERE type='table'
+         AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'v_%'
+         AND name NOT IN ('api_tables','api_columns')`
+      );
+      const validSet = new Set(tables.map(t => t.name));
+
+      // 약한 식별자(공통 키로 보기 어렵고 값이 무의미하게 같을 수 있는 날짜, 여부 등 필터링)
+      const isWeak = (f) =>
+        /_NM$/i.test(f) || /_NAME$/i.test(f) || /_CD_NM$/i.test(f) ||
+        /ADDR$/i.test(f) || /TEL/i.test(f) || /FAX/i.test(f) ||
+        /_DT$/i.test(f) || /DTM$/i.test(f) || /DATE$/i.test(f) ||
+        /_CN$/i.test(f) || /_DESC$/i.test(f) || /_MEMO$/i.test(f) ||
+        /^AMT_NUM\d+$/.test(f) || /^(SEQ|NUM|CNT|QTY|YN)$/.test(f);
+
+      const fieldMap = {};
+      colRows.forEach(r => {
+        if (!validSet.has(r.tbl) || isWeak(r.field)) return;
+        if (!fieldMap[r.field]) fieldMap[r.field] = { tables: [], kor: r.kor_nm || r.field };
+        if (!fieldMap[r.field].tables.includes(r.tbl)) fieldMap[r.field].tables.push(r.tbl);
+      });
+
+      // 3. 공통 필드별로 두 테이블 간의 실제 매치 여부를 검사할 태스크 생성
+      const checkTasks = [];
+      const rawRelationships = Object.entries(fieldMap)
+        .filter(([, v]) => v.tables.length >= 2)
+        .map(([key, v]) => ({ key, kor: v.kor, tables: v.tables }));
+
+      rawRelationships.forEach(rel => {
+        const tbls = rel.tables;
+        // 각 공통키 필드에 대해 모든 가능한 테이블 쌍(T1, T2) 생성
+        for (let i = 0; i < tbls.length; i++) {
+          for (let j = i + 1; j < tbls.length; j++) {
+            const tA = tbls[i];
+            const tB = tbls[j];
+            checkTasks.push({
+              key: rel.key,
+              kor: rel.kor,
+              tA,
+              tB,
+              fn: async () => {
+                try {
+                  // SQLite EXISTS 쿼리로 실제 교집합 데이터가 최소 1건 이상 존재하는지 체크
+                  // 빈 값이나 공백, 하이픈(-)은 조인 키 매칭에서 제외
+                  const query = `
+                    SELECT EXISTS(
+                      SELECT 1 FROM "${tA}" a
+                      INNER JOIN "${tB}" b ON a."${rel.key}" = b."${rel.key}"
+                      WHERE a."${rel.key}" IS NOT NULL 
+                        AND a."${rel.key}" != '' 
+                        AND a."${rel.key}" != '-'
+                    ) AS has_match
+                  `;
+                  const rows = await dbAll(query);
+                  const matched = rows[0]?.has_match === 1;
+                  return matched ? { tA, tB } : null;
+                } catch (e) {
+                  // 테이블이나 컬럼이 실제 DB에 불일치하거나 깨져 있는 경우 매칭 무시
+                  return null;
+                }
+              }
+            });
+          }
+        }
+      });
+
+      // 4. 동시 실행 부하 제어를 위한 청크 비동기 병렬 검증 (청크당 30개 실행)
+      const verifiedEdgesMap = {};
+      const chunkSize = 30;
+      for (let i = 0; i < checkTasks.length; i += chunkSize) {
+        const chunk = checkTasks.slice(i, i + chunkSize);
+        const chunkResults = await Promise.all(chunk.map(task => task.fn()));
+        
+        chunk.forEach((task, idx) => {
+          const edge = chunkResults[idx];
+          if (edge) {
+            if (!verifiedEdgesMap[task.key]) {
+              verifiedEdgesMap[task.key] = {
+                key: task.key,
+                kor: task.kor,
+                edges: [],
+                tablesSet: new Set()
+              };
+            }
+            verifiedEdgesMap[task.key].edges.push({ from: edge.tA, to: edge.tB });
+            verifiedEdgesMap[task.key].tablesSet.add(edge.tA);
+            verifiedEdgesMap[task.key].tablesSet.add(edge.tB);
+          }
+        });
+      }
+
+      // 5. 실제 데이터 매칭 엣지가 존재하는 공통키 연관관계 최종 데이터 구축
+      const result = Object.values(verifiedEdgesMap)
+        .map(item => ({
+          key: item.key,
+          kor: item.kor,
+          count: item.tablesSet.size,
+          tables: Array.from(item.tablesSet),
+          edges: item.edges
+        }))
+        .sort((a, b) => b.edges.length - a.edges.length); // 실제 매칭 연결선 수 기준으로 정렬
+
+      cachedRelationships = result;
+      res.json(result);
+    } catch (err) {
+      console.error('[db-relationships error]', err);
+      res.status(500).json({ error: err.message });
+    }
+  })();
 });
 
 // 프로세스 종료 시 DB 연결 해제

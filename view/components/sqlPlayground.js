@@ -120,9 +120,13 @@ export function renderSqlPlayground(container, onSelectDataset) {
       `;
     }).join('');
 
-    const scenarioOptionsHTML = joinScenarios.map(sc => `
-      <option value="${sc.no}">${getLogicalTitle(sc.title)}</option>
-    `).join('');
+    const scenarioOptionsHTML = joinScenarios.map(sc => {
+      const isSuper = sc.grade === 'SUPER';
+      const prefix = isSuper ? '🔗 [다중 JOIN] ' : '';
+      return `
+        <option value="${sc.no}" ${isSuper ? 'style="color:#f59e0b; font-weight:bold;"' : ''}>${prefix}${getLogicalTitle(sc.title)}</option>
+      `;
+    }).join('');
 
     // 우측 상세 패널 (Schema vs Data) 렌더링
     let detailContentHTML = '';
@@ -142,53 +146,65 @@ export function renderSqlPlayground(container, onSelectDataset) {
         </div>
       `;
     } else {
-      const tabSchemaClass = activeDetailTab === 'schema' ? "border-gov-600 text-gov-700 font-bold" : "border-transparent text-slate-500 hover:text-slate-700";
-      const tabDataClass = activeDetailTab === 'data' ? "border-gov-600 text-gov-700 font-bold" : "border-transparent text-slate-500 hover:text-slate-700";
+      // 1단: 컬럼 정보 (Schema)
+      const schemaRowsHTML = tableSchema.map(col => `
+        <tr class="hover:bg-slate-50/50">
+          <td class="px-4 py-2.5 font-medium text-slate-400">${col.cid}</td>
+          <td class="px-4 py-2.5 font-semibold text-slate-900">${col.name}</td>
+          <td class="px-4 py-2.5"><code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-600 font-mono text-[10px]">${col.type || 'TEXT'}</code></td>
+          <td class="px-4 py-2.5">${col.notnull ? '❌ Not Null' : '⭕ Nullable'}</td>
+          <td class="px-4 py-2.5">${col.pk ? '🔑 <span class="text-amber-600 font-semibold">PK</span>' : '-'}</td>
+        </tr>
+      `).join('');
 
-      let tabBodyHTML = '';
-      if (activeDetailTab === 'schema') {
-        tabBodyHTML = `
-          <div class="overflow-x-auto">
+      const schemaPanelHTML = `
+        <div class="flex flex-col gap-2">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ri-article-line text-gov-600"></i> 테이블 컬럼 명세 (Schema)
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[170px] bg-white">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                  <th class="px-4 py-2.5">컬럼순번</th>
-                  <th class="px-4 py-2.5">컬럼코드 (Name)</th>
-                  <th class="px-4 py-2.5">데이터타입 (Type)</th>
-                  <th class="px-4 py-2.5">Null 허용여부</th>
-                  <th class="px-4 py-2.5">기본값</th>
-                  <th class="px-4 py-2.5">PK여부</th>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10 bg-slate-50">
+                  <th class="px-4 py-2.5 bg-slate-50">순번</th>
+                  <th class="px-4 py-2.5 bg-slate-50">컬럼코드 (Name)</th>
+                  <th class="px-4 py-2.5 bg-slate-50">데이터타입 (Type)</th>
+                  <th class="px-4 py-2.5 bg-slate-50">Null 허용여부</th>
+                  <th class="px-4 py-2.5 bg-slate-50">PK여부</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 text-slate-700">
-                ${tableSchema.map(col => `
-                  <tr class="hover:bg-slate-50/50">
-                    <td class="px-4 py-2.5 font-medium text-slate-400">${col.cid}</td>
-                    <td class="px-4 py-2.5 font-semibold text-slate-900">${col.name}</td>
-                    <td class="px-4 py-2.5"><code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-600 font-mono">${col.type || 'TEXT'}</code></td>
-                    <td class="px-4 py-2.5">${col.notnull ? '❌ Not Null' : '⭕ Nullable'}</td>
-                    <td class="px-4 py-2.5 text-slate-400">${col.dflt_value !== null ? col.dflt_value : '-'}</td>
-                    <td class="px-4 py-2.5">${col.pk ? '🔑 <span class="text-amber-600 font-semibold">PK</span>' : '-'}</td>
-                  </tr>
-                `).join('')}
+                ${schemaRowsHTML.length > 0 ? schemaRowsHTML : '<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">컬럼 정보가 존재하지 않습니다.</td></tr>'}
               </tbody>
             </table>
           </div>
-        `;
-      } else {
-        if (tableData.length === 0) {
-          tabBodyHTML = `
-            <div class="py-12 text-center text-slate-400 text-xs">
+        </div>
+      `;
+
+      // 2단: 실제 데이터 조회 (Preview)
+      let dataPanelHTML = '';
+      if (tableData.length === 0) {
+        dataPanelHTML = `
+          <div class="flex flex-col gap-2">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="ri-database-2-line text-gov-600"></i> 실제 데이터 조회 (Preview)
+            </h4>
+            <div class="py-8 text-center text-slate-400 text-xs border border-slate-200 rounded-xl bg-white">
               테이블 내에 적재된 데이터 레코드가 존재하지 않습니다.
             </div>
-          `;
-        } else {
-          const keys = Object.keys(tableData[0]);
-          tabBodyHTML = `
-            <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+          </div>
+        `;
+      } else {
+        const keys = Object.keys(tableData[0]);
+        dataPanelHTML = `
+          <div class="flex flex-col gap-2">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="ri-database-2-line text-gov-600"></i> 실제 데이터 미리보기 (상위 50개행 Preview)
+            </h4>
+            <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[190px] bg-white">
               <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10">
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10 bg-slate-50">
                     ${keys.map(k => `<th class="px-4 py-2.5 bg-slate-50">${k}</th>`).join('')}
                   </tr>
                 </thead>
@@ -201,27 +217,21 @@ export function renderSqlPlayground(container, onSelectDataset) {
                 </tbody>
               </table>
             </div>
-            <div class="mt-3 text-right">
-              <span class="text-[11px] text-slate-400 font-medium">상위 ${tableData.length}개 행이 실시간 DB로부터 조회되었습니다.</span>
-            </div>
-          `;
-        }
+          </div>
+        `;
       }
 
       detailContentHTML = `
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-          <div class="px-5 py-4 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+          <div class="px-5 py-3.5 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h3 class="text-sm font-bold text-slate-900">${selectedTable} <span class="text-xs font-normal text-slate-500">테이블 정보</span></h3>
-            </div>
-            <div class="flex border-b border-slate-200 text-xs">
-              <button id="tab-btn-data" class="px-3 py-1.5 border-b-2 font-medium transition-all ${tabDataClass}">실제 데이터 조회</button>
-              <button id="tab-btn-schema" class="px-3 py-1.5 border-b-2 font-medium transition-all ${tabSchemaClass}">테이블 컬럼 정보 (Schema)</button>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h3 class="text-sm font-bold text-slate-900">${selectedTable} <span class="text-xs font-normal text-slate-500">테이블 정보 카탈로그</span></h3>
             </div>
           </div>
-          <div class="p-5">
-            ${tabBodyHTML}
+          <div class="p-5 flex flex-col gap-6">
+            ${schemaPanelHTML}
+            ${dataPanelHTML}
           </div>
         </div>
       `;
@@ -364,12 +374,23 @@ export function renderSqlPlayground(container, onSelectDataset) {
 
             <!-- Text Editor & Description -->
             <div class="p-6">
-              <div class="mb-4 bg-slate-950 border border-slate-800 rounded-lg p-4" id="scenario-desc-container">
-                <h4 class="text-xs font-bold text-gov-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <i class="ri-information-line"></i> 시나리오 상세 설명
-                </h4>
-                <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${joinScenarios.length > 0 ? joinScenarios[0].description : '시나리오 로딩 중...'}</p>
-              </div>
+              <!-- Scenario Description Panel -->
+              ${(() => {
+                const firstScenario = joinScenarios.length > 0 ? joinScenarios[0] : null;
+                const isFirstSuper = firstScenario && firstScenario.grade === 'SUPER';
+                const borderClass = isFirstSuper ? 'border-amber-500/50 shadow-md shadow-amber-500/5' : 'border-slate-800';
+                const titleHTML = isFirstSuper 
+                  ? `<i class="ri-lightbulb-fill text-amber-400"></i> <span class="text-amber-400 font-bold">대규모 다중 연계 조인 시나리오</span> <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold ml-1.5">RECOMMENDED</span>`
+                  : `<i class="ri-information-line"></i> 시나리오 상세 설명`;
+                return `
+                  <div class="mb-4 bg-slate-950 border ${borderClass} rounded-lg p-4 transition-all duration-300" id="scenario-desc-container">
+                    <h4 class="text-xs font-bold text-gov-400 uppercase tracking-wider mb-1 flex items-center gap-1.5" id="scenario-desc-title">
+                      ${titleHTML}
+                    </h4>
+                    <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${firstScenario ? firstScenario.description : '시나리오 로딩 중...'}</p>
+                  </div>
+                `;
+              })()}
 
               <!-- SQL Textarea -->
               <div class="relative font-mono text-xs">
@@ -421,22 +442,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
       });
     });
 
-    // 테이블 뷰어 탭 클릭 이벤트
-    const tabData = container.querySelector('#tab-btn-data');
-    if (tabData) {
-      tabData.addEventListener('click', () => {
-        activeDetailTab = 'data';
-        render();
-      });
-    }
-
-    const tabSchema = container.querySelector('#tab-btn-schema');
-    if (tabSchema) {
-      tabSchema.addEventListener('click', () => {
-        activeDetailTab = 'schema';
-        render();
-      });
-    }
+    // 테이블 뷰어 탭 토글 비활성화 (2단 상하 동시 노출로 변경)
 
     // 시나리오 검색 이벤트
     const scenarioSearch = container.querySelector('#scenario-search');
@@ -482,9 +488,28 @@ export function renderSqlPlayground(container, onSelectDataset) {
           if (editor) {
             editor.value = currentSql;
           }
+          
+          const descContainer = container.querySelector('#scenario-desc-container');
+          const descTitle = container.querySelector('#scenario-desc-title');
           const desc = container.querySelector('#scenario-desc-text');
+          
           if (desc) {
             desc.textContent = sc.description;
+          }
+          if (sc.grade === 'SUPER') {
+            if (descContainer) {
+              descContainer.className = "mb-4 bg-slate-950 border border-amber-500/50 rounded-lg p-4 shadow-md shadow-amber-500/5 transition-all duration-300";
+            }
+            if (descTitle) {
+              descTitle.innerHTML = `<i class="ri-lightbulb-fill text-amber-400"></i> <span class="text-amber-400 font-bold">대규모 다중 연계 조인 시나리오</span> <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold ml-1.5">RECOMMENDED</span>`;
+            }
+          } else {
+            if (descContainer) {
+              descContainer.className = "mb-4 bg-slate-950 border border-slate-800 rounded-lg p-4 transition-all duration-300";
+            }
+            if (descTitle) {
+              descTitle.innerHTML = `<i class="ri-information-line"></i> 시나리오 상세 설명`;
+            }
           }
         }
       });
@@ -554,10 +579,12 @@ export function renderSqlPlayground(container, onSelectDataset) {
   const init = async () => {
     await Promise.all([fetchTables(), fetchJoinScenarios()]);
 
+    let autoRun = false;
     // 타 컴포넌트(예: 데이터맵)로부터 연계된 SQL 자동 입력 및 포커싱 연동
     if (window.sqlPlaygroundAutoQuery) {
       currentSql = window.sqlPlaygroundAutoQuery;
       window.sqlPlaygroundAutoQuery = null; // 단회성 소비 후 초기화
+      autoRun = true;
 
       // SQL 쿼리에서 FROM 구문을 분석하여 참조 테이블 명세를 자동 파싱/로드
       const match = currentSql.match(/FROM\s+["']?([a-zA-Z0-9_-]+)["']?/i);
@@ -569,6 +596,11 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
 
     render();
+
+    // 자동 실행 트리거가 활성화된 경우 쿼리를 즉시 수행하여 분석 결과를 출력합니다.
+    if (autoRun) {
+      runQuery();
+    }
   };
 
   init();

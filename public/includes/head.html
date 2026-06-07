@@ -11,9 +11,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // 기존 페이지들과의 스타일 충돌 방지: index.html 등 기존 페이지에서는 Tailwind Preflight(스타일 초기화)를 꺼줍니다.
-      const isTailwindPage = window.location.pathname.includes('datamap.html') || window.location.pathname.includes('analysis.html') || window.location.pathname.includes('ebook.html');
+      const isTailwindPage = window.location.pathname.includes('/datamap/') || window.location.pathname.includes('/analysis/') || window.location.pathname.includes('/serviceUse/');
       // search 페이지는 기존 CSS(common/layout/sub/search.css) 사용 → preflight OFF
-      const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('search.html');
+      const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('/search/');
       tailwind.config = {
         corePlugins: {
           preflight: isTailwindPage && !isLegacyPage

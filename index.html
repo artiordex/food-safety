@@ -16,22 +16,7 @@
 
 <body>
 
-<!-- 팝업 -->
-
-<div id="popuptable" style="display: none;" class="draggable-popup" start_to="202603100000" >
-    <img id="popuptableImg" src="https://www.foodsafetykorea.go.kr/img/main/popup/20260324_popup_api.png" alt="" style="cursor: pointer;"/>
-    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
-        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable', 1);"/>오늘 하루 이 창 열지않기
-        <a href="javascript:popclose('popuptable')" style="color:white;">[닫기]</a>
-    </div>
-</div>
-<div id="popuptable2" style="display: none;" class="draggable-popup" start_to="202511100000" end_to="202511302359">
-    <img src="https://www.foodsafetykorea.go.kr/img/main/popup/20251107_popup.png" alt=""/>
-    <div class="todayClose" style="background-color: #353535; width: 100%; text-align: left; color:#FFFFFF;">
-        <input type="checkbox" name="close" value="OK" onclick="javascript:closeWinAt('popuptable2', 1);"/>오늘 하루 이 창
-        열지않기 <a href="javascript:popclose('popuptable2')" style="color:white;">[닫기]</a>
-    </div>
-</div>
+<!-- 팝업 삭제 완료 -->
 
 
 <form id="baseForm" name="baseForm" method="post" onsubmit="return false;">
@@ -1063,7 +1048,7 @@
                 var nowDate = new Date();
                 var elementLeft = 0;
 
-                /* 팝업 open 날짜 검증 */
+                /* 팝업 open 날짜 검증 (로컬 서버 구동 시 팝업 차단)
                 $.each($('.popups'), function () {
 
                     var openDtEl = $(this).attr("data-open");
@@ -1074,6 +1059,7 @@
                         openWin(ElementID);
                     }
                 })
+                */
 
                 /* 임시 팝업 닫기*/
                 $(".closePopLay").on('click', function () {
@@ -1252,11 +1238,11 @@
 			// 로컬 검색 매칭률을 높이기 위해 접미어 제거 (예: '기준규격정보' -> '기준규격')
 			let keyword = text.replace(/정보|관리|현황/g, '').trim();
 			
-			// 텍스트가 없으면 그냥 search.html 로 이동
+			// 텍스트가 없으면 그냥 /search/search.html 로 이동
 			if (!keyword) {
-				location.href = "search.html";
+				location.href = "/search/search.html";
 			} else {
-				location.href = "search.html?search_keyword=" + encodeURIComponent(keyword);
+				location.href = "/search/search.html?search_keyword=" + encodeURIComponent(keyword);
 			}
 		});
 	});

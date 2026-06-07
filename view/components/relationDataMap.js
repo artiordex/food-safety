@@ -210,8 +210,117 @@ export function renderRelationDataMap(container, onSelectDataset) {
   let activeKeyword = '';
   let columnMatchedIds = new Set();
 
+  let allColumnsMap = {}; // { svc_no: [{ field, type, kor_nm }, ...] }
+
+  // XML 특수문자 이스케이프 유틸
+  const escapeXml = (unsafe) => {
+    if (!unsafe) return '';
+    return String(unsafe)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  };
+
+  // SVG HTML 카드 노드 동적 생성
+  const createTableSvg = (tableName, tableKorName, columns) => {
+    let rowsHtml = '';
+    columns.forEach((col, idx) => {
+      const bg = idx % 2 === 0 ? 'transparent' : '#f8fafc';
+      let keyIcon = '';
+      if (col.field === 'LCNS_NO' || col.field === 'PRDLST_REPORT_NO' || col.field === 'BAR_CD' || col.field === 'BSSH_NO') {
+        keyIcon = '🔑 ';
+      }
+      rowsHtml += `
+        <tr style="border-bottom: 1px solid #f1f5f9; background: ${bg}; height: 18px;">
+          <td style="padding: 3px 5px; font-family: monospace; color: #1e293b; font-weight: 600; font-size: 8.5px; white-space: nowrap; max-width: 85px; overflow: hidden; text-overflow: ellipsis;">
+            ${keyIcon}${escapeXml(col.field)}
+          </td>
+          <td style="padding: 3px 3px; color: #2563eb; font-size: 7.5px; font-family: monospace; white-space: nowrap;">
+            ${escapeXml(col.type || 'VARCHAR')}
+          </td>
+          <td style="padding: 3px 5px; color: #64748b; font-size: 8px; text-align: right; white-space: nowrap; max-width: 85px; overflow: hidden; text-overflow: ellipsis;">
+            ${escapeXml(col.kor_nm || '-')}
+          </td>
+        </tr>
+      `;
+    });
+
+    const width = 230;
+    const headerHeight = 26;
+    const rowHeight = 18;
+    // 최대 7개행 정도만 보여주어 캔버스가 너무 커지는 것 방지
+    const displayColsCount = columns.length;
+    const contentHeight = 20 + (displayColsCount * rowHeight);
+    const totalHeight = headerHeight + contentHeight + 4;
+
+    const html = `
+      <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${width}px; height: ${totalHeight}px; font-family: system-ui, -apple-system, sans-serif; box-sizing: border-box; background: #ffffff; border: 1.5px solid #64748b; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #ffffff; padding: 4px 8px; font-weight: bold; font-size: 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e3a8a;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;">${escapeXml(tableName)}</span>
+          <span style="font-size: 8px; background: rgba(255, 255, 255, 0.25); padding: 1px 4px; border-radius: 3px; font-weight: normal; margin-left: auto; white-space: nowrap;">${escapeXml(tableKorName.split(' (')[0])}</span>
+        </div>
+        <div style="background: #ffffff; height: ${contentHeight}px; overflow: hidden;">
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 1px solid #e2e8f0; height: 18px;">
+                <th style="width: 90px; padding: 2px 5px; text-align: left; color: #475569; font-weight: 600; font-size: 7.5px;">컬럼명</th>
+                <th style="width: 55px; padding: 2px 3px; text-align: left; color: #475569; font-weight: 600; font-size: 7.5px;">타입</th>
+                <th style="width: 85px; padding: 2px 5px; text-align: right; color: #475569; font-weight: 600; font-size: 7.5px;">한글명</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${totalHeight}">
+        <foreignObject width="100%" height="100%">
+          ${html}
+        </foreignObject>
+      </svg>
+    `;
+
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  };
+
+  const fetchAllColumns = async () => {
+    try {
+      const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, col_seq` })
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        allColumnsMap = {};
+        rows.forEach(r => {
+          if (!allColumnsMap[r.svc_no]) {
+            allColumnsMap[r.svc_no] = [];
+          }
+          // 노드 카드가 무한히 길어지지 않도록 한 카드당 최대 8개 컬럼만 리스트업
+          if (allColumnsMap[r.svc_no].length < 8) {
+            allColumnsMap[r.svc_no].push({
+              field: r.field,
+              type: r.sql_type || 'VARCHAR',
+              kor_nm: r.kor_nm || '-'
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('[DataMap] Failed to pre-fetch all columns:', e);
+    }
+  };
+
   const fetchRelationships = async () => {
     try {
+      await fetchAllColumns(); // 컬럼 정보 사전 적재 수행
       const res = await fetch('/api/relationships');
       if (res.ok) {
         relationships = await res.json();
@@ -223,6 +332,106 @@ export function renderRelationDataMap(container, onSelectDataset) {
     } catch (err) {
       console.warn('[DataMap] Failed to load dynamic relationships:', err);
     }
+  };
+
+  // 컬럼 명세 기반 지능형 더미 데이터 생성기 (5개행 분량)
+  const generateMockRows = (cols, count = 5) => {
+    const rows = [];
+    const bsshNames = ["식약처푸드(주)", "진이네종합식품", "글로벌웰빙푸드", "우리어묵유통", "태백산맥식음료"];
+    const prdlstNames = ["맛있는 초코칩 쿠키", "유기농 딸기잼", "신선한 우유 1000ml", "바삭한 갈릭새우칩", "아침에 마시는 유기농 감귤주스"];
+    const rawNames = ["정제수", "백설탕", "밀가루(밀:미국산)", "대두유", "합성향료(바닐라향)", "비타민C", "정제소금"];
+    const addrList = [
+      "서울특별시 강남구 테헤란로 152 (역삼동)",
+      "경기도 화성시 동탄중앙로 22 (반송동)",
+      "부산광역시 해운대구 우동 1405",
+      "인천광역시 서구 검단로 84-2",
+      "충청북도 청주시 흥덕구 오송읍 오송생명5로 12"
+    ];
+    const cityList = ["서울", "화성", "부산", "인천", "청주"];
+    
+    for (let i = 0; i < count; i++) {
+      const row = {};
+      cols.forEach(c => {
+        const field = c.field || c.name || "";
+        const type = (c.sql_type || c.type || "VARCHAR").toUpperCase();
+        const kor = c.kor_nm || c.name || "";
+        
+        if (field === 'LCNS_NO') {
+          row[field] = `1882030800${i + 1}`;
+        } else if (field === 'PRDLST_REPORT_NO') {
+          row[field] = `2015002010${i + 1}`;
+        } else if (field === 'BAR_CD' || field === 'BARCODE_NO') {
+          row[field] = `880123456789${i}`;
+        } else if (field === 'BSSH_NO') {
+          row[field] = `201802100${i + 1}`;
+        } else if (field.includes('BSSH') || kor.includes('업소') || kor.includes('제조사')) {
+          row[field] = bsshNames[i % bsshNames.length];
+        } else if (field.includes('PRDLST') || kor.includes('제품') || kor.includes('품목')) {
+          row[field] = prdlstNames[i % prdlstNames.length];
+        } else if (field.includes('RAWMTRL') || kor.includes('원재료') || kor.includes('성분')) {
+          row[field] = rawNames[i % rawNames.length];
+        } else if (field.includes('ADDR') || kor.includes('주소') || kor.includes('소재지')) {
+          row[field] = addrList[i % addrList.length];
+        } else if (field.includes('TEL') || kor.includes('전화') || kor.includes('연락처')) {
+          row[field] = `02-1234-567${i + 1}`;
+        } else if (field.includes('CITY') || kor.includes('시도') || kor.includes('시군구')) {
+          row[field] = cityList[i % cityList.length];
+        } else if (field.includes('DT') || field.includes('DATE') || type.includes('DATE') || type.includes('TIME')) {
+          row[field] = `2026-06-0${i + 1}`;
+        } else if (type.includes('INT') || type.includes('NUM') || type.includes('DEC') || type.includes('REAL')) {
+          row[field] = Math.floor(Math.random() * 500) + 1;
+        } else {
+          row[field] = `${kor || field} 샘플값 ${i + 1}`;
+        }
+      });
+      rows.push(row);
+    }
+    return rows;
+  };
+
+  // 두 테이블의 스키마 및 공통키를 결합한 지능형 융합 더미 데이터 생성기 (50개행 분량)
+  const generateMockJoinRows = (fromT, toT, key, count = 50) => {
+    const fromCols = allColumnsMap[fromT] || [{ field: key, type: 'VARCHAR', kor_nm: '식별키' }];
+    const toCols = allColumnsMap[toT] || [{ field: key, type: 'VARCHAR', kor_nm: '식별키' }];
+
+    // key가 각 컬럼 목록에 없는 경우 강제 보강
+    if (!fromCols.find(c => (c.field || c.name) === key)) {
+      fromCols.push({ field: key, type: 'VARCHAR', kor_nm: '식별키' });
+    }
+    if (!toCols.find(c => (c.field || c.name) === key)) {
+      toCols.push({ field: key, type: 'VARCHAR', kor_nm: '식별키' });
+    }
+
+    const fromRows = generateMockRows(fromCols, count);
+    const toRows = generateMockRows(toCols, count);
+
+    const joined = [];
+    for (let i = 0; i < count; i++) {
+      const fRow = { ...fromRows[i] };
+      const tRow = { ...toRows[i] };
+
+      // 조인 식별 키의 고유 공유값 맞춤화
+      const commonVal = key === 'LCNS_NO' ? `1882030800${i + 1}` :
+                        key === 'PRDLST_REPORT_NO' ? `2015002010${i + 1}` :
+                        key === 'BAR_CD' ? `880123456789${i}` :
+                        key === 'BSSH_NO' ? `201802100${i + 1}` : `MOCK_KEY_${i + 1}`;
+
+      fRow[key] = commonVal;
+      tRow[key] = commonVal;
+
+      const merged = { ...fRow };
+      Object.keys(tRow).forEach(k => {
+        if (k === key) {
+          merged[k] = tRow[k];
+        } else {
+          // 컬럼명 충돌 시 접두사 추가
+          const targetKey = merged[k] !== undefined ? `${toT}_${k}` : k;
+          merged[targetKey] = tRow[k];
+        }
+      });
+      joined.push(merged);
+    }
+    return joined;
   };
 
   // 좌측 체크 필터 변수
@@ -348,13 +557,13 @@ export function renderRelationDataMap(container, onSelectDataset) {
           </div>
 
           <!-- [2] CENTER/RIGHT MAIN: 버블 네트워크 캔버스 및 상세 패널 -->
-          <div class="flex-1 flex flex-col gap-6 min-w-0 w-full">
+          <div class="flex-1 flex flex-col gap-6 min-w-0 w-full relative">
             
             <!-- 메인 가동 캔버스 카드 -->
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[580px] relative">
               
               <!-- 캔버스 컨트롤 헤더 -->
-              <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+              <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
                 <div class="flex items-center gap-2"></div>
                 <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                   <!-- 피직스(Physics) 켜고 끄기 토글 -->
@@ -386,9 +595,17 @@ export function renderRelationDataMap(container, onSelectDataset) {
                 </div>
               </div>
 
-              <!-- 관계도 그리기 캔버스 영역 -->
-              <div class="flex-1 bg-slate-50/20 relative" id="network-graph-canvas" style="height: clamp(400px, 60vw, 720px); width: 100%;">
-                <!-- Dynamic Network rendering here -->
+              <!-- 관계도 그리기 캔버스 및 우측 슬라이드인 사이드바 영역 -->
+              <div class="flex-1 bg-slate-50/20 relative flex overflow-hidden" style="height: clamp(520px, 60vw, 750px); width: 100%;">
+                
+                <!-- 캔버스 자체 -->
+                <div class="flex-1 h-full" id="network-graph-canvas"></div>
+                
+                <!-- 우측 슬라이드 오버레이 사이드바 패널 (캔버스 내부 플로팅 위젯화) -->
+                <div id="table-inspector-panel" class="absolute top-4 right-4 h-[calc(100%-2rem)] w-[380px] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-2xl z-30 transform translate-x-[calc(100%+2rem)] transition-all duration-300 flex flex-col hidden">
+                  <!-- Dynamic inspector injected here -->
+                </div>
+
               </div>
               
               <!-- 로딩 또는 힌트 메세지 오버레이 -->
@@ -399,11 +616,6 @@ export function renderRelationDataMap(container, onSelectDataset) {
                 </div>
               </div>
 
-            </div>
-
-            <!-- 하단부: 선택된 테이블 논리/물리 속성 ERD 명세 패널 -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hidden" id="table-inspector-panel">
-              <!-- Dynamic inspector injected here -->
             </div>
 
           </div>
@@ -504,76 +716,128 @@ export function renderRelationDataMap(container, onSelectDataset) {
       const ds = getDatasetById(node.id);
       const subject = ds ? ds.subject : '기타';
       const dataCount = ds ? ds.dataCount : 10;
-
-      // 로그 스케일로 크기 스케일링 (버블의 시각적 밸런스 튜닝)
-      const size = Math.log10(dataCount || 10) * 12 + 10;
-      const themeColors = subjectColors[subject] || subjectColors['기타'];
-
-      // 노드 레이블의 가독성을 위해 개행처리 포함
       const logicalLabel = ds ? ds.name.split(' (')[0] : node.label;
-      const displayLabel = `${node.id}\n${logicalLabel}`;
 
+      const cols = allColumnsMap[node.id] || [];
+
+      // 툴팁 구성
       const tooltipEl = document.createElement('div');
-      tooltipEl.className = 'p-2 text-xs font-sans text-slate-700 leading-relaxed max-w-xs';
+      tooltipEl.className = 'p-2.5 text-xs font-sans text-slate-700 leading-relaxed max-w-xs';
       tooltipEl.innerHTML = `
         <p class="font-bold text-slate-900 mb-1">${logicalLabel} (${node.id})</p>
-        <p class="mb-1"><span class="text-slate-400">카테고리:</span> <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">${subject}</span></p>
-        <p><span class="text-slate-400">보존 레코드:</span> <strong class="text-gov-700">${Number(dataCount).toLocaleString()} 건</strong></p>
+        <p class="mb-1"><span class="text-slate-400">도메인:</span> <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">${subject}</span></p>
+        <p class="mb-1"><span class="text-slate-400">보존 레코드:</span> <strong class="text-gov-700">${Number(dataCount).toLocaleString()} 건</strong></p>
+        <p class="text-[10px] text-slate-400 border-t border-slate-100 pt-1 mt-1">💡 더블클릭 시 데이터 탐색기로 연결</p>
       `;
 
-      return {
-        id: node.id,
-        label: displayLabel,
-        title: tooltipEl,
-        shape: 'dot',
-        size: size,
-        font: {
-          size: 15,
-          face: 'Pretendard, Inter, system-ui',
-          color: '#1e293b',
-          strokeWidth: 4,
-          strokeColor: '#ffffff'
-        },
-        color: themeColors,
-        borderWidth: selectedNodeId === node.id ? 4 : 1.5,
-        shadow: {
-          enabled: true,
-          color: 'rgba(0, 0, 0, 0.04)',
-          size: 5,
-          x: 0,
-          y: 2
-        }
-      };
+      if (cols.length > 0) {
+        // [테이블 컬럼 포함형 SVG 카드 카드 노드]
+        const svgUrl = createTableSvg(node.id, logicalLabel, cols);
+        return {
+          id: node.id,
+          label: '', // 카드 안에 텍스트가 다 내장되어 있으므로 노드 하단 텍스트 레이블 제거
+          title: tooltipEl,
+          shape: 'image',
+          image: svgUrl,
+          size: 90, // 선명하게 카드 렌더링
+          borderWidth: selectedNodeId === node.id ? 4 : 1.5,
+          color: {
+            border: selectedNodeId === node.id ? '#1e3a8a' : '#94a3b8'
+          },
+          shadow: {
+            enabled: true,
+            color: 'rgba(0, 0, 0, 0.1)',
+            size: 8,
+            x: 0,
+            y: 3
+          }
+        };
+      } else {
+        // [폴백 버블 노드]
+        const size = Math.log10(dataCount || 10) * 12 + 10;
+        const themeColors = subjectColors[subject] || subjectColors['기타'];
+        const displayLabel = `${node.id}\n${logicalLabel}`;
+        return {
+          id: node.id,
+          label: displayLabel,
+          title: tooltipEl,
+          shape: 'dot',
+          size: size,
+          font: {
+            size: 14,
+            face: 'Pretendard, Inter, system-ui',
+            color: '#1e293b',
+            strokeWidth: 4,
+            strokeColor: '#ffffff'
+          },
+          color: themeColors,
+          borderWidth: selectedNodeId === node.id ? 4 : 1.5,
+          shadow: {
+            enabled: true,
+            color: 'rgba(0, 0, 0, 0.04)',
+            size: 5,
+            x: 0,
+            y: 2
+          }
+        };
+      }
     });
 
     // 4단계: Vis.js 포맷 엣지 DataSet 생성
+    const getRelationType = (fromT, toT, key) => {
+      // Unique/PK 테이블 식별
+      const isUniqueKey = (table, col) => {
+        const t = String(table).toUpperCase();
+        const c = String(col).toUpperCase();
+        if (t === 'I2500' && (c === 'LCNS_NO' || c === 'BSSH_NO')) return true;
+        if (t === 'I1250' && c === 'PRDLST_REPORT_NO') return true;
+        if (t === 'I2530' && c === 'TESTITM_CD') return true;
+        if (t === 'I0470' && c === 'DSPSDTLS_SEQ') return true;
+        if (t === 'C001' && c === 'LCNS_NO') return true;
+        return false;
+      };
+
+      const fromUniq = isUniqueKey(fromT, key);
+      const toUniq = isUniqueKey(toT, key);
+
+      if (fromUniq && toUniq) return '1:1';
+      if (fromUniq && !toUniq) return '1:N';
+      if (!fromUniq && toUniq) return 'N:1';
+      return 'N:M';
+    };
+
     const visEdges = visibleEdges.map((edge, idx) => {
       // 엣지 굵기: 신뢰도나 주요 키에 맞게 튜닝
       let width = 1.5;
       let style = 'solid';
 
-      if (edge.label === 'LCNS_NO' || edge.label === 'PRDLST_REPORT_NO' || edge.label === 'BAR_CD') {
+      const baseLabel = edge.label.split(' ')[0];
+      if (baseLabel === 'LCNS_NO' || baseLabel === 'PRDLST_REPORT_NO' || baseLabel === 'BAR_CD') {
         width = 2.5; // 핵심 연결 굵게
       }
+
+      // 1:1, 1:N, N:M 기호 도출 및 레이블 합성
+      const relType = getRelationType(edge.from, edge.to, baseLabel);
+      const displayEdgeLabel = `(${relType}) ${baseLabel}`;
 
       return {
         id: `edge_${idx}`,
         from: edge.from,
         to: edge.to,
-        label: edge.label,
+        label: displayEdgeLabel,
         font: {
-          size: 15,
+          size: 11,
           face: 'Pretendard, Inter, sans-serif',
-          color: '#0f172a',
+          color: '#334155',
           background: '#ffffff',
-          strokeWidth: 2.5,
-          strokeColor: '#cbd5e1',
+          strokeWidth: 2,
+          strokeColor: '#f1f5f9',
           align: 'horizontal'
         },
         color: {
-          color: selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId) ? '#5999ff' : '#cbd5e1',
-          highlight: '#3374f6',
-          hover: '#94a3b8'
+          color: selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId) ? '#3b82f6' : '#cbd5e1',
+          highlight: '#2563eb',
+          hover: '#64748b'
         },
         width: width,
         hoverWidth: 3.5,
@@ -586,8 +850,8 @@ export function renderRelationDataMap(container, onSelectDataset) {
         },
         smooth: {
           enabled: true,
-          type: 'cubicBezier',
-          roundness: 0.2
+          type: 'continuous', // 직선처럼 정렬되면서도 뭉칠 때 곡선으로 휘어지는 고급형
+          roundness: 0.18
         }
       };
     });
@@ -645,21 +909,24 @@ export function renderRelationDataMap(container, onSelectDataset) {
       if (overlay) overlay.classList.add('hidden');
     });
 
-    // 노드 선택 이벤트 핸들러 바인딩
-    networkInstance.on("selectNode", (params) => {
-      const nodeId = params.nodes[0];
-      selectedNodeId = nodeId;
-      showTableDetail(nodeId);
-    });
-
-    // 배경 클릭 시 스키마 세부 닫기
-    networkInstance.on("deselectNode", () => {
-      selectedNodeId = null;
-      hideTableDetail();
+    // 노드 및 엣지(연결선) 선택 통합 이벤트 핸들러 바인딩
+    networkInstance.on("select", (params) => {
+      if (params.nodes && params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        selectedNodeId = nodeId;
+        showTableDetail(nodeId);
+      } else if (params.edges && params.edges.length > 0) {
+        selectedNodeId = null;
+        const edgeId = params.edges[0];
+        showEdgeDetail(edgeId);
+      } else {
+        selectedNodeId = null;
+        hideTableDetail();
+      }
     });
   };
 
-  // 선택된 버블 노드의 스키마 속성 분석 및 렌더 패널 함수
+  // 선택된 버블 노드의 스키마 속성 분석 및 렌더 패널 함수 (사이드바 버전)
   const showTableDetail = (nodeId) => {
     const inspector = container.querySelector('#table-inspector-panel');
     if (!inspector) return;
@@ -668,223 +935,281 @@ export function renderRelationDataMap(container, onSelectDataset) {
     if (!ds) return;
 
     inspector.classList.remove('hidden');
-    inspector.innerHTML = `
-      <div class="flex flex-col gap-5">
-        
-        <!-- Header Info -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4 w-full min-w-0">
-          <div class="min-w-0 flex-1 break-words">
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
-              <span class="font-mono text-sm font-bold text-slate-500">${nodeId}</span>
-              <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${subjectColorMap[ds.subject] || 'bg-slate-100 text-slate-700'}">${ds.subject}</span>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-1.5">
-              <i class="ri-table-line text-gov-600"></i> ${ds.name.split(' (')[0]}
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">${ds.description}</p>
-          </div>
+    // 약간의 딜레이 후 클래스 제거하여 부드러운 슬라이드인 애니메이션 효과 부여
+    setTimeout(() => {
+      inspector.classList.remove('translate-x-[calc(100%+2rem)]');
+    }, 10);
 
-          <div class="flex flex-wrap gap-2 shrink-0">
-            <button id="btn-jump-sql" class="px-3.5 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-              <i class="ri-terminal-box-line"></i> SQL 실행기 연동
-            </button>
-            <button id="btn-jump-api" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
-              <i class="ri-search-eye-line"></i> API 탐색기로 이동
-            </button>
+    inspector.innerHTML = `
+      <!-- Sidebar Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
+            <span class="font-mono text-xs font-bold text-slate-500 truncate max-w-[120px] block" title="${nodeId}">${nodeId}</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${subjectColorMap[ds.subject] || 'bg-slate-100 text-slate-700'}">${ds.subject}</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="ri-table-line text-gov-600"></i> ${ds.name.split(' (')[0]}
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${ds.description}</p>
+        </div>
+        <button id="btn-close-inspector" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center text-slate-500 shrink-0 ml-2">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Sidebar Body (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        
+        <!-- 1구역: 테이블 컬럼 명세 (Schema) -->
+        <div class="flex flex-col gap-2">
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ri-article-line text-gov-600"></i> 테이블 컬럼 명세 (Schema)
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto shadow-sm bg-white max-h-[190px] w-full">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 bg-slate-50 z-10">
+                  <th class="px-3 py-2 bg-slate-50">컬럼명</th>
+                  <th class="px-3 py-2 bg-slate-50">타입</th>
+                  <th class="px-3 py-2 bg-slate-50 text-right">한글명</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="schema-tbody-target">
+                <tr>
+                  <td colspan="3" class="px-3 py-6 text-center text-slate-400">
+                    <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1.5 align-middle"></div>
+                    컬럼 명세를 조회하고 있습니다...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- 2-Column Details -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- 2구역: 실제 데이터 샘플 (최대 50개행) -->
+        <div class="flex flex-col gap-2">
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ri-database-2-line text-gov-600"></i> 데이터 레코드 샘플 (최대 50개행 미리보기)
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto shadow-sm bg-white max-h-[300px] w-full" id="data-sample-wrapper">
+            <div class="px-3 py-6 text-center text-slate-400 text-xs">
+              <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1.5 align-middle"></div>
+              실시간 레코드 데이터를 로드하고 있습니다...
+            </div>
+          </div>
+        </div>
+
+        <!-- 3구역: 데이터 연계 흐름 구조도 (다중 JOIN) -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <h4 class="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1">
+            <i class="ri-node-tree text-gov-600 text-base"></i> 데이터 연계 흐름 구조도 (다중 JOIN)
+          </h4>
           
-          <!-- 스키마 물리/논리 속성 표 (2/3 width) -->
-          <div class="xl:col-span-2 flex flex-col gap-2">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <i class="ri-database-2-line text-gov-600"></i> 테이블 명세 및 데이터 샘플
-              </h4>
-              <div class="flex gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                <button id="btn-inspect-schema" class="px-2.5 py-1 text-[11px] font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all">스키마 구조</button>
-                <button id="btn-inspect-data" class="px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-600 hover:text-slate-800 transition-all">데이터 샘플 (5개행)</button>
-              </div>
-            </div>
-            
-            <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto shadow-sm bg-white max-h-[380px] w-full" id="inspect-content-wrapper">
-              <table class="w-full text-left border-collapse min-w-[500px]" id="schema-table-element">
-                <thead>
-                  <tr class="bg-slate-50/50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    <th class="px-4 py-3">컬럼 물리명 (field)</th>
-                    <th class="px-4 py-3">컬럼 논리명 (kor_nm)</th>
-                    <th class="px-4 py-3">데이터 타입</th>
-                    <th class="px-4 py-3 text-center">물리 제약</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-xs text-slate-700" id="schema-tbody-target">
-                  <!-- Loading spinner inside tbody -->
-                  <tr>
-                    <td colspan="4" class="px-4 py-8 text-center text-slate-400">
-                      <div class="inline-block w-4 h-4 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-2 align-middle"></div>
-                      라이브 스키마 카탈로그를 로드하고 있습니다...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <!-- Dynamic Flowchart based on table -->
+          ${(() => {
+            let flowHTML = '';
+            let scenarioTitle = '기본 업체 기준 연계';
+            let scenarioDesc = '인허가번호(LCNS_NO)를 기준으로 업체의 기본 정보 및 제조 품목 현황을 융합합니다.';
+            let targetSql = `SELECT A.BSSH_NM, B.PRDLST_NM FROM "I2500" A INNER JOIN "I1250" B ON A.LCNS_NO = B.LCNS_NO LIMIT 10;`;
 
-          <!-- 연계 세부 시나리오 (1/3 width) -->
-          <div class="flex flex-col gap-4">
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4.5">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1">
-                <i class="ri-lightbulb-line text-amber-500 text-base"></i> 추천 융합 결합 시나리오
-              </h4>
-              <ul class="space-y-2 text-xs text-slate-600 leading-relaxed">
-                ${ds.detail && ds.detail.scenarios ? ds.detail.scenarios.map(sc => `
-                  <li class="flex gap-1.5 items-start">
-                    <span class="text-emerald-500 shrink-0 font-bold">✔</span>
-                    <span>${sc}</span>
-                  </li>
-                `).join('') : `
-                  <li class="flex gap-1.5 items-start">
-                    <span class="text-slate-400">●</span>
-                    <span>해당 테이블은 다른 마스터 키(LCNS_NO)와 조인하여 분석 보고서를 구축하기에 적합합니다.</span>
-                  </li>
-                `}
-              </ul>
-            </div>
+            if (nodeId === 'I2500' || nodeId === 'I1250' || nodeId === 'C002') {
+              scenarioTitle = '제조사 ↔ 품목제조 ↔ 원재료 성분';
+              scenarioDesc = '업체 인허가 정보와 제품 목록, 제품별 상세 고유 원재료 성분을 연쇄 매핑합니다.';
+              targetSql = `SELECT A.BSSH_NM AS "제조사명", B.PRDLST_NM AS "제품명", C.RAWMTRL_NM AS "원재료명" FROM "I2500" A INNER JOIN "I1250" B ON A.LCNS_NO = B.LCNS_NO INNER JOIN "C002" C ON B.PRDLST_REPORT_NO = C.PRDLST_REPORT_NO LIMIT 15;`;
+              flowHTML = `
+                <div class="flex flex-col gap-1.5 items-center my-2 bg-white p-2 rounded border border-slate-100 shadow-inner text-[10px]">
+                  <div class="font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded w-full text-center">업체 인허가 (I2500)</div>
+                  <div class="text-[9px] text-slate-400 font-mono">↓ LCNS_NO</div>
+                  <div class="font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded w-full text-center">품목제조보고 (I1250)</div>
+                  <div class="text-[9px] text-slate-400 font-mono">↓ PRDLST_REPORT_NO</div>
+                  <div class="font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded w-full text-center">원재료 상세 (C002)</div>
+                </div>
+              `;
+            }
+            else if (nodeId === 'I0470' || nodeId === 'I0482') {
+              scenarioTitle = '위반 행정처분 ↔ 업체 연락처 연계';
+              scenarioDesc = '행정처분을 받은 위해 업소의 처분 내역과 해당 업소의 정확한 실시간 연락처 및 주소를 결합 조회합니다.';
+              targetSql = `SELECT A.PRCSCITYPOINT_BSSHNM AS "업소명", A.VILTCN AS "위반사항", B.DSPSCN AS "처분내용", C.ADDR AS "소재지주소", C.TELNO AS "대표전화" FROM "I0470" A INNER JOIN "I0482" B ON A.DSPSDTLS_SEQ = B.DSPSDTLS_SEQ INNER JOIN "I2500" C ON A.PRCSCITYPOINT_BSSHNM = C.BSSH_NM LIMIT 10;`;
+              flowHTML = `
+                <div class="flex flex-col gap-1.5 items-center my-2 bg-white p-2 rounded border border-slate-100 shadow-inner text-[10px]">
+                  <div class="font-bold px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-100 rounded w-full text-center">행정처분 이력 (I0470)</div>
+                  <div class="text-[9px] text-slate-400 font-mono">↓ DSPSDTLS_SEQ</div>
+                  <div class="font-bold px-2 py-0.5 bg-red-50 text-red-700 border border-red-100 rounded w-full text-center">행정처분 상세 (I0482)</div>
+                  <div class="text-[9px] text-slate-400 font-mono">↓ BSSH_NM (업체명 매칭)</div>
+                  <div class="font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded w-full text-center">업체 인허가 (I2500)</div>
+                </div>
+              `;
+            }
+            else if (['I2530', 'I0940', 'I0490', 'C001', 'I1260'].includes(nodeId)) {
+              scenarioTitle = '5차 연쇄 체인 JOIN (위해성 추적)';
+              scenarioDesc = '시험항목 규격과 실제 위해 유통 적발 제품, 통관 정보, 최종 행정처분까지 연쇄 결합합니다.';
+              targetSql = `SELECT A.TESTITM_CD, A.KOR_NM, B.PRDLST_CD, B.PC_KOR_NM, C.PRDTNM, C.RTRVLPRVNS, D.BSSH_NM, E.BSSH_NM FROM "I2530" A INNER JOIN "I0940" B ON A.TESTITM_CD = B.TESTITM_CD INNER JOIN "I0490" C ON B.PRDLST_CD = C.PRDLST_CD INNER JOIN "C001" D ON C.LCNS_NO = D.LCNS_NO INNER JOIN "I1260" E ON D.LCNS_NO = E.LCNS_NO WHERE A.TESTITM_CD IS NOT NULL LIMIT 8;`;
+              flowHTML = `
+                <div class="flex flex-col gap-1.5 items-center my-2 bg-white p-2 rounded border border-slate-100 shadow-inner max-h-[160px] overflow-y-auto text-[9px]">
+                  <div class="font-bold px-1 py-0.5 bg-teal-50 text-teal-700 border border-teal-100 rounded w-full text-center">시험검사 (I2530)</div>
+                  <div class="text-[8px] text-slate-400 font-mono">↓ TESTITM_CD</div>
+                  <div class="font-bold px-1 py-0.5 bg-slate-50 text-slate-700 border border-slate-100 rounded w-full text-center">기준규격 (I0940)</div>
+                  <div class="text-[8px] text-slate-400 font-mono">↓ PRDLST_CD</div>
+                  <div class="font-bold px-1 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded w-full text-center">위해회수 (I0490)</div>
+                  <div class="text-[8px] text-slate-400 font-mono">↓ LCNS_NO</div>
+                  <div class="font-bold px-1 py-0.5 bg-sky-50 text-sky-700 border border-sky-100 rounded w-full text-center">수입통관 (C001)</div>
+                  <div class="text-[8px] text-slate-400 font-mono">↓ LCNS_NO</div>
+                  <div class="font-bold px-1 py-0.5 bg-rose-50 text-rose-700 border border-rose-100 rounded w-full text-center">행정처분 (I1260)</div>
+                </div>
+              `;
+            }
+            else {
+              flowHTML = `
+                <div class="flex flex-col gap-1.5 items-center my-2 bg-white p-2 rounded border border-slate-100 shadow-inner text-[10px]">
+                  <div class="font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded w-full text-center">${nodeId} (현재)</div>
+                  <div class="text-[9px] text-slate-400 font-mono">↓ LCNS_NO</div>
+                  <div class="font-bold px-2 py-0.5 bg-slate-50 text-slate-600 border border-slate-100 rounded w-full text-center">식품업체 인허가 (I2500)</div>
+                </div>
+              `;
+            }
 
-            <!-- 라이브 쿼리 템플릿 -->
-            <div class="bg-slate-900 text-slate-200 rounded-xl p-4 font-mono text-[11px] leading-relaxed relative group">
-              <span class="absolute top-2.5 right-2.5 text-[9px] font-bold text-gov-400 bg-gov-950 px-2 py-0.5 rounded border border-gov-800/50">SQL TEMPLATE</span>
-              <p class="text-slate-500 mb-2">// 이 테이블을 활용한 기본 쿼리</p>
-              <pre class="overflow-x-auto text-emerald-400">${ds.usageExample || `SELECT * FROM ${nodeId} LIMIT 10;`}</pre>
-            </div>
-
-          </div>
-
+            return `
+              <div class="text-[11px] font-bold text-slate-700 mb-0.5">${scenarioTitle}</div>
+              <div class="text-[10px] text-slate-500 leading-normal mb-2">${scenarioDesc}</div>
+              ${flowHTML}
+              <button id="btn-flow-jump-sql" data-sql="${encodeURIComponent(targetSql)}" class="w-full mt-1.5 py-1.5 bg-gov-50 hover:bg-gov-100 text-gov-700 border border-gov-200 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5">
+                <i class="ri-terminal-box-line"></i> 이 시나리오 SQL 실행기 연동
+              </button>
+            `;
+          })()}
         </div>
 
       </div>
+
+      <!-- Sidebar Action Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+        <button id="btn-jump-sql" class="flex-1 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
+          <i class="ri-terminal-box-line"></i> SQL 실행기
+        </button>
+        <button id="btn-jump-api" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+          <i class="ri-search-eye-line"></i> API 탐색기
+        </button>
+      </div>
     `;
 
-    // Cache elements for tab switching
-    const inspectWrapper = inspector.querySelector('#inspect-content-wrapper');
-    const schemaTable = inspector.querySelector('#schema-table-element');
-    const btnInspectSchema = inspector.querySelector('#btn-inspect-schema');
-    const btnInspectData = inspector.querySelector('#btn-inspect-data');
+    // Cache elements for layout loading
+    const tbody = inspector.querySelector('#schema-tbody-target');
+    const dataWrapper = inspector.querySelector('#data-sample-wrapper');
 
-    const loadDataSample = () => {
-      inspectWrapper.innerHTML = `
-        <div class="p-8 text-center text-slate-400 text-xs">
-          <div class="inline-block w-4 h-4 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-2 align-middle"></div>
-          실시간 테이블 데이터를 조회하고 있습니다...
+    // 1) 스키마 정보 비동기 로드
+    let colsMeta = []; // 스키마 컬럼 정보 임시 보관용
+
+    // 공통 데이터 샘플 렌더러
+    const renderSampleRows = (rows, isMocked = false) => {
+      if (!rows || rows.length === 0) {
+        dataWrapper.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">테이블에 적재된 데이터 레코드가 없습니다.</div>`;
+        return;
+      }
+      const cols = Object.keys(rows[0]);
+      
+      let mockBadge = "";
+      if (isMocked) {
+        mockBadge = `
+          <div class="px-3 py-1.5 bg-amber-50 text-amber-800 text-[9px] font-semibold border-b border-slate-200 flex items-center justify-between">
+            <span>⚠️ 이 테이블은 데이터 미적재 상태로, 시뮬레이션용 더미 데이터가 표시됩니다.</span>
+            <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200">더미 데이터</span>
+          </div>
+        `;
+      }
+
+      dataWrapper.innerHTML = `
+        ${mockBadge}
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse min-w-[500px]">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-50 z-10">
+                ${cols.map(c => `<th class="px-3 py-2 bg-slate-50">${c}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-[10px] text-slate-600 font-mono">
+              ${rows.map(row => `
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  ${cols.map(c => {
+                    const val = row[c];
+                    const displayVal = val !== null ? String(val).replace(/"/g, '&quot;') : '';
+                    return `<td class="px-3 py-1.5 truncate max-w-[150px]" title="${displayVal}">${val !== null ? val : '<span class="text-slate-300 italic">null</span>'}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
         </div>
       `;
+    };
 
+    // 실시간 DB 데이터 쿼리 수행
+    const loadSampleData = () => {
       fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `SELECT * FROM "${nodeId}" LIMIT 5` })
+        body: JSON.stringify({ query: `SELECT * FROM "${nodeId}" LIMIT 50` })
       })
         .then(res => res.json())
         .then(rows => {
           if (!rows || rows.length === 0) {
-            inspectWrapper.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">테이블에 조회 가능한 데이터 레코드가 없습니다.</div>`;
+            // [폴백] 데이터가 없으면 지능형 Mock Data 생성
+            const mockData = generateMockRows(colsMeta, 50);
+            renderSampleRows(mockData, true);
             return;
           }
-
-          const cols = Object.keys(rows[0]);
-          inspectWrapper.innerHTML = `
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse min-w-[700px]">
-              <thead>
-                <tr class="bg-slate-50/50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  ${cols.map(c => `<th class="px-4 py-3 whitespace-nowrap">${c}</th>`).join('')}
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-[11px] text-slate-600 font-mono">
-                ${rows.map(row => `
-                  <tr class="hover:bg-slate-50/50 transition-colors">
-                    ${cols.map(c => {
-            const val = row[c];
-            const displayVal = val !== null ? String(val).replace(/"/g, '&quot;') : '';
-            return `<td class="px-4 py-2.5 truncate max-w-[220px]" title="${displayVal}">${val !== null ? val : '<span class="text-slate-350 italic">null</span>'}</td>`;
-          }).join('')}
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
+          // 실제 데이터 정상 출력
+          renderSampleRows(rows, false);
         })
         .catch(err => {
-          console.error("데이터 샘플 로드 에러:", err);
-          inspectWrapper.innerHTML = `<div class="p-8 text-center text-red-500 text-xs">데이터를 조회하는 데 실패했습니다. (테이블이 비어있거나 생성되지 않았을 수 있습니다.)</div>`;
+          console.warn("데이터 샘플 실시간 조회 실패, 폴백 더미 데이터 생성:", err);
+          const mockData = generateMockRows(colsMeta, 50);
+          renderSampleRows(mockData, true);
         });
     };
 
-    const loadSchema = () => {
-      inspectWrapper.innerHTML = '';
-      inspectWrapper.appendChild(schemaTable);
-
-      const tbody = inspector.querySelector('#schema-tbody-target');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="4" class="px-4 py-8 text-center text-slate-400">
-            <div class="inline-block w-4 h-4 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-2 align-middle"></div>
-            라이브 스키마 카탈로그를 로드하고 있습니다...
-          </td>
-        </tr>
-      `;
-
-      fetch(`/api/query`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type, infer_reason FROM api_columns WHERE svc_no = '${nodeId}'` })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (!data || data.length === 0) {
-            fetchSchemaFromPragma(nodeId, tbody);
-            return;
+    // 1) 스키마 정보 비동기 로드
+    fetch(`/api/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no = '${nodeId}'` })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (!data || data.length === 0) {
+          fetchSchemaFromPragma(nodeId, tbody, loadSampleData); // pragma 스키마 검색으로 위임
+          return;
+        }
+        
+        colsMeta = data; // 저장
+        
+        tbody.innerHTML = data.map(row => {
+          let keyBadge = '';
+          if (row.field === 'LCNS_NO' || row.field === 'PRDLST_REPORT_NO' || row.field === 'BAR_CD' || row.field === 'BSSH_NO') {
+            keyBadge = `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>`;
           }
-          tbody.innerHTML = data.map(row => {
-            let keyBadge = '';
-            if (row.field === 'LCNS_NO' || row.field === 'PRDLST_REPORT_NO' || row.field === 'BAR_CD' || row.field === 'BSSH_NO') {
-              keyBadge = `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200">KEY</span>`;
-            }
-            return `
+          return `
             <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-4 py-3 font-mono font-semibold text-slate-800 select-all">${row.field}</td>
-              <td class="px-4 py-3 font-medium text-slate-600">${row.kor_nm || '-'}</td>
-              <td class="px-4 py-3 font-mono text-[11px] text-slate-500">${row.sql_type || 'VARCHAR'}</td>
-              <td class="px-4 py-3 text-center">${keyBadge}</td>
+              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${row.field}${keyBadge}</td>
+              <td class="px-3 py-2 font-mono text-[10px] text-blue-600">${row.sql_type || 'VARCHAR'}</td>
+              <td class="px-3 py-2 text-right text-slate-500 font-medium">${row.kor_nm || '-'}</td>
             </tr>
           `;
-          }).join('');
-        })
-        .catch(err => {
-          fetchSchemaFromPragma(nodeId, tbody);
-        });
-    };
+        }).join('');
 
-    // Toggle button handlers
-    btnInspectSchema.addEventListener('click', () => {
-      btnInspectSchema.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all';
-      btnInspectData.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-600 hover:text-slate-800 transition-all';
-      loadSchema();
-    });
+        // 스키마 선인출 완료 후 데이터 호출 진행
+        loadSampleData();
+      })
+      .catch(err => {
+        fetchSchemaFromPragma(nodeId, tbody, loadSampleData);
+      });
 
-    btnInspectData.addEventListener('click', () => {
-      btnInspectData.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all';
-      btnInspectSchema.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-600 hover:text-slate-800 transition-all';
-      loadDataSample();
-    });
-
-    // Default load schema
-    loadSchema();
+    // 닫기 버튼 리스너 바인딩
+    const btnClose = inspector.querySelector('#btn-close-inspector');
+    if (btnClose) {
+      btnClose.addEventListener('click', hideTableDetail);
+    }
 
     // 쿼리 플레이그라운드로 점프 액션 리스너
     const btnJumpSql = inspector.querySelector('#btn-jump-sql');
@@ -906,44 +1231,245 @@ export function renderRelationDataMap(container, onSelectDataset) {
         if (apiTabBtn) apiTabBtn.click();
       });
     }
+
+    // 흐름도 시나리오 SQL 실행기 연동 리스너
+    const btnFlowJump = inspector.querySelector('#btn-flow-jump-sql');
+    if (btnFlowJump) {
+      btnFlowJump.addEventListener('click', () => {
+        const queryText = decodeURIComponent(btnFlowJump.dataset.sql);
+        window.sqlPlaygroundAutoQuery = queryText;
+        const sqlTabBtn = document.querySelector('[data-tab="sql-playground"], [data-nav="sql-playground"]');
+        if (sqlTabBtn) sqlTabBtn.click();
+      });
+    }
+  };
+
+  // 공통키 연결선(Edge) 클릭 시 결합 데이터 주르륵 조회해서 사이드바에 렌더링하는 함수
+  const showEdgeDetail = (edgeId) => {
+    const inspector = container.querySelector('#table-inspector-panel');
+    if (!inspector) return;
+
+    const edgeData = networkInstance.body.data.edges.get(edgeId);
+    if (!edgeData) return;
+
+    const fromTable = edgeData.from;
+    const toTable = edgeData.to;
+    let joinKey = edgeData.label.split(' ')[0];
+    if (joinKey === 'BARCODE_NO') joinKey = 'BAR_CD';
+
+    inspector.classList.remove('hidden');
+    setTimeout(() => {
+      inspector.classList.remove('translate-x-[calc(100%+2rem)]');
+    }, 10);
+
+    inspector.innerHTML = `
+      <!-- Sidebar Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5">
+              <i class="ri-key-2-line"></i> JOIN KEY
+            </span>
+            <span class="font-mono text-xs font-bold text-amber-700">${joinKey}</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+            공통키 융합 데이터 조회
+          </h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">공통키 결합을 통한 실시간 매칭 레코드를 출력합니다.</p>
+        </div>
+        <button id="btn-close-inspector" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center text-slate-500 shrink-0 ml-2">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Sidebar Body (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6">
+        
+        <!-- 연계 정보 요약 -->
+        <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">연계 매핑 정보</div>
+          <div class="flex items-center justify-between gap-1 text-[11px] font-mono font-bold text-slate-800">
+            <span class="px-2 py-1 bg-white rounded border border-slate-200 truncate max-w-[130px]" title="${fromTable}">${fromTable}</span>
+            <span class="text-slate-400">↔</span>
+            <span class="px-2 py-1 bg-white rounded border border-slate-200 truncate max-w-[130px]" title="${toTable}">${toTable}</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-normal pt-1.5 border-t border-slate-200/50">
+            두 테이블 간에 공통 식별키인 <code class="font-mono text-amber-600 bg-amber-50 px-1 py-0.5 rounded font-semibold">${joinKey}</code>를 기준으로 실제로 일치하는 교집합 레코드들을 융합합니다.
+          </p>
+        </div>
+
+        <!-- 결합된 실제 데이터 표 (주르륵 뿌려줌) -->
+        <div class="flex flex-col gap-2">
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ri-database-2-line text-gov-600"></i> 결합 매칭 데이터 (상위 50개행 미리보기)
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto shadow-sm bg-white max-h-[420px] w-full" id="join-data-wrapper">
+            <div class="px-4 py-8 text-center text-slate-400 text-xs">
+              <div class="inline-block w-4 h-4 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-2 align-middle"></div>
+              공통키 조인 매칭 값을 계산하여 주르륵 불러오는 중...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Action Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+        <button id="btn-edge-jump-sql" class="flex-1 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
+          <i class="ri-terminal-box-line"></i> 이 조인 쿼리 에디터로 연동
+        </button>
+      </div>
+    `;
+
+    // 닫기 버튼 리스너 바인딩
+    const btnClose = inspector.querySelector('#btn-close-inspector');
+    if (btnClose) {
+      btnClose.addEventListener('click', hideTableDetail);
+    }
+
+    const joinDataWrapper = inspector.querySelector('#join-data-wrapper');
+
+    // 융합 쿼리문 디자인
+    let fromKey = joinKey;
+    let toKey = joinKey;
+
+    // 위해행정처분 예외 매핑
+    if (fromTable === 'I0470' && toTable === 'I0482' && joinKey === 'DSPSDTLS_SEQ') {
+      fromKey = 'DSPSDTLS_SEQ';
+      toKey = 'DSPSDTLS_SEQ';
+    }
+
+    // 융합 조인 쿼리문 (50개 한도)
+    const sqlQuery = `SELECT A.*, B.* FROM "${fromTable}" A INNER JOIN "${toTable}" B ON A."${fromKey}" = B."${toKey}" LIMIT 50`;
+
+    // 에디터 연동 버튼
+    const btnEdgeJump = inspector.querySelector('#btn-edge-jump-sql');
+    if (btnEdgeJump) {
+      btnEdgeJump.addEventListener('click', () => {
+        window.sqlPlaygroundAutoQuery = sqlQuery;
+        const sqlTabBtn = document.querySelector('[data-tab="sql-playground"], [data-nav="sql-playground"]');
+        if (sqlTabBtn) sqlTabBtn.click();
+      });
+    }
+
+    const renderJoinRows = (rows, isMock = false) => {
+      if (!rows || rows.length === 0) {
+        joinDataWrapper.innerHTML = `
+          <div class="p-8 text-center text-slate-400 text-xs">
+            <i class="ri-error-warning-line text-lg text-slate-300 block mb-1"></i>
+            실제 공통키로 묶인 매칭 레코드가 존재하지 않습니다.
+          </div>
+        `;
+        return;
+      }
+
+      const cols = Object.keys(rows[0]);
+      const mockBadge = isMock ? `
+        <div class="px-3 py-1.5 bg-amber-50 text-amber-800 text-[9px] font-semibold border-b border-slate-200 flex items-center justify-between">
+          <span>⚠️ 데이터 미적재 관계로 시뮬레이션용 결합 데이터가 표시됩니다.</span>
+          <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200 font-bold">결합 시뮬레이션</span>
+        </div>
+      ` : '';
+
+      joinDataWrapper.innerHTML = `
+        ${mockBadge}
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse min-w-[600px] text-[10px]">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10 bg-slate-50">
+                ${cols.map(c => `<th class="px-2.5 py-2 bg-slate-50 whitespace-nowrap">${c}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700 font-mono">
+              ${rows.map(row => `
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  ${cols.map(c => {
+                    const val = row[c];
+                    const displayVal = val !== null ? String(val).replace(/"/g, '&quot;') : '';
+                    return `<td class="px-2.5 py-1.5 truncate max-w-[120px]" title="${displayVal}">${val !== null ? val : '<span class="text-slate-350 italic">null</span>'}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    // 실시간 DB 데이터 쿼리 수행
+    fetch('/api/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: sqlQuery })
+    })
+      .then(res => res.json())
+      .then(rows => {
+        if (!rows || rows.length === 0) {
+          // [폴백] 매칭된 실데이터가 없으면 지능형 결합 더미 생성
+          const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, 50);
+          renderJoinRows(mockJoinData, true);
+          return;
+        }
+        renderJoinRows(rows, false);
+      })
+      .catch(err => {
+        console.warn("공통키 결합 데이터 쿼리 실패, 폴백 시뮬레이션 생성:", err);
+        const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, 50);
+        renderJoinRows(mockJoinData, true);
+      });
   };
 
   // PRAGMA table_info 기반 스키마 폴백 로직
-  const fetchSchemaFromPragma = (nodeId, tbody) => {
+  const fetchSchemaFromPragma = (nodeId, tbody, callback) => {
     fetch(`/api/tables/${nodeId}/schema`)
       .then(res => res.json())
       .then(pragmaRows => {
         if (!pragmaRows || pragmaRows.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-rose-500">스키마 정보를 로드할 수 없습니다.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-6 text-center text-rose-500">스키마 정보 로드 불가</td></tr>`;
+          if (callback) callback();
           return;
         }
+
+        // pragmaRows 결과를 colsMeta 스키마 구조로 파싱 변환하여 보관
+        colsMeta = pragmaRows.map(r => ({
+          field: r.name,
+          sql_type: r.type || 'VARCHAR',
+          kor_nm: r.name // pragma는 한글명이 없으므로 물리명을 폴백
+        }));
 
         tbody.innerHTML = pragmaRows.map(row => {
           let keyBadge = '';
           if (row.pk === 1) {
-            keyBadge = `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-gov-100 text-gov-800 border border-gov-200">PK</span>`;
+            keyBadge = `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-gov-100 text-gov-800 border border-gov-200 ml-1">PK</span>`;
           } else if (row.name === 'LCNS_NO' || row.name === 'PRDLST_REPORT_NO' || row.name === 'BAR_CD' || row.name === 'BSSH_NO') {
-            keyBadge = `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200">KEY</span>`;
+            keyBadge = `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>`;
           }
 
           return `
             <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-4 py-3 font-mono font-semibold text-slate-800 select-all">${row.name}</td>
-              <td class="px-4 py-3 text-slate-400 font-normal italic">-</td>
-              <td class="px-4 py-3 font-mono text-[11px] text-slate-500">${row.type || 'TEXT'}</td>
-              <td class="px-4 py-3 text-center">${keyBadge}</td>
+              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${row.name}${keyBadge}</td>
+              <td class="px-3 py-2 font-mono text-[10px] text-slate-500">${row.type || 'TEXT'}</td>
+              <td class="px-3 py-2 text-right text-slate-400 italic">-</td>
             </tr>
           `;
         }).join('');
+
+        if (callback) callback();
       })
       .catch(err => {
-        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-rose-500">네트워크 연결 오류로 로드 실패: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-6 text-center text-rose-500">로드 실패</td></tr>`;
+        if (callback) callback();
       });
   };
 
   const hideTableDetail = () => {
     const inspector = container.querySelector('#table-inspector-panel');
-    if (inspector) inspector.classList.add('hidden');
+    if (inspector) {
+      inspector.classList.add('translate-x-[calc(100%+2rem)]');
+      setTimeout(() => {
+        inspector.classList.add('hidden');
+      }, 300);
+    }
   };
 
   const bindEvents = () => {

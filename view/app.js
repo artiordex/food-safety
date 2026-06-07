@@ -11,17 +11,31 @@ import { renderLocalHygiene } from './components/localHygiene.js';
 import { renderBarcodeSearch } from './components/barcodeSearch.js';
 import { renderSuperErdMap } from './components/superErdMap.js';
 import { renderSauceDataMap } from './components/sauceDataMap.js';
+import { renderDbErdMap } from './components/dbErdMap.js';
 import { renderNongshimDataset } from './components/nongshimDataset.js';
 
 const urlParams = new URLSearchParams(window.location.search);
-let activeTab = urlParams.get('tab') || 'explorer';
-if (activeTab === 'recommend') activeTab = 'recommend-beginner';
-if (window.location.pathname.includes('datamap.html') && !urlParams.has('tab')) {
-  activeTab = 'datamap';
+let activeTab = 'explorer'; // fallback default
+
+const path = window.location.pathname;
+if (path.includes('/dataset/')) {
+  activeTab = urlParams.get('tab') || 'explorer';
+} else if (path.includes('/datamap/')) {
+  activeTab = urlParams.get('tab') || 'datamap';
+} else if (path.includes('/erdmap/')) {
+  activeTab = urlParams.get('tab') || 'erdmap';
+} else if (path.includes('/dberd/')) {
+  activeTab = urlParams.get('tab') || 'db-erd';
+} else if (path.includes('/scenario/')) {
+  activeTab = urlParams.get('tab') || 'recommend-beginner';
+  if (activeTab === 'recommend') activeTab = 'recommend-beginner';
+} else if (path.includes('/analysis/')) {
+  activeTab = urlParams.get('tab') || 'sql-playground';
+} else {
+  // 인덱스 페이지 등 기타 가변 서빙에 대한 분기
+  activeTab = urlParams.get('tab') || 'explorer';
 }
-if (window.location.pathname.includes('analysis.html') && !urlParams.has('tab')) {
-  activeTab = 'api-explorer';
-}
+
 let initialSearchKeyword = '소스';
 let selectedDataset = null;
 
@@ -64,6 +78,8 @@ const renderTabContent = () => {
     renderBarcodeSearch(tabContent, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
     renderSauceDataMap(tabContent, initialSearchKeyword, onSelectDataset);
+  } else if (activeTab === 'db-erd') {
+    renderDbErdMap(tabContent);
   } else if (activeTab === 'nongshim-spec') {
     renderNongshimDataset(tabContent);
   }
@@ -73,38 +89,99 @@ const updateActiveTabUI = () => {
   const datamapTabBar = document.getElementById('datamap-tab-bar');
   const datamapTabs = document.getElementById('datamap-tabs');
   const scenarioTabs = document.getElementById('scenario-tabs');
+  const analysisTabs = document.getElementById('analysis-tabs');
+  
   if (datamapTabBar) {
-    const isDatamap = (
-      activeTab === 'datamap' ||
-      activeTab === 'keyword-datamap' ||
-      activeTab === 'erdmap' ||
-      activeTab === 'erd-inquiry' ||
-      activeTab === 'sql-playground' ||
-      activeTab === 'api-explorer' ||
-      activeTab === 'api-live-join' ||
-      activeTab === 'api-hygiene' ||
-      activeTab === 'api-barcode' ||
-      activeTab === 'nongshim-spec'
-    );
-    const isScenario = (activeTab === 'recommend-beginner' || activeTab === 'recommend-developer');
-    if (isDatamap || isScenario) {
-      datamapTabBar.style.display = 'block';
-      if (datamapTabs) datamapTabs.style.display = isDatamap ? 'flex' : 'none';
-      if (scenarioTabs) scenarioTabs.style.display = isScenario ? 'flex' : 'none';
-    } else {
-      datamapTabBar.style.display = 'none';
+    // 쪼개진 정적 페이지에 속한 서브 탭들의 보임/숨김 제어
+    const isDatamapPage = window.location.pathname.includes('/datamap/');
+    const isScenarioPage = window.location.pathname.includes('/scenario/');
+    const isAnalysisPage = window.location.pathname.includes('/analysis/');
+    
+    datamapTabBar.style.display = (isDatamapPage || isScenarioPage || isAnalysisPage) ? 'block' : 'none';
+    if (datamapTabs) datamapTabs.style.display = isDatamapPage ? 'flex' : 'none';
+    if (scenarioTabs) scenarioTabs.style.display = isScenarioPage ? 'flex' : 'none';
+    if (analysisTabs) analysisTabs.style.display = isAnalysisPage ? 'flex' : 'none';
+  }
+
+  // datamap 페이지의 통합 탭바 디자인 활성화 제어
+  const isDatamapPage = window.location.pathname.includes('/datamap/');
+  if (isDatamapPage) {
+    const container = document.getElementById('datamap-tabs-container');
+    if (container) {
+      container.querySelectorAll('button').forEach(btn => {
+        const btnTab = btn.getAttribute('data-tab');
+        const isMatch = (btnTab === activeTab) || (btnTab === 'datamap' && activeTab === 'keyword-datamap');
+        if (isMatch) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
     }
   }
 
-  document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn').forEach(btn => {
+  // dataset 페이지의 통합 탭바 디자인 활성화 제어
+  const isDatasetPage = window.location.pathname.includes('/dataset/');
+  if (isDatasetPage) {
+    const container = document.getElementById('dataset-tabs-container');
+    if (container) {
+      container.querySelectorAll('button').forEach(btn => {
+        const btnTab = btn.getAttribute('data-tab');
+        const isMatch = (btnTab === activeTab);
+        if (isMatch) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  // analysis 페이지의 통합 탭바 디자인 활성화 제어
+  const isAnalysisPage = window.location.pathname.includes('/analysis/');
+  if (isAnalysisPage) {
+    const container = document.getElementById('analysis-tabs-container');
+    if (container) {
+      container.querySelectorAll('button').forEach(btn => {
+        const btnTab = btn.getAttribute('data-tab');
+        const isMatch = (btnTab === activeTab);
+        if (isMatch) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  // scenario 페이지의 통합 탭바 디자인 활성화 제어
+  const isScenarioPage = window.location.pathname.includes('/scenario/');
+  if (isScenarioPage) {
+    const container = document.getElementById('scenario-tabs-container');
+    if (container) {
+      container.querySelectorAll('button').forEach(btn => {
+        const btnTab = btn.getAttribute('data-tab');
+        const isMatch = (btnTab === activeTab);
+        if (isMatch) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+  }
+
+  document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn, .tab-btn').forEach(btn => {
     const tabId = btn.dataset.tab || btn.dataset.nav;
     if (!tabId) return;
 
-    if (btn.classList.contains('tab-pill')) {
+    if (btn.classList.contains('tab-pill') || btn.classList.contains('tab-btn')) {
       if (tabId === activeTab) {
         if (tabId === 'recommend-beginner' || tabId === 'recommend-developer') {
           btn.classList.add('border-gov-600', 'text-gov-700', 'font-bold');
           btn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+        } else if (btn.classList.contains('tab-btn')) {
+          btn.classList.add('active');
         } else {
           btn.classList.add('bg-gov-50', 'text-gov-700');
           btn.classList.remove('text-slate-600', 'hover:bg-slate-50');
@@ -113,6 +190,8 @@ const updateActiveTabUI = () => {
         if (tabId === 'recommend-beginner' || tabId === 'recommend-developer') {
           btn.classList.remove('border-gov-600', 'text-gov-700', 'font-bold');
           btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+        } else if (btn.classList.contains('tab-btn')) {
+          btn.classList.remove('active');
         } else {
           btn.classList.remove('bg-gov-50', 'text-gov-700');
           btn.classList.add('text-slate-600', 'hover:bg-slate-50');
@@ -140,10 +219,49 @@ const updateActiveTabUI = () => {
   });
 };
 
+const TAB_PAGES = {
+  'explorer': '/dataset/dataset.html',
+  'datamap': '/datamap/datamap.html',
+  'keyword-datamap': '/datamap/datamap.html',
+  'erdmap': '/datamap/datamap.html',
+  'db-erd': '/datamap/datamap.html',
+  'recommend-beginner': '/scenario/scenario.html',
+  'recommend-developer': '/scenario/scenario.html',
+  'sql-playground': '/analysis/analysis.html',
+  'api-explorer': '/dataset/dataset.html',
+  'api-live-join': '/analysis/analysis.html',
+  'api-hygiene': '/analysis/analysis.html',
+  'api-barcode': '/analysis/analysis.html',
+  'nongshim-spec': '/analysis/analysis.html'
+};
+
 const changeTab = (tabId) => {
-  activeTab = tabId;
-  updateActiveTabUI();
-  renderTabContent();
+  const targetPage = TAB_PAGES[tabId];
+  if (!targetPage) {
+    // 예외적인 탭들은 SPA 처리
+    activeTab = tabId;
+    updateActiveTabUI();
+    renderTabContent();
+    return;
+  }
+
+  const currentPath = window.location.pathname;
+  const isDifferentPage = !currentPath.includes(targetPage);
+
+  if (isDifferentPage) {
+    // 다른 정적 페이지로 이동해야 하는 경우
+    window.location.href = `${targetPage}?tab=${tabId}`;
+  } else {
+    // 같은 페이지 내에서 서브 탭 전환인 경우 (SPA)
+    activeTab = tabId;
+    
+    // URL 쿼리스트링만 조용히 갱신
+    const newUrl = `${window.location.pathname}?tab=${tabId}`;
+    window.history.pushState({ tab: tabId }, '', newUrl);
+    
+    updateActiveTabUI();
+    renderTabContent();
+  }
 };
 
 window.switchToKeywordMap = (keyword) => {
@@ -151,7 +269,7 @@ window.switchToKeywordMap = (keyword) => {
   changeTab('keyword-datamap');
 };
 
-document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn').forEach(btn => {
+document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn, .tab-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     const tabId = e.currentTarget.dataset.tab || e.currentTarget.dataset.nav;
     if (tabId) {
@@ -210,6 +328,17 @@ if (btnHeroRecommend) {
 if (btnHeroRecommend2) {
   btnHeroRecommend2.addEventListener('click', goToRecommendTab);
 }
+
+window.switchTab = (tabId) => {
+  changeTab(tabId);
+};
+
+window.addEventListener('popstate', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  activeTab = urlParams.get('tab') || 'explorer';
+  updateActiveTabUI();
+  renderTabContent();
+});
 
 // Initial render
 updateActiveTabUI();

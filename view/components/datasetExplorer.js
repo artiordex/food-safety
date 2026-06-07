@@ -35,7 +35,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     ).join('');
 
     container.innerHTML = `
-      <section style="padding:40px 0; background:#f8f9fb;">
+      <section style="padding:40px 0; background:#fff;">
         <div style="max-width:1220px; margin:0 auto; padding:0 20px;">
 
           <!-- 섹션 헤더 (식품안전나라 스타일) -->

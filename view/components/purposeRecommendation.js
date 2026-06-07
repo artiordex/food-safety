@@ -46,7 +46,7 @@ export function renderPurposeRecommendation(container, onSelectDataset, initialM
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               
               <!-- Card 1 -->
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
+              <div class="bg-white border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
                 <div>
                   <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 text-red-500 text-2xl shadow-sm border border-slate-100"><i class="ri-alert-fill"></i></div>
                   <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">회수·판매중지 정보</h4>
@@ -58,7 +58,7 @@ export function renderPurposeRecommendation(container, onSelectDataset, initialM
               </div>
 
               <!-- Card 2 -->
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
+              <div class="bg-white border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
                 <div>
                   <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 text-green-500 text-2xl shadow-sm border border-slate-100"><i class="ri-leaf-fill"></i></div>
                   <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">알레르기·영양성분</h4>
@@ -70,7 +70,7 @@ export function renderPurposeRecommendation(container, onSelectDataset, initialM
               </div>
 
               <!-- Card 3 -->
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
+              <div class="bg-white border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
                 <div>
                   <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 text-yellow-500 text-2xl shadow-sm border border-slate-100"><i class="ri-store-2-fill"></i></div>
                   <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">식품업체 정보</h4>
@@ -82,7 +82,7 @@ export function renderPurposeRecommendation(container, onSelectDataset, initialM
               </div>
 
               <!-- Card 4 -->
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
+              <div class="bg-white border border-slate-200 rounded-xl p-6 flex flex-col justify-between hover:border-blue-300 transition-colors group cursor-pointer">
                 <div>
                   <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 text-purple-500 text-2xl shadow-sm border border-slate-100"><i class="ri-test-tube-fill"></i></div>
                   <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">검사결과 정보</h4>
