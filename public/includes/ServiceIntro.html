@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- INCLUDE_HEAD -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', 'Inter', sans-serif !important; }
+
+        /* 서브 탭 네비게이션 */
+        .sub-tab-wrap {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+        }
+        .sub-tab-wrap a {
+            display: inline-block;
+            padding: 16px 32px;
+            font-size: 15px;
+            color: #6b7280;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sub-tab-wrap a.active,
+        .sub-tab-wrap a:hover {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            font-weight: 700;
+        }
+
+        /* 본문 컨텐츠 래퍼 */
+        .intro-page {
+            max-width: 900px;
+            margin: 48px auto;
+            padding: 0 24px 80px;
+        }
+
+        /* 페이지 제목 */
+        .intro-page .page-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .intro-page .page-sub {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 48px;
+            line-height: 1.7;
+        }
+
+        /* 섹션 */
+        .intro-page section {
+            margin-bottom: 56px;
+        }
+        .intro-page section h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+
+        /* 특징 카드 그리드 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .feature-card .icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* 이용 절차 스텝 */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #2563eb;
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step-body strong {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        .step-body p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* API URL 블록 */
+        .api-url-block {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+        .api-url-block .method-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-right: 12px;
+        }
+        .api-url-block code {
+            font-family: monospace;
+            font-size: 13px;
+            color: #0f172a;
+            word-break: break-all;
+        }
+
+        /* 주의사항 리스트 */
+        .notice-list {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 10px;
+            padding: 20px 24px;
+        }
+        .notice-list li {
+            font-size: 14px;
+            color: #78350f;
+            line-height: 1.8;
+            padding-left: 20px;
+            position: relative;
+        }
+        .notice-list li::before {
+            content: "·";
+            position: absolute;
+            left: 6px;
+            font-weight: bold;
+        }
+
+        /* 파라미터 테이블 */
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .param-table th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .param-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #4b5563;
+        }
+        .param-table td code {
+            font-family: monospace;
+            font-size: 13px;
+            color: #7c3aed;
+        }
+        .required-mark { color: #ef4444; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <!-- INCLUDE_HEADER -->
+
+        <!-- 서브 탭 네비게이션 -->
+        <div class="sub-tab-wrap">
+            <a href="/public/includes/ServiceIntro.html" class="active">서비스 소개</a>
+            <a href="/serviceUse/serviceUse.html">서비스 이용방법</a>
+        </div>
+
+        <div id="container">
+            <div class="intro-page">
+
+                <!-- 페이지 타이틀 -->
+                <h1 class="page-title">서비스 소개</h1>
+                <p class="page-sub">
+                    식품의약품안전처 및 연계기관에서 공개하는 <strong>169종 공공데이터</strong>를 XML · JSON 형태의 Open API로 제공합니다.<br>
+                    누구나 인증키를 발급받아 데이터를 자유롭게 활용할 수 있습니다.
+                </p>
+
+                <!-- 서비스 특징 -->
+                <section>
+                    <h2>서비스 특징</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="icon">📦</div>
+                            <h3>169종 공공데이터</h3>
+                            <p>식품안전, 영양정보, HACCP, 수입식품, 이력추적 등 식품안전 전 분야의 데이터를 통합 제공합니다.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">🔌</div>
+                            <h3>XML · JSON 이중 포맷</h3>
+                            <p>다양한 서비스와 데이터를 좀 더 쉽게 이용할 수 있도록 XML과 JSON 두 가지 응답 포맷을 지원합니다.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">🌐</div>
+                            <h3>RESTful API</h3>
+                            <p>직관적이고 표준화된 HTTP URL 방식을 사용하여 어떤 개발 환경에서도 쉽게 연동할 수 있습니다.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">🏛️</div>
+                            <h3>11개 연계기관</h3>
+                            <p>식약처를 포함한 해양수산부, 농림축산검역본부, 농촌진흥청 등 11개 기관의 데이터를 한 곳에서 조회합니다.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 기본 API URL -->
+                <section>
+                    <h2>API 기본 URL</h2>
+                    <div class="api-url-block">
+                        <span class="method-badge">GET</span>
+                        <code>http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}</code>
+                    </div>
+
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>파라미터</th>
+                                <th>타입</th>
+                                <th>필수</th>
+                                <th>설명</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>keyId</code></td>
+                                <td>String</td>
+                                <td><span class="required-mark">O</span></td>
+                                <td>발급받은 인증키 (회원 가입 후 신청)</td>
+                            </tr>
+                            <tr>
+                                <td><code>serviceId</code></td>
+                                <td>String</td>
+                                <td><span class="required-mark">O</span></td>
+                                <td>서비스명 (예: I1250, C002)</td>
+                            </tr>
+                            <tr>
+                                <td><code>dataType</code></td>
+                                <td>String</td>
+                                <td><span class="required-mark">O</span></td>
+                                <td>응답 형식 (XML 또는 JSON)</td>
+                            </tr>
+                            <tr>
+                                <td><code>startIdx</code></td>
+                                <td>Integer</td>
+                                <td><span class="required-mark">O</span></td>
+                                <td>페이징 시작 인덱스 (1부터 시작)</td>
+                            </tr>
+                            <tr>
+                                <td><code>endIdx</code></td>
+                                <td>Integer</td>
+                                <td><span class="required-mark">O</span></td>
+                                <td>페이징 종료 인덱스</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- 이용 절차 -->
+                <section>
+                    <h2>이용 절차</h2>
+                    <div class="steps">
+                        <div class="step-item">
+                            <div class="step-num">1</div>
+                            <div class="step-body">
+                                <strong>사이트 접속 및 회원가입</strong>
+                                <p>식품안전나라 데이터활용서비스에 접속하여 회원가입을 진행합니다. 서비스 이용을 위해서는 ID와 인증키가 필요합니다.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">2</div>
+                            <div class="step-body">
+                                <strong>인증키 신청</strong>
+                                <p>원하는 API 서비스를 선택한 뒤 이용 신청 버튼을 클릭합니다. 활용용도를 반드시 작성하여 주십시오.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">3</div>
+                            <div class="step-body">
+                                <strong>API 검색 및 이용방법 확인</strong>
+                                <p>서비스별 개발 명세서를 확인하고 포맷에 따라 목적에 맞게 활용하세요.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">4</div>
+                            <div class="step-body">
+                                <strong>API를 이용하여 어플리케이션 제작</strong>
+                                <p>인증키를 포함한 API URL을 호출하여 XML/JSON 데이터를 받아 활용합니다.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-num">5</div>
+                            <div class="step-body">
+                                <strong>어플리케이션 등록</strong>
+                                <p>제작한 서비스·앱을 데이터활용 갤러리에 등록하여 활용 사례를 공유할 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 주의사항 -->
+                <section>
+                    <h2>이용 주의사항</h2>
+                    <ul class="notice-list">
+                        <li>서비스를 사용하기 위해서는 ID와 인증키가 필요합니다.</li>
+                        <li>서비스 인증키 신청을 해주세요. 인증키는 타인에게 양도할 수 없습니다.</li>
+                        <li>서비스별로 개발 명세서에 설명되어 있는 포맷에 따라 목적에 맞게 활용하세요.</li>
+                        <li>인증키 신청하실 때 활용용도를 반드시 작성하여 주십시오.</li>
+                        <li>상업적 목적의 이용 시에는 공공데이터 이용약관을 반드시 확인하세요.</li>
+                    </ul>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- INCLUDE_FOOTER -->
+    </div>
+</body>
+</html>

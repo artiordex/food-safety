@@ -1,317 +1,16 @@
 <header id="header">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <script>
-    var anyidAdaptor = anyidAdaptor || {};
-
-
-    /*이용기관 수정 영역 Start*/
-    anyidAdaptor.orgLogin = function (data) {
-      // alert("이용기관 자체 로그인!!!");
-      //정부 통합인증SDK_연계가이드 4.4.1.3 이용기관 로그인(토글 off) 참조
-      //제공되는 라이브러리 메소드로 인증데이터 decrypt 이후 자체 로그인 로직 개발
-      if (data.ssob) {
-        anyidAdaptor.goAnyIdLogin(data);
-      } else {
-        anyidAdaptor.goLogin();
-      }
-
-    }
-    /*이용기관 수정 영역 End*/
-
-
-    /*이용기관 문구수정 영역 Start*/
-    anyidAdaptor.JoinConfirm = function (portalJoinUri, memberData) {
-      if (!confirm('Any-ID 사용자등록 하시겠습니까?')) {
-        anyidAdaptor.orgLogin(anyidAdaptor.certData);
-        return;
-      } else {
-        anyidAdaptor.receiveAnyIdJoin(portalJoinUri, memberData);
-      }
-    }
-    /*이용기관 문구수정 영역 End*/
-
-
-
-
-    anyidAdaptor.portalJoinUri = "null";
-    anyidAdaptor.certData = null;
-    anyidAdaptor.ssoByPass = "0";
-    anyidAdaptor.niRegYn = "null";
-    anyidAdaptor.agencyContextPath = "";
-
-
-    anyidAdaptor.success = function (data) {
-      if (anyidAdaptor.ssoByPass != 0 || !data.useSso) {
-        anyidAdaptor.orgLogin(data);
-      } else {
-        anyidAdaptor.certData = data;
-        anyidAdaptor.userCheck();
-      }
-    }
-
-    anyidAdaptor.userCheck = function () {
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", anyidAdaptor.agencyContextPath + "/oidc/userCheck", true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          var response = JSON.parse(xhr.responseText);
-          if (response.success) {
-            anyidAdaptor.ssoLogin();
-          } else {
-            setTimeout(function () {
-              anyidAdaptor.receiveAnyIdJoin(response.uri, response.data);
-            }, 100);
-          }
-        }
-      };
-
-      let jsonObject = new Object();
-      jsonObject.txId = anyidAdaptor.certData.txId;
-      jsonObject.ssob = anyidAdaptor.certData.ssob;
-      jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
-
-      let jsonStr = JSON.stringify(jsonObject);
-      let encodedString = btoa(jsonStr);
-
-      var data = "data=" + encodedString + "&txId=" + anyidAdaptor.certData.txId;
-      xhr.send(data);
-
-    }
-
-    //anyid가입
-    anyidAdaptor.receiveAnyIdJoin = function (portalJoinUri, memberData) {
-
-      var url = portalJoinUri + encodeURIComponent(memberData);
-      anyidAdaptor.popup(url, "openAnyIdRegistUserIdv", 700, 740);
-
-      window.addEventListener("message", function (event) {
-        var result;
-        try {
-          result = JSON.parse(event.data);
-        } catch (error) {
-          console.error("Received message is not valid JSON:", error);
-          return;
-        }
-
-        if (!result.funcName || (result.funcName !== "trmsAgreComplete" && result.funcName !== "registUserComplete")) {
-          return;
-        }
-        if (result.status === "success") {
-          if (result.trmsAgreYn == "Y") {
-            anyidAdaptor.ssoLogin();
-          } else {
-            anyidAdaptor.orgLogin(anyidAdaptor.certData);
-          }
-        } else {
-
-          anyidAdaptor.orgLogin(anyidAdaptor.certData);
-        }
-
-      }, false);
-    }
-
-    // 팝업 호출
-    anyidAdaptor.popup = function (url, name, width, height) {
-      let left = (screen.width) ? (screen.width - width) / 2 : 0;
-      let top = (screen.height) ? (screen.height - height) / 2 : 0;
-      let popup = window.open(url, name, "resizable=yes,toolbar=no,scrollbars=yes,location=no,top=" + top + "px,left=" + left + "px,width=" + width + "px,height=" + height + "px");
-      if (popup) {
-        popup.focus();
-      }
-    }
-
-    anyidAdaptor.ssoLogin = function () {
-      let jsonObject = new Object();
-      jsonObject.txId = anyidAdaptor.certData.txId;
-      jsonObject.ssob = anyidAdaptor.certData.ssob;
-      jsonObject.userSeCd = anyidAdaptor.certData.userSeCd;
-      jsonObject.afData = anyidAdaptor.certData.afData;
-      let jsonStr = JSON.stringify(jsonObject);
-
-      let encodedString = btoa(jsonStr);
-      var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogin";
-      var urlWithParams = baseUrl + "?data=" + encodedString;
-      window.location.href = urlWithParams;
-
-    }
-
-    anyidAdaptor.ssoLoginPageSub = function (baseUrl, endPoint, acrValues) {
-      var subUrl = "";
-
-      if (endPoint && endPoint.trim() !== "") {
-        subUrl = "?endPoint=" + encodeURIComponent(endPoint);
-      }
-
-      if (!acrValues && acrValues.trim() == "") {
-        acrValues = "3";
-      }
-
-      if (acrValues && acrValues.trim() !== "") {
-        if (subUrl == "") {
-          subUrl = "?";
-        } else {
-          subUrl = subUrl + "&";
-        }
-        subUrl = subUrl + "acrValues=" + acrValues;
-      }
-
-      window.location.replace(baseUrl + subUrl);
-    }
-
-    /**/
-    anyidAdaptor.ssoLogout = function (endPoint) {
-      endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
-      var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogout";
-      baseUrl = baseUrl + "?endPoint=" + encodeURIComponent(endPoint);
-      window.location.replace(baseUrl);
-    }
-    /**/
-    anyidAdaptor.reAuthLevel = function (endPoint, acrValues) {
-      endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
-      var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/reAuthLevel";
-      anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
-
-    }
-    /**/
-    anyidAdaptor.ssoLoginPage = function (endPoint, acrValues) {
-      endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
-      var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/auth";
-      anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
-    }
-
-    /**/
-    anyidAdaptor.ssoSvcToSvc = function (url, endPoint) {
-      var baseUrl = url + "/oidc/svcToSvc?endPoint=" + encodeURIComponent(endPoint);
-      window.open(baseUrl, "_blank");
-    }
-    anyidAdaptor.goAnyIdLogin = function (data) {
-      const params = new URLSearchParams(location.search);
-
-      var obj = {
-        ssob: data.ssob,
-        tag: params.get("tx")
-      };
-
-      $.ajax({
-        url: "/chkLoginAnyid.do",
-        type: "POST",
-        dataType: "json",
-        data: obj,
-        beforeSend: function () { _cfn_loading.show(); },
-        complete: function () { _cfn_loading.hide(); },
-        success: function (response) {
-          if (response.status === "success") {
-            console.log("success");
-            location.href = "/minwonMainNew.do";
-          } else {
-            console.log("fail");
-            anyidAdaptor.goLogin();
-          }
-        },
-        error: function (xhr, status, error) {
-          console.error('API Error (No Local Backend)');
-        }
-      })
-    }
-    // 이용기과 로그인 함수 추가
-    anyidAdaptor.goLogin = function () {
-      var nowUrl = window.location.protocol;
-
-      var urlSplit = nowUrl.split(":");
-      var firstUrl = urlSplit[0];
-      var fullUrl;
-
-      if (firstUrl == "https") {
-        console.log("url : " + firstUrl);
-        fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
-      } else if (firstUrl == "http") {
-        console.log("url : " + firstUrl);
-        fullUrl = "/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
-      } else {
-        console.log("else");
-      }
-
-      console.log("fullUrl : " + fullUrl);
-      location.href = fullUrl;
-    }
-
-
-  </script>
-
   <div class="header_top_wrap">
     <div class="header_top">
-      <ul class="site">
-        <li><a href="https://www.foodsafetykorea.go.kr/main.do" title="식품안전나라">식품안전나라</a></li>
-
-        <li><a href="https://www.foodsafetykorea.go.kr/minwonMainNew.do" title="통합민원창구">통합민원창구</a></li>
-
-
-        <li class="util_left_bg3">
-
-
-        </li>
-
-
-
-      </ul>
       <h1 class="logo"><a href="index.html">식품의약품안전처 데이터활용서비스</a></h1>
-      <ul class="utill">
-
-
-
-
-
-        <li><a href="http://www.foodsafetykorea.go.kr/portal/member/joinAgreeView.do">회원가입</a></li>
-
-        <li><a href="#" onclick="anyidAdaptor.ssoLoginPage('/portal/member/ssoLoginResultView.do','3');">로그인</a></li>
-
-
-
-      </ul>
     </div>
   </div>
 
-  <div class="top_m sub" style="height:0px !important;z-index:1000;">
-
-
-  </div>
   <!-- search end -->
-
   <script id="commonOptionList" type="text/html">
 	<option value="{optionValue}">{optionName}</option>
 </script>
 
   <script>
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-    /*
-    location.href = "/portal/main_sub.html";
-    //*/
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-
     //로딩바 처리
     $.loading();
     $(document).ajaxStart(function () { $.disable(); }).ajaxStop(function () { $.enable(); });
@@ -334,8 +33,6 @@
       top: '50%',			// Top position relative to parent
       left: '50%'			// Left position relative to parent
     };
-
-
 
     //무한 로딩바 방지
     window.onerror = function () {
@@ -368,57 +65,6 @@
         helpers: { overlay: { locked: false } }
       });
     });
-
-    //검색엔진인기검색어 목록
-    function getSearchTrandList() {
-      /*
-      // 운영 COMMIT 금지			2016.09.30:임재록
-      $.ajax({
-            dataType:'json',
-            type:'POST',
-            url:"/ajax/getSearchTrandList.do",
-            success:function(listTrend){
-              var htmlStr = '인기검색어 ';
-              var cnt = 3;
-              if(listTrend != null){
-                cnt = listTrend.length;
-                if(listTrend.length > 0){
-                  if(listTrend.length > 3){
-                    cnt = 3;
-                  }
-                  for(var i=0; i<cnt; i++){
-                    htmlStr += "<a href=\'javascript:fn_searchTranTop(\""+listTrend[i].KEYWORD+"\");\'>"+listTrend[i].KEYWORDM+"</a>";
-                  }
-                }
-              }
-    
-              $('#keyword').html(htmlStr);
-    
-            },
-            error:function(request,status,error){
-                //alert("left 실패코드111 : " + request.status+"\n메세지 : " + request.error);
-            }
-        });
-      //*/
-    }
-
-    function fn_goMinwon() {
-      document.baseForm.action = '/minwon/myCivil.do?menu_grp=MENU_GRP21&menu_no=627';
-      document.baseForm.target = "_self";
-      document.baseForm.method = "post";
-      document.baseForm.submit();
-    }
-
-    //우리회사안전관리 콜백
-    function fn_callbackCsm(url) {
-      $.fancybox.close();
-      location.href = url;
-    }
-
-    // 권한이 없다는 메세지 띄우기
-    function fn_Alert() {
-      alert('기업회원이 아니거나 위임받은 인허가번호가 없어서 우리회사안전서비스를 이용할 수 없습니다.');
-    }
 
     //통합검색 페이지이동
     function fn_searchTop() {
@@ -454,11 +100,13 @@
       document.searchForm.method = "post";
       document.searchForm.submit();
     }
+
     //통합검색 페이지이동(엔터키)
     function fn_searchKeyTop() {
       if (window.event.keyCode == 13)
         fn_searchTop();
     }
+
     //통합검색 인기검색어 페이지이동
     function fn_searchTranTop(word) {
 
@@ -470,151 +118,9 @@
       document.searchForm.method = "post";
       document.searchForm.submit();
     }
-
-    //인허가 회원 수정 페이지로 이동
-    function fn_moveEditLcnsMemberView(userId, userPw) {
-      var form = $('<form/>', { method: 'post', action: '/portal/member/editLcnsMemberView.do' });
-      form.append($('<input/>', { type: 'hidden', name: 'userId', value: userId }));
-      form.append($('<input/>', { type: 'hidden', name: 'userPw', value: userPw }));
-
-      $(document.body).append(form);
-      form.submit();
-    }
-
-    //회원정보와 관련된 인허가번호를 가져온다.
-    function fn_selectLcnsNoListForSafety() {
-
-      $.ajax({
-        data: { id: '' },
-        dataType: 'json',
-        type: 'POST',
-        url: '/csm/safetyinfo/selectLcnsNoListForSafety.do'
-      }).done(function (rstData) {
-        var data;
-        var strHtml = '<option value="">선택하세요</option>';
-
-        if (rstData != null && rstData.length > 0) {
-          $.each(rstData, function (idx) {
-            data = null;
-            data = { optionValue: this['lcns_req_no'], optionName: this['entrps_nm'] };
-
-            strHtml += innerHtmlMaker('#commonOptionList', data);
-          });
-
-        }
-
-        $('#select_ourCompany').html(strHtml);
-        $('#select_ourCompany').selecter('update');
-        fn_selectEntrpsNoToLcnsNo();
-
-      }).fail(function (request, status, error) {
-        console.error('API Error (No Local Backend)');
-      });
-    }
-
-    //기업번호로 인허가번호를 가져와서 셀렉트 박스를 set 한다.
-    function fn_selectEntrpsNoToLcnsNo() {
-      var entrps_esntl_no = '';
-
-      $.ajax({
-        data: { entrps_esntl_no: entrps_esntl_no },
-        dataType: 'json',
-        type: 'POST',
-        url: '/csm/safetyinfo/selectEntrpsNoToLcnsNo.do'
-      }).done(function (rstData) {
-        if (rstData != null) {
-          $('#select_ourCompany option').each(function (i) {
-
-            if (rstData.lcns_crtfc_no == $(this).val()) {
-
-              $("#select_ourCompany option:eq(" + i + ")").prop("selected", true);
-              $("#select_ourCompany").val(rstData.lcns_crtfc_no);
-            }
-
-          });
-
-        }
-
-      }).fail(function (request, status, error) {
-        console.error('API Error (No Local Backend)');
-      });
-    }
-
-    //gnb onchange
-    //해당 인허가번호로 세션을 set한다.
-    function changeInfo() {
-      // 업종을 가져와서 set 한다.
-      fn_setSesstionForSafety($('#select_ourCompany').val());
-
-    }
-
-    //해당 인허가 번호로 세션을 set한다.
-    function fn_setSesstionForSafety(lcns_no) {
-      $.ajax({
-        data: { lcns_no: lcns_no },
-        dataType: 'json',
-        type: 'POST',
-        url: '/csm/safetyinfo/setSesstionForSafety.do'
-      }).done(function (rstData) {
-        var returnCode = rstData.returnCode;
-        var returnMessage = rstData.returnMessage;
-
-        if (returnCode == "01") {
-
-          alert(returnMessage);
-          //location.reload();
-          location.href = '/csm/main.do?menu_no=757&menu_grp=MENU_GRP40';
-        }
-        else {
-          alert(returnMessage);
-        }
-
-      }).fail(function (request, status, error) {
-        console.error('API Error (No Local Backend)');
-      });
-    }
-    function fn_skip() {
-      return;
-    }
-
-    //gpki 로그인 오류로인한 로그인페이지 방식 변경
-    function goLogin() {
-      var nowUrl = "https://www.foodsafetykorea.go.kr/WEB-INF/jsp/newMain/apiMain_new.jsp";
-      console.log("nowUrl : " + nowUrl);
-
-      var urlSplit = nowUrl.split(":");
-      var firstUrl = urlSplit[0];
-      var fullUrl;
-
-      if (firstUrl == "https") {
-        console.log("url : " + firstUrl);
-        fullUrl = "https://www.foodsafetykorea.go.kr/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
-      } else if (firstUrl == "http") {
-        console.log("url : " + firstUrl);
-        fullUrl = "http://www.foodsafetykorea.go.kr/portal/loginNew.do?menu_no=3817&amp;menu_grp=MENU_NEW07";
-      } else {
-        console.log("else");
-      }
-
-      console.log("fullUrl : " + fullUrl);
-      location.href = fullUrl;
-
-    }
-
   </script>
 
   <!-- GNB start -->
-
-
-
-
-
-
-
-
-
-
-
   <div class="header_bottom_wrap">
     <div class="header_bottom">
       <button type="button" class="total_menu tm_view" title="데이터활용서비스 한눈에 보기">전체메뉴</button>
@@ -626,7 +132,7 @@
               <a href="javascript:fn_skip();"><span>서비스안내</span></a>
               <div class="depth_02">
                 <ul>
-                  <li><a href="https://www.foodsafetykorea.go.kr/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686">서비스 소개</a></li>
+                  <li><a href="/public/includes/ServiceIntro.html">서비스 소개</a></li>
                   <li><a href="/serviceUse/serviceUse.html">서비스이용방법</a></li>
                 </ul>
               </div>
