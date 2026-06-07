@@ -2,3 +2,16 @@
 body {
   font-family: 'Inter', 'Pretendard', sans-serif;
 }
+
+.footer_notice {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.footer_notice p {
+  margin: 0;
+  line-height: 22px;
+  text-align: center;
+}
