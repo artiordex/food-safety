@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -16,7 +17,10 @@ const logger = pino({
   }
 });
 
-const REAL_API_KEY = '77183c01c07d44798948';
+const REAL_API_KEY = process.env.FOOD_API_KEY;
+if (!REAL_API_KEY) {
+  logger.warn('FOOD_API_KEY 환경변수가 설정되지 않았습니다. 외부 OpenAPI 호출이 실패할 수 있습니다. (.env 파일을 확인하세요.)');
+}
 
 // HTML 파일에 head/header/search include를 주입하는 공통 함수
 function applyIncludes(html, vars = {}) {
@@ -61,8 +65,16 @@ const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   }
 });
 
+// 공통 Promise 래퍼 — async/await용 sqlite3 헬퍼
+const dbAll = (sql, params = []) => new Promise((resolve, reject) =>
+  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)))
+);
+const dbGet = (sql, params = []) => new Promise((resolve, reject) =>
+  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)))
+);
+
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
-app.get('/api/tables', (req, res) => {
+app.get('/api/tables', async (req, res) => {
   const query = `
     SELECT m.name, a.svc_nm AS logical_name
     FROM sqlite_master m
@@ -70,20 +82,17 @@ app.get('/api/tables', (req, res) => {
     WHERE m.type = 'table' AND m.name NOT LIKE 'sqlite_%' AND m.name NOT LIKE 'v_%'
     ORDER BY m.name;
   `;
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows.map(row => ({
-      name: row.name,
-      logicalName: row.logical_name || row.name
-    })));
-  });
+  try {
+    const rows = await dbAll(query);
+    res.json(rows.map(row => ({ name: row.name, logicalName: row.logical_name || row.name })));
+  } catch (err) {
+    logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 2. 특정 테이블 스키마 조회 API
-app.get('/api/tables/:tableName/schema', (req, res) => {
+app.get('/api/tables/:tableName/schema', async (req, res) => {
   const { tableName } = req.params;
   // SQL Injection 방지를 위해 알파벳, 숫자, 언더바만 허용하도록 테이블명 검증
   if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
@@ -91,17 +100,17 @@ app.get('/api/tables/:tableName/schema', (req, res) => {
   }
 
   const query = `PRAGMA table_info("${tableName}");`;
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const rows = await dbAll(query);
     res.json(rows);
-  });
+  } catch (err) {
+    logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 3. 특정 테이블 실시간 상위 데이터 조회 API
-app.get('/api/tables/:tableName/data', (req, res) => {
+app.get('/api/tables/:tableName/data', async (req, res) => {
   const { tableName } = req.params;
   const limit = req.query.limit;
 
@@ -119,13 +128,13 @@ app.get('/api/tables/:tableName/data', (req, res) => {
     query += `;`;
   }
 
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const rows = await dbAll(query, params);
     res.json(rows);
-  });
+  } catch (err) {
+    logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/join-scenarios', (req, res) => {
@@ -208,7 +217,7 @@ app.get('/api/join-scenarios', (req, res) => {
 });
 
 // 4. 임의의 SQL 쿼리 실행 API
-app.post('/api/query', (req, res) => {
+app.post('/api/query', async (req, res) => {
   const { query } = req.body;
   if (!query || query.trim() === '') {
     return res.status(400).json({ error: '쿼리 내용이 비어 있습니다.' });
@@ -222,13 +231,13 @@ app.post('/api/query', (req, res) => {
     return res.status(403).json({ error: '안전을 위해 조회(SELECT, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
   }
 
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
-      return res.status(400).json({ error: err.message });
-    }
+  try {
+    const rows = await dbAll(query);
     res.json(rows);
-  });
+  } catch (err) {
+    logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
@@ -245,16 +254,18 @@ app.get('/api/datasetAllSearch.do', (req, res) => {
 });
 
 // 4.2a 카테고리 목록 API
-app.get('/api/categoryList.do', (req, res) => {
-  db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+app.get('/api/categoryList.do', async (req, res) => {
+  try {
+    const rows = await dbAll(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`);
     res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
 // 데이터구조 검색 API (/ajax/datasetSearch.do 로컬 대체)
-app.post('/api/search', (req, res) => {
+app.post('/api/search', async (req, res) => {
   const svcTypeCode = (req.body.search_svcTypeCode || '').trim();
   const clCdCode = (req.body.search_clCdCode || '').trim();
   const provdInsttCode = (req.body.search_provdInsttCode || '').trim();
@@ -271,16 +282,13 @@ app.post('/api/search', (req, res) => {
     params.push(svcTypeCode);
   }
 
-  db.all(query, params, (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    const filtered = rows.filter(row => {
-      if (row.svc_nm === '품목제조보고번호유효성확인(대한상공회의소사용)') return false;
-      if (row.svc_nm === '불량식품 신고이력 조회(내부용)') return false;
-      if (row.svc_nm === '불량식품 신고정보 조회(내부용)') return false;
-      return true;
-    });
-
+  try {
+    const rows = await dbAll(query, params);
+    const filtered = rows.filter(row =>
+      row.svc_nm !== '품목제조보고번호유효성확인(대한상공회의소사용)' &&
+      row.svc_nm !== '불량식품 신고이력 조회(내부용)' &&
+      row.svc_nm !== '불량식품 신고정보 조회(내부용)'
+    );
     const dataStrutList = filtered.map(row => ({
       provd_instt_nm: '식품의약품안전처',
       cl_cd_nm: row.cat || '',
@@ -288,22 +296,21 @@ app.post('/api/search', (req, res) => {
       svc_no: row.svc_no || '',
       svc_type_cd: row.type_cd || 'API_TYPE06'
     }));
-
     res.json({ dataStrutList });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 4.2 통합 데이터 검색 결과 API (searchDatasetList.do)
-app.post('/api/searchDatasetList.do', (req, res) => {
+app.post('/api/searchDatasetList.do', async (req, res) => {
   const keyword = (req.body.search_keyword || '').trim();
   const catFilter = (req.body.search_clCdCode || '').trim();  // 카테고리 한글명
 
-  db.all(`SELECT svc_no, svc_nm, cat, description FROM api_tables`, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-
+  try {
+    const rows = await dbAll(`SELECT svc_no, svc_nm, cat, description FROM api_tables`);
     let list = [];
     let index = 1;
-
     rows.forEach(row => {
       const svc_no = row.svc_no || '';
       const svc_nm = row.svc_nm || '';
@@ -330,28 +337,27 @@ app.post('/api/searchDatasetList.do', (req, res) => {
         openapi_yn: isOpenApi
       });
     });
-
     const start_idx = parseInt(req.body.start_idx) || 1;
     const show_cnt = parseInt(req.body.show_cnt) || 10;
     const startIndex = (start_idx - 1) * show_cnt;
-
-    res.json({
-      total_cnt: list.length,
-      list: list.slice(startIndex, startIndex + show_cnt)
-    });
-  });
+    res.json({ total_cnt: list.length, list: list.slice(startIndex, startIndex + show_cnt) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 4.3 데이터셋 메타데이터 (컬럼 정의) API - detail.html 용
-app.get('/api/datasetMetadata.do', (req, res) => {
+app.get('/api/datasetMetadata.do', async (req, res) => {
   let svc_no = req.query.svc_no;
   if (!svc_no) return res.status(400).json({ error: 'svc_no is required' });
 
-  let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
-  db.all(query, [svc_no], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  const query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
+  try {
+    const rows = await dbAll(query, [svc_no]);
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원) -> 직접 식약처 실시간 호출로 전격 개조!
@@ -370,33 +376,23 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
     const limit = end - start + 1;
     const offset = start - 1;
 
-    const countQuery = `SELECT COUNT(*) AS total FROM "${serviceId}";`;
-    db.get(countQuery, [], (err, countRow) => {
-      if (err) {
-        logger.error({ err, serviceId }, '융합 뷰 총 건수 조회 중 오류가 발생했습니다.');
-        const errorResult = {};
-        errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
-        return res.status(500).json(errorResult);
-      }
+    try {
+      const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`);
       const totalCount = countRow ? countRow.total : 0;
-      const dataQuery = `SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`;
-      db.all(dataQuery, [limit, offset], (err, rows) => {
-        if (err) {
-          logger.error({ err, serviceId }, '융합 뷰 데이터 조회 중 오류가 발생했습니다.');
-          const errorResult = {};
-          errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
-          return res.status(500).json(errorResult);
-        }
-        const openApiResult = {};
-        openApiResult[serviceId] = {
-          total_count: String(totalCount),
-          row: rows,
-          RESULT: { MSG: '정상처리되었습니다. (로컬 융합 뷰)', CODE: 'INFO-000' }
-        };
-        return res.json(openApiResult);
-      });
-    });
-    return;
+      const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]);
+      const openApiResult = {};
+      openApiResult[serviceId] = {
+        total_count: String(totalCount),
+        row: rows,
+        RESULT: { MSG: '정상처리되었습니다. (로컬 융합 뷰)', CODE: 'INFO-000' }
+      };
+      return res.json(openApiResult);
+    } catch (err) {
+      logger.error({ err, serviceId }, '융합 뷰 조회 중 오류가 발생했습니다.');
+      const errorResult = {};
+      errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
+      return res.status(500).json(errorResult);
+    }
   }
 
   // 그 외 모든 표준 테이블은 식약처 공식 실시간 OpenAPI 서버를 직접 호출!
@@ -432,21 +428,19 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
     const limit = end - start + 1;
     const offset = start - 1;
 
-    db.get(`SELECT COUNT(*) AS total FROM "${serviceId}";`, [], (cErr, countRow) => {
-      const totalCount = countRow ? countRow.total : 0;
-      db.all(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset], (dErr, rows) => {
-        const fallbackResult = {};
-        fallbackResult[serviceId] = {
-          total_count: String(totalCount),
-          row: rows || [],
-          RESULT: {
-            MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${err.message})`,
-            CODE: 'WARN-200'
-          }
-        };
-        return res.json(fallbackResult);
-      });
-    });
+    const fallbackErrMsg = err.message;
+    const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`).catch(() => null);
+    const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]).catch(() => []);
+    const fallbackResult = {};
+    fallbackResult[serviceId] = {
+      total_count: String(countRow ? countRow.total : 0),
+      row: rows,
+      RESULT: {
+        MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${fallbackErrMsg})`,
+        CODE: 'WARN-200'
+      }
+    };
+    return res.json(fallbackResult);
   }
 });
 
@@ -479,21 +473,19 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
     const limit = end - start + 1;
     const offset = start - 1;
 
-    db.get(`SELECT COUNT(*) AS total FROM "${serviceId}";`, [], (cErr, countRow) => {
-      const totalCount = countRow ? countRow.total : 0;
-      db.all(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset], (dErr, rows) => {
-        const fallbackResult = {};
-        fallbackResult[serviceId] = {
-          total_count: String(totalCount),
-          row: rows || [],
-          RESULT: {
-            MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${err.message})`,
-            CODE: 'WARN-200'
-          }
-        };
-        res.json(fallbackResult);
-      });
-    });
+    const fallbackErrMsg = err.message;
+    const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`).catch(() => null);
+    const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]).catch(() => []);
+    const fallbackResult = {};
+    fallbackResult[serviceId] = {
+      total_count: String(countRow ? countRow.total : 0),
+      row: rows,
+      RESULT: {
+        MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${fallbackErrMsg})`,
+        CODE: 'WARN-200'
+      }
+    };
+    res.json(fallbackResult);
   }
 });
 
@@ -503,10 +495,6 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
 app.get('/api/column-search', async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   if (!keyword) return res.json({ tables: [], count: 0 });
-
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
 
   try {
     const matched = new Set();
@@ -588,12 +576,8 @@ app.get('/api/live-join-stream', async (req, res) => {
 
       // 1471000 테이블은 외부 OpenAPI 규격이 다르므로 로컬 DB에서 조회
       if (tableName === '1471000') {
-        return new Promise((resolve, reject) => {
-          db.get(`SELECT COUNT(*) AS total FROM "1471000"`, [], (err, row) => {
-            if (err) reject(err);
-            else resolve(row.total);
-          });
-        });
+        const row = await dbGet(`SELECT COUNT(*) AS total FROM "1471000"`);
+        return row ? row.total : 0;
       }
 
       const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/1/1`;
@@ -616,12 +600,7 @@ app.get('/api/live-join-stream', async (req, res) => {
 
     const fetchAllData = async (tableName, totalCount) => {
       if (tableName === '1471000') {
-        return new Promise((resolve, reject) => {
-          db.all(`SELECT * FROM "1471000" LIMIT 1000`, [], (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-          });
-        });
+        return dbAll(`SELECT * FROM "1471000" LIMIT 1000`);
       }
 
       const allRows = [];
@@ -874,18 +853,17 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
     // 최대 10000건까지 조회 허용
     sqlQuery += ` LIMIT 10000;`;
 
-    db.all(sqlQuery, params, (dbErr, rows) => {
-      if (dbErr) {
-        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
-      } else {
-        sendEvent({
-          type: 'complete',
-          result: rows || [],
-          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 조회되었습니다.`
-        });
-      }
-      res.end();
-    });
+    try {
+      const rows = await dbAll(sqlQuery, params);
+      sendEvent({
+        type: 'complete',
+        result: rows,
+        message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${rows.length}건이 조회되었습니다.`
+      });
+    } catch (dbErr) {
+      sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
+    }
+    res.end();
   }
 });
 
@@ -1046,18 +1024,17 @@ app.get('/api/live-barcode-stream', async (req, res) => {
 
     sqlQuery += ` LIMIT 10000;`;
 
-    db.all(sqlQuery, params, (dbErr, rows) => {
-      if (dbErr) {
-        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
-      } else {
-        sendEvent({
-          type: 'complete',
-          result: rows || [],
-          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 5개 테이블 조인으로 조회되었습니다.`
-        });
-      }
-      res.end();
-    });
+    try {
+      const rows = await dbAll(sqlQuery, params);
+      sendEvent({
+        type: 'complete',
+        result: rows,
+        message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${rows.length}건이 5개 테이블 조인으로 조회되었습니다.`
+      });
+    } catch (dbErr) {
+      sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
+    }
+    res.end();
   }
 });
 
@@ -1075,17 +1052,6 @@ app.get('/api/super-converge-search', (req, res) => {
     nutrition: [],     // 1471000
     barcodes: []       // C005
   };
-
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err); else resolve(rows);
-    });
-  });
-  const dbGet = (sql, params) => new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err); else resolve(row);
-    });
-  });
 
   (async () => {
     try {
@@ -1137,12 +1103,6 @@ app.get('/api/super-converge-search', (req, res) => {
 
 // 12. 대규모(5000건) 초융합 생태계 그래프 분석 API
 app.get('/api/bulk-ecosystem', async (req, res) => {
-  const dbAll = (sql) => new Promise((resolve, reject) => {
-    db.all(sql, [], (err, rows) => {
-      if (err) reject(err); else resolve(rows);
-    });
-  });
-
   try {
     const limit = 5000;
     const tI2500 = await dbAll(`SELECT LCNS_NO, BSSH_NM FROM "I2500" WHERE LCNS_NO IS NOT NULL LIMIT ${limit}`);
@@ -1234,9 +1194,6 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
 app.get('/api/keyword-datamap', async (req, res) => {
   const keyword = req.query.keyword || '소스';
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
 
   try {
     // 1. Get all table names, excluding system and metadata tables
@@ -1419,10 +1376,6 @@ app.use(express.static(__dirname));
 // 서버 구동
 // 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
 app.get('/api/nongshim-dataset', async (req, res) => {
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   try {
     const query = `
       SELECT 
@@ -1467,10 +1420,6 @@ app.listen(PORT, () => {
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
 app.get('/api/db-schema', (req, res) => {
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   (async () => {
     try {
       // 1) 모든 base 테이블 목록 (뷰, sqlite 내부 테이블 제외)
@@ -1522,8 +1471,6 @@ app.get('/api/db-schema', (req, res) => {
 let cachedRelationships = null;
 
 app.get('/api/db-relationships', (req, res) => {
-  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p || [], (e, r) => e ? ng(e) : ok(r)));
-
   if (cachedRelationships) {
     return res.json(cachedRelationships);
   }
@@ -1645,6 +1592,13 @@ app.get('/api/db-relationships', (req, res) => {
       res.status(500).json({ error: err.message });
     }
   })();
+});
+
+// 글로벌 Express 에러 핸들러 — async 라우터에서 next(err)로 전달된 에러를 최종 처리
+app.use((err, req, res, next) => {
+  logger.error({ err, path: req.path, method: req.method }, '처리되지 않은 서버 오류');
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
 });
 
 // 프로세스 종료 시 DB 연결 해제

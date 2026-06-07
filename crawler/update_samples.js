@@ -5,10 +5,11 @@
  * - samples 폴더 기준으로 serviceId 목록을 수집함
  * - CLI 인수로 특정 serviceId만 지정하여 업데이트할 수 있음
  * - XML/JSON 샘플 데이터를 각각 최신 API 응답으로 갱신함
- * - 샘플 업데이트 완료 후 excel_reporter.js를 실행하여 엑셀 보고서를 최신화함
+ * - 샘플 업데이트 완료 후 crawler_and_report.js의 pipeline 단계에서 엑셀 보고서가 생성됨
  */
 
 // Playwright의 API request 기능을 불러옴
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { request } = require('playwright');
 
 // 파일 읽기, 쓰기, 목록 조회를 위한 fs 모듈 불러오기
@@ -17,14 +18,13 @@ const fs = require('fs');
 // 파일 및 디렉터리 경로 처리를 위한 path 모듈 불러오기
 const path = require('path');
 
-// 외부 Node.js 스크립트 실행을 위한 child_process 모듈 불러오기
-const { execSync } = require('child_process');
 
 // console 대신 사용할 pino logger 불러오기
 const pino = require('pino');
 
-// 식품안전나라 Open API 인증키
-const API_KEY = '77183c01c07d44798948';
+// 식품안전나라 Open API 인증키 (.env의 FOOD_API_KEY)
+const API_KEY = process.env.FOOD_API_KEY;
+if (!API_KEY) throw new Error('FOOD_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.');
 
 // API 조회 시작 인덱스
 const START_IDX = 1;
@@ -222,24 +222,7 @@ async function main() {
   // 샘플 데이터 업데이트 완료 로그 출력
   logger.info('모든 샘플 데이터 크롤링 및 업데이트가 완료되었습니다.');
 
-  // 엑셀 보고서 최신화 시작 로그 출력
-  logger.info('excel_reporter.js를 실행하여 엑셀 보고서를 최신화합니다.');
-
-  try {
-    // excel_reporter.js 경로 설정
-    const reporterPath = path.join(__dirname, 'excel_reporter.js');
-
-    // 엑셀 보고서 생성 스크립트 실행
-    execSync(`node "${reporterPath}"`, { stdio: 'inherit' });
-
-    // 엑셀 보고서 생성 성공 로그 출력
-    logger.info('엑셀 보고서 생성이 성공적으로 완료되었습니다.');
-  } catch (err) {
-    // 엑셀 보고서 생성 실패 로그 출력
-    logger.error({
-      errorMessage: err.message
-    }, 'excel_reporter.js 실행 중 오류가 발생했습니다.');
-  }
+  // 엑셀 보고서는 crawler_and_report.js의 pipeline.js 단계에서 통합 생성됩니다.
 }
 
 // 메인 함수 실행 및 최상위 오류 처리

@@ -190,14 +190,24 @@ function extractRowsFromSampleJson(json) {
     return [];
 }
 
+// 언더스코어를 제거하고 대문자로 정규화한다.
+// 이를 통해 언더스코어 위치 차이로 인한 유사 필드명 변형을 흡수한다.
+function normalizeColName(col) {
+    return String(col || '').replace(/_/g, '').toUpperCase();
+}
+
 // 두 컬럼명이 같은 동의어 그룹에 속하는지 확인하는 함수
 function areSynonyms(colA, colB) {
-    if (colA === colB) {
+    const normA = normalizeColName(colA);
+    const normB = normalizeColName(colB);
+
+    if (normA === normB) {
         return true;
     }
 
     for (const group of KEY_SYNONYM_GROUPS) {
-        if (group.includes(colA) && group.includes(colB)) {
+        const normGroup = group.map(normalizeColName);
+        if (normGroup.includes(normA) && normGroup.includes(normB)) {
             return true;
         }
     }
@@ -208,8 +218,11 @@ function areSynonyms(colA, colB) {
 // 두 컬럼명의 대표 키를 반환하는 함수
 // 동의어 그룹에 속하면 그룹의 첫 번째 원소를 대표 키로 사용함
 function canonicalKey(col) {
+    const normCol = normalizeColName(col);
+
     for (const group of KEY_SYNONYM_GROUPS) {
-        if (group.includes(col)) {
+        const normGroup = group.map(normalizeColName);
+        if (normGroup.includes(normCol)) {
             return group[0];
         }
     }

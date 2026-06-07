@@ -6,3 +6,8 @@ node_modules/
 crawl_cache.json
 samples/
 server.log
+
+# 환경변수 파일 (API 키 등 민감 정보)
+.env
+.env.*
+!.env.example

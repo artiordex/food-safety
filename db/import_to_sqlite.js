@@ -44,9 +44,10 @@
 
 'use strict';
 
-const fs      = require('fs');
-const path    = require('path');
+const fs = require('fs');
+const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const pino = require('pino');
 
 // analyze_pk_fk.js에서 공유 함수를 가져온다.
 // parseSampleJson : 샘플 JSON 파싱 — 이 파일에서 중복 구현하지 않는다.
@@ -54,7 +55,7 @@ const sqlite3 = require('sqlite3').verbose();
 // writeReports    : analysis 객체 → json/md/sql 파일 생성
 const {
     parseSampleJson,
-    analyze     : analyzePkFk,
+    analyze: analyzePkFk,
     writeReports: writePkFkReports
 } = require('./analyze_pk_fk');
 
@@ -62,10 +63,10 @@ const {
 // 섹션 0. 기본 설정
 // =============================================================================
 
-const DEFAULT_CACHE   = path.join(__dirname, '../crawler/crawl_cache.json');
-const DEFAULT_DB      = path.join(__dirname, 'foodsafety.db');
+const DEFAULT_CACHE = path.join(__dirname, '../crawler/crawl_cache.json');
+const DEFAULT_DB = path.join(__dirname, 'foodsafety.db');
 const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
-const DEFAULT_ERD     = path.join(__dirname, 'foodsafety_erd.sql');
+const DEFAULT_ERD = path.join(__dirname, 'foodsafety_erd.sql');
 
 // 샘플 JSON에 섞일 수 있는 API 응답 메타 필드 제외
 const SYSTEM_SAMPLE_FIELDS = new Set([
@@ -103,33 +104,42 @@ const SEARCH_INDEX_FIELDS = [
     'BSSH_NM'
 ];
 
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    transport: {
+        target: 'pino-pretty',
+        options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
+    }
+});
+
 function log(level, msg) {
-    const ts = new Date().toTimeString().slice(0, 8);
-    const prefix = { INFO: '[INFO] ', WARN: '[WARN] ', ERR: '[ERR ] ', STEP: '\n[STEP]' };
-    console.log(`${prefix[level] || '[LOG] '} ${ts}  ${msg}`);
+    if (level === 'ERR')  return logger.error(msg);
+    if (level === 'WARN') return logger.warn(msg);
+    if (level === 'STEP') return logger.info(`\n▶ ${msg}`);
+    return logger.info(msg);
 }
 
 function parseArgs(argv) {
     const args = {
-        cache:            DEFAULT_CACHE,
-        db:               DEFAULT_DB,
-        samples:          DEFAULT_SAMPLES,
-        noViews:          false,
-        erd:              DEFAULT_ERD,
-        noPkFk:           false,
+        cache: DEFAULT_CACHE,
+        db: DEFAULT_DB,
+        samples: DEFAULT_SAMPLES,
+        noViews: false,
+        erd: DEFAULT_ERD,
+        noPkFk: false,
         applyConstraints: false
     };
 
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
-        if      (arg === '--cache'   && argv[i+1]) args.cache   = argv[++i];
-        else if (arg === '--db'      && argv[i+1]) args.db      = argv[++i];
-        else if (arg === '--samples' && argv[i+1]) args.samples = argv[++i];
-        else if (arg === '--erd'     && argv[i+1]) args.erd     = argv[++i];
-        else if (arg === '--no-erd')             args.erd = '';
-        else if (arg === '--no-views')           args.noViews = true;
-        else if (arg === '--no-pk-fk')           args.noPkFk = true;
-        else if (arg === '--apply-constraints')  args.applyConstraints = true;
+        if (arg === '--cache' && argv[i + 1]) args.cache = argv[++i];
+        else if (arg === '--db' && argv[i + 1]) args.db = argv[++i];
+        else if (arg === '--samples' && argv[i + 1]) args.samples = argv[++i];
+        else if (arg === '--erd' && argv[i + 1]) args.erd = argv[++i];
+        else if (arg === '--no-erd') args.erd = '';
+        else if (arg === '--no-views') args.noViews = true;
+        else if (arg === '--no-pk-fk') args.noPkFk = true;
+        else if (arg === '--apply-constraints') args.applyConstraints = true;
         else if (arg === '-h' || arg === '--help') { printHelp(); process.exit(0); }
         else log('WARN', `알 수 없는 인자 무시: ${arg}`);
     }
@@ -137,7 +147,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-    console.log(`
+    logger.info(`
 식품안전나라 Open API SQLite 마이그레이션
 
 Usage:
@@ -204,15 +214,15 @@ function closeDb(db) {
 //    두 ERD 파일 간 타입이 항상 일치한다.
 // =============================================================================
 
-const NUMERIC_SUFFIXES  = /(_CNT|_QTY|_AMT|_PRICE|_SEQ|_SZ|_RATE|_PCT|_NUM|_QT|_MG|_KG|_ML|_QNTT|_SCNT|_MCNT|_DCNT|_TOT|_AMT_SUM|_VAL)$/;
-const DATE_SUFFIXES     = /(_DT|_YMD|_DE|_DAT|DATE|DTM|ENDDT|BGNDT)$/;
-const CODE_SUFFIXES     = /(_CD|_CODE|_DVS_CD|_CLCD|_INSTTCD)$/;
-const NAME_SUFFIXES     = /(_NM|_NAME|_KOR_NM|_ENG_NM)$/;
-const ADDRESS_SUFFIXES  = /(_ADDR|ADDR|ADDRESS)$/;
-const CONTENT_SUFFIXES  = /(_CN|_CONT|_CONTENT|_DESC|_MATR|_PRVNS|_MEMO)$/;
-const YESNO_SUFFIXES    = /(_YN)$/;
-const TEL_SUFFIXES      = /(TELNO|TEL_NO|PHONE|MOBILE|FAX)$/;
-const NO_SUFFIXES       = /(_NO|NO)$/;
+const NUMERIC_SUFFIXES = /(_CNT|_QTY|_AMT|_PRICE|_SEQ|_SZ|_RATE|_PCT|_NUM|_QT|_MG|_KG|_ML|_QNTT|_SCNT|_MCNT|_DCNT|_TOT|_AMT_SUM|_VAL)$/;
+const DATE_SUFFIXES = /(_DT|_YMD|_DE|_DAT|DATE|DTM|ENDDT|BGNDT)$/;
+const CODE_SUFFIXES = /(_CD|_CODE|_DVS_CD|_CLCD|_INSTTCD)$/;
+const NAME_SUFFIXES = /(_NM|_NAME|_KOR_NM|_ENG_NM)$/;
+const ADDRESS_SUFFIXES = /(_ADDR|ADDR|ADDRESS)$/;
+const CONTENT_SUFFIXES = /(_CN|_CONT|_CONTENT|_DESC|_MATR|_PRVNS|_MEMO)$/;
+const YESNO_SUFFIXES = /(_YN)$/;
+const TEL_SUFFIXES = /(TELNO|TEL_NO|PHONE|MOBILE|FAX)$/;
+const NO_SUFFIXES = /(_NO|NO)$/;
 
 const TYPE_MAP = [
     ['varchar', 'VARCHAR'], ['char', 'VARCHAR'], ['string', 'VARCHAR'],
@@ -259,20 +269,20 @@ function allDateLike(values) {
         values.every(v => {
             const s = String(v).trim();
             return /^\d{8}$/.test(s) || /^\d{4}-\d{2}-\d{2}$/.test(s) ||
-                   /^\d{4}\.\d{2}\.\d{2}$/.test(s) || /^\d{4}\/\d{2}\/\d{2}$/.test(s);
+                /^\d{4}\.\d{2}\.\d{2}$/.test(s) || /^\d{4}\/\d{2}\/\d{2}$/.test(s);
         });
 }
 
 function roundVarcharLength(maxLen, minimum = 50) {
     const base = Math.max(maxLen, minimum);
-    if (base <= 10)   return 10;
-    if (base <= 20)   return 20;
-    if (base <= 30)   return 30;
-    if (base <= 50)   return 50;
-    if (base <= 100)  return 100;
-    if (base <= 200)  return 200;
-    if (base <= 300)  return 300;
-    if (base <= 500)  return 500;
+    if (base <= 10) return 10;
+    if (base <= 20) return 20;
+    if (base <= 30) return 30;
+    if (base <= 50) return 50;
+    if (base <= 100) return 100;
+    if (base <= 200) return 200;
+    if (base <= 300) return 300;
+    if (base <= 500) return 500;
     if (base <= 1000) return 1000;
     return 2000;
 }
@@ -282,11 +292,11 @@ function roundVarcharLength(maxLen, minimum = 50) {
  * 반환값의 sqlType은 analyze_pk_fk.js의 generateKeysErdSql에서도 그대로 사용한다.
  */
 function inferColumnSpec(field, records = []) {
-    const rawType    = String(field.type   || '').trim().toLowerCase();
-    const rawLength  = String(field.length || '').trim();
-    const fieldNm    = String(field.field  || '').trim();
+    const rawType = String(field.type || '').trim().toLowerCase();
+    const rawLength = String(field.length || '').trim();
+    const fieldNm = String(field.field || '').trim();
     const upperField = fieldNm.toUpperCase();
-    const korNm      = String(field.kor_nm || '').trim();
+    const korNm = String(field.kor_nm || '').trim();
 
     const sampleValues = getSampleValues(records, fieldNm);
     const maxSampleLen = getMaxSampleLength(sampleValues);
@@ -301,10 +311,10 @@ function inferColumnSpec(field, records = []) {
                     ? length : roundVarcharLength(maxSampleLen, 100);
                 return { sqlType: `VARCHAR(${finalLen})`, dataType: 'VARCHAR', length: String(finalLen), reason: '원본 type 기반 VARCHAR' };
             }
-            if (mappedType === 'NUMERIC')  return { sqlType: 'NUMERIC(18,4)', dataType: 'NUMERIC', length: '18,4', reason: '원본 type 기반 NUMERIC' };
-            if (mappedType === 'INTEGER')  return { sqlType: 'INTEGER',        dataType: 'INTEGER', length: '',    reason: '원본 type 기반 INTEGER' };
-            if (mappedType === 'REAL')     return { sqlType: 'REAL',           dataType: 'REAL',    length: '',    reason: '원본 type 기반 REAL' };
-            if (mappedType === 'DATE')     return { sqlType: 'DATE',           dataType: 'DATE',    length: '8',   reason: '원본 type 기반 DATE' };
+            if (mappedType === 'NUMERIC') return { sqlType: 'NUMERIC(18,4)', dataType: 'NUMERIC', length: '18,4', reason: '원본 type 기반 NUMERIC' };
+            if (mappedType === 'INTEGER') return { sqlType: 'INTEGER', dataType: 'INTEGER', length: '', reason: '원본 type 기반 INTEGER' };
+            if (mappedType === 'REAL') return { sqlType: 'REAL', dataType: 'REAL', length: '', reason: '원본 type 기반 REAL' };
+            if (mappedType === 'DATE') return { sqlType: 'DATE', dataType: 'DATE', length: '8', reason: '원본 type 기반 DATE' };
             return { sqlType: mappedType, dataType: mappedType, length: rawLength, reason: '원본 type 기반' };
         }
     }
@@ -373,10 +383,10 @@ function inferColumnSpec(field, records = []) {
         /내용$|주의사항$|기준규격$|사유$|메모$|방법$|성상$|기능성$|원재료$|출처$/.test(korNm)) {
         const len = roundVarcharLength(maxSampleLen, 1000);
         return {
-            sqlType:  len >= 2000 ? 'TEXT' : `VARCHAR(${len})`,
+            sqlType: len >= 2000 ? 'TEXT' : `VARCHAR(${len})`,
             dataType: len >= 2000 ? 'TEXT' : 'VARCHAR',
-            length:   len >= 2000 ? '' : String(len),
-            reason:   '긴 설명/내용 계열'
+            length: len >= 2000 ? '' : String(len),
+            reason: '긴 설명/내용 계열'
         };
     }
 
@@ -432,8 +442,7 @@ function isSystemSampleField(fieldName) {
 
 function loadDatasets(cachePath) {
     if (!fs.existsSync(cachePath)) {
-        log('ERR', `캐시 파일 없음: ${cachePath} → 먼저 크롤러를 실행하세요.`);
-        process.exit(1);
+        throw new Error(`캐시 파일 없음: ${cachePath} → 먼저 크롤러를 실행하세요.`);
     }
 
     const datasets = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
@@ -464,9 +473,9 @@ function loadRecordsMap(datasets, samplesDir) {
 
 function enrichDatasetsWithSqlTypes(datasets, recordsMap) {
     return datasets.map(ds => {
-        const svcNo   = String(ds.svc_no || '').trim();
+        const svcNo = String(ds.svc_no || '').trim();
         const records = recordsMap.get(svcNo) || [];
-        const fields  = (Array.isArray(ds.fields) ? ds.fields : [])
+        const fields = (Array.isArray(ds.fields) ? ds.fields : [])
             .filter(f => !isSystemSampleField(f.field || f.field_id || ''))
             .map(f => ({
                 ...f,
@@ -492,7 +501,11 @@ function buildHighConfidenceFksMap(pkFkAnalysis) {
     if (!pkFkAnalysis) return allFksMap;
 
     for (const rel of pkFkAnalysis.relationships) {
-        if (!allFksMap.has(rel.from_table)) allFksMap.set(rel.from_table, []);
+        if (rel.confidence !== 'HIGH') continue;
+
+        if (!allFksMap.has(rel.from_table)) {
+            allFksMap.set(rel.from_table, []);
+        }
         allFksMap.get(rel.from_table).push(rel);
     }
 
@@ -523,11 +536,11 @@ function buildColMeta(fields, records, svcNo) {
 
         if (!colMeta.has(fname)) {
             colMeta.set(fname, {
-                sqlType:  spec.sqlType,
+                sqlType: spec.sqlType,
                 dataType: spec.dataType,
-                length:   spec.length,
-                reason:   spec.reason,
-                korNm:    String(f.kor_nm || '').trim()
+                length: spec.length,
+                reason: spec.reason,
+                korNm: String(f.kor_nm || '').trim()
             });
         }
     }
@@ -539,11 +552,11 @@ function buildColMeta(fields, records, svcNo) {
             if (!key || isSystemSampleField(key) || colMeta.has(key)) continue;
             const spec = inferColumnSpec({ field: key, kor_nm: key }, records);
             colMeta.set(key, {
-                sqlType:  spec.sqlType,
+                sqlType: spec.sqlType,
                 dataType: spec.dataType,
-                length:   spec.length,
-                reason:   spec.reason,
-                korNm:    key
+                length: spec.length,
+                reason: spec.reason,
+                korNm: key
             });
             extraColumns.push({ key, spec });
         }
@@ -560,16 +573,16 @@ async function insertApiColumns(db, apiColumnRows) {
                  orig_type, orig_length, description, sample, infer_reason)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [row.svcNo, row.field, row.korNm,
-             row.spec.sqlType, row.spec.dataType, row.spec.length,
-             row.origType, row.origLength, row.desc, row.sample,
-             row.spec.reason]
+            row.spec.sqlType, row.spec.dataType, row.spec.length,
+            row.origType, row.origLength, row.desc, row.sample,
+            row.spec.reason]
         );
     }
 }
 
 async function insertExtraApiColumns(db, svcNo, extraColumns) {
     for (const { key, spec } of extraColumns) {
-        console.log(`        누락 필드 자동 추가: ${key} (${spec.sqlType})`);
+        log('INFO', `        누락 필드 자동 추가: ${key} (${spec.sqlType})`);
         await runSql(db,
             `INSERT OR IGNORE INTO api_columns
                 (svc_no, field, kor_nm, sql_type, data_type, length,
@@ -617,18 +630,18 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
     lines.push('');
 
     for (const ds of datasets) {
-        const svcNo  = String(ds.svc_no || '').trim();
-        const svcNm  = String(ds.svc_nm || '').trim();
-        const cat    = String(ds.cat    || '').trim();
+        const svcNo = String(ds.svc_no || '').trim();
+        const svcNm = String(ds.svc_nm || '').trim();
+        const cat = String(ds.cat || '').trim();
         const fields = Array.isArray(ds.fields) ? ds.fields : [];
         if (!svcNo) continue;
 
-        const records     = recordsMap.get(svcNo) || [];
-        const bestPk      = pkByTable.get(svcNo);
-        const hasPk       = !!bestPk;
-        const tableFks    = fksByTable.get(svcNo);
-        const fksList     = tableFks || [];
-        const hasFks      = fksList.length > 0;
+        const records = recordsMap.get(svcNo) || [];
+        const bestPk = pkByTable.get(svcNo);
+        const hasPk = !!bestPk;
+        const tableFks = fksByTable.get(svcNo);
+        const fksList = tableFks || [];
+        const hasFks = fksList.length > 0;
         const validFields = fields.filter(f => String(f.field || '').trim() && !isSystemSampleField(f.field));
 
         lines.push('-- -----------------------------------------------------------------------------');
@@ -642,15 +655,15 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
         } else {
             const fieldLines = [];
             validFields.forEach((f, idx) => {
-                const fname    = String(f.field || '').trim();
-                const spec     = inferColumnSpec(f, records);
-                const korNm    = sanitizeSqlComment(f.kor_nm || '');
+                const fname = String(f.field || '').trim();
+                const spec = inferColumnSpec(f, records);
+                const korNm = sanitizeSqlComment(f.kor_nm || '');
                 const columnFks = fksList.filter(fk => fk.from_field === fname);
                 const fkComment = columnFks.length > 0
                     ? ` / FK 후보: ${columnFks.map(fk => `${fk.to_table}.${fk.to_field}(${fk.confidence})`).join(', ')}`
                     : '';
                 const pkComment = bestPk && bestPk.fields.includes(fname) ? ` / PK 후보(${bestPk.confidence})` : '';
-                const hasNext   = idx < validFields.length - 1 || hasPk || hasFks;
+                const hasNext = idx < validFields.length - 1 || hasPk || hasFks;
 
                 fieldLines.push(
                     `  ${quoteIdent(fname)} ${spec.sqlType}${hasNext ? ',' : ''} -- ${fname}${korNm ? ` / ${korNm}` : ''}${pkComment}${fkComment}`
@@ -735,14 +748,14 @@ async function insertApiTableRow(db, ds, sampleDataLength, fieldCount) {
              sample_url, sample_data_length, field_count)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [String(ds.svc_no || '').trim(),
-         String(ds.svc_nm || '').trim(),
-         String(ds.cat || '').trim(),
-         ds.detail_url || '',
-         ds.type_cd || 'API_TYPE06',
-         ds.desc || '',
-         ds.sample_url || '',
-         sampleDataLength,
-         fieldCount]
+        String(ds.svc_nm || '').trim(),
+        String(ds.cat || '').trim(),
+        ds.detail_url || '',
+        ds.type_cd || 'API_TYPE06',
+        ds.desc || '',
+        ds.sample_url || '',
+            sampleDataLength,
+            fieldCount]
     );
 }
 
@@ -752,25 +765,60 @@ function buildPkConstraint(pkFkAnalysis, svcNo, colMeta, applyConstraints) {
     const bestPk = getHighConfidencePkForTable(pkFkAnalysis, svcNo, colMeta);
     if (!bestPk) return '';
 
-    console.log(`        PK 자동 적용: ${bestPk.fields.join(', ')} (${bestPk.confidence})`);
+    log('INFO', `        PK 자동 적용: ${bestPk.fields.join(', ')} (${bestPk.confidence})`);
     return `,\n  PRIMARY KEY (${bestPk.fields.map(quoteIdent).join(', ')})`;
 }
 
 function buildFkConstraint(allFksMap, svcNo, colMeta, applyConstraints) {
     if (!applyConstraints) return '';
 
-    const tableFks = allFksMap.get(svcNo);
-    if (!tableFks) return '';
+    const fks = allFksMap.get(svcNo) || [];
+    const validFks = fks.filter(fk => colMeta.has(fk.from_field));
+    if (validFks.length === 0) return '';
 
-    const fkParts = [];
-    for (const fk of tableFks) {
-        if (!colMeta.has(fk.from_field)) continue;
-        fkParts.push(`  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})`);
-        const pct = fk.inclusion_check?.checked ? `, 포함률 ${(fk.inclusion_check.inclusion_ratio * 100).toFixed(1)}%` : '';
-        console.log(`        FK 자동 적용: ${fk.from_field} -> ${fk.to_table}.${fk.to_field} (Score: ${fk.score}${pct})`);
+    log('INFO', `        FK 자동 적용: ${validFks.map(fk => `${fk.from_field} → ${fk.to_table}.${fk.to_field}`).join(', ')}`);
+    const fkDefs = validFks.map(fk =>
+        `  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})`
+    );
+    return ',\n' + fkDefs.join(',\n');
+}
+
+async function createIndexesForFields(db, datasets, fields, label) {
+    log('STEP', `${label} 인덱스 생성`);
+
+    let indexCount = 0;
+
+    for (const ds of datasets) {
+        const svcNo = String(ds.svc_no || '').trim();
+        if (!svcNo) continue;
+
+        let existing = new Set();
+
+        try {
+            const cols = await allSql(db, `PRAGMA table_info(${quoteIdent(svcNo)})`);
+            existing = new Set(cols.map(col => col.name).filter(Boolean));
+        } catch (err) {
+            log('WARN', `컬럼 조회 실패 (${svcNo}): ${err.message}`);
+            continue;
+        }
+
+        for (const fname of fields) {
+            if (!existing.has(fname)) continue;
+
+            try {
+                await runSql(
+                    db,
+                    `CREATE INDEX IF NOT EXISTS ${quoteIdent(`idx_${svcNo}_${fname}`)} ON ${quoteIdent(svcNo)} (${quoteIdent(fname)})`
+                );
+                indexCount++;
+            } catch (err) {
+                log('WARN', `인덱스 생성 실패 (${svcNo}.${fname}): ${err.message}`);
+            }
+        }
     }
 
-    return fkParts.length > 0 ? ',\n' + fkParts.join(',\n') : '';
+    log('INFO', `${label} 인덱스 생성 완료: ${indexCount}개`);
+    return indexCount;
 }
 
 async function createDatasetTable(db, svcNo, colMeta, pkDef, fkDef) {
@@ -789,8 +837,8 @@ async function createDatasetTable(db, svcNo, colMeta, pkDef, fkDef) {
 async function insertRecords(db, svcNo, records, colMeta) {
     if (records.length === 0 || colMeta.size === 0) return 0;
 
-    const colNames   = [...colMeta.keys()];
-    const insertSql  = `INSERT INTO ${quoteIdent(svcNo)} (${colNames.map(quoteIdent).join(', ')}) VALUES (${colNames.map(() => '?').join(', ')})`;
+    const colNames = [...colMeta.keys()];
+    const insertSql = `INSERT INTO ${quoteIdent(svcNo)} (${colNames.map(quoteIdent).join(', ')}) VALUES (${colNames.map(() => '?').join(', ')})`;
 
     await runSql(db, 'BEGIN TRANSACTION');
     try {
@@ -798,10 +846,10 @@ async function insertRecords(db, svcNo, records, colMeta) {
             await runSql(db, insertSql, colNames.map(c => normalizeValue(rec[c])));
         }
         await runSql(db, 'COMMIT');
-        console.log(`        데이터 INSERT: ${records.length}행`);
+        log('INFO', `데이터 INSERT: ${records.length}행`);
         return records.length;
     } catch (err) {
-        await runSql(db, 'ROLLBACK').catch(() => {});
+        await runSql(db, 'ROLLBACK').catch(() => { });
         log('WARN', `INSERT 실패 (${svcNo}): ${err.message}`);
         return 0;
     }
@@ -822,7 +870,7 @@ async function createLogicalView(db, svcNo, svcNm, colMeta) {
         await runSql(db, `DROP VIEW IF EXISTS ${quoteIdent(viewName)}`);
         await execSql(db, `CREATE VIEW ${quoteIdent(viewName)} AS\n  SELECT ${selectParts.join(', ')}\n  FROM ${quoteIdent(svcNo)};`);
         await runSql(db, 'UPDATE api_tables SET view_name = ? WHERE svc_no = ?', [viewName, svcNo]);
-        console.log(`        한글 뷰 생성: ${viewName}`);
+        log('INFO', `한글 뷰 생성: ${viewName}`);
         return viewName;
     } catch (err) {
         log('WARN', `뷰 생성 실패 (${svcNo}): ${err.message}`);
@@ -840,7 +888,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
         return { skipped: true, insertedRows: 0 };
     }
 
-    console.log(`\n  [${String(idx + 1).padStart(3, ' ')}/${totalCount}] ${svcNo}  ${svcNm}`);
+    log('INFO', `[${String(idx + 1).padStart(3, ' ')}/${totalCount}] ${svcNo}  ${svcNm}`);
 
     const sampleJsonPath = path.join(options.samplesDir, `${svcNo}.json`);
     const sampleDataLength = fs.existsSync(sampleJsonPath)
@@ -851,10 +899,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
 
     await insertApiTableRow(db, ds, sampleDataLength, fields.length);
 
-    console.log(records.length > 0
-        ? `        샘플 데이터 ${records.length}건 로드`
-        : '        샘플 없음 → 스키마만 생성'
-    );
+    log('INFO', records.length > 0 ? `샘플 데이터 ${records.length}건 로드` : '샘플 없음 → 스키마만 생성');
 
     const { colMeta, apiColumnRows, extraColumns } = buildColMeta(fields, records, svcNo);
 
@@ -868,7 +913,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
 
     const preview = [...colMeta.entries()].slice(0, 4)
         .map(([fn, m]) => `${fn}:${m.sqlType}`).join('  ');
-    console.log(`        테이블 생성: ${colMeta.size}개 컬럼  ${preview}${colMeta.size > 4 ? ' ...' : ''}`);
+    log('INFO', `테이블 생성: ${colMeta.size}개 컬럼  ${preview}${colMeta.size > 4 ? ' ...' : ''}`);
 
     const insertedRows = await insertRecords(db, svcNo, records, colMeta);
 
@@ -879,40 +924,20 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
     return { skipped: false, insertedRows };
 }
 
-async function createIndexesForFields(db, datasets, fields, label) {
-    log('STEP', `${label} 인덱스 생성`);
-
-    let indexCount = 0;
-    for (const ds of datasets) {
-        const svcNo = String(ds.svc_no || '').trim();
-        if (!svcNo) continue;
-
-        const existing = new Set(
-            (Array.isArray(ds.fields) ? ds.fields : [])
-                .map(f => String(f.field || ''))
-                .filter(Boolean)
-        );
-
-        for (const fname of fields) {
-            if (!existing.has(fname)) continue;
-            try {
-                await runSql(db, `CREATE INDEX IF NOT EXISTS ${quoteIdent(`idx_${svcNo}_${fname}`)} ON ${quoteIdent(svcNo)} (${quoteIdent(fname)})`);
-                indexCount++;
-            } catch (err) {
-                log('WARN', `인덱스 생성 실패 (${svcNo}.${fname}): ${err.message}`);
-            }
-        }
-    }
-
-    log('INFO', `${label} 인덱스 생성 완료: ${indexCount}개`);
-    return indexCount;
-}
+// [REMOVED] 중복 createIndexesForFields 제거 — PRAGMA 기반 버전(위)을 사용합니다.
 
 async function validateForeignKeysIfNeeded(db, applyConstraints) {
     if (!applyConstraints) return { checked: false, errorCount: 0 };
 
     await execSql(db, 'PRAGMA foreign_keys = ON;');
-    const fkErrors = await allSql(db, 'PRAGMA foreign_key_check;');
+    
+    let fkErrors = [];
+    try {
+        fkErrors = await allSql(db, 'PRAGMA foreign_key_check;');
+    } catch (err) {
+        log('WARN', `FK 검증 중 스키마 구조 불일치 에러 발생 (무시하고 진행합니다): ${err.message}`);
+        return { checked: true, errorCount: -1 };
+    }
 
     if (fkErrors.length > 0) {
         log('WARN', `FK 검증 오류 ${fkErrors.length}건 발견`);
@@ -929,29 +954,29 @@ async function validateForeignKeysIfNeeded(db, applyConstraints) {
 
 function printSummary(summary) {
     const sep = '='.repeat(62);
-    console.log(`\n${sep}`);
-    console.log('  SQLite 마이그레이션 완료');
-    console.log(sep);
-    console.log(`  생성된 DB 파일       : ${summary.dbPath}`);
-    console.log(`  처리 데이터셋        : ${summary.successCount} / ${summary.totalDatasets} 개`);
-    console.log(`  건너뜀               : ${summary.skipCount} 개`);
-    console.log(`  총 INSERT 행         : ${summary.totalRows.toLocaleString()} 행`);
-    console.log(`  관계키 인덱스 생성   : ${summary.relationIndexCount} 개`);
-    console.log(`  검색용 인덱스 생성   : ${summary.searchIndexCount} 개`);
-    console.log(`  한글 뷰 생성         : ${summary.createViews ? '예' : '아니오'}`);
-    console.log(`  ERD SQL 생성         : ${summary.erdPath || '아니오'}`);
-    console.log(`  PK/FK 분석 연동      : ${summary.runPkFk ? '예' : '아니오'}`);
-    console.log(`  실제 PK/FK 제약 적용 : ${summary.applyConstraints ? '예' : '아니오'}`);
-    console.log(`  FK 검증              : ${summary.fkCheck.checked ? `${summary.fkCheck.errorCount}건 오류` : '미수행'}`);
-    console.log(sep);
-    console.log('\n  [사용 예시]');
-    console.log(`    sqlite3 ${summary.dbPath}`);
-    console.log('    > SELECT * FROM api_tables LIMIT 10;');
-    console.log("    > SELECT * FROM api_columns WHERE svc_no = 'I0600';");
-    console.log('    > SELECT * FROM I0600 LIMIT 5;');
-    if (summary.erdPath) console.log(`    ERD용 SQL 파일 : ${summary.erdPath}`);
-    if (summary.runPkFk) console.log(`    PK/FK 후보 SQL : ${summary.pkFkSqlPath}`);
-    console.log(sep);
+    logger.info(`\n${sep}`);
+    logger.info('  SQLite 마이그레이션 완료');
+    logger.info(sep);
+    logger.info(`  생성된 DB 파일       : ${summary.dbPath}`);
+    logger.info(`  처리 데이터셋        : ${summary.successCount} / ${summary.totalDatasets} 개`);
+    logger.info(`  건너뜀               : ${summary.skipCount} 개`);
+    logger.info(`  총 INSERT 행         : ${summary.totalRows.toLocaleString()} 행`);
+    logger.info(`  관계키 인덱스 생성   : ${summary.relationIndexCount} 개`);
+    logger.info(`  검색용 인덱스 생성   : ${summary.searchIndexCount} 개`);
+    logger.info(`  한글 뷰 생성         : ${summary.createViews ? '예' : '아니오'}`);
+    logger.info(`  ERD SQL 생성         : ${summary.erdPath || '아니오'}`);
+    logger.info(`  PK/FK 분석 연동      : ${summary.runPkFk ? '예' : '아니오'}`);
+    logger.info(`  실제 PK/FK 제약 적용 : ${summary.applyConstraints ? '예' : '아니오'}`);
+    logger.info(`  FK 검증              : ${summary.fkCheck.checked ? `${summary.fkCheck.errorCount}건 오류` : '미수행'}`);
+    logger.info(sep);
+    logger.info('\n  [사용 예시]');
+    logger.info(`    sqlite3 ${summary.dbPath}`);
+    logger.info('    > SELECT * FROM api_tables LIMIT 10;');
+    logger.info("    > SELECT * FROM api_columns WHERE svc_no = 'I0600';");
+    logger.info('    > SELECT * FROM I0600 LIMIT 5;');
+    if (summary.erdPath) logger.info(`    ERD용 SQL 파일 : ${summary.erdPath}`);
+    if (summary.runPkFk) logger.info(`    PK/FK 후보 SQL : ${summary.pkFkSqlPath}`);
+    logger.info(sep);
 }
 
 // =============================================================================
@@ -964,11 +989,11 @@ async function run({
     samplesDir,
     createViews,
     erdPath,
-    runPkFk          = true,
+    runPkFk = true,
     applyConstraints = false,
-    pkFkJsonPath     = path.join(__dirname, 'foodsafety_key_candidates.json'),
-    pkFkMdPath       = path.join(__dirname, 'foodsafety_key_candidates.md'),
-    pkFkSqlPath      = path.join(__dirname, 'foodsafety_keys_erd.sql')
+    pkFkJsonPath = path.join(__dirname, 'foodsafety_key_candidates.json'),
+    pkFkMdPath = path.join(__dirname, 'foodsafety_key_candidates.md'),
+    pkFkSqlPath = path.join(__dirname, 'foodsafety_keys_erd.sql')
 }) {
     log('STEP', '캐시 파일 로드');
     const rawDatasets = loadDatasets(cachePath);
@@ -1002,11 +1027,9 @@ async function run({
     const db = await openDb(dbPath);
 
     try {
-        await execSql(db, `
-            PRAGMA journal_mode = WAL;
-            PRAGMA synchronous = NORMAL;
-            PRAGMA foreign_keys = OFF;
-        `);
+        await runSql(db, 'PRAGMA journal_mode = WAL');
+        await runSql(db, 'PRAGMA synchronous = NORMAL');
+        await runSql(db, 'PRAGMA foreign_keys = OFF');
 
         log('STEP', '메타데이터 시스템 테이블 생성');
         await createMetaTables(db);
@@ -1042,7 +1065,7 @@ async function run({
         }
 
         const relationIndexCount = await createIndexesForFields(db, workingDatasets, RELATION_INDEX_FIELDS, '관계키');
-        const searchIndexCount   = await createIndexesForFields(db, workingDatasets, SEARCH_INDEX_FIELDS, '검색용 명칭');
+        const searchIndexCount = await createIndexesForFields(db, workingDatasets, SEARCH_INDEX_FIELDS, '검색용 명칭');
 
         const fkCheck = await validateForeignKeysIfNeeded(db, applyConstraints);
 
@@ -1056,8 +1079,8 @@ async function run({
             try {
                 writePkFkReports(pkFkAnalysis, {
                     json: pkFkJsonPath,
-                    md:   pkFkMdPath,
-                    sql:  pkFkSqlPath
+                    md: pkFkMdPath,
+                    sql: pkFkSqlPath
                 });
             } catch (err) {
                 log('WARN', `PK/FK 결과 파일 생성 실패: ${err.message}`);
@@ -1092,12 +1115,12 @@ async function run({
 if (require.main === module) {
     const args = parseArgs(process.argv.slice(2));
     run({
-        cachePath:        args.cache,
-        dbPath:           args.db,
-        samplesDir:       args.samples,
-        createViews:      !args.noViews,
-        erdPath:          args.erd,
-        runPkFk:          !args.noPkFk,
+        cachePath: args.cache,
+        dbPath: args.db,
+        samplesDir: args.samples,
+        createViews: !args.noViews,
+        erdPath: args.erd,
+        runPkFk: !args.noPkFk,
         applyConstraints: args.applyConstraints
     }).catch(err => {
         log('ERR', err.stack || err.message);

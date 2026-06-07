@@ -21,8 +21,22 @@ const path = require('path');
 // console 대신 사용할 pino logger 불러오기
 const pino = require('pino');
 
-// pipeline.js의 공통키 식별 함수 불러오기
-const { identifyCommonKeys } = require('../crawler/pipeline');
+// pipeline.js에서 공통키 식별 함수를 불러오는 대신 자체 함수를 사용
+// const { identifyCommonKeys } = require('../crawler/pipeline');
+
+// 자체 공통키 식별 함수 (3개 이상 데이터셋에서 등장한 필드 추출)
+function identifyCommonKeys(datasets) {
+    const fieldFreq = {};
+    for (const ds of datasets) {
+        for (const f of ds.fields || []) {
+            const fieldName = (f.field || '').trim().toUpperCase();
+            if (fieldName) fieldFreq[fieldName] = (fieldFreq[fieldName] || 0) + 1;
+        }
+    }
+    return {
+        common_keys: Object.keys(fieldFreq).filter(k => fieldFreq[k] >= 3)
+    };
+}
 
 // 현재 스크립트 기준 DB 디렉터리 경로 설정
 const DB_DIR = __dirname;
@@ -45,8 +59,8 @@ const CHAIN_JOIN_SQL_PATH = path.join(DB_DIR, 'chain_joins.sql');
 // 체인 조인 최소 길이
 const MIN_CHAIN_LENGTH = 3;
 
-// 체인 조인 최대 길이
-const MAX_CHAIN_LENGTH = 6;
+// 체인 조인 최대 길이 (성능을 위해 4차 체인으로 제한)
+const MAX_CHAIN_LENGTH = 4;
 
 // SQL 별칭으로 사용할 문자 목록
 const TABLE_ALIASES = 'ABCDEFGH'.split('');
@@ -54,7 +68,7 @@ const TABLE_ALIASES = 'ABCDEFGH'.split('');
 // 실제 조인 후보로 인정할 주요 컬럼 목록 (main()에서 동적으로 설정됨)
 let VALID_JOIN_KEYS = new Set();
 
-// pipeline.js의 identifyCommonKeys 결과로 VALID_JOIN_KEYS를 동적 생성하는 함수
+// 자체 identifyCommonKeys 결과로 VALID_JOIN_KEYS를 동적 생성하는 함수
 // 날짜·명칭·주소 등 약한 키 패턴은 조인 후보에서 제외함
 function buildValidJoinKeys(datasets) {
     const ka = identifyCommonKeys(datasets);
@@ -452,7 +466,7 @@ function logDirectJoinSummary(activeVerified) {
         activeVerifiedCount: activeVerified.length
     }, '실제 SQLite 데이터 기준 직접 JOIN 성공 관계 요약');
 
-    activeVerified.slice(0, 30).forEach((item, index) => {
+    activeVerified.forEach((item, index) => {
         logger.info({
             rank: index + 1,
             confidence: item.confidence,
@@ -464,12 +478,6 @@ function logDirectJoinSummary(activeVerified) {
             samples: item.samples
         }, '직접 JOIN 성공 관계');
     });
-
-    if (activeVerified.length > 30) {
-        logger.info({
-            omittedCount: activeVerified.length - 30
-        }, '로그에는 상위 30건만 출력했습니다. 전체 결과는 join.sql에서 확인할 수 있습니다.');
-    }
 }
 
 // 직접 JOIN 검증 파이프라인을 실행하는 함수
@@ -857,7 +865,17 @@ async function runChainJoinFinder(tableNames, tableColumns) {
         maxChainLength: MAX_CHAIN_LENGTH
     }, '검증된 에지 기반으로 체인 조인 후보를 탐색합니다.');
 
-    const uniqueChains = findChainCandidates(tableNames, verifiedEdges);
+    let uniqueChains = findChainCandidates(tableNames, verifiedEdges);
+    
+    // 성능을 위해 무작위성을 유지하되(앞부분이 항상 같은 테이블에서 시작하지 않도록) 
+    // 혹은 의미있는(상대적으로 짧은) 체인 위주로 최대 2000개까지만 검증
+    if (uniqueChains.length > 2000) {
+        logger.info({
+            originalCount: uniqueChains.length,
+            limitCount: 2000
+        }, '체인 경로가 너무 많아 성능을 위해 2000개로 제한합니다.');
+        uniqueChains = uniqueChains.slice(0, 2000);
+    }
 
     logger.info('전체 체인 경로의 실제 매칭 여부를 최종 검증합니다.');
 

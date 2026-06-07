@@ -13,239 +13,133 @@ const path = require('path');
 const fs = require('fs');
 const pino = require('pino');
 
-// 로그 설정
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
   transport: {
     target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'yyyy-mm-dd HH:MM:ss',
-      ignore: 'pid,hostname'
-    }
+    options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
   }
 });
 
-// SQLite DB 파일 경로 설정
-const dbPath = path.join(__dirname, '../db', 'foodsafety.db');
+// SQLite DB Promise 헬퍼
+function dbRun(db, sql, params = []) {
+  return new Promise((resolve, reject) =>
+    db.run(sql, params, err => (err ? reject(err) : resolve()))
+  );
+}
+function dbFinalize(stmt) {
+  return new Promise((resolve, reject) =>
+    stmt.finalize(err => (err ? reject(err) : resolve()))
+  );
+}
+function dbClose(db) {
+  return new Promise((resolve, reject) =>
+    db.close(err => (err ? reject(err) : resolve()))
+  );
+}
 
-// SQLite DB 연결 생성
-const db = new sqlite3.Database(dbPath, err => {
-  if (err) {
-    logger.error({ err }, 'SQLite DB 연결 중 오류가 발생했습니다.');
-    process.exit(1);
+const DB_PATH    = path.join(__dirname, '../db', 'foodsafety.db');
+const CACHE_PATH = path.join(__dirname, 'crawl_cache.json');
+const SAMPLE_DIR = path.join(__dirname, 'samples');
+const API_URL    = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02?serviceKey=edacbf8d03ba77b54a1e5c7d9f1149b47582fc23fc9b1e038776fc5b896e143d&pageNo=1&numOfRows=500&type=json';
+
+async function main() {
+  logger.info('식품영양성분 API 데이터 수집을 시작합니다.');
+
+  // ── 1. API 호출 ────────────────────────────────────────────────────────────
+  const res = await fetch(API_URL);
+  if (!res.ok) throw new Error(`API 응답 오류: HTTP ${res.status}`);
+  const data = await res.json();
+
+  const items = data?.body?.items;
+  if (!items || items.length === 0) {
+    logger.warn('API 응답에서 수집할 데이터가 없습니다.');
+    return;
+  }
+  logger.info({ count: items.length }, 'API 데이터 수집 완료');
+
+  // ── 2. crawl_cache.json 갱신 ──────────────────────────────────────────────
+  let cache = [];
+  if (fs.existsSync(CACHE_PATH)) {
+    try {
+      cache = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf-8'));
+    } catch (err) {
+      logger.warn({ err }, '캐시 파일 파싱 실패 — 빈 캐시로 처리합니다.');
+    }
   }
 
-  logger.info('SQLite DB 연결이 완료되었습니다.');
-});
+  const fields = Object.keys(items[0]).map(col => ({
+    field: col, kor_nm: col,
+    type: typeof items[0][col] === 'number' ? 'NUMBER' : 'STRING',
+    length: '', desc: col, sample: String(items[0][col] || '')
+  }));
 
-// 식품영양성분 DB정보 API 호출 URL
-const url = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02?serviceKey=edacbf8d03ba77b54a1e5c7d9f1149b47582fc23fc9b1e038776fc5b896e143d&pageNo=1&numOfRows=500&type=json';
+  const metaData = {
+    svc_no: '1471000', svc_nm: '식품영양성분 DB정보',
+    cat: '식품영양정보', cat_code: 'API_SRT03',
+    provd_instt_nm: '식품의약품안전처', data_type_nm: 'LINK',
+    detail_url: 'https://www.data.go.kr/data/15100070/openapi.do',
+    type_cd: 'API_TYPE06', fields,
+    desc: '일반 식품(농축수산물, 음식)부터 시판 식품(가공식품, 프랜차이즈 조리식품)에 대한 영양성분 정보를 제공합니다.',
+    error: '', sample_url: API_URL, sample_data_length: JSON.stringify(items).length
+  };
 
-logger.info('식품영양성분 API 데이터 수집을 시작합니다.');
+  const idx = cache.findIndex(d => d.svc_no === '1471000');
+  if (idx >= 0) { cache[idx] = metaData; logger.info('기존 메타데이터 갱신'); }
+  else          { cache.push(metaData);  logger.info('신규 메타데이터 추가'); }
 
-fetch(url)
-  // API 응답을 JSON 형식으로 변환
-  .then(res => {
-    if (!res.ok) {
-      throw new Error(`API 응답 오류: HTTP ${res.status}`);
-    }
-    return res.json();
-  })
+  fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf-8');
+  logger.info('crawl_cache.json 저장 완료');
 
-  // 변환된 JSON 데이터 처리
-  .then(data => {
-    // API 응답 본문에서 데이터 목록 추출
-    const items = data?.body?.items;
+  // ── 3. 샘플 데이터 저장 ───────────────────────────────────────────────────
+  if (!fs.existsSync(SAMPLE_DIR)) fs.mkdirSync(SAMPLE_DIR, { recursive: true });
+  fs.writeFileSync(
+    path.join(SAMPLE_DIR, '1471000.json'),
+    JSON.stringify(items.slice(0, 5), null, 2), 'utf-8'
+  );
+  logger.info('샘플 데이터 저장 완료 (1471000.json)');
 
-    // 수집된 데이터가 없을 경우 처리 중단
-    if (!items || items.length === 0) {
-      logger.warn('API 응답에서 수집할 데이터가 없습니다.');
-      db.close();
-      return;
-    }
-
-    logger.info({ count: items.length }, 'API 데이터 수집이 완료되었습니다.');
-
-    /**
-     * 캐시 파일 업데이트
-     *
-     * crawl_cache.json에 API 메타데이터를 저장함
-     * 기존에 동일한 svc_no가 있으면 갱신하고, 없으면 새로 추가함
-     */
-
-    const cachePath = path.join(__dirname, 'crawl_cache.json');
-    let cache = [];
-
-    if (fs.existsSync(cachePath)) {
-      try {
-        cache = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
-        logger.info('기존 캐시 파일을 불러왔습니다.');
-      } catch (err) {
-        logger.warn({ err }, '캐시 파일 파싱에 실패하여 빈 캐시로 처리합니다.');
-      }
-    } else {
-      logger.info('기존 캐시 파일이 없어 새로 생성합니다.');
-    }
-
-    // 첫 번째 데이터 항목을 기준으로 필드 메타데이터 생성
-    const fields = Object.keys(items[0]).map(col => ({
-      field: col,
-      kor_nm: col,
-      type: typeof items[0][col] === 'number' ? 'NUMBER' : 'STRING',
-      length: '',
-      desc: col,
-      sample: String(items[0][col] || '')
-    }));
-
-    // API 메타데이터 구성
-    const metaData = {
-      svc_no: '1471000',
-      svc_nm: '식품영양성분 DB정보',
-      cat: '식품영양정보',
-      cat_code: 'API_SRT03',
-      provd_instt_nm: '식품의약품안전처',
-      data_type_nm: 'LINK',
-      detail_url: 'https://www.data.go.kr/data/15100070/openapi.do',
-      type_cd: 'API_TYPE06',
-      fields: fields,
-      desc: '공공데이터포털 식품영양성분 데이터',
-      error: '',
-      sample_url: url,
-      sample_data_length: JSON.stringify(items).length
-    };
-
-    // 기존 캐시에서 동일한 서비스 번호가 있는지 확인
-    const existingIndex = cache.findIndex(d => d.svc_no === '1471000');
-
-    if (existingIndex >= 0) {
-      cache[existingIndex] = metaData;
-      logger.info('기존 메타데이터를 갱신했습니다.');
-    } else {
-      cache.push(metaData);
-      logger.info('신규 메타데이터를 추가했습니다.');
-    }
-
-    // 갱신된 캐시 데이터를 JSON 파일로 저장
-    fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
-    logger.info('crawl_cache.json 파일 저장이 완료되었습니다.');
-
-    /**
-     * 샘플 데이터 저장
-     *
-     * 수집 데이터 중 앞 5건을 crawler/samples/1471000.json 파일로 저장함
-     */
-
-    const sampleDir = path.join(__dirname, 'samples');
-
-    if (!fs.existsSync(sampleDir)) {
-      fs.mkdirSync(sampleDir, { recursive: true });
-      logger.info('샘플 데이터 저장 디렉터리를 생성했습니다.');
-    }
-
-    const samplePath = path.join(sampleDir, '1471000.json');
-
-    fs.writeFileSync(
-      samplePath,
-      JSON.stringify(items.slice(0, 5), null, 2),
-      'utf-8'
+  // ── 4. SQLite 적재 ────────────────────────────────────────────────────────
+  const db = await new Promise((resolve, reject) => {
+    const conn = new sqlite3.Database(DB_PATH, err =>
+      err ? reject(err) : resolve(conn)
     );
-
-    logger.info('샘플 데이터 파일 저장이 완료되었습니다.');
-
-    /**
-     * SQLite DB 저장 처리
-     *
-     * 1471000 테이블을 새로 생성하고 API 수집 데이터를 적재함
-     */
-
-    const columns = Object.keys(items[0]);
-    const columnDefs = columns.map(col => `"${col}" TEXT`).join(', ');
-    const createTableSql = `CREATE TABLE IF NOT EXISTS "1471000" (${columnDefs})`;
-
-    db.serialize(() => {
-      // 기존 테이블 삭제
-      db.run(`DROP TABLE IF EXISTS "1471000"`, err => {
-        if (err) {
-          logger.error({ err }, '기존 1471000 테이블 삭제 중 오류가 발생했습니다.');
-          db.close();
-          return;
-        }
-
-        logger.info('기존 1471000 테이블을 삭제했습니다.');
-      });
-
-      // 신규 테이블 생성
-      db.run(createTableSql, err => {
-        if (err) {
-          logger.error({ err }, '1471000 테이블 생성 중 오류가 발생했습니다.');
-          db.close();
-          return;
-        }
-
-        logger.info('1471000 테이블 생성이 완료되었습니다.');
-
-        const placeholders = columns.map(() => '?').join(', ');
-        const insertSql = `INSERT INTO "1471000" (${columns.map(c => `"${c}"`).join(', ')}) VALUES (${placeholders})`;
-        const stmt = db.prepare(insertSql);
-
-        let count = 0;
-        let insertErrorCount = 0;
-
-        db.parallelize(() => {
-          items.forEach(item => {
-            const values = columns.map(col =>
-              typeof item[col] === 'object'
-                ? JSON.stringify(item[col])
-                : item[col] || null
-            );
-
-            stmt.run(values, err => {
-              if (err) {
-                insertErrorCount++;
-                logger.error({ err }, '데이터 행 삽입 중 오류가 발생했습니다.');
-              } else {
-                count++;
-              }
-            });
-          });
-        });
-
-        stmt.finalize(err => {
-          if (err) {
-            logger.error({ err }, '데이터 삽입 마무리 처리 중 오류가 발생했습니다.');
-            db.close();
-            return;
-          }
-
-          logger.info(
-            {
-              insertedRows: count,
-              failedRows: insertErrorCount
-            },
-            '1471000 테이블 데이터 적재가 완료되었습니다.'
-          );
-
-          db.close(closeErr => {
-            if (closeErr) {
-              logger.error({ err: closeErr }, 'SQLite DB 연결 종료 중 오류가 발생했습니다.');
-              return;
-            }
-
-            logger.info('SQLite DB 연결을 정상적으로 종료했습니다.');
-          });
-        });
-      });
-    });
-  })
-
-  // API 호출 또는 전체 처리 중 오류 발생 시 출력
-  .catch(err => {
-    logger.error({ err }, 'API 데이터 수집 처리 중 오류가 발생했습니다.');
-
-    db.close(closeErr => {
-      if (closeErr) {
-        logger.error({ err: closeErr }, '오류 처리 중 DB 연결 종료에 실패했습니다.');
-      }
-    });
   });
+  logger.info('SQLite DB 연결 완료');
+
+  try {
+    const columns   = Object.keys(items[0]);
+    const colDefs   = columns.map(c => `"${c}" TEXT`).join(', ');
+    const colNames  = columns.map(c => `"${c}"`).join(', ');
+    const holders   = columns.map(() => '?').join(', ');
+
+    await dbRun(db, `DROP TABLE IF EXISTS "1471000"`);
+    await dbRun(db, `CREATE TABLE "1471000" (${colDefs})`);
+    logger.info('1471000 테이블 재생성 완료');
+
+    const stmt = db.prepare(`INSERT INTO "1471000" (${colNames}) VALUES (${holders})`);
+    let inserted = 0, failed = 0;
+
+    await new Promise((resolve, reject) => {
+      db.parallelize(() => {
+        for (const item of items) {
+          const vals = columns.map(c =>
+            typeof item[c] === 'object' ? JSON.stringify(item[c]) : (item[c] ?? null)
+          );
+          stmt.run(vals, err => { err ? failed++ : inserted++; });
+        }
+      });
+      stmt.finalize(err => err ? reject(err) : resolve());
+    });
+
+    logger.info({ inserted, failed }, '1471000 데이터 적재 완료');
+  } finally {
+    await dbClose(db);
+    logger.info('SQLite DB 연결 종료');
+  }
+}
+
+main().catch(err => {
+  logger.fatal({ err }, 'crawler_link.js 실행 중 심각한 오류가 발생했습니다.');
+  process.exit(1);
+});

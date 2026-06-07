@@ -17,6 +17,9 @@ const cheerio = require('cheerio');
 // Excel 파일 생성을 위한 ExcelJS 모듈 불러오기
 const ExcelJS = require('exceljs');
 
+// 파일 경로 조작을 위한 path 모듈 불러오기
+const path = require('path');
+
 // console 대신 사용할 pino logger 불러오기
 const pino = require('pino');
 
@@ -27,7 +30,7 @@ const LIST_URL = 'https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=
 const DETAIL_BASE_URL = 'https://www.foodsafetykorea.go.kr/api/board/boardDetail.do?menu_grp=MENU_GRP35&menu_no=3899&bbs_no=bbs082';
 
 // 최종 Excel 파일 저장 경로
-const OUTPUT_PATH = 'C:\\식약처\\food-safety\\데이터_활용사례_Playwright.xlsx';
+const OUTPUT_PATH = path.join(__dirname, '..', '데이터_활용사례_Playwright.xlsx');
 
 // 페이지 로딩 후 대기 시간
 const DEFAULT_WAIT_MS = 1500;

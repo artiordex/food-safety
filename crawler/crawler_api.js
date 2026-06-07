@@ -26,9 +26,6 @@ const readline = require('readline');
 // console 대신 사용할 pino logger 불러오기
 const pino = require('pino');
 
-// 통합 분석 파이프라인 불러오기 (공통키 식별 → 시나리오 도출 → 엑셀 생성)
-const { runAnalysis } = require('./pipeline');
-
 // 크롤링 결과 메타데이터를 저장할 캐시 파일 경로
 const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
 
@@ -76,7 +73,7 @@ async function run() {
 
   // 강제 재크롤링 옵션 여부 확인
   // 사용자가 강제로 재크롤링하도록 수정한 부분 (무조건 덮어쓰기)
-  const hasForce = true; // args.includes('--force') || args.includes('-f');
+  const hasForce = args.includes('--force') || args.includes('-f');
 
   // 크롤링 시작 로그 출력
   logger.info({
@@ -227,6 +224,23 @@ async function run() {
 
       // 현재 카테고리 탐색 시작 로그 출력
       logger.info({ categoryName: cat.text, categoryCode: cat.val }, '카테고리 탐색을 시작합니다.');
+
+      // DOM 에러 방지: 셀렉트 박스가 없으면 메인 페이지로 강제 복귀
+      const selectBox = page.locator('#search_clCdCode');
+      if (!(await selectBox.isVisible())) {
+        logger.warn('검색 셀렉트 박스를 찾을 수 없어 목록 페이지로 강제 복귀합니다.');
+        await page.goto('https://www.foodsafetykorea.go.kr/apiMain.do', { waitUntil: 'networkidle' });
+        await page.locator('a:has-text("데이터공개")').first().click();
+        await page.waitForLoadState('networkidle');
+        
+        try {
+          await page.locator('a:has-text("유형별")').first().click();
+        } catch (e) {
+          logger.warn('유형별 메뉴를 찾지 못해 직접 이동합니다.');
+          await page.goto('https://www.foodsafetykorea.go.kr/api/datasetSearch.do', { waitUntil: 'networkidle' });
+        }
+        await page.waitForLoadState('networkidle');
+      }
 
       // 현재 카테고리 선택
       await page.selectOption('#search_clCdCode', cat.val);
@@ -406,12 +420,18 @@ async function run() {
             // 데이터셋 설명 기본값 설정
             let desc = '';
 
-            // 설명 영역 탐색
-            const descTag = page.locator('.cont-desc, .api-desc, .summary, p.desc').first();
+            // 설명 영역 탐색 (데이터 설명 <th> 다음의 <td> 추출)
+            const descTag = page.locator('tr:has(th:has-text("데이터 설명")) td').first();
 
             // 설명 영역이 있으면 텍스트 추출
-            if (await descTag.isVisible()) {
+            if (await descTag.isVisible({ timeout: 1500 }).catch(() => false)) {
               desc = (await descTag.innerText()).replace(/\s+/g, ' ').trim().substring(0, 300);
+            } else {
+              // 폴백: 기존 설명 탐색기 사용
+              const fallbackDesc = page.locator('.cont-desc, .api-desc, .summary, p.desc').first();
+              if (await fallbackDesc.isVisible({ timeout: 1500 }).catch(() => false)) {
+                desc = (await fallbackDesc.innerText()).replace(/\s+/g, ' ').trim().substring(0, 300);
+              }
             }
 
             // ── 상세 페이지에서 주관기관 추출 (목록 값보다 우선) ──
@@ -685,39 +705,25 @@ async function run() {
           break;
         }
 
-        // 다음 페이지 버튼 탐색
-        const nextPageBtn = page.locator(`.pagination a[onclick*="linkPage(${nextPage})"], .pagination a:has-text("${nextPage}")`).first();
+        // 다음 페이지 버튼 (a.next 또는 '다음페이지' 텍스트) 탐색
+        const nextBtn = page.locator('.pagination a.next, .pagination a.page-link.next, .pagination a:has-text("다음페이지")').filter({ state: 'visible' }).first();
 
-        // 다음 페이지 버튼이 보이면 클릭
-        if (await nextPageBtn.isVisible()) {
-          await nextPageBtn.click();
+        // 다음 페이지 버튼이 보이면 클릭 (비동기 렌더링을 기다리기 위해 waitFor 사용)
+        let hasNextBtn = false;
+        try {
+          await nextBtn.waitFor({ state: 'visible', timeout: 3000 });
+          hasNextBtn = true;
+        } catch (e) {
+          hasNextBtn = false;
+        }
+
+        if (hasNextBtn) {
+          await nextBtn.click();
           await page.waitForTimeout(2000);
           pageNum++;
         } else {
-          // 10페이지 단위 다음 블록 버튼 탐색
-          const nextBlockBtn = page.locator('.pagination a.next, .pagination a:has-text(">")').first();
-
-          // 다음 블록 버튼이 있으면 클릭
-          if (await nextBlockBtn.isVisible()) {
-            await nextBlockBtn.click();
-            await page.waitForTimeout(2000);
-
-            // 다음 블록 이동 후 다음 페이지 버튼 재탐색
-            const nextPageBtnAfterBlock = page.locator(`.pagination a[onclick*="linkPage(${nextPage})"], .pagination a:has-text("${nextPage}")`).first();
-
-            // 다음 페이지 버튼이 보이면 클릭
-            if (await nextPageBtnAfterBlock.isVisible()) {
-              await nextPageBtnAfterBlock.click();
-              await page.waitForTimeout(2000);
-              pageNum++;
-            } else {
-              // 다음 페이지가 없으면 현재 카테고리 종료
-              hasNextPage = false;
-            }
-          } else {
-            // 다음 블록 버튼이 없으면 현재 카테고리 종료
-            hasNextPage = false;
-          }
+          // 다음 페이지가 없으면 현재 카테고리 종료
+          hasNextPage = false;
         }
       }
     }
@@ -738,9 +744,6 @@ async function run() {
       logger.info({ jsonCount }, `총 처리된 JSON 파일 갯수는 ${jsonCount}개입니다.`);
     }
   }
-
-  // 분석 파이프라인 실행 (공통키 식별 → 시나리오 도출 → 엑셀 생성)
-  await runAnalysis(CACHE_FILE, OUTPUT_XLSX);
 }
 
 // 현재 파일을 직접 실행한 경우에만 run 함수 실행
