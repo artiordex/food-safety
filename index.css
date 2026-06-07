@@ -3,15 +3,116 @@ body {
   font-family: 'Inter', 'Pretendard', sans-serif;
 }
 
-.footer_notice {
+#footer .footer_notice {
   width: 100%;
   padding: 20px 0;
   text-align: center;
   box-sizing: border-box;
 }
 
-.footer_notice p {
+#footer .footer_notice p {
   margin: 0;
   line-height: 22px;
   text-align: center;
+  color: #fff;
+}
+
+/* =====================================================
+ * 슬라이드박스 (메인 인기데이터 슬라이드)
+ * head.html에서 이동
+ * ===================================================== */
+.slidebox {
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.slidebox .slidelist {
+  position: relative;
+  white-space: nowrap;
+  font-size: 0;
+  overflow: hidden;
+}
+
+.slidebox .slidelist .slideitem {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  background-color: #fff;
+  width: 100%;
+  transition: all 1s;
+}
+
+.slidebox .slidelist .slideitem > a {
+  display: block;
+  width: auto;
+  position: relative;
+}
+
+.slidebox .slidelist .slideitem > a p {
+  max-width: 100%;
+}
+
+.slidebox .slide-control [class*="control"] label {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slidebox .slide-control [class*="control"] label.prev {
+  left: 20px;
+  font-weight: bold;
+}
+
+.slidebox .slide-control [class*="control"] label.next {
+  right: -57px;
+  font-weight: bold;
+}
+
+[name="slide"] {
+  display: none;
+}
+
+#slide01:checked ~ .slidelist .slideitem {
+  left: 0;
+}
+
+#slide02:checked ~ .slidelist .slideitem {
+  left: -100%;
+}
+
+.slide-control [class*="control"] {
+  display: none;
+}
+
+#slide01:checked ~ .slide-control .control01 {
+  display: block;
+}
+
+#slide02:checked ~ .slide-control .control02 {
+  display: block;
+}
+
+/* =====================================================
+ * 팝업 테이블 포지션
+ * head.html에서 이동
+ * ===================================================== */
+#popuptable {
+  z-index: 10000;
+  position: absolute;
+  top: 155px;
+  left: 155px;
+  height: auto;
+}
+
+#popuptable2 {
+  z-index: 10000;
+  position: absolute;
+  top: 155px;
+  left: 785px;
+  height: auto;
 }
