@@ -4,12 +4,12 @@
     <div class="footer_link_wrap">
         <div class="footer_link">
             <ul class="link">
-                <li><a href="javascript:void(0);">화면 시안 안내</a></li>
-                <li><a href="javascript:void(0);">데이터맵 시안</a></li>
-                <li><a href="javascript:void(0);">데이터 세트 시안</a></li>
-                <li><a href="javascript:void(0);">활용가이드 시안</a></li>
-                <li><a href="javascript:void(0);">서비스 화면 예시</a></li>
-                <li><a href="javascript:void(0);" class="blue">Prototype</a></li>
+                <li><a href="javascript:void(0);" onclick="openSianModal('guide')">화면 시안 안내</a></li>
+                <li><a href="javascript:void(0);" onclick="openSianModal('datamap')">데이터맵 시안</a></li>
+                <li><a href="javascript:void(0);" onclick="openSianModal('dataset')">데이터 세트 시안</a></li>
+                <li><a href="javascript:void(0);" onclick="openSianModal('usage')">활용가이드 시안</a></li>
+                <li><a href="javascript:void(0);" onclick="openSianModal('example')">서비스 화면 예시</a></li>
+                <li><a href="javascript:void(0);" class="blue" onclick="openProtoModal()">Prototype</a></li>
             </ul>
         </div>
     </div>
@@ -27,3 +27,421 @@
 
 </footer>
 <!-- footer end -->
+
+<!-- ====== 시안 팝업 모달 ====== -->
+<div id="sian-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:8px; width:90%; max-width:1200px; height:85vh; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,0.3); overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid #e5e7eb; background:#f9fafb; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span id="sian-modal-icon" style="font-size:20px;">📋</span>
+                <span id="sian-modal-title" style="font-size:18px; font-weight:600; color:#111827;"></span>
+            </div>
+            <button onclick="closeSianModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#6b7280; line-height:1; padding:4px;">&times;</button>
+        </div>
+        <div id="sian-tab-bar" style="display:none; padding:0 24px; border-bottom:1px solid #e5e7eb; background:#fff; flex-shrink:0;">
+            <div style="display:flex; gap:0;">
+                <button class="sian-tab-btn" onclick="switchSianTab('guide')" data-tab="guide" style="padding:12px 20px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border-bottom:2px solid transparent;">화면 시안 안내</button>
+                <button class="sian-tab-btn" onclick="switchSianTab('datamap')" data-tab="datamap" style="padding:12px 20px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border-bottom:2px solid transparent;">데이터맵</button>
+                <button class="sian-tab-btn" onclick="switchSianTab('dataset')" data-tab="dataset" style="padding:12px 20px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border-bottom:2px solid transparent;">데이터 세트</button>
+                <button class="sian-tab-btn" onclick="switchSianTab('usage')" data-tab="usage" style="padding:12px 20px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border-bottom:2px solid transparent;">활용가이드</button>
+                <button class="sian-tab-btn" onclick="switchSianTab('example')" data-tab="example" style="padding:12px 20px; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#6b7280; border-bottom:2px solid transparent;">서비스 예시</button>
+            </div>
+        </div>
+        <div id="sian-modal-body" style="flex:1; overflow:hidden; position:relative;">
+            <iframe id="sian-modal-iframe" src="" style="width:100%; height:100%; border:none; display:none;"></iframe>
+            <div id="sian-guide-content" style="display:none; padding:32px; overflow-y:auto; height:100%; box-sizing:border-box;">
+                <h2 style="font-size:22px; font-weight:700; color:#111827; margin-bottom:8px;">화면 시안 안내</h2>
+                <p style="color:#6b7280; margin-bottom:32px; font-size:14px;">본 프로젝트에서 제작된 시안 화면 목록입니다.</p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;">
+                    <div onclick="switchSianTab('datamap')" style="border:1px solid #e5e7eb; border-radius:8px; padding:20px; cursor:pointer;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <div style="font-size:28px; margin-bottom:10px;">🗺️</div>
+                        <div style="font-weight:600; color:#111827; margin-bottom:6px;">데이터맵 시안</div>
+                        <div style="font-size:13px; color:#6b7280;">데이터 분류 체계를 시각적으로 표현한 화면</div>
+                    </div>
+                    <div onclick="switchSianTab('dataset')" style="border:1px solid #e5e7eb; border-radius:8px; padding:20px; cursor:pointer;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <div style="font-size:28px; margin-bottom:10px;">📊</div>
+                        <div style="font-weight:600; color:#111827; margin-bottom:6px;">데이터 세트 시안</div>
+                        <div style="font-size:13px; color:#6b7280;">공공데이터 목록 탐색 및 API 정보 제공 화면</div>
+                    </div>
+                    <div onclick="switchSianTab('usage')" style="border:1px solid #e5e7eb; border-radius:8px; padding:20px; cursor:pointer;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <div style="font-size:28px; margin-bottom:10px;">📖</div>
+                        <div style="font-weight:600; color:#111827; margin-bottom:6px;">활용가이드 시안</div>
+                        <div style="font-size:13px; color:#6b7280;">데이터 활용 방법 및 API 사용 안내 화면</div>
+                    </div>
+                    <div onclick="switchSianTab('example')" style="border:1px solid #e5e7eb; border-radius:8px; padding:20px; cursor:pointer;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e5e7eb'">
+                        <div style="font-size:28px; margin-bottom:10px;">🖥️</div>
+                        <div style="font-weight:600; color:#111827; margin-bottom:6px;">서비스 화면 예시</div>
+                        <div style="font-size:13px; color:#6b7280;">메인 홈 및 전체 서비스 화면 예시</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding:12px 24px; border-top:1px solid #e5e7eb; background:#f9fafb; display:flex; justify-content:flex-end; flex-shrink:0; gap:8px;">
+            <a id="sian-open-link" href="#" target="_blank" style="display:none; padding:8px 16px; background:#2563eb; color:#fff; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500;">새 탭에서 열기</a>
+            <button onclick="closeSianModal()" style="padding:8px 16px; background:#fff; border:1px solid #d1d5db; border-radius:6px; cursor:pointer; font-size:14px; color:#374151; font-weight:500;">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 프로토타입 와이어프레임 모달 ====== -->
+<div id="proto-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; width:95%; max-width:1100px; height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.4); overflow:hidden;">
+        <!-- 헤더 -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:#1e293b; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="color:#fff; font-size:15px;">✏️</span>
+                <span style="color:#fff; font-size:15px; font-weight:600;">와이어프레임 프로토타입</span>
+                <span style="background:#334155; color:#94a3b8; font-size:11px; padding:2px 8px; border-radius:10px;">식품안전나라 공공데이터 활용 지원 강화 연구</span>
+            </div>
+            <button onclick="closeProtoModal()" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; line-height:1; padding:4px;">&times;</button>
+        </div>
+        <!-- 탭 -->
+        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:8px 16px; display:flex; gap:6px; flex-shrink:0; overflow-x:auto;">
+            <button class="proto-tab" onclick="showProto(0)" style="padding:6px 14px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:13px; background:#fff; color:#2563eb; font-weight:600; white-space:nowrap;">메인 홈</button>
+            <button class="proto-tab" onclick="showProto(1)" style="padding:6px 14px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:13px; background:transparent; color:#6b7280; white-space:nowrap;">데이터 검색</button>
+            <button class="proto-tab" onclick="showProto(2)" style="padding:6px 14px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:13px; background:transparent; color:#6b7280; white-space:nowrap;">데이터세트 상세</button>
+            <button class="proto-tab" onclick="showProto(3)" style="padding:6px 14px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:13px; background:transparent; color:#6b7280; white-space:nowrap;">데이터맵</button>
+            <button class="proto-tab" onclick="showProto(4)" style="padding:6px 14px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:13px; background:transparent; color:#6b7280; white-space:nowrap;">마이페이지</button>
+        </div>
+        <!-- 브라우저 바 -->
+        <div style="background:#f1f5f9; padding:8px 16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <div style="display:flex; gap:5px;">
+                <div style="width:10px; height:10px; background:#f87171; border-radius:50%;"></div>
+                <div style="width:10px; height:10px; background:#fbbf24; border-radius:50%;"></div>
+                <div style="width:10px; height:10px; background:#4ade80; border-radius:50%;"></div>
+            </div>
+            <div style="flex:1; background:#fff; border:1px solid #d1d5db; border-radius:4px; padding:4px 12px; font-size:12px; color:#9ca3af; font-family:monospace;">localhost:8000</div>
+            <span id="proto-progress" style="font-size:12px; color:#9ca3af;">1 / 5</span>
+        </div>
+        <!-- 와이어프레임 영역 -->
+        <div style="flex:1; overflow-y:auto; background:#f3f4f6; position:relative;">
+            <!-- 화면 0: 메인 홈 -->
+            <div class="proto-screen" id="proto-screen-0" style="display:block; font-family:'Malgun Gothic',sans-serif; background:#f3f4f6; min-height:100%;">
+                <div style="background:#1e3a5f; padding:12px 32px; display:flex; align-items:center; gap:24px;">
+                    <div style="width:160px; height:22px; background:#ffffff55; border-radius:3px;"></div>
+                    <div style="flex:1; display:flex; gap:16px; justify-content:center;">
+                        <div style="width:70px; height:14px; background:#ffffff33; border-radius:2px;"></div>
+                        <div style="width:70px; height:14px; background:#ffffff33; border-radius:2px;"></div>
+                        <div style="width:70px; height:14px; background:#ffffff33; border-radius:2px;"></div>
+                        <div style="width:70px; height:14px; background:#ffffff33; border-radius:2px;"></div>
+                    </div>
+                    <div style="width:80px; height:28px; background:#ffffff22; border-radius:4px;"></div>
+                </div>
+                <div style="background:#2563eb; padding:36px 32px; text-align:center;">
+                    <div style="width:300px; height:28px; background:#ffffff44; border-radius:4px; margin:0 auto 12px;"></div>
+                    <div style="width:200px; height:16px; background:#ffffff22; border-radius:3px; margin:0 auto 24px;"></div>
+                    <div style="display:inline-flex; gap:0; border-radius:6px; overflow:hidden;">
+                        <div style="width:200px; height:40px; background:#ffffffee;"></div>
+                        <div style="width:80px; height:40px; background:#1d4ed8; border:1px solid #ffffff44;"></div>
+                    </div>
+                </div>
+                <div style="background:#fff; padding:20px 32px; border-bottom:1px solid #e5e7eb;">
+                    <div style="font-size:12px; color:#9ca3af; margin-bottom:12px; border-left:3px solid #2563eb; padding-left:8px;">분류별 데이터 서비스</div>
+                    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#dbeafe; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#dcfce7; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#fef9c3; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#fce7f3; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#f3e8ff; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#ffedd5; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#e0f2fe; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                        <div style="text-align:center;"><div style="width:56px; height:56px; background:#fef2f2; border-radius:50%; margin:0 auto 6px;"></div><div style="width:56px; height:9px; background:#d1d5db; border-radius:2px; margin:0 auto;"></div></div>
+                    </div>
+                </div>
+                <div style="padding:24px 32px; display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+                    <div style="background:#fff; border-radius:8px; padding:20px; border:1px solid #e5e7eb;"><div style="width:100%; height:90px; background:#f3f4f6; border-radius:4px; margin-bottom:12px;"></div><div style="width:80%; height:13px; background:#d1d5db; border-radius:2px; margin-bottom:8px;"></div><div style="width:55%; height:11px; background:#e5e7eb; border-radius:2px;"></div></div>
+                    <div style="background:#fff; border-radius:8px; padding:20px; border:1px solid #e5e7eb;"><div style="width:100%; height:90px; background:#f3f4f6; border-radius:4px; margin-bottom:12px;"></div><div style="width:75%; height:13px; background:#d1d5db; border-radius:2px; margin-bottom:8px;"></div><div style="width:60%; height:11px; background:#e5e7eb; border-radius:2px;"></div></div>
+                    <div style="background:#fff; border-radius:8px; padding:20px; border:1px solid #e5e7eb;"><div style="width:100%; height:90px; background:#f3f4f6; border-radius:4px; margin-bottom:12px;"></div><div style="width:70%; height:13px; background:#d1d5db; border-radius:2px; margin-bottom:8px;"></div><div style="width:50%; height:11px; background:#e5e7eb; border-radius:2px;"></div></div>
+                </div>
+            </div>
+            <!-- 화면 1: 데이터 검색 -->
+            <div class="proto-screen" id="proto-screen-1" style="display:none; font-family:'Malgun Gothic',sans-serif; background:#f3f4f6; min-height:100%;">
+                <div style="background:#1e3a5f; padding:12px 32px; display:flex; align-items:center;">
+                    <div style="width:160px; height:22px; background:#ffffff55; border-radius:3px;"></div>
+                </div>
+                <div style="background:#fff; padding:20px 32px; border-bottom:1px solid #e5e7eb;">
+                    <div style="font-size:12px; color:#9ca3af; margin-bottom:8px;">홈 &gt; 데이터 검색</div>
+                    <div style="width:140px; height:20px; background:#1e3a5f; border-radius:3px; margin-bottom:14px;"></div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="width:160px; height:36px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px;"></div>
+                        <div style="flex:1; height:36px; background:#f9fafb; border:1px solid #d1d5db; border-radius:6px;"></div>
+                        <div style="width:88px; height:36px; background:#2563eb; border-radius:6px;"></div>
+                    </div>
+                </div>
+                <div style="padding:20px 32px; display:flex; gap:20px;">
+                    <div style="width:220px; flex-shrink:0;">
+                        <div style="background:#fff; border-radius:8px; padding:16px; border:1px solid #e5e7eb;">
+                            <div style="width:60px; height:13px; background:#374151; border-radius:2px; margin-bottom:14px;"></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px; background:#eff6ff; border-radius:4px;"><div style="width:14px; height:14px; background:#2563eb; border-radius:2px; flex-shrink:0;"></div><div style="width:100px; height:11px; background:#93c5fd; border-radius:2px;"></div></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px;"><div style="width:14px; height:14px; background:#e5e7eb; border-radius:2px; flex-shrink:0;"></div><div style="width:80px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px;"><div style="width:14px; height:14px; background:#e5e7eb; border-radius:2px; flex-shrink:0;"></div><div style="width:90px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px;"><div style="width:14px; height:14px; background:#e5e7eb; border-radius:2px; flex-shrink:0;"></div><div style="width:70px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:8px;"><div style="width:14px; height:14px; background:#e5e7eb; border-radius:2px; flex-shrink:0;"></div><div style="width:85px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; overflow:hidden;">
+                            <div style="padding:12px 16px; background:#f9fafb; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                                <div style="width:100px; height:13px; background:#d1d5db; border-radius:2px;"></div>
+                                <div style="display:flex; gap:6px;"><div style="width:60px; height:26px; background:#e5e7eb; border-radius:4px;"></div><div style="width:60px; height:26px; background:#e5e7eb; border-radius:4px;"></div></div>
+                            </div>
+                            <div style="padding:16px; border-bottom:1px solid #f3f4f6;"><div style="width:65%; height:14px; background:#374151; border-radius:2px; margin-bottom:8px;"></div><div style="width:88%; height:11px; background:#d1d5db; border-radius:2px; margin-bottom:6px;"></div><div style="display:flex; gap:6px;"><div style="width:50px; height:18px; background:#dbeafe; border-radius:10px;"></div><div style="width:60px; height:18px; background:#dcfce7; border-radius:10px;"></div></div></div>
+                            <div style="padding:16px; border-bottom:1px solid #f3f4f6;"><div style="width:72%; height:14px; background:#374151; border-radius:2px; margin-bottom:8px;"></div><div style="width:80%; height:11px; background:#d1d5db; border-radius:2px; margin-bottom:6px;"></div><div style="display:flex; gap:6px;"><div style="width:55px; height:18px; background:#fef9c3; border-radius:10px;"></div><div style="width:50px; height:18px; background:#f3e8ff; border-radius:10px;"></div></div></div>
+                            <div style="padding:16px; border-bottom:1px solid #f3f4f6;"><div style="width:60%; height:14px; background:#374151; border-radius:2px; margin-bottom:8px;"></div><div style="width:85%; height:11px; background:#d1d5db; border-radius:2px; margin-bottom:6px;"></div><div style="display:flex; gap:6px;"><div style="width:48px; height:18px; background:#ffedd5; border-radius:10px;"></div></div></div>
+                            <div style="padding:16px; border-bottom:1px solid #f3f4f6;"><div style="width:68%; height:14px; background:#374151; border-radius:2px; margin-bottom:8px;"></div><div style="width:75%; height:11px; background:#d1d5db; border-radius:2px; margin-bottom:6px;"></div><div style="display:flex; gap:6px;"><div style="width:60px; height:18px; background:#dbeafe; border-radius:10px;"></div><div style="width:50px; height:18px; background:#fce7f3; border-radius:10px;"></div></div></div>
+                            <div style="padding:12px 16px; display:flex; justify-content:center; gap:4px;">
+                                <div style="width:28px; height:28px; background:#2563eb; border-radius:4px;"></div>
+                                <div style="width:28px; height:28px; background:#f3f4f6; border-radius:4px;"></div>
+                                <div style="width:28px; height:28px; background:#f3f4f6; border-radius:4px;"></div>
+                                <div style="width:28px; height:28px; background:#f3f4f6; border-radius:4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 화면 2: 데이터세트 상세 -->
+            <div class="proto-screen" id="proto-screen-2" style="display:none; font-family:'Malgun Gothic',sans-serif; background:#f3f4f6; min-height:100%;">
+                <div style="background:#1e3a5f; padding:12px 32px; display:flex; align-items:center;">
+                    <div style="width:160px; height:22px; background:#ffffff55; border-radius:3px;"></div>
+                </div>
+                <div style="background:#fff; padding:24px 32px; border-bottom:1px solid #e5e7eb;">
+                    <div style="font-size:12px; color:#9ca3af; margin-bottom:10px;">홈 &gt; 데이터세트 &gt; 상세</div>
+                    <div style="width:320px; height:22px; background:#1e3a5f; border-radius:3px; margin-bottom:10px;"></div>
+                    <div style="display:flex; gap:8px; margin-bottom:16px;">
+                        <div style="width:70px; height:22px; background:#dbeafe; border-radius:10px;"></div>
+                        <div style="width:90px; height:22px; background:#dcfce7; border-radius:10px;"></div>
+                        <div style="width:60px; height:22px; background:#fef9c3; border-radius:10px;"></div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <div style="width:110px; height:36px; background:#2563eb; border-radius:6px;"></div>
+                        <div style="width:110px; height:36px; background:#fff; border:1px solid #d1d5db; border-radius:6px;"></div>
+                        <div style="width:110px; height:36px; background:#fff; border:1px solid #d1d5db; border-radius:6px;"></div>
+                    </div>
+                </div>
+                <div style="padding:24px 32px; display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+                    <div>
+                        <div style="display:flex; gap:0; border-bottom:2px solid #e5e7eb; margin-bottom:16px;">
+                            <div style="padding:10px 20px; border-bottom:2px solid #2563eb; margin-bottom:-2px; font-size:13px; color:#2563eb; font-weight:600;">API 명세</div>
+                            <div style="padding:10px 20px; font-size:13px; color:#9ca3af;">응답 예시</div>
+                            <div style="padding:10px 20px; font-size:13px; color:#9ca3af;">활용 예제</div>
+                        </div>
+                        <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; overflow:hidden;">
+                            <div style="display:grid; grid-template-columns:1fr 1fr 60px 2fr; background:#f9fafb; padding:10px 16px; border-bottom:1px solid #e5e7eb; gap:8px;">
+                                <div style="height:12px; background:#9ca3af; border-radius:2px; width:70%;"></div>
+                                <div style="height:12px; background:#9ca3af; border-radius:2px; width:50%;"></div>
+                                <div style="height:12px; background:#9ca3af; border-radius:2px; width:80%;"></div>
+                                <div style="height:12px; background:#9ca3af; border-radius:2px; width:60%;"></div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 60px 2fr; padding:10px 16px; border-bottom:1px solid #f3f4f6; gap:8px;"><div style="height:11px; background:#e5e7eb; border-radius:2px; width:80%;"></div><div style="height:11px; background:#dbeafe; border-radius:2px; width:50%;"></div><div style="height:11px; background:#dcfce7; border-radius:2px; width:60%;"></div><div style="height:11px; background:#e5e7eb; border-radius:2px; width:90%;"></div></div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 60px 2fr; padding:10px 16px; border-bottom:1px solid #f3f4f6; gap:8px;"><div style="height:11px; background:#e5e7eb; border-radius:2px; width:70%;"></div><div style="height:11px; background:#dbeafe; border-radius:2px; width:50%;"></div><div style="height:11px; background:#fef9c3; border-radius:2px; width:60%;"></div><div style="height:11px; background:#e5e7eb; border-radius:2px; width:75%;"></div></div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 60px 2fr; padding:10px 16px; border-bottom:1px solid #f3f4f6; gap:8px;"><div style="height:11px; background:#e5e7eb; border-radius:2px; width:85%;"></div><div style="height:11px; background:#dbeafe; border-radius:2px; width:50%;"></div><div style="height:11px; background:#fef9c3; border-radius:2px; width:60%;"></div><div style="height:11px; background:#e5e7eb; border-radius:2px; width:80%;"></div></div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 60px 2fr; padding:10px 16px; gap:8px;"><div style="height:11px; background:#e5e7eb; border-radius:2px; width:65%;"></div><div style="height:11px; background:#dbeafe; border-radius:2px; width:50%;"></div><div style="height:11px; background:#dcfce7; border-radius:2px; width:60%;"></div><div style="height:11px; background:#e5e7eb; border-radius:2px; width:85%;"></div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
+                            <div style="width:80px; height:13px; background:#374151; border-radius:2px; margin-bottom:14px;"></div>
+                            <div style="margin-bottom:12px;"><div style="width:60px; height:10px; background:#9ca3af; border-radius:2px; margin-bottom:4px;"></div><div style="width:100%; height:10px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="margin-bottom:12px;"><div style="width:60px; height:10px; background:#9ca3af; border-radius:2px; margin-bottom:4px;"></div><div style="width:100%; height:10px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="margin-bottom:12px;"><div style="width:60px; height:10px; background:#9ca3af; border-radius:2px; margin-bottom:4px;"></div><div style="width:80%; height:10px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="margin-bottom:12px;"><div style="width:60px; height:10px; background:#9ca3af; border-radius:2px; margin-bottom:4px;"></div><div style="width:90%; height:10px; background:#d1d5db; border-radius:2px;"></div></div>
+                        </div>
+                        <div style="background:#f9fafb; border-radius:8px; border:1px solid #e5e7eb; padding:16px;">
+                            <div style="width:80px; height:13px; background:#374151; border-radius:2px; margin-bottom:14px;"></div>
+                            <div style="width:100%; height:80px; background:#e5e7eb; border-radius:4px; display:flex; align-items:center; justify-content:center;"><div style="width:40px; height:40px; background:#9ca3af; border-radius:4px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 화면 3: 데이터맵 -->
+            <div class="proto-screen" id="proto-screen-3" style="display:none; font-family:'Malgun Gothic',sans-serif; background:#f3f4f6; min-height:100%;">
+                <div style="background:#1e3a5f; padding:12px 32px; display:flex; align-items:center;">
+                    <div style="width:160px; height:22px; background:#ffffff55; border-radius:3px;"></div>
+                </div>
+                <div style="background:#fff; padding:16px 32px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="width:100px; height:18px; background:#1e3a5f; border-radius:3px;"></div>
+                    <div style="display:flex; gap:8px;">
+                        <div style="width:70px; height:30px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:6px;"></div>
+                        <div style="width:70px; height:30px; background:#2563eb; border-radius:6px;"></div>
+                    </div>
+                </div>
+                <div style="padding:24px 32px;">
+                    <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; padding:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px;">
+                            <div style="background:#dbeafe; border:2px solid #93c5fd; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#93c5fd; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#93c5fd; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#93c5fd; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#93c5fd; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#93c5fd; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#dcfce7; border:2px solid #86efac; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#86efac; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#86efac; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#86efac; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#86efac; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#fef9c3; border:2px solid #fde047; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#fde047; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fde047; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fde047; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fde047; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fde047; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fde047; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#fce7f3; border:2px solid #f9a8d4; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#f9a8d4; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#f9a8d4; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#f9a8d4; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+                            <div style="background:#f3e8ff; border:2px solid #c084fc; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#c084fc; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#c084fc; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#c084fc; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#c084fc; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#ffedd5; border:2px solid #fb923c; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#fb923c; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fb923c; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fb923c; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fb923c; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#fb923c; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#f0fdf4; border:2px solid #4ade80; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#4ade80; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#4ade80; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#4ade80; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                            <div style="background:#fef2f2; border:2px solid #f87171; border-radius:8px; padding:14px;"><div style="width:80%; height:13px; background:#f87171; border-radius:2px; margin-bottom:12px;"></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#f87171; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#f87171; border-radius:2px; opacity:0.7;"></div></div><div style="background:#ffffffbb; border-radius:4px; padding:6px;"><div style="width:80%; height:9px; background:#f87171; border-radius:2px; opacity:0.7;"></div></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 화면 4: 마이페이지 -->
+            <div class="proto-screen" id="proto-screen-4" style="display:none; font-family:'Malgun Gothic',sans-serif; background:#f3f4f6; min-height:100%;">
+                <div style="background:#1e3a5f; padding:12px 32px; display:flex; align-items:center;">
+                    <div style="width:160px; height:22px; background:#ffffff55; border-radius:3px;"></div>
+                </div>
+                <div style="padding:24px 32px; display:flex; gap:20px;">
+                    <div style="width:200px; flex-shrink:0;">
+                        <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; overflow:hidden;">
+                            <div style="padding:20px 16px; background:#1e3a5f; text-align:center;">
+                                <div style="width:52px; height:52px; background:#ffffff33; border-radius:50%; margin:0 auto 10px;"></div>
+                                <div style="width:80px; height:12px; background:#ffffff44; border-radius:2px; margin:0 auto 6px;"></div>
+                                <div style="width:120px; height:10px; background:#ffffff22; border-radius:2px; margin:0 auto;"></div>
+                            </div>
+                            <div style="padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px; background:#eff6ff;"><div style="width:6px; height:6px; background:#2563eb; border-radius:50%;"></div><div style="width:80px; height:11px; background:#93c5fd; border-radius:2px;"></div></div>
+                            <div style="padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;"><div style="width:6px; height:6px; background:#d1d5db; border-radius:50%;"></div><div style="width:80px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;"><div style="width:6px; height:6px; background:#d1d5db; border-radius:50%;"></div><div style="width:80px; height:11px; background:#d1d5db; border-radius:2px;"></div></div>
+                            <div style="padding:12px 16px; display:flex; align-items:center; gap:8px;"><div style="width:6px; height:6px; background:#d1d5db; border-radius:50%;"></div><div style="width:40px; height:11px; background:#fca5a5; border-radius:2px;"></div></div>
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="background:#fff; border-radius:8px; border:1px solid #e5e7eb; padding:20px; margin-bottom:16px;">
+                            <div style="width:100px; height:15px; background:#374151; border-radius:2px; margin-bottom:16px;"></div>
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;">
+                                <div style="background:#dbeafe; border-radius:8px; padding:16px; text-align:center;"><div style="width:60%; height:28px; background:#60a5fa; border-radius:4px; margin:0 auto 8px;"></div><div style="width:70%; height:10px; background:#93c5fd; border-radius:2px; margin:0 auto;"></div></div>
+                                <div style="background:#dcfce7; border-radius:8px; padding:16px; text-align:center;"><div style="width:60%; height:28px; background:#34d399; border-radius:4px; margin:0 auto 8px;"></div><div style="width:70%; height:10px; background:#6ee7b7; border-radius:2px; margin:0 auto;"></div></div>
+                                <div style="background:#fef9c3; border-radius:8px; padding:16px; text-align:center;"><div style="width:60%; height:28px; background:#facc15; border-radius:4px; margin:0 auto 8px;"></div><div style="width:70%; height:10px; background:#fde047; border-radius:2px; margin:0 auto;"></div></div>
+                            </div>
+                            <div style="border-radius:6px; border:1px solid #e5e7eb; overflow:hidden;">
+                                <div style="padding:10px 16px; background:#f9fafb; border-bottom:1px solid #e5e7eb; display:flex; gap:16px;">
+                                    <div style="flex:2; height:11px; background:#9ca3af; border-radius:2px;"></div>
+                                    <div style="flex:3; height:11px; background:#9ca3af; border-radius:2px;"></div>
+                                    <div style="flex:1; height:11px; background:#9ca3af; border-radius:2px;"></div>
+                                    <div style="flex:1; height:11px; background:#9ca3af; border-radius:2px;"></div>
+                                </div>
+                                <div style="padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; gap:16px;"><div style="flex:2; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:3; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#dcfce7; border-radius:2px;"></div></div>
+                                <div style="padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; gap:16px;"><div style="flex:2; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:3; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#fef9c3; border-radius:2px;"></div></div>
+                                <div style="padding:12px 16px; display:flex; gap:16px;"><div style="flex:2; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:3; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#e5e7eb; border-radius:2px;"></div><div style="flex:1; height:10px; background:#fce7f3; border-radius:2px;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 하단 -->
+        <div style="padding:12px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:center; gap:16px; flex-shrink:0;">
+            <button onclick="showProto(currentProto - 1)" id="proto-prev" style="padding:8px 20px; background:#fff; border:1px solid #d1d5db; border-radius:6px; cursor:pointer; font-size:14px; color:#374151;">← 이전</button>
+            <span style="font-size:13px; color:#9ca3af;">키보드 ← → 로 이동</span>
+            <button onclick="showProto(currentProto + 1)" id="proto-next" style="padding:8px 20px; background:#2563eb; border:none; border-radius:6px; cursor:pointer; font-size:14px; color:#fff;">다음 →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===== 시안 모달 ===== */
+var sianPages = {
+    guide:   { title: '화면 시안 안내',   icon: '📋', url: null },
+    datamap: { title: '데이터맵 시안',    icon: '🗺️', url: '/data/datamap.html' },
+    dataset: { title: '데이터 세트 시안', icon: '📊', url: '/data/dataset.html' },
+    usage:   { title: '활용가이드 시안',  icon: '📖', url: '/service/serviceUse.html' },
+    example: { title: '서비스 화면 예시', icon: '🖥️', url: '/index.html' }
+};
+
+function openSianModal(key) {
+    document.getElementById('sian-modal-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.getElementById('sian-tab-bar').style.display = (key === 'guide') ? 'block' : 'none';
+    switchSianTab(key);
+}
+
+function closeSianModal() {
+    document.getElementById('sian-modal-overlay').style.display = 'none';
+    document.getElementById('sian-modal-iframe').src = '';
+    document.body.style.overflow = '';
+}
+
+function switchSianTab(key) {
+    var page = sianPages[key];
+    document.getElementById('sian-modal-title').textContent = page.title;
+    document.getElementById('sian-modal-icon').textContent = page.icon;
+
+    document.querySelectorAll('.sian-tab-btn').forEach(function(btn) {
+        var active = btn.getAttribute('data-tab') === key;
+        btn.style.color = active ? '#2563eb' : '#6b7280';
+        btn.style.borderBottomColor = active ? '#2563eb' : 'transparent';
+        btn.style.fontWeight = active ? '600' : '500';
+    });
+
+    var iframe = document.getElementById('sian-modal-iframe');
+    var guide  = document.getElementById('sian-guide-content');
+    var link   = document.getElementById('sian-open-link');
+
+    if (key === 'guide') {
+        iframe.style.display = 'none'; iframe.src = '';
+        guide.style.display = 'block';
+        link.style.display = 'none';
+        document.getElementById('sian-tab-bar').style.display = 'block';
+    } else {
+        guide.style.display = 'none';
+        iframe.style.display = 'block'; iframe.src = page.url;
+        link.style.display = 'inline-block'; link.href = page.url;
+        document.getElementById('sian-tab-bar').style.display = 'block';
+    }
+}
+
+document.getElementById('sian-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeSianModal();
+});
+
+/* ===== 프로토타입 모달 ===== */
+var currentProto = 0;
+var protoTotal = 5;
+
+function openProtoModal() {
+    document.getElementById('proto-modal-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    showProto(0);
+}
+
+function closeProtoModal() {
+    document.getElementById('proto-modal-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function showProto(idx) {
+    if (idx < 0 || idx >= protoTotal) return;
+    currentProto = idx;
+
+    document.querySelectorAll('.proto-screen').forEach(function(el, i) {
+        el.style.display = (i === idx) ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.proto-tab').forEach(function(btn, i) {
+        if (i === idx) {
+            btn.style.background = '#fff';
+            btn.style.color = '#2563eb';
+            btn.style.fontWeight = '600';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = '#6b7280';
+            btn.style.fontWeight = '400';
+        }
+    });
+
+    document.getElementById('proto-progress').textContent = (idx + 1) + ' / ' + protoTotal;
+    document.getElementById('proto-prev').style.opacity = (idx === 0) ? '0.4' : '1';
+    document.getElementById('proto-next').style.opacity = (idx === protoTotal - 1) ? '0.4' : '1';
+}
+
+document.getElementById('proto-modal-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeProtoModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('proto-modal-overlay').style.display === 'flex') {
+        if (e.key === 'ArrowLeft')  showProto(currentProto - 1);
+        if (e.key === 'ArrowRight') showProto(currentProto + 1);
+        if (e.key === 'Escape')     closeProtoModal();
+    }
+    if (document.getElementById('sian-modal-overlay').style.display === 'flex') {
+        if (e.key === 'Escape') closeSianModal();
+    }
+});
+</script>

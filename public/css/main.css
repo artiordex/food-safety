@@ -43,13 +43,13 @@ body {
   transition: all 1s;
 }
 
-.slidebox .slidelist .slideitem > a {
+.slidebox .slidelist .slideitem>a {
   display: block;
   width: auto;
   position: relative;
 }
 
-.slidebox .slidelist .slideitem > a p {
+.slidebox .slidelist .slideitem>a p {
   max-width: 100%;
 }
 
@@ -77,11 +77,11 @@ body {
   display: none;
 }
 
-#slide01:checked ~ .slidelist .slideitem {
+#slide01:checked~.slidelist .slideitem {
   left: 0;
 }
 
-#slide02:checked ~ .slidelist .slideitem {
+#slide02:checked~.slidelist .slideitem {
   left: -100%;
 }
 
@@ -89,17 +89,16 @@ body {
   display: none;
 }
 
-#slide01:checked ~ .slide-control .control01 {
+#slide01:checked~.slide-control .control01 {
   display: block;
 }
 
-#slide02:checked ~ .slide-control .control02 {
+#slide02:checked~.slide-control .control02 {
   display: block;
 }
 
 /* =====================================================
  * 팝업 테이블 포지션
- * head.html에서 이동
  * ===================================================== */
 #popuptable {
   z-index: 10000;
@@ -115,4 +114,170 @@ body {
   top: 155px;
   left: 785px;
   height: auto;
+}
+
+/* =====================================================
+ * 메인 게시판 컨테이너 반응형 Flexbox 설정
+ * ===================================================== */
+.main_cont_wrap {
+  width: 100% !important;
+  padding: 40px 0 !important;
+  background: #f7f9fc !important;
+}
+
+.main_cont {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  float: none !important;
+}
+
+/* 3개 영역에 대해 가로 비율 유연하게 지정 */
+.main_cont .box {
+  flex: 1 1 300px !important;
+  margin: 0 !important;
+  float: none !important;
+  height: auto !important;
+  min-height: 330px !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  padding: 24px !important;
+  border: 1px solid #eef2f6 !important;
+}
+
+.main_cont .box.notice {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 버튼 영역 박스 스타일 조정 */
+.main_cont .box.button {
+  flex: 1 1 220px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  justify-content: space-between !important;
+  height: auto !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.main_cont .box.button button {
+  width: 100% !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  min-height: 90px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.main_cont .box.button button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 인기데이터/최근등록데이터 탭 영역 내부 반응형 처리 */
+.main_cont .box.tab {
+  flex: 2 1 450px !important;
+}
+
+.main_cont .box.tab .tab-content.on {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: space-between !important;
+  gap: 15px !important;
+  height: auto !important;
+}
+
+/* 퓨전차트와 슬라이더 영역 가로배치 반응형화 */
+.main_cont .box.tab .chart {
+  flex: 1 1 260px !important;
+  width: auto !important;
+  height: 242px !important;
+  float: none !important;
+  margin: 0 !important;
+}
+
+.main_cont .box.tab .tab-content.on>div.slide-wrap-container {
+  flex: 1 1 220px !important;
+  width: auto !important;
+  height: 242px !important;
+  float: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 슬라이드박스 안의 고정 여백 및 너비 반응형 처리 */
+.slidebox {
+  padding-left: 0 !important;
+  /* 고정 레프트 패딩 제거 */
+  margin: 0 auto !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.slidebox .slidelist {
+  width: 100% !important;
+  max-width: 220px !important;
+  margin: 0 auto !important;
+}
+
+.slidebox .slide-control label.next {
+  right: -10px !important;
+  color: #333 !important;
+  font-size: 20px !important;
+}
+
+.slidebox .slide-control label.prev {
+  left: -10px !important;
+  color: #333 !important;
+  font-size: 20px !important;
+}
+
+/* 13인치 이상 모니터/데스크톱 화면용 미디어 쿼리 (3단 배치 유지) */
+@media (min-width: 1024px) {
+  .main_cont {
+    flex-wrap: nowrap !important;
+  }
+
+  .main_cont .box.notice {
+    flex: 0 1 310px !important;
+    min-width: 280px !important;
+  }
+
+  .main_cont .box.tab {
+    flex: 1 1 auto !important;
+    min-width: 480px !important;
+  }
+
+  .main_cont .box.button {
+    flex: 0 0 240px !important;
+    min-width: 220px !important;
+  }
+}
+
+/* 태블릿/모바일 등 작은 화면을 위한 미디어 쿼리 */
+@media (max-width: 1023px) {
+  .main_cont {
+    padding: 0 20px !important;
+  }
+
+  .main_cont .box {
+    flex: 1 1 100% !important;
+  }
+
+  .main_cont .box.tab {
+    flex: 1 1 100% !important;
+  }
 }

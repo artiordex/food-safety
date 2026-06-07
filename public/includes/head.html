@@ -1,6 +1,6 @@
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="식품안전나라 공공데이터 169종을 목적별 데이터세트로 제공하는 대국민 서비스 화면 시안입니다." />
+    <meta name="description" content="식품안전나라 공공데이터 활용 지원 강화 연구" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -9,50 +9,11 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // 기존 페이지들과의 스타일 충돌 방지: index.html 등 기존 페이지에서는 Tailwind Preflight(스타일 초기화)를 꺼줍니다.
-        const isTailwindPage = window.location.pathname.includes('/datamap/') || window.location.pathname.includes('/analysis/') || window.location.pathname.includes('/serviceUse/');
-        // search 페이지는 기존 CSS(common/layout/sub/search.css) 사용 → preflight OFF
-        const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('/search/');
-        tailwind.config = {
-            corePlugins: {
-                preflight: isTailwindPage && !isLegacyPage
-            },
-            theme: {
-                extend: {
-                    colors: {
-                        gov: {
-                            50: "#eef5ff", 100: "#d9e8ff", 200: "#bcd8ff", 300: "#8ebeff",
-                            400: "#5999ff", 500: "#3374f6", 600: "#1a5fb4", 700: "#154a8c",
-                            800: "#164074", 900: "#173862", 950: "#0f2340",
-                        },
-                        teal: {
-                            50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4",
-                            400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
-                            800: "#115e59", 900: "#134e4a",
-                        },
-                        emerald: {
-                            50: "#ecfdf5", 100: "#d1fae5", 500: "#10b981", 600: "#059669", 700: "#047857",
-                        },
-                        rose: {
-                            50: "#fff1f2", 100: "#ffe4e6", 500: "#f43f5e", 600: "#e11d48",
-                        },
-                    },
-                    fontFamily: {
-                        sans: ["Inter", "Pretendard", "system-ui", "-apple-system", "sans-serif"],
-                    },
-                }
-            }
-        }
-    </script>
 
     <meta http-equiv="X-UA-Compatible" id="document_mode" content="IE=edge">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>식품안전나라
-
-    </title>
+    <title>식품안전나라 공공데이터 활용 지원 강화 연구</title>
 
     <!-- 새로 추가  -->
     <link rel="shortcut icon" href="https://www.foodsafetykorea.go.kr/images/common/favicon.ico" />

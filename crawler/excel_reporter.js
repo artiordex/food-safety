@@ -2,8 +2,8 @@ const ExcelJS = require('exceljs');
 
 // 로그 출력 유틸리티
 const log = {
-  info:  (msg) => console.log(`[INFO] ${new Date().toLocaleTimeString()} - ${msg}`),
-  warn:  (msg) => console.warn(`[WARN] ${new Date().toLocaleTimeString()} - ${msg}`),
+  info: (msg) => console.log(`[INFO] ${new Date().toLocaleTimeString()} - ${msg}`),
+  warn: (msg) => console.warn(`[WARN] ${new Date().toLocaleTimeString()} - ${msg}`),
   error: (msg) => console.error(`[ERROR] ${new Date().toLocaleTimeString()} - ${msg}`),
 };
 
@@ -12,52 +12,52 @@ const log = {
 // ═════════════════════════════════════════════════════════════
 
 const MAX_CROSS_KEYS = 35;   // 크로스맵에 표시할 최대 공통키 수
-const DESC_MAX_LEN   = 100;  // 설명 필드 최대 표시 길이
-const FIELD_MAX_LEN  = 80;   // 출력항목 설명 최대 길이
+const DESC_MAX_LEN = 100;  // 설명 필드 최대 표시 길이
+const FIELD_MAX_LEN = 80;   // 출력항목 설명 최대 길이
 const SAMPLE_MAX_LEN = 30;   // 샘플값 최대 길이
 
 const SHEET_NAMES = {
-  COVER:     '분석 개요',
-  DATASETS:  '데이터셋 목록',
-  KEYS:      '공통키 분석',
-  CROSS:     '키x데이터셋 맵',
+  COVER: '분석 개요',
+  DATASETS: '데이터셋 목록',
+  KEYS: '공통키 분석',
+  CROSS: '키x데이터셋 맵',
   SCENARIOS: '결합 시나리오',
-  RAW:       '출력항목 원본',
+  RAW: '출력항목 원본',
 };
 
 // 데이터셋 카테고리별 배경색
 const CAT_COLOR = {
-  '가공식품':     'C6EFCE',
+  '가공식품': 'C6EFCE',
   '건강기능식품': 'FFF2CC',
-  '축산물':       'FCE4D6',
-  '농·수산물':    'DDEBF7',
-  '영양성분':     'E2EFDA',
-  '음식점':       'D9EAD3',
-  'HACCP':        'D9D2E9',
-  '수출입':       'FFF3E2',
-  '위해정보':     'F4CCCC',
-  '행정처분':     'FADBD8',
-  '유통':         'E9F7EF',
-  '통계':         'D5DBDB',
-  '특수식품':     'D6EAF8',
-  '코드·표준':    'E8DAEF',
-  '기타':         'F2F3F4',
+  '축산물': 'FCE4D6',
+  '농·수산물': 'DDEBF7',
+  '영양성분': 'E2EFDA',
+  '음식점': 'D9EAD3',
+  'HACCP': 'D9D2E9',
+  '수출입': 'FFF3E2',
+  '위해정보': 'F4CCCC',
+  '행정처분': 'FADBD8',
+  '유통': 'E9F7EF',
+  '통계': 'D5DBDB',
+  '특수식품': 'D6EAF8',
+  '코드·표준': 'E8DAEF',
+  '기타': 'F2F3F4',
 };
 
 // 테두리 스타일
-const borderThinStyle   = { style: 'thin',   color: { argb: 'FFD3D3D3' } };
+const borderThinStyle = { style: 'thin', color: { argb: 'FFD3D3D3' } };
 const borderMediumStyle = { style: 'medium', color: { argb: 'FF1F4E79' } };
-const thinBorder = { top: borderThinStyle,   left: borderThinStyle,   bottom: borderThinStyle,   right: borderThinStyle };
-const medBorder  = { top: borderMediumStyle, left: borderMediumStyle, bottom: borderMediumStyle, right: borderMediumStyle };
+const thinBorder = { top: borderThinStyle, left: borderThinStyle, bottom: borderThinStyle, right: borderThinStyle };
+const medBorder = { top: borderMediumStyle, left: borderMediumStyle, bottom: borderMediumStyle, right: borderMediumStyle };
 
 // 시트 탭 색상
 const TAB_COLORS = {
-  [SHEET_NAMES.COVER]:     '1F4E79',
-  [SHEET_NAMES.DATASETS]:  '2F75B6',
-  [SHEET_NAMES.KEYS]:      '375623',
-  [SHEET_NAMES.CROSS]:     '2F5496',
+  [SHEET_NAMES.COVER]: '1F4E79',
+  [SHEET_NAMES.DATASETS]: '2F75B6',
+  [SHEET_NAMES.KEYS]: '375623',
+  [SHEET_NAMES.CROSS]: '2F5496',
   [SHEET_NAMES.SCENARIOS]: '7030A0',
-  [SHEET_NAMES.RAW]:       'C55A11',
+  [SHEET_NAMES.RAW]: 'C55A11',
 };
 
 // ═════════════════════════════════════════════════════════════
@@ -107,32 +107,32 @@ function validateInputs(datasets, ka, scenarios, outputPath) {
 
 function normalizeKeyAnalysis(ka) {
   return {
-    field_freq:  toObject(ka?.field_freq),
-    field_meta:  toObject(ka?.field_meta),
+    field_freq: toObject(ka?.field_freq),
+    field_meta: toObject(ka?.field_meta),
     common_keys: toArray(ka?.common_keys),
-    key_ds_map:  toObject(ka?.key_ds_map),
-    ds_key_map:  toObject(ka?.ds_key_map),
-    threshold:   toSafeNumber(ka?.threshold, 0),
-    total_ds:    toSafeNumber(ka?.total_ds, 0),
+    key_ds_map: toObject(ka?.key_ds_map),
+    ds_key_map: toObject(ka?.ds_key_map),
+    threshold: toSafeNumber(ka?.threshold, 0),
+    total_ds: toSafeNumber(ka?.total_ds, 0),
   };
 }
 
 function normalizeScenario(sc) {
   const sharedKeys = toArray(sc?.shared_keys);
   return {
-    ds_a:        toSafeString(sc?.ds_a),
-    nm_a:        toSafeString(sc?.nm_a),
-    cat_a:       toSafeString(sc?.cat_a),
-    ds_b:        toSafeString(sc?.ds_b),
-    nm_b:        toSafeString(sc?.nm_b),
-    cat_b:       toSafeString(sc?.cat_b),
+    ds_a: toSafeString(sc?.ds_a),
+    nm_a: toSafeString(sc?.nm_a),
+    cat_a: toSafeString(sc?.cat_a),
+    ds_b: toSafeString(sc?.ds_b),
+    nm_b: toSafeString(sc?.nm_b),
+    cat_b: toSafeString(sc?.cat_b),
     shared_keys: sharedKeys,
-    key_count:   toSafeNumber(sc?.key_count, sharedKeys.length),
-    score:       toSafeNumber(sc?.score, 0),
-    join_type:   toSafeString(sc?.join_type || sc?.joinType || '검토필요'),
-    confidence:  toSafeString(sc?.confidence),
-    use_case:    toSafeString(sc?.use_case),
-    sql_hint:    toSafeString(sc?.sql_hint),
+    key_count: toSafeNumber(sc?.key_count, sharedKeys.length),
+    score: toSafeNumber(sc?.score, 0),
+    join_type: toSafeString(sc?.join_type || sc?.joinType || '검토필요'),
+    confidence: toSafeString(sc?.confidence),
+    use_case: toSafeString(sc?.use_case),
+    sql_hint: toSafeString(sc?.sql_hint),
   };
 }
 
@@ -144,34 +144,34 @@ function normalizeScenarios(scenarios) {
  * 공통 셀 포맷터
  */
 function formatCell(cell, {
-  val    = undefined,
-  bg     = 'FFFFFF',
-  fg     = '000000',
-  bold   = false,
-  sz     = 9,
-  ha     = 'left',
-  wrap   = true,
+  val = undefined,
+  bg = 'FFFFFF',
+  fg = '000000',
+  bold = false,
+  sz = 9,
+  ha = 'left',
+  wrap = true,
   border = true,
   italic = false,
 } = {}) {
   if (val !== undefined) cell.value = val;
 
   cell.font = {
-    name:   'Arial',
-    size:   sz,
+    name: 'Arial',
+    size: sz,
     bold,
     italic,
-    color:  { argb: `FF${fg}` },
+    color: { argb: `FF${fg}` },
   };
   cell.fill = {
-    type:    'pattern',
+    type: 'pattern',
     pattern: 'solid',
     fgColor: { argb: `FF${bg}` },
   };
   cell.alignment = {
     horizontal: ha === 'right' ? 'right' : ha === 'center' ? 'center' : 'left',
-    vertical:   'middle',
-    wrapText:   wrap,
+    vertical: 'middle',
+    wrapText: wrap,
   };
   if (border) cell.border = thinBorder;
 }
@@ -180,14 +180,14 @@ function writeRow(ws, rowNo, cols, defaultStyle = {}) {
   cols.forEach((col, idx) => {
     const cell = ws.getCell(rowNo, idx + 1);
     formatCell(cell, {
-      val:    col.v,
-      bg:     col.bgOv || col.bg || defaultStyle.bg || 'FFFFFF',
-      fg:     col.fgOv || col.fg || defaultStyle.fg || '000000',
-      ha:     col.ha || defaultStyle.ha || 'left',
-      bold:   col.bold || false,
-      sz:     col.sz || defaultStyle.sz || 9,
+      val: col.v,
+      bg: col.bgOv || col.bg || defaultStyle.bg || 'FFFFFF',
+      fg: col.fgOv || col.fg || defaultStyle.fg || '000000',
+      ha: col.ha || defaultStyle.ha || 'left',
+      bold: col.bold || false,
+      sz: col.sz || defaultStyle.sz || 9,
       italic: col.italic || false,
-      wrap:   col.wrap ?? defaultStyle.wrap ?? true,
+      wrap: col.wrap ?? defaultStyle.wrap ?? true,
       border: col.border ?? defaultStyle.border ?? true,
     });
   });
@@ -258,22 +258,22 @@ function shCover(ws, datasets, ka, scenarios) {
 
   ws.mergeCells('B2:D2');
   formatCell(ws.getCell('B2'), {
-    val:  '식품안전나라 Open API  데이터 관계 분석 보고서',
-    bg:   'FFFFFF',
-    fg:   '1F4E79',
+    val: '식품안전나라 Open API  데이터 관계 분석 보고서',
+    bg: 'FFFFFF',
+    fg: '1F4E79',
     bold: true,
-    sz:   17,
-    ha:   'center',
+    sz: 17,
+    ha: 'center',
     border: false,
   });
   ws.getRow(2).height = 44;
 
   ws.mergeCells('B3:D3');
   formatCell(ws.getCell('B3'), {
-    val:    `www.foodsafetykorea.go.kr/api  ·  실제 크롤링 기반 자동 분석  ·  생성일시: ${new Date().toLocaleString('ko-KR')}`,
-    fg:     '888888',
-    sz:     10,
-    ha:     'center',
+    val: `www.foodsafetykorea.go.kr/api  ·  실제 크롤링 기반 자동 분석  ·  생성일시: ${new Date().toLocaleString('ko-KR')}`,
+    fg: '888888',
+    sz: 10,
+    ha: 'center',
     italic: true,
     border: false,
   });
@@ -281,10 +281,10 @@ function shCover(ws, datasets, ka, scenarios) {
   ws.getRow(4).height = 10;
 
   const kpis = [
-    { label: '크롤링 데이터셋', val: datasets.length,                   color: '2F75B6', r: 5, c: 2 },
-    { label: '발견 전체 필드',  val: Object.keys(ka.field_freq).length, color: '375623', r: 5, c: 3 },
-    { label: '공통키 식별',     val: ka.common_keys.length,             color: 'C55A11', r: 7, c: 2 },
-    { label: '결합 시나리오',   val: scenarios.length,                  color: '7030A0', r: 7, c: 3 },
+    { label: '크롤링 데이터셋', val: datasets.length, color: '2F75B6', r: 5, c: 2 },
+    { label: '발견 전체 필드', val: Object.keys(ka.field_freq).length, color: '375623', r: 5, c: 3 },
+    { label: '공통키 식별', val: ka.common_keys.length, color: 'C55A11', r: 7, c: 2 },
+    { label: '결합 시나리오', val: scenarios.length, color: '7030A0', r: 7, c: 3 },
   ];
 
   [5, 6, 7, 8].forEach(r => { ws.getRow(r).height = r === 6 || r === 8 ? 4 : 56; });
@@ -293,12 +293,12 @@ function shCover(ws, datasets, ka, scenarios) {
     ws.mergeCells(r, c, r + 1, c);
     const cell = ws.getCell(r, c);
     formatCell(cell, {
-      val:  `${safeLocaleNumber(val)}\n${label}`,
-      bg:   color,
-      fg:   'FFFFFF',
+      val: `${safeLocaleNumber(val)}\n${label}`,
+      bg: color,
+      fg: 'FFFFFF',
       bold: true,
-      sz:   17,
-      ha:   'center',
+      sz: 17,
+      ha: 'center',
       border: false,
     });
     cell.border = medBorder;
@@ -317,20 +317,20 @@ function shCover(ws, datasets, ka, scenarios) {
   ws.getRow(10).height = 24;
 
   const steps = [
-    ['STEP 1', '목록 크롤링',   'searchDatasetList.do AJAX POST → 전체 Open API 및 FILE 데이터셋 목록 수집'],
-    ['STEP 2', '상세 크롤링',   '각 데이터셋 상세 페이지 → 출력항목 탭(#view-item) table 및 4단 구성 전략 파싱'],
-    ['STEP 3', '공통키 식별',   `전체 필드 출현 빈도 집계 → 임계값(${ka.threshold || '5% or 3건'}) 이상 필드를 공통키로 자동 분류`],
+    ['STEP 1', '목록 크롤링', 'searchDatasetList.do AJAX POST → 전체 Open API 및 FILE 데이터셋 목록 수집'],
+    ['STEP 2', '상세 크롤링', '각 데이터셋 상세 페이지 → 출력항목 탭(#view-item) table 및 4단 구성 전략 파싱'],
+    ['STEP 3', '공통키 식별', `전체 필드 출현 빈도 집계 → 임계값(${ka.threshold || '5% or 3건'}) 이상 필드를 공통키로 자동 분류`],
     ['STEP 4', '결합 시나리오', '데이터셋 쌍별 공유 공통키 분석 → 키 신뢰도 가중치 기반 점수 산출 → 상위 시나리오 도출'],
-    ['STEP 5', '엑셀 보고서',   '6개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·출력항목원본'],
+    ['STEP 5', '엑셀 보고서', '6개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·출력항목원본'],
   ];
 
   steps.forEach(([step, title, desc], idx) => {
     const r = 11 + idx;
     ws.getRow(r).height = 28;
     writeRow(ws, r, [
-      { v: step,  bg: '1F4E79', fg: 'FFFFFF', bold: true, ha: 'center' },
+      { v: step, bg: '1F4E79', fg: 'FFFFFF', bold: true, ha: 'center' },
       { v: title, bg: 'D6E4F0', bold: true },
-      { v: desc,  bg: 'F5F5F5', sz: 8 },
+      { v: desc, bg: 'F5F5F5', sz: 8 },
     ], { bg: 'FFFFFF' });
     // B~D에 쓰기 위해 실제 시작 컬럼 보정
     for (let c = 4; c >= 2; c--) {
@@ -354,12 +354,12 @@ function shCover(ws, datasets, ka, scenarios) {
   ws.getRow(17).height = 24;
 
   const sheetInfo = [
-    [SHEET_NAMES.COVER,     '파이프라인 흐름 및 KPI 요약 + 생성 일시'],
-    [SHEET_NAMES.DATASETS,  '전체 데이터셋 + 출력항목 수 + 공통키 수 (카테고리 색상 구분)'],
-    [SHEET_NAMES.KEYS,      '공통키 빈도·점유율·메타·카테고리 분포 (히트맵 색상)'],
-    [SHEET_NAMES.CROSS,     `공통키 × 데이터셋 크로스 매핑 (표시값: Y, 상위 ${MAX_CROSS_KEYS}개)`],
+    [SHEET_NAMES.COVER, '파이프라인 흐름 및 KPI 요약 + 생성 일시'],
+    [SHEET_NAMES.DATASETS, '전체 데이터셋 + 출력항목 수 + 공통키 수 (카테고리 색상 구분)'],
+    [SHEET_NAMES.KEYS, '공통키 빈도·점유율·메타·카테고리 분포 (히트맵 색상)'],
+    [SHEET_NAMES.CROSS, `공통키 × 데이터셋 크로스 매핑 (표시값: Y, 상위 ${MAX_CROSS_KEYS}개)`],
     [SHEET_NAMES.SCENARIOS, '점수순 결합 시나리오 + JOIN 유형 + SQL 힌트'],
-    [SHEET_NAMES.RAW,       '데이터셋별 크롤링된 출력항목 RAW 데이터 전체'],
+    [SHEET_NAMES.RAW, '데이터셋별 크롤링된 출력항목 RAW 데이터 전체'],
   ];
 
   sheetInfo.forEach(([name, desc], idx) => {
@@ -423,9 +423,9 @@ function shKeys(ws, ka, datasets) {
 
   renderHeader(ws, 1, ['#', '필드명(영문)', '한글명', '데이터타입', '사용DS수', '점유율(%)', '샘플', '설명', '연계 카테고리']);
 
-  const freq  = ka.field_freq;
-  const meta  = ka.field_meta;
-  const ck    = ka.common_keys;
+  const freq = ka.field_freq;
+  const meta = ka.field_meta;
+  const ck = ka.common_keys;
   const kdmap = ka.key_ds_map;
   const total = ka.total_ds;
 
@@ -708,7 +708,7 @@ module.exports = {
 if (require.main === module) {
   const fs = require('fs');
   const path = require('path');
-  const { identifyCommonKeys, deriveScenarios } = require('./crawler.js');
+  const { identifyCommonKeys, deriveScenarios } = require('./crawler_api.js');
 
   const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
   const EXCEL_FILE = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');

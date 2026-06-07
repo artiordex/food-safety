@@ -3,7 +3,73 @@
 
 <head>
     <!-- INCLUDE_HEAD -->
-    <!-- main.css는 head.html을 통해 /public/css/main.css 로 적용됨 -->
+
+<style>
+.datastruct_op {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999999;
+}
+.datastruct {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1200px;
+    max-width: 96vw;
+    max-height: 85vh;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 1000000;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+}
+.datastruct .title {
+    background: #1e3a5f;
+    color: #fff;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+.datastruct .title .datastruct_close {
+    color: #fff;
+    text-decoration: none;
+    font-size: 20px;
+    line-height: 1;
+}
+.datastruct .site_cnt {
+    display: flex;
+    overflow: hidden;
+    height: calc(85vh - 50px);
+}
+.datastruct .fl { float: none; display: flex; flex-direction: column; }
+.datastruct .w_317 { width: 280px; min-width: 280px; border-right: 1px solid #e5e7eb; overflow-y: auto; }
+.datastruct .w_850 { flex: 1; overflow-y: auto; }
+.datastruct .box { padding: 16px; }
+.datastruct .h05 { font-size: 14px; font-weight: 700; color: #1e3a5f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; }
+.datastruct #layerTree ul { list-style: none; padding-left: 16px; margin: 0; }
+.datastruct #layerTree > ul { padding-left: 0; }
+.datastruct #layerTree li { padding: 4px 0; cursor: pointer; font-size: 13px; }
+.datastruct #layerTree li a { color: #374151; text-decoration: none; }
+.datastruct #layerTree li a:hover, .datastruct #layerTree li a.jstree-clicked { color: #2563eb; font-weight: 600; }
+.datastruct #layerTree li > a { font-weight: 600; color: #1e3a5f; cursor: default; }
+.datastruct .struct_tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+.datastruct .struct_tb th { background: #f1f5f9; padding: 10px 12px; text-align: center; border: 1px solid #e5e7eb; font-weight: 600; color: #374151; }
+.datastruct .struct_tb td { padding: 9px 12px; text-align: center; border: 1px solid #e5e7eb; color: #374151; }
+.datastruct .struct_tb td.taL { text-align: left; }
+.datastruct .struct_tb td a { color: #2563eb; text-decoration: none; }
+.datastruct .struct_tb td a:hover { text-decoration: underline; }
+.datastruct .struct_tb tbody tr:hover td { background: #f8faff; }
+</style>
 </head>
 
 <body>
@@ -15,33 +81,26 @@
         <input type="hidden" id="filePath" name="filePath" />
         <input type="hidden" id="fileName" name="fileName" />
         <input type="hidden" id="orgFileName" name="orgFileName" />
-
         <!-- 공통영역 -->
         <div id="skipContent">
             <h2>바로가기 모음</h2>
             <a href="#gnb">주메뉴 바로가기</a>
             <a href="#container">본문 바로가기</a>
         </div>
-
         <div id="wrap">
             <!-- 헤더 -->
             <!-- INCLUDE_HEADER -->
-
             <!-- 각 메인화면 진입시 -->
             <input type="hidden" id="svc_type_cd" name="svc_type_cd"> <!-- svc_type_cd 서비스타입 -->
             <input type="hidden" id="cl_cd" name="cl_cd"> <!-- 서비스 분류 -->
             <input type="hidden" id="svc_no" name="svc_no"> <!-- svc_no 서비스번호 -->
             <!-- <input type="hidden" id="svc_nm" name="svc_nm"> --> <!-- svc_nm 서비스명 -->
-
             <!-- 게시판상세페이지전용 -->
             <input type="hidden" id="ntctxt_no" name="ntctxt_no">
             <input type="hidden" id="bbs_no" name="bbs_no">
-
             <!--본문-->
             <div id="container">
-
                 <!-- INCLUDE_HERO -->
-
                 <!-- 데이터검색 -->
                 <div class="data_search_wrap">
                     <div class="data_search">
@@ -62,14 +121,171 @@
                     </div>
                 </div>
                 <!-- //데이터검색 -->
-
                 <!-- INCLUDE_MAIN_BOARD -->
-
             </div>
             <!--본문-->
 
-            <!-- INCLUDE_FOOTER -->
+            <!-- 데이터구조 검색 레이어 -->
+            <div class="datastruct_op"></div>
+            <div class="datastruct">
+                <div class="title">
+                    데이터구조 검색
+                    <a href="#" class="datastruct_close" title="닫기">✕</a>
+                </div>
+                <div class="site_cnt">
+                    <div class="fl w_317 m_r_6">
+                        <div class="box">
+                            <h1 class="h05">데이터카테고리</h1>
+                            <div id="layerTree">
+                                <ul>
+                                    <li class="jstree-open"><a href="#">전체</a>
+                                        <ul>
+                                            <li class="jstree-open"><a href="#">분류별</a>
+                                                <ul>
+                                                    <li onclick="fn_dataStrutList('기준규격정보','','API_SRT01','')"><a href="#">기준규격정보</a></li>
+                                                    <li onclick="fn_dataStrutList('코드정보','','API_SRT02','')"><a href="#">코드정보</a></li>
+                                                    <li onclick="fn_dataStrutList('식품영양정보','','API_SRT03','')"><a href="#">식품영양정보</a></li>
+                                                    <li onclick="fn_dataStrutList('수질환경정보','','API_SRT04','')"><a href="#">수질환경정보</a></li>
+                                                    <li onclick="fn_dataStrutList('검사기관정보','','API_SRT05','')"><a href="#">검사기관정보</a></li>
+                                                    <li onclick="fn_dataStrutList('식품위해관리','','API_SRT06','')"><a href="#">식품위해관리</a></li>
+                                                    <li onclick="fn_dataStrutList('식품안전관리','','API_SRT07','')"><a href="#">식품안전관리</a></li>
+                                                    <li onclick="fn_dataStrutList('이력추적관리','','API_SRT08','')"><a href="#">이력추적관리</a></li>
+                                                    <li onclick="fn_dataStrutList('어린이식품안전관리','','API_SRT09','')"><a href="#">어린이식품안전관리</a></li>
+                                                    <li onclick="fn_dataStrutList('HACCP지정현황','','API_SRT10','')"><a href="#">HACCP지정현황</a></li>
+                                                    <li onclick="fn_dataStrutList('업체인허가현황','','API_SRT11','')"><a href="#">업체인허가현황</a></li>
+                                                    <li onclick="fn_dataStrutList('위생용품','','API_SRT12','')"><a href="#">위생용품</a></li>
+                                                    <li onclick="fn_dataStrutList('축산물','','API_SRT13','')"><a href="#">축산물</a></li>
+                                                    <li onclick="fn_dataStrutList('건강기능식품','','API_SRT14','')"><a href="#">건강기능식품</a></li>
+                                                    <li onclick="fn_dataStrutList('수입식품 등','','API_SRT15','')"><a href="#">수입식품 등</a></li>
+                                                    <li onclick="fn_dataStrutList('식품 등','','API_SRT16','')"><a href="#">식품 등</a></li>
+                                                    <li onclick="fn_dataStrutList('자료실','','API_SRT17','')"><a href="#">자료실</a></li>
+                                                    <li onclick="fn_dataStrutList('폐업정보','','API_SRT18','')"><a href="#">폐업정보</a></li>
+                                                    <li onclick="fn_dataStrutList('용어사전','','API_SRT19','')"><a href="#">용어사전</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="jstree-open"><a href="#">제공기관별</a>
+                                                <ul>
+                                                    <li onclick="fn_dataStrutList('식품의약품안전처','','','ORGN01')"><a href="#">식품의약품안전처</a></li>
+                                                    <li onclick="fn_dataStrutList('해양수산부','','','ORGN10')"><a href="#">해양수산부</a></li>
+                                                    <li onclick="fn_dataStrutList('산업통상자원부','','','ORGN13')"><a href="#">산업통상자원부</a></li>
+                                                    <li onclick="fn_dataStrutList('농촌진흥청','','','ORGN09')"><a href="#">농촌진흥청</a></li>
+                                                    <li onclick="fn_dataStrutList('농림축산검역본부','','','ORGN05')"><a href="#">농림축산검역본부</a></li>
+                                                    <li onclick="fn_dataStrutList('국립농산물품질관리원','','','ORGN08')"><a href="#">국립농산물품질관리원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립환경과학원','','','ORGN15')"><a href="#">국립환경과학원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립수산물품질관리원','','','ORGN12')"><a href="#">국립수산물품질관리원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립수산과학원','','','ORGN11')"><a href="#">국립수산과학원</a></li>
+                                                    <li onclick="fn_dataStrutList('행정안전부','','','ORGN16')"><a href="#">행정안전부</a></li>
+                                                    <li onclick="fn_dataStrutList('한국식품안전관리인증원','','','ORGN02')"><a href="#">한국식품안전관리인증원</a></li>
+                                                    <li onclick="fn_dataStrutList('축산물품질평가원','','','ORGN07')"><a href="#">축산물품질평가원</a></li>
+                                                    <li onclick="fn_dataStrutList('한국환경공단','','','ORGN14')"><a href="#">한국환경공단</a></li>
+                                                    <li onclick="fn_dataStrutList('한국수자원공사','','','ORGN17')"><a href="#">한국수자원공사</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="jstree-open"><a href="#">유형별</a>
+                                                <ul>
+                                                    <li onclick="fn_dataStrutList('File','API_TYPE03','','')"><a href="#">File</a></li>
+                                                    <li onclick="fn_dataStrutList('Link','API_TYPE05','','')"><a href="#">Link</a></li>
+                                                    <li onclick="fn_dataStrutList('XML/JSON','API_TYPE06','','')"><a href="#">XML/JSON</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fl w_850 m_r_6">
+                        <div class="box">
+                            <h1 class="h05" id="datasetSjct">데이터카테고리</h1>
+                            <div id="struct_div">
+                                <table class="struct_tb">
+                                    <caption>데이터</caption>
+                                    <colgroup>
+                                        <col style="width:20%;">
+                                        <col style="width:15%;">
+                                        <col style="width:50%;">
+                                        <col style="width:15%;">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">제공기관</th>
+                                            <th scope="col">분류</th>
+                                            <th scope="col">서비스명</th>
+                                            <th scope="col">유형</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tb_struct_list">
+                                        <tr><td colspan="4">카테고리를 선택하세요.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <script>
+            // 데이터구조 검색 버튼 이벤트
+            $(document).ready(function() {
+                $(".datastruct_view").on("click", function() {
+                    $(".datastruct_op, .datastruct").show();
+                    fn_dataStrutList('기준규격정보', '', 'API_SRT01', '');
+                });
+                $(".datastruct_close").on("click", function(e) {
+                    e.preventDefault();
+                    $(".datastruct_op, .datastruct").hide();
+                });
+                $(".datastruct_op").on("click", function() {
+                    $(".datastruct_op, .datastruct").hide();
+                });
+            });
+
+            // 데이터구조 검색 조회 (로컬 API)
+            function fn_dataStrutList(subjct, svcTypeCode, clCdCode, provdInsttCode) {
+                // 선택된 항목 표시
+                $('#layerTree li').removeClass('jstree-clicked');
+                event && $(event.currentTarget).find('a').first().addClass('jstree-clicked');
+
+                $.ajax({
+                    data: {
+                        search_svcTypeCode: svcTypeCode,
+                        search_clCdCode: clCdCode,
+                        search_provdInsttCode: provdInsttCode
+                    },
+                    dataType: 'json',
+                    type: 'POST',
+                    url: '/api/search',
+                    success: function(resultList) {
+                        var list = resultList.dataStrutList;
+                        $('#datasetSjct').text(subjct);
+                        if (list && list.length > 0) {
+                            var strHtml = '';
+                            for (var i = 0; i < list.length; i++) {
+                                var item = list[i];
+                                var typeLabel = '';
+                                if (item.svc_type_cd === 'API_TYPE03') typeLabel = 'F';
+                                else if (item.svc_type_cd === 'API_TYPE06') typeLabel = 'O';
+                                strHtml += '<tr>';
+                                strHtml += '<td>' + item.provd_instt_nm + '</td>';
+                                strHtml += '<td>' + item.cl_cd_nm + '</td>';
+                                strHtml += '<td class="taL"><a href="/api/datasetAllSearch.do?search_clCdCode=' + encodeURIComponent(item.cl_cd_nm) + '">' + item.svc_nm + '</a></td>';
+                                strHtml += '<td>' + typeLabel + '</td>';
+                                strHtml += '</tr>';
+                            }
+                            $('#tb_struct_list').html(strHtml);
+                        } else {
+                            $('#tb_struct_list').html("<tr><td colspan='4'>검색된 정보가 없습니다.</td></tr>");
+                        }
+                    },
+                    error: function() {
+                        $('#tb_struct_list').html("<tr><td colspan='4'>오류가 발생하였습니다.</td></tr>");
+                    }
+                });
+            }
+            </script>
+
+            <!-- INCLUDE_MENU_MODAL -->
+            <!-- INCLUDE_FOOTER -->
             <!-- 데이터구조검색 보기 end -->
             <script src="/view/index_app.js"></script>
         </div>

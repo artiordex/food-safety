@@ -3,31 +3,45 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
+const pino = require('pino');
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'yyyy-mm-dd HH:MM:ss',
+      ignore: 'pid,hostname'
+    }
+  }
+});
+
 const REAL_API_KEY = '77183c01c07d44798948';
 
 // HTML 파일에 head/header/search include를 주입하는 공통 함수
 function applyIncludes(html, vars = {}) {
-    const includesDir = path.join(__dirname, 'public/includes');
-    const replacements = [
-        { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
-        { placeholder: '<!-- INCLUDE_HEAD_SEARCH -->', file: 'head_search.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
-        { placeholder: '<!-- INCLUDE_HEADER -->', file: 'header.html', transform: c => c },
-        { placeholder: '<!-- INCLUDE_HERO -->', file: 'hero.html', transform: c => c },
-        { placeholder: '<!-- INCLUDE_MAIN_BOARD -->', file: 'mainBoard.html', transform: c => c },
-        { placeholder: '<!-- INCLUDE_FOOTER -->', file: 'footer.html', transform: c => c },
-        { placeholder: '<!-- INCLUDE_SEARCH -->', file: 'search.html', transform: c => c },
-    ];
-    for (const { placeholder, file, transform } of replacements) {
-        if (html.includes(placeholder)) {
-            const filePath = path.join(includesDir, file);
-            if (fs.existsSync(filePath)) {
-                html = html.replace(placeholder, transform(fs.readFileSync(filePath, 'utf8')));
-            }
-        }
+  const includesDir = path.join(__dirname, 'public/includes');
+  const replacements = [
+    { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
+    { placeholder: '<!-- INCLUDE_HEAD_SEARCH -->', file: 'head_search.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
+    { placeholder: '<!-- INCLUDE_HEADER -->', file: 'header.html', transform: c => c },
+    { placeholder: '<!-- INCLUDE_HERO -->', file: 'hero.html', transform: c => c },
+    { placeholder: '<!-- INCLUDE_MAIN_BOARD -->', file: 'mainBoard.html', transform: c => c },
+    { placeholder: '<!-- INCLUDE_FOOTER -->', file: 'footer.html', transform: c => c },
+    { placeholder: '<!-- INCLUDE_SEARCH -->', file: 'search.html', transform: c => c },
+    { placeholder: '<!-- INCLUDE_MENU_MODAL -->', file: 'menu_modal.html', transform: c => c },
+  ];
+  for (const { placeholder, file, transform } of replacements) {
+    if (html.includes(placeholder)) {
+      const filePath = path.join(includesDir, file);
+      if (fs.existsSync(filePath)) {
+        html = html.replace(placeholder, transform(fs.readFileSync(filePath, 'utf8')));
+      }
     }
-    // 템플릿 변수 치환 (미지정 변수는 빈 문자열로)
-    html = html.replace(/\[\[KEYWORD\]\]/g, vars.keyword || '');
-    return html;
+  }
+  // 템플릿 변수 치환 (미지정 변수는 빈 문자열로)
+  html = html.replace(/\[\[KEYWORD\]\]/g, vars.keyword || '');
+  return html;
 }
 
 const app = express();
@@ -41,9 +55,9 @@ app.use(express.urlencoded({ extended: true }));
 // DB 연결
 const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
-    console.error('SQLite 데이터베이스 연결 실패:', err.message);
+    logger.error({ err }, 'SQLite 데이터베이스 연결에 실패했습니다.');
   } else {
-    console.log('SQLite 데이터베이스에 성공적으로 연결되었습니다:', DB_PATH);
+    logger.info({ path: DB_PATH }, 'SQLite 데이터베이스에 성공적으로 연결되었습니다.');
   }
 });
 
@@ -58,7 +72,7 @@ app.get('/api/tables', (req, res) => {
   `;
   db.all(query, [], (err, rows) => {
     if (err) {
-      console.error('테이블 목록 조회 중 오류:', err.message);
+      logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
       return res.status(500).json({ error: err.message });
     }
     res.json(rows.map(row => ({
@@ -79,7 +93,7 @@ app.get('/api/tables/:tableName/schema', (req, res) => {
   const query = `PRAGMA table_info("${tableName}");`;
   db.all(query, [], (err, rows) => {
     if (err) {
-      console.error(`${tableName} 스키마 조회 중 오류:`, err.message);
+      logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
       return res.status(500).json({ error: err.message });
     }
     res.json(rows);
@@ -107,7 +121,7 @@ app.get('/api/tables/:tableName/data', (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) {
-      console.error(`${tableName} 데이터 조회 중 오류:`, err.message);
+      logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
       return res.status(500).json({ error: err.message });
     }
     res.json(rows);
@@ -188,7 +202,7 @@ app.get('/api/join-scenarios', (req, res) => {
     const finalResult = [...multiJoinScenarios, ...parsedScenarios];
     res.json(finalResult);
   } catch (err) {
-    console.error('join.sql 파싱 오류:', err.message);
+    logger.error({ err }, 'join.sql 파싱 중 오류가 발생했습니다.');
     res.status(500).json({ error: err.message });
   }
 });
@@ -200,7 +214,7 @@ app.post('/api/query', (req, res) => {
     return res.status(400).json({ error: '쿼리 내용이 비어 있습니다.' });
   }
 
-  console.log('실행 요청된 SQL 쿼리:', query);
+  logger.info({ query }, 'SQL 쿼리 실행 요청이 들어왔습니다.');
 
   // SELECT 등 조회 쿼리에만 대응하도록 간단히 체크 (데이터 훼손 방지)
   const trimmed = query.trim().toUpperCase();
@@ -210,7 +224,7 @@ app.post('/api/query', (req, res) => {
 
   db.all(query, [], (err, rows) => {
     if (err) {
-      console.error('SQL 실행 오류:', err.message);
+      logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
       return res.status(400).json({ error: err.message });
     }
     res.json(rows);
@@ -219,84 +233,125 @@ app.post('/api/query', (req, res) => {
 
 // 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
 app.post('/api/datasetAllSearch.do', (req, res) => {
-    const keyword = req.body.search_keyword || '';
-    const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
-    res.send(applyIncludes(html, { keyword }));
+  const keyword = req.body.search_keyword || '';
+  const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
+  res.send(applyIncludes(html, { keyword }));
 });
 
 app.get('/api/datasetAllSearch.do', (req, res) => {
-    const keyword = req.query.search_keyword || '';
-    const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
-    res.send(applyIncludes(html, { keyword }));
+  const keyword = req.query.search_keyword || '';
+  const html = fs.readFileSync(path.join(__dirname, 'public/includes/search.html'), 'utf8');
+  res.send(applyIncludes(html, { keyword }));
 });
 
 // 4.2a 카테고리 목록 API
 app.get('/api/categoryList.do', (req, res) => {
-    db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
+  db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
+  });
+});
+
+
+// 데이터구조 검색 API (/ajax/datasetSearch.do 로컬 대체)
+app.post('/api/search', (req, res) => {
+  const svcTypeCode = (req.body.search_svcTypeCode || '').trim();
+  const clCdCode = (req.body.search_clCdCode || '').trim();
+  const provdInsttCode = (req.body.search_provdInsttCode || '').trim();
+
+  let query = 'SELECT svc_no, svc_nm, cat, type_cd FROM api_tables WHERE 1=1';
+  const params = [];
+
+  if (clCdCode) {
+    query += ' AND cat = ?';
+    params.push(clCdCode);
+  }
+  if (svcTypeCode) {
+    query += ' AND type_cd = ?';
+    params.push(svcTypeCode);
+  }
+
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const filtered = rows.filter(row => {
+      if (row.svc_nm === '품목제조보고번호유효성확인(대한상공회의소사용)') return false;
+      if (row.svc_nm === '불량식품 신고이력 조회(내부용)') return false;
+      if (row.svc_nm === '불량식품 신고정보 조회(내부용)') return false;
+      return true;
     });
+
+    const dataStrutList = filtered.map(row => ({
+      provd_instt_nm: '식품의약품안전처',
+      cl_cd_nm: row.cat || '',
+      svc_nm: row.svc_nm || '',
+      svc_no: row.svc_no || '',
+      svc_type_cd: row.type_cd || 'API_TYPE06'
+    }));
+
+    res.json({ dataStrutList });
+  });
 });
 
 // 4.2 통합 데이터 검색 결과 API (searchDatasetList.do)
 app.post('/api/searchDatasetList.do', (req, res) => {
-    const keyword  = (req.body.search_keyword || '').trim();
-    const catFilter = (req.body.search_clCdCode || '').trim();  // 카테고리 한글명
+  const keyword = (req.body.search_keyword || '').trim();
+  const catFilter = (req.body.search_clCdCode || '').trim();  // 카테고리 한글명
 
-    db.all(`SELECT svc_no, svc_nm, cat, description FROM api_tables`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+  db.all(`SELECT svc_no, svc_nm, cat, description FROM api_tables`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
 
-        let list = [];
-        let index = 1;
+    let list = [];
+    let index = 1;
 
-        rows.forEach(row => {
-            const svc_no = row.svc_no || '';
-            const svc_nm = row.svc_nm || '';
-            const cat    = row.cat || '공공데이터';
-            const desc   = row.description || '';
+    rows.forEach(row => {
+      const svc_no = row.svc_no || '';
+      const svc_nm = row.svc_nm || '';
+      const cat = row.cat || '공공데이터';
+      const desc = row.description || '';
 
-            // 카테고리 필터
-            if (catFilter && cat !== catFilter) return;
+      // 카테고리 필터
+      if (catFilter && cat !== catFilter) return;
 
-            // 키워드 필터 (서비스번호, 서비스명, 카테고리, 설명)
-            if (keyword && !svc_nm.includes(keyword) && !svc_no.includes(keyword) && !cat.includes(keyword) && !desc.includes(keyword)) return;
+      // 키워드 필터 (서비스번호, 서비스명, 카테고리, 설명)
+      if (keyword && !svc_nm.includes(keyword) && !svc_no.includes(keyword) && !cat.includes(keyword) && !desc.includes(keyword)) return;
 
-            const isLink = (svc_nm.includes('식품영양성분 DB정보')) ? 'Y' : 'N';
-            const isOpenApi = isLink === 'Y' ? 'N' : 'Y';
+      const isLink = (svc_nm.includes('식품영양성분 DB정보')) ? 'Y' : 'N';
+      const isOpenApi = isLink === 'Y' ? 'N' : 'Y';
 
-            list.push({
-                no: index++,
-                cl_cd_nm: cat,
-                svc_no,
-                svc_nm,
-                provd_instt_nm: '식품의약품안전처',
-                link_yn: isLink,
-                file_yn: 'N',
-                openapi_yn: isOpenApi
-            });
-        });
-
-        const start_idx = parseInt(req.body.start_idx) || 1;
-        const show_cnt  = parseInt(req.body.show_cnt)  || 10;
-        const startIndex = (start_idx - 1) * show_cnt;
-
-        res.json({
-            total_cnt: list.length,
-            list: list.slice(startIndex, startIndex + show_cnt)
-        });
+      list.push({
+        no: index++,
+        cl_cd_nm: cat,
+        svc_no,
+        svc_nm,
+        provd_instt_nm: '식품의약품안전처',
+        link_yn: isLink,
+        file_yn: 'N',
+        openapi_yn: isOpenApi
+      });
     });
+
+    const start_idx = parseInt(req.body.start_idx) || 1;
+    const show_cnt = parseInt(req.body.show_cnt) || 10;
+    const startIndex = (start_idx - 1) * show_cnt;
+
+    res.json({
+      total_cnt: list.length,
+      list: list.slice(startIndex, startIndex + show_cnt)
+    });
+  });
 });
 
 // 4.3 데이터셋 메타데이터 (컬럼 정의) API - detail.html 용
 app.get('/api/datasetMetadata.do', (req, res) => {
-    let svc_no = req.query.svc_no;
-    if(!svc_no) return res.status(400).json({error: 'svc_no is required'});
-    
-    let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
-    db.all(query, [svc_no], (err, rows) => {
-        if(err) return res.status(500).json({error: err.message});
-        res.json(rows);
-    });
+  let svc_no = req.query.svc_no;
+  if (!svc_no) return res.status(400).json({ error: 'svc_no is required' });
+
+  let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
+  db.all(query, [svc_no], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
 // 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원) -> 직접 식약처 실시간 호출로 전격 개조!
@@ -318,7 +373,7 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
     const countQuery = `SELECT COUNT(*) AS total FROM "${serviceId}";`;
     db.get(countQuery, [], (err, countRow) => {
       if (err) {
-        console.error(`${serviceId} 융합 뷰 총 건수 조회 오류:`, err.message);
+        logger.error({ err, serviceId }, '융합 뷰 총 건수 조회 중 오류가 발생했습니다.');
         const errorResult = {};
         errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
         return res.status(500).json(errorResult);
@@ -327,7 +382,7 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
       const dataQuery = `SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`;
       db.all(dataQuery, [limit, offset], (err, rows) => {
         if (err) {
-          console.error(`${serviceId} 융합 뷰 데이터 조회 오류:`, err.message);
+          logger.error({ err, serviceId }, '융합 뷰 데이터 조회 중 오류가 발생했습니다.');
           const errorResult = {};
           errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
           return res.status(500).json(errorResult);
@@ -346,7 +401,7 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
 
   // 그 외 모든 표준 테이블은 식약처 공식 실시간 OpenAPI 서버를 직접 호출!
   const externalUrl = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${serviceId}/${dataType}/${startIdx}/${endIdx}`;
-  console.log(`[에뮬레이터 -> 다이렉트 외부 식약처 OpenAPI 호출] URL: ${externalUrl}`);
+  logger.info({ url: externalUrl }, '에뮬레이터 -> 다이렉트 외부 식약처 OpenAPI 호출');
 
   try {
     const response = await fetch(externalUrl, {
@@ -369,8 +424,8 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
       return res.json(data);
     }
   } catch (err) {
-    console.warn(`[다이렉트 API 호출 실패 -> 로컬 DB Fallback 자동 작동] 사유: ${err.message}`);
-    
+    logger.warn({ err }, '다이렉트 API 호출 실패 -> 로컬 DB Fallback 자동 작동');
+
     // 외부 식약처 서버 장애나 네트워크 단선 시 로컬 SQLite 백업에서 긁어와(Fallback) 서비스 무중단 제공!
     const start = parseInt(startIdx, 10) || 1;
     const end = parseInt(endIdx, 10) || 5;
@@ -399,7 +454,7 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
 app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) => {
   const { serviceId, dataType, startIdx, endIdx } = req.params;
   const externalUrl = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${serviceId}/${dataType}/${startIdx}/${endIdx}`;
-  console.log(`[실시간 외부 식약처 OpenAPI 호출] URL: ${externalUrl}`);
+  logger.info({ url: externalUrl }, '실시간 외부 식약처 OpenAPI 호출');
 
   try {
     const response = await fetch(externalUrl, {
@@ -416,8 +471,8 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
     const data = await response.json();
     res.json(data);
   } catch (err) {
-    console.warn(`[외부 API 실시간 호출 실패 -> 로컬 DB Fallback 자동 작동] 사유: ${err.message}`);
-    
+    logger.warn({ err }, '외부 API 실시간 호출 실패 -> 로컬 DB Fallback 자동 작동');
+
     // 외부 식약처 서버 장애나 인터넷 단선 시 로컬 SQLite 백업에서 긁어와(Fallback) 서비스 무중단 제공!
     const start = parseInt(startIdx, 10) || 1;
     const end = parseInt(endIdx, 10) || 5;
@@ -470,7 +525,7 @@ app.get('/api/column-search', async (req, res) => {
 
     const processTable = async (tableName) => {
       let columns = [];
-      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch(e) { return; }
+      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch (e) { return; }
       if (!columns.length) return;
       const colResults = await Promise.all(columns.map(async col => {
         try {
@@ -479,7 +534,7 @@ app.get('/api/column-search', async (req, res) => {
             [`%${keyword}%`]
           );
           return (rows[0] && rows[0].cnt > 0);
-        } catch(e) { return false; }
+        } catch (e) { return false; }
       }));
       if (colResults.some(Boolean)) matched.add(tableName);
     };
@@ -492,7 +547,7 @@ app.get('/api/column-search', async (req, res) => {
 
     res.json({ tables: [...matched], count: matched.size });
   } catch (err) {
-    console.error('[column-search error]', err);
+    logger.error({ err }, '[column-search] 검색 중 오류가 발생했습니다.');
     res.status(500).json({ error: err.message });
   }
 });
@@ -529,13 +584,13 @@ app.get('/api/live-join-stream', async (req, res) => {
     sendEvent({ type: 'status', message: `[1/4] ${tableA}, ${tableB} 데이터 총 건수 조회 중...` });
 
     const fetchTotalCount = async (tableName) => {
-      if(tableName.startsWith('v_')) throw new Error("융합 뷰는 로컬 전용이므로 외부 실시간 조인에서 제외됩니다.");
-      
+      if (tableName.startsWith('v_')) throw new Error("융합 뷰는 로컬 전용이므로 외부 실시간 조인에서 제외됩니다.");
+
       // 1471000 테이블은 외부 OpenAPI 규격이 다르므로 로컬 DB에서 조회
-      if(tableName === '1471000') {
+      if (tableName === '1471000') {
         return new Promise((resolve, reject) => {
           db.get(`SELECT COUNT(*) AS total FROM "1471000"`, [], (err, row) => {
-            if(err) reject(err);
+            if (err) reject(err);
             else resolve(row.total);
           });
         });
@@ -560,10 +615,10 @@ app.get('/api/live-join-stream', async (req, res) => {
     sendEvent({ type: 'status', message: `[2/4] 총 건수 확인 완료 (${tableA}: ${totalA}건, ${tableB}: ${totalB}건). 데이터 적재 시작...` });
 
     const fetchAllData = async (tableName, totalCount) => {
-      if(tableName === '1471000') {
+      if (tableName === '1471000') {
         return new Promise((resolve, reject) => {
           db.all(`SELECT * FROM "1471000" LIMIT 1000`, [], (err, rows) => {
-            if(err) reject(err);
+            if (err) reject(err);
             else resolve(rows);
           });
         });
@@ -574,19 +629,19 @@ app.get('/api/live-join-stream', async (req, res) => {
       // 외부 서버 부하 및 차단(WAF) 방지를 위해 최대 1000건까지만 제한적으로 가져오도록 수정
       const safeTotalCount = Math.min(totalCount, 1000);
       const parallelLimit = 8;
-      
+
       let promises = [];
       for (let start = 1; start <= safeTotalCount; start += batchSize) {
         const end = Math.min(start + batchSize - 1, safeTotalCount);
         const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
-        
+
         const fetchPromise = fetch(url).then(r => r.json()).then(data => {
           if (data[tableName] && data[tableName].row) {
             allRows.push(...data[tableName].row);
           }
           sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: safeTotalCount });
         }).catch(err => {
-          console.error(`Fetch error for ${tableName}:`, err);
+          logger.error({ err, tableName }, '외부 API fetch 중 오류가 발생했습니다.');
         });
 
         promises.push(fetchPromise);
@@ -603,7 +658,7 @@ app.get('/api/live-join-stream', async (req, res) => {
     };
 
     sendEvent({ type: 'status', message: `[3/4] ${tableA} 및 ${tableB} 전체 데이터를 수집 중입니다. (대기 시간이 소요될 수 있습니다)` });
-    
+
     // 테이블 단위 순차 수집 (병렬 수집 시 서버 및 대역폭 과부하 방지)
     const dataA = await fetchAllData(tableA, totalA);
     const dataB = await fetchAllData(tableB, totalB);
@@ -616,13 +671,13 @@ app.get('/api/live-join-stream', async (req, res) => {
 
     const getSynonymKeyVal = (row, requestedKey) => {
       if (row[requestedKey] !== undefined) return row[requestedKey];
-      
+
       const keySynonyms = [
         ['LCNS_NO'],
         ['PRDLST_REPORT_NO', 'ITEM_REPORT_NO'],
         ['BAR_CD', 'BARCODE_NO']
       ];
-      
+
       for (const group of keySynonyms) {
         if (group.includes(requestedKey)) {
           for (const k of group) {
@@ -636,7 +691,7 @@ app.get('/api/live-join-stream', async (req, res) => {
     dataB.forEach(row => {
       const keyVal = getSynonymKeyVal(row, joinKey);
       if (keyVal) {
-        if(!mapB.has(keyVal)) mapB.set(keyVal, []);
+        if (!mapB.has(keyVal)) mapB.set(keyVal, []);
         mapB.get(keyVal).push(row);
       }
     });
@@ -656,16 +711,16 @@ app.get('/api/live-join-stream', async (req, res) => {
     });
 
     const maxTransfer = 1000;
-    sendEvent({ 
-      type: 'complete', 
-      totalMatched: joinedData.length, 
+    sendEvent({
+      type: 'complete',
+      totalMatched: joinedData.length,
       result: joinedData.slice(0, maxTransfer),
       message: `성공적으로 ${joinedData.length}건이 매칭되었습니다. (브라우저 보호를 위해 상위 ${maxTransfer}건만 화면에 전송합니다)`
     });
     res.end();
 
   } catch (err) {
-    console.error("SSE 조인 에러:", err);
+    logger.error({ err }, 'SSE 조인 처리 중 오류가 발생했습니다.');
     sendEvent({ type: 'error', message: err.message });
     res.end();
   }
@@ -695,7 +750,7 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
       for (let start = 1; start <= totalToFetch; start += batchSize) {
         let end = start + batchSize - 1;
         const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
-        
+
         try {
           const response = await fetch(url, {
             headers: {
@@ -703,10 +758,10 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
           });
-          
+
           const text = await response.text();
           const data = JSON.parse(text);
-          
+
           if (data[tableName] && data[tableName].row) {
             const rows = data[tableName].row;
             allRows.push(...rows);
@@ -718,7 +773,7 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
         } catch (e) {
           throw new Error(`식약처 API 응답 파싱 실패 (${tableName} ${start}~${end}): API 호출 제한이 걸렸을 수 있습니다.`);
         }
-        
+
         // 동시 접속 차단(WAF)을 방지하기 위해 0.2초 대기
         await new Promise(resolve => setTimeout(resolve, 200));
       }
@@ -732,7 +787,7 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
     const dataI2500 = await fetchAllData('I2500');
     const dataI0470 = await fetchAllData('I0470');
 
-    sendEvent({ type: 'status', message: `[3/4] 수집 완료. 지역('${region||'전체'}') 및 업종('${industry||'전체'}') 필터링 중...` });
+    sendEvent({ type: 'status', message: `[3/4] 수집 완료. 지역('${region || '전체'}') 및 업종('${industry || '전체'}') 필터링 중...` });
 
     // 필터링 적용 (WHERE)
     const filteredI2500 = dataI2500.filter(row => {
@@ -772,15 +827,15 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
       });
     });
 
-    sendEvent({ 
-      type: 'complete', 
+    sendEvent({
+      type: 'complete',
       result: resultRows,
       message: `분석 완료. 외부 API를 통해 필터 조건에 부합하는 총 ${resultRows.length}건의 업소 위생상태가 조회되었습니다.`
     });
     res.end();
 
   } catch (err) {
-    console.warn(`[외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동] 사유: ${err.message}`);
+    logger.warn({ err }, '외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동');
     sendEvent({ type: 'status', message: `[Fallback] 외부 API 호출 오류로 인해, 내부 SQLite DB에서 조건에 맞게 SQL을 직접 실행합니다.` });
 
     let sqlQuery = `
@@ -823,8 +878,8 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
       if (dbErr) {
         sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
       } else {
-        sendEvent({ 
-          type: 'complete', 
+        sendEvent({
+          type: 'complete',
           result: rows || [],
           message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 조회되었습니다.`
         });
@@ -887,10 +942,10 @@ app.get('/api/live-barcode-stream', async (req, res) => {
     sendEvent({ type: 'status', message: `[3/4] 수집 완료. 서버 메모리에서 5개 테이블 Left Join 연산 수행 중...` });
 
     // HashMaps for fast lookup
-    const mapB = new Map(); dataC005.forEach(r => { if(r.PRDLST_REPORT_NO) mapB.set(r.PRDLST_REPORT_NO, r) });
-    const mapE = new Map(); dataI2500.forEach(r => { if(r.LCNS_NO) mapE.set(r.LCNS_NO, r) });
-    const mapH = new Map(); dataI0580.forEach(r => { if(r.LCNS_NO) mapH.set(r.LCNS_NO, r) });
-    const mapC = new Map(); dataI0490.forEach(r => { if(r.PRDLST_REPORT_NO) mapC.set(r.PRDLST_REPORT_NO, r) });
+    const mapB = new Map(); dataC005.forEach(r => { if (r.PRDLST_REPORT_NO) mapB.set(r.PRDLST_REPORT_NO, r) });
+    const mapE = new Map(); dataI2500.forEach(r => { if (r.LCNS_NO) mapE.set(r.LCNS_NO, r) });
+    const mapH = new Map(); dataI0580.forEach(r => { if (r.LCNS_NO) mapH.set(r.LCNS_NO, r) });
+    const mapC = new Map(); dataI0490.forEach(r => { if (r.PRDLST_REPORT_NO) mapC.set(r.PRDLST_REPORT_NO, r) });
 
     const resultRows = [];
     dataI1250.forEach(rowP => {
@@ -926,15 +981,15 @@ app.get('/api/live-barcode-stream', async (req, res) => {
       });
     });
 
-    sendEvent({ 
-      type: 'complete', 
+    sendEvent({
+      type: 'complete',
       result: resultRows,
       message: `분석 완료. 필터 조건에 부합하는 총 ${resultRows.length}건이 조회되었습니다.`
     });
     res.end();
 
   } catch (err) {
-    console.warn(`[외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동] 사유: ${err.message}`);
+    logger.warn({ err }, '외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동');
     sendEvent({ type: 'status', message: `[Fallback] 외부 API 호출 오류로 인해 내부 SQLite DB에서 5개 테이블 조인 SQL 쿼리를 직접 실행합니다.` });
 
     let sqlQuery = `
@@ -970,13 +1025,13 @@ app.get('/api/live-barcode-stream', async (req, res) => {
       sqlQuery += ` AND B.BAR_CD = ? `;
       params.push(barcode);
     }
-    
+
     if (barcodeExist === 'Y') {
       sqlQuery += ` AND B.BAR_CD IS NOT NULL `;
     } else if (barcodeExist === 'N') {
       sqlQuery += ` AND B.BAR_CD IS NULL `;
     }
-    
+
     if (haccp === 'Y') {
       sqlQuery += ` AND H.HACCP_APPN_NO IS NOT NULL `;
     } else if (haccp === 'N') {
@@ -995,8 +1050,8 @@ app.get('/api/live-barcode-stream', async (req, res) => {
       if (dbErr) {
         sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
       } else {
-        sendEvent({ 
-          type: 'complete', 
+        sendEvent({
+          type: 'complete',
           result: rows || [],
           message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 5개 테이블 조인으로 조회되었습니다.`
         });
@@ -1037,22 +1092,22 @@ app.get('/api/super-converge-search', (req, res) => {
       let targetBarcode = keyword;
       let targetPrdlst = keyword;
       let targetLcns = keyword;
-      
+
       const barcodeRows = await dbAll('SELECT * FROM "C005" WHERE BAR_CD = ?', [targetBarcode]);
       if (barcodeRows.length > 0) {
         result.barcodes = barcodeRows;
-        if(barcodeRows[0].PRDLST_REPORT_NO) {
-            targetPrdlst = barcodeRows[0].PRDLST_REPORT_NO;
-            targetLcns = targetPrdlst.substring(0, targetPrdlst.length > 8 ? 8 : targetPrdlst.length); // fallback guess
+        if (barcodeRows[0].PRDLST_REPORT_NO) {
+          targetPrdlst = barcodeRows[0].PRDLST_REPORT_NO;
+          targetLcns = targetPrdlst.substring(0, targetPrdlst.length > 8 ? 8 : targetPrdlst.length); // fallback guess
         }
       }
 
       const productRows = await dbAll('SELECT * FROM "I1250" WHERE PRDLST_REPORT_NO = ?', [targetPrdlst]);
       if (productRows.length > 0) {
         result.products = productRows;
-        if(productRows[0].LCNS_NO) targetLcns = productRows[0].LCNS_NO;
+        if (productRows[0].LCNS_NO) targetLcns = productRows[0].LCNS_NO;
       }
-      
+
       const nutritionRows = await dbAll('SELECT * FROM "1471000" WHERE ITEM_REPORT_NO = ?', [targetPrdlst]);
       if (nutritionRows.length > 0) result.nutrition = nutritionRows;
 
@@ -1060,10 +1115,10 @@ app.get('/api/super-converge-search', (req, res) => {
       if (companyRow) {
         result.company = companyRow;
       }
-      
+
       const haccpRows = await dbAll('SELECT * FROM "I0580" WHERE LCNS_NO = ?', [targetLcns]);
       if (haccpRows.length > 0) result.haccp = haccpRows;
-      
+
       const punishRows = await dbAll('SELECT * FROM "I0470" WHERE LCNS_NO = ?', [targetLcns]);
       if (punishRows.length > 0) result.punishments = punishRows;
 
@@ -1074,7 +1129,7 @@ app.get('/api/super-converge-search', (req, res) => {
 
       res.json(result);
     } catch (err) {
-      console.error("Super converge search error:", err);
+      logger.error({ err }, 'Super converge 검색 중 오류가 발생했습니다.');
       res.status(500).json({ error: 'DB search failed' });
     }
   })();
@@ -1109,18 +1164,18 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
     const sampleNodes = [];
     const sampleEdges = [];
 
-    sampleNodes.push({ id: 'I2500_HUB', label: 'I2500\\n인허가업소\\n[PK] LCNS_NO', shape: 'database', size: 50, color: '#bfdbfe', font: {size: 14, bold: true} });
-    sampleNodes.push({ id: 'I1250_HUB', label: 'I1250\\n품목제조\\n[PK] PRDLST_REPORT_NO\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#e9d5ff', font: {size: 14, bold: true} });
-    sampleNodes.push({ id: 'I0580_HUB', label: 'I0580\\nHACCP\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#dbeafe', font: {size: 14, bold: true} });
-    sampleNodes.push({ id: 'I0470_HUB', label: 'I0470\\n행정처분\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#ffe4e6', font: {size: 14, bold: true} });
-    sampleNodes.push({ id: '1471000_HUB', label: '1471000\\n영양성분\\n[FK] ITEM_REPORT_NO', shape: 'database', size: 50, color: '#d1fae5', font: {size: 14, bold: true} });
-    sampleNodes.push({ id: 'C005_HUB', label: 'C005\\n바코드\\n[PK] BAR_CD\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#fef3c7', font: {size: 14, bold: true} });
-    
-    sampleEdges.push({ from: 'I2500_HUB', to: 'I1250_HUB', label: `LCNS_NO\\n(매칭: ${matchI1250_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
-    sampleEdges.push({ from: 'I2500_HUB', to: 'I0580_HUB', label: `LCNS_NO\\n(매칭: ${matchI0580_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
-    sampleEdges.push({ from: 'I2500_HUB', to: 'I0470_HUB', label: `LCNS_NO\\n(매칭: ${matchI0470_I2500}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
-    sampleEdges.push({ from: 'I1250_HUB', to: '1471000_HUB', label: `ITEM_REPORT_NO\\n(매칭: ${match1471000_I1250}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
-    sampleEdges.push({ from: 'I1250_HUB', to: 'C005_HUB', label: `PRDLST_REPORT_NO\\n(매칭: ${matchC005_I1250}건)`, font: {align: 'horizontal', size: 14, color: '#475569'}, width: 3, color: '#94a3b8' });
+    sampleNodes.push({ id: 'I2500_HUB', label: 'I2500\\n인허가업소\\n[PK] LCNS_NO', shape: 'database', size: 50, color: '#bfdbfe', font: { size: 14, bold: true } });
+    sampleNodes.push({ id: 'I1250_HUB', label: 'I1250\\n품목제조\\n[PK] PRDLST_REPORT_NO\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#e9d5ff', font: { size: 14, bold: true } });
+    sampleNodes.push({ id: 'I0580_HUB', label: 'I0580\\nHACCP\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#dbeafe', font: { size: 14, bold: true } });
+    sampleNodes.push({ id: 'I0470_HUB', label: 'I0470\\n행정처분\\n[FK] LCNS_NO', shape: 'database', size: 50, color: '#ffe4e6', font: { size: 14, bold: true } });
+    sampleNodes.push({ id: '1471000_HUB', label: '1471000\\n영양성분\\n[FK] ITEM_REPORT_NO', shape: 'database', size: 50, color: '#d1fae5', font: { size: 14, bold: true } });
+    sampleNodes.push({ id: 'C005_HUB', label: 'C005\\n바코드\\n[PK] BAR_CD\\n[FK] PRDLST_REPORT_NO', shape: 'database', size: 50, color: '#fef3c7', font: { size: 14, bold: true } });
+
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I1250_HUB', label: `LCNS_NO\\n(매칭: ${matchI1250_I2500}건)`, font: { align: 'horizontal', size: 14, color: '#475569' }, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I0580_HUB', label: `LCNS_NO\\n(매칭: ${matchI0580_I2500}건)`, font: { align: 'horizontal', size: 14, color: '#475569' }, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I2500_HUB', to: 'I0470_HUB', label: `LCNS_NO\\n(매칭: ${matchI0470_I2500}건)`, font: { align: 'horizontal', size: 14, color: '#475569' }, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I1250_HUB', to: '1471000_HUB', label: `ITEM_REPORT_NO\\n(매칭: ${match1471000_I1250}건)`, font: { align: 'horizontal', size: 14, color: '#475569' }, width: 3, color: '#94a3b8' });
+    sampleEdges.push({ from: 'I1250_HUB', to: 'C005_HUB', label: `PRDLST_REPORT_NO\\n(매칭: ${matchC005_I1250}건)`, font: { align: 'horizontal', size: 14, color: '#475569' }, width: 3, color: '#94a3b8' });
 
     // (개별 데이터 값을 뿌리는 루프 완전 제거)
 
@@ -1150,27 +1205,27 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
     const joinedData = await dbAll(joinedQuery, []);
 
     res.json({
-       stats: {
-         I2500_total: tI2500.length,
-         I1250_total: tI1250.length,
-         I0580_total: tI0580.length,
-         I0470_total: tI0470.length,
-         N1471000_total: t1471000.length,
-         C005_total: tC005.length,
-         
-         match_I2500_I1250: matchI1250_I2500,
-         match_I2500_I0580: matchI0580_I2500,
-         match_I2500_I0470: matchI0470_I2500,
-         match_I1250_1471000: match1471000_I1250,
-         match_I1250_C005: matchC005_I1250
-       },
-       nodes: sampleNodes,
-       edges: sampleEdges,
-       sample_joined_data: joinedData
+      stats: {
+        I2500_total: tI2500.length,
+        I1250_total: tI1250.length,
+        I0580_total: tI0580.length,
+        I0470_total: tI0470.length,
+        N1471000_total: t1471000.length,
+        C005_total: tC005.length,
+
+        match_I2500_I1250: matchI1250_I2500,
+        match_I2500_I0580: matchI0580_I2500,
+        match_I2500_I0470: matchI0470_I2500,
+        match_I1250_1471000: match1471000_I1250,
+        match_I1250_C005: matchC005_I1250
+      },
+      nodes: sampleNodes,
+      edges: sampleEdges,
+      sample_joined_data: joinedData
     });
 
   } catch (err) {
-    console.error("Bulk ecosystem search error:", err);
+    logger.error({ err }, 'Bulk ecosystem 분석 중 오류가 발생했습니다.');
     res.status(500).json({ error: 'DB search failed' });
   }
 });
@@ -1240,7 +1295,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
     const BATCH_SIZE = 20;
     const processTable = async (tableName) => {
       let columns = [];
-      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch(e) { return null; }
+      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch (e) { return null; }
       if (!columns.length) return null;
 
       // Check each column in parallel within the table
@@ -1248,7 +1303,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
         try {
           const countRow = await dbAll(`SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ?`, [`%${keyword}%`]);
           return (countRow[0] && countRow[0].cnt > 0) ? { col: col.name, count: countRow[0].cnt } : null;
-        } catch(e) { return null; }
+        } catch (e) { return null; }
       }));
 
       const matchingCols = colResults.filter(Boolean);
@@ -1266,7 +1321,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
           `SELECT "${bestCol.col}" as val, * FROM "${tableName}" WHERE CAST("${bestCol.col}" AS TEXT) LIKE ? LIMIT 3`,
           [`%${keyword}%`]
         );
-      } catch(e) {}
+      } catch (e) { }
 
       return { tableName, tableLabel, domain, colColors, totalCount, matchingCols, bestCol, sampleRows };
     };
@@ -1328,28 +1383,37 @@ app.get('/api/keyword-datamap', async (req, res) => {
       matchedTables
     });
   } catch (err) {
-    console.error('Keyword datamap error:', err);
+    logger.error({ err }, 'Keyword datamap 처리 중 오류가 발생했습니다.');
     res.status(500).json({ error: err.message });
   }
 });
 
 // 프론트엔드 정적 리소스 서빙
-// HTML 파일 요청을 가로채서 헤더와 헤드 컴포넌트를 주입 (Server-Side Includes)
+// pages/ 폴더 파일은 URL에 'pages' 없이 접근 가능 (예: /service/use.html)
 app.get(/^\/(.*\.html)?$/, (req, res, next) => {
-    let requestPath = req.path;
-    if (requestPath === '/') {
-        requestPath = '/index.html';
-    }
-    
-    let filePath = path.join(__dirname, requestPath);
-    if (!fs.existsSync(filePath)) {
-        return next();
-    }
-    
-    let html = applyIncludes(fs.readFileSync(filePath, 'utf8'));
-    res.send(html);
+  let requestPath = req.path;
+  if (requestPath === '/') {
+    requestPath = '/index.html';
+  }
+
+  // 1) 루트에서 먼저 탐색
+  let filePath = path.join(__dirname, requestPath);
+
+  // 2) 없으면 pages/ 하위에서 탐색
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, 'pages', requestPath);
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return next();
+  }
+
+  let html = applyIncludes(fs.readFileSync(filePath, 'utf8'));
+  res.send(html);
 });
 
+// pages/ 안의 JS·CSS 등 정적 리소스도 /pages 없이 서빙
+app.use(express.static(path.join(__dirname, 'pages')));
 app.use(express.static(__dirname));
 
 // 서버 구동
@@ -1392,16 +1456,13 @@ app.get('/api/nongshim-dataset', async (req, res) => {
     const rows = await dbAll(query);
     res.json(rows);
   } catch (err) {
-    console.error('Nongshim dataset error:', err);
+    logger.error({ err }, 'Nongshim dataset 조회 중 오류가 발생했습니다.');
     res.status(500).json({ error: err.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(` 식품안전나라 통합 DB 웹 앱 서비스가 작동 중입니다.`);
-  console.log(` 포트 번호: http://localhost:${PORT}`);
-  console.log(`==================================================`);
+  logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);
 });
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
@@ -1451,7 +1512,7 @@ app.get('/api/db-schema', (req, res) => {
 
       res.json(result);
     } catch (err) {
-      console.error('[db-schema error]', err);
+      logger.error({ err }, '[db-schema] 스키마 조회 중 오류가 발생했습니다.');
       res.status(500).json({ error: err.message });
     }
   })();
@@ -1461,8 +1522,8 @@ app.get('/api/db-schema', (req, res) => {
 let cachedRelationships = null;
 
 app.get('/api/db-relationships', (req, res) => {
-  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p||[], (e,r) => e ? ng(e) : ok(r)));
-  
+  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p || [], (e, r) => e ? ng(e) : ok(r)));
+
   if (cachedRelationships) {
     return res.json(cachedRelationships);
   }
@@ -1547,7 +1608,7 @@ app.get('/api/db-relationships', (req, res) => {
       for (let i = 0; i < checkTasks.length; i += chunkSize) {
         const chunk = checkTasks.slice(i, i + chunkSize);
         const chunkResults = await Promise.all(chunk.map(task => task.fn()));
-        
+
         chunk.forEach((task, idx) => {
           const edge = chunkResults[idx];
           if (edge) {
@@ -1580,7 +1641,7 @@ app.get('/api/db-relationships', (req, res) => {
       cachedRelationships = result;
       res.json(result);
     } catch (err) {
-      console.error('[db-relationships error]', err);
+      logger.error({ err }, '[db-relationships] 관계 분석 중 오류가 발생했습니다.');
       res.status(500).json({ error: err.message });
     }
   })();
@@ -1590,9 +1651,9 @@ app.get('/api/db-relationships', (req, res) => {
 process.on('SIGINT', () => {
   db.close((err) => {
     if (err) {
-      console.error('DB 종료 오류:', err.message);
+      logger.error({ err }, 'DB 연결 종료 중 오류가 발생했습니다.');
     } else {
-      console.log('SQLite DB 연결이 성공적으로 닫혔습니다.');
+      logger.info('SQLite DB 연결이 성공적으로 닫혔습니다.');
     }
     process.exit(0);
   });

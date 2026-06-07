@@ -1,107 +1,252 @@
+/**
+ * 식품안전나라 Open API 샘플 데이터 업데이트 스크립트
+ *
+ * 기능:
+ * - samples 폴더 기준으로 serviceId 목록을 수집함
+ * - CLI 인수로 특정 serviceId만 지정하여 업데이트할 수 있음
+ * - XML/JSON 샘플 데이터를 각각 최신 API 응답으로 갱신함
+ * - 샘플 업데이트 완료 후 excel_reporter.js를 실행하여 엑셀 보고서를 최신화함
+ */
+
+// Playwright의 API request 기능을 불러옴
 const { request } = require('playwright');
+
+// 파일 읽기, 쓰기, 목록 조회를 위한 fs 모듈 불러오기
 const fs = require('fs');
+
+// 파일 및 디렉터리 경로 처리를 위한 path 모듈 불러오기
 const path = require('path');
+
+// 외부 Node.js 스크립트 실행을 위한 child_process 모듈 불러오기
 const { execSync } = require('child_process');
 
+// console 대신 사용할 pino logger 불러오기
+const pino = require('pino');
+
+// 식품안전나라 Open API 인증키
 const API_KEY = '77183c01c07d44798948';
+
+// API 조회 시작 인덱스
 const START_IDX = 1;
+
+// API 조회 종료 인덱스
 const END_IDX = 1000;
+
+// 샘플 데이터가 저장된 디렉터리 경로
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 
+// pino logger 설정
+const logger = pino({
+  // 환경변수 LOG_LEVEL이 있으면 해당 레벨을 사용하고, 없으면 info 사용
+  level: process.env.LOG_LEVEL || 'info',
+
+  // 로그를 터미널에서 보기 좋게 출력하기 위한 설정
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'yyyy-mm-dd HH:MM:ss',
+      ignore: 'pid,hostname'
+    }
+  }
+});
+
+// 밀리초 단위 대기 함수
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 바이트 길이를 KB 단위 문자열로 변환하는 함수
+function toKbText(byteLength) {
+  return `${(byteLength / 1024).toFixed(2)} KB`;
+}
+
+// 메인 실행 함수
 async function main() {
-  // ── CLI 인수로 특정 serviceId만 지정 가능 ──
-  // 예) node api_test.js I2780 C003 I2819   → 지정한 것만 실행
-  //     node api_test.js                    → samples 전체 실행
-  const cliIds = process.argv.slice(2).filter(a => !a.startsWith('-'));
+  // CLI 인수에서 옵션이 아닌 값만 serviceId로 추출
+  const cliIds = process.argv.slice(2).filter(arg => !arg.startsWith('-'));
 
-  console.log('Playwright API Request 컨텍스트를 시작합니다...');
+  // Playwright API Request 컨텍스트 시작 로그 출력
+  logger.info('Playwright API Request 컨텍스트를 시작합니다.');
 
+  // HTTP 요청 전용 컨텍스트 생성
   const context = await request.newContext({
     extraHTTPHeaders: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     },
   });
 
+  // 업데이트 대상 serviceId 목록
   let ids;
 
+  // CLI 인수로 serviceId가 들어온 경우 지정 모드로 실행
   if (cliIds.length > 0) {
-    // ── 지정 모드: CLI 인수로 받은 serviceId만 처리 ──
     ids = cliIds;
-    console.log(`\n[지정 모드] ${ids.length}개 serviceId만 업데이트합니다: ${ids.join(', ')}\n`);
+
+    logger.info({
+      mode: '지정 모드',
+      count: ids.length,
+      serviceIds: ids.join(', ')
+    }, 'CLI 인수로 지정된 serviceId만 업데이트합니다.');
   } else {
-    // ── 전체 모드: samples 폴더에서 serviceId 전부 수집 ──
+    // CLI 인수가 없으면 samples 폴더의 XML/JSON 파일명에서 serviceId 전체 수집
     const files = fs.readdirSync(SAMPLES_DIR);
+
+    // 중복 serviceId 제거를 위한 Set 생성
     const serviceIds = new Set();
+
+    // samples 폴더 내 xml/json 파일만 serviceId 후보로 사용
     for (const file of files) {
       if (file.endsWith('.xml') || file.endsWith('.json')) {
         serviceIds.add(path.parse(file).name);
       }
     }
+
+    // serviceId 목록 정렬
     ids = Array.from(serviceIds).sort();
-    console.log(`\n[전체 모드] 총 ${ids.length}개의 serviceId를 업데이트합니다.\n`);
+
+    logger.info({
+      mode: '전체 모드',
+      count: ids.length
+    }, 'samples 폴더 기준으로 전체 serviceId를 업데이트합니다.');
   }
 
+  // serviceId별 샘플 데이터 업데이트 반복
   for (let i = 0; i < ids.length; i++) {
     const serviceId = ids[i];
-    
-    // 1471000은 외부 API(공공데이터포털)이므로 FoodSafetyKorea 크롤러에서는 건너뜁니다.
+
+    // 1471000은 공공데이터포털 외부 API이므로 식품안전나라 API 갱신 대상에서 제외
     if (serviceId === '1471000') {
-      console.log(`[${i + 1}/${ids.length}] 스킵: ${serviceId} (외부 API)`);
+      logger.info({
+        current: i + 1,
+        total: ids.length,
+        serviceId,
+        reason: '외부 API'
+      }, '해당 serviceId는 업데이트 대상에서 제외합니다.');
+
       continue;
     }
-    
-    console.log(`[${i + 1}/${ids.length}] 크롤링 진행 중: ${serviceId}`);
 
+    // 현재 serviceId 처리 시작 로그 출력
+    logger.info({
+      current: i + 1,
+      total: ids.length,
+      serviceId
+    }, '샘플 데이터 크롤링을 진행합니다.');
+
+    // XML, JSON 형식 모두 업데이트
     for (const dataType of ['xml', 'json']) {
+      // 식품안전나라 Open API 요청 URL 생성
       const url = `http://openapi.foodsafetykorea.go.kr/api/${API_KEY}/${serviceId}/${dataType}/${START_IDX}/${END_IDX}`;
 
       try {
+        // API 요청 실행
         const response = await context.get(url, { timeout: 60000 });
 
+        // HTTP 응답이 정상인 경우
         if (response.ok()) {
+          // 응답 본문 추출
           const content = await response.text();
+
+          // 저장 경로 설정
           const outPath = path.join(SAMPLES_DIR, `${serviceId}.${dataType}`);
 
+          // JSON 응답은 파싱 후 정렬된 형태로 저장 시도
           if (dataType === 'json') {
             try {
+              // JSON 파싱
               const jsonObj = JSON.parse(content);
+
+              // 보기 좋은 JSON 형식으로 저장
               fs.writeFileSync(outPath, JSON.stringify(jsonObj, null, 2), 'utf8');
-              console.log(`  └─ [성공] json 업데이트 완료 (구조화됨, ${(content.length / 1024).toFixed(2)} KB)`);
-            } catch (e) {
+
+              // JSON 저장 성공 로그 출력
+              logger.info({
+                serviceId,
+                dataType,
+                filePath: outPath,
+                size: toKbText(content.length),
+                formatted: true
+              }, 'JSON 샘플 데이터 업데이트가 완료되었습니다.');
+            } catch (err) {
+              // JSON 파싱 실패 시 원본 그대로 저장
               fs.writeFileSync(outPath, content, 'utf8');
-              console.log(`  └─ [성공] json 업데이트 완료 (파싱실패-원본저장, ${(content.length / 1024).toFixed(2)} KB)`);
+
+              // JSON 원본 저장 로그 출력
+              logger.warn({
+                serviceId,
+                dataType,
+                filePath: outPath,
+                size: toKbText(content.length),
+                errorMessage: err.message
+              }, 'JSON 파싱에 실패하여 원본 응답을 그대로 저장했습니다.');
             }
           } else {
+            // XML 응답은 원본 그대로 저장
             fs.writeFileSync(outPath, content, 'utf8');
-            console.log(`  └─ [성공] xml 업데이트 완료 (${(content.length / 1024).toFixed(2)} KB)`);
+
+            // XML 저장 성공 로그 출력
+            logger.info({
+              serviceId,
+              dataType,
+              filePath: outPath,
+              size: toKbText(content.length)
+            }, 'XML 샘플 데이터 업데이트가 완료되었습니다.');
           }
         } else {
-          console.error(`  └─ [실패] ${dataType} HTTP 에러: ${response.status()} ${response.statusText()}`);
+          // HTTP 응답이 실패인 경우 오류 로그 출력
+          logger.error({
+            serviceId,
+            dataType,
+            status: response.status(),
+            statusText: response.statusText()
+          }, 'API 요청 중 HTTP 오류가 발생했습니다.');
         }
       } catch (err) {
-        console.error(`  └─ [실패] ${dataType} 크롤링 중 예외 발생: ${err.message}`);
+        // 요청 예외 발생 시 오류 로그 출력
+        logger.error({
+          serviceId,
+          dataType,
+          errorMessage: err.message
+        }, '샘플 데이터 크롤링 중 예외가 발생했습니다.');
       }
     }
 
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // API 서버 부담 완화를 위해 serviceId별 처리 후 잠시 대기
+    await sleep(300);
   }
 
+  // Playwright API Request 컨텍스트 종료
   await context.dispose();
-  console.log('\n모든 샘플 데이터 크롤링 및 업데이트가 완료되었습니다!');
 
-  console.log('\n=============================================');
-  console.log('excel_reporter.js(을)를 실행하여 엑셀 보고서를 최신화합니다...');
-  console.log('=============================================\n');
+  // 샘플 데이터 업데이트 완료 로그 출력
+  logger.info('모든 샘플 데이터 크롤링 및 업데이트가 완료되었습니다.');
+
+  // 엑셀 보고서 최신화 시작 로그 출력
+  logger.info('excel_reporter.js를 실행하여 엑셀 보고서를 최신화합니다.');
 
   try {
+    // excel_reporter.js 경로 설정
     const reporterPath = path.join(__dirname, 'excel_reporter.js');
+
+    // 엑셀 보고서 생성 스크립트 실행
     execSync(`node "${reporterPath}"`, { stdio: 'inherit' });
-    console.log('\n[완료] 엑셀 보고서 생성이 성공적으로 완료되었습니다.');
+
+    // 엑셀 보고서 생성 성공 로그 출력
+    logger.info('엑셀 보고서 생성이 성공적으로 완료되었습니다.');
   } catch (err) {
-    console.error('\n[실패] excel_reporter.js 실행 중 오류가 발생했습니다.', err.message);
+    // 엑셀 보고서 생성 실패 로그 출력
+    logger.error({
+      errorMessage: err.message
+    }, 'excel_reporter.js 실행 중 오류가 발생했습니다.');
   }
 }
 
+// 메인 함수 실행 및 최상위 오류 처리
 main().catch(err => {
-  console.error('실행 중 심각한 에러 발생:', err);
+  logger.fatal({
+    err
+  }, '스크립트 실행 중 심각한 오류가 발생했습니다.');
+
+  process.exit(1);
 });

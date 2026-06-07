@@ -413,7 +413,11 @@ const KNOWN_RELATION_KEYS = [
     'CRTFC_NO',
     'TESTITM_CD',
     'UNIT_CD',
-    'INDUTY_CD'
+    'INDUTY_CD',
+    'CMMN_SPEC_CD',
+    'HF_FNCLTY_MTRAL_RCOGN_NO',
+    'BAR_CD',
+    'ITEM_REPORT_NO'
 ];
 
 const EXCLUDED_FK_FIELD_PATTERNS = [
