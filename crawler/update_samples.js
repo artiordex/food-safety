@@ -20,36 +20,7 @@ const path = require('path');
 
 
 // console 대신 사용할 pino logger 불러오기
-const pino = require('pino');
-
-// 식품안전나라 Open API 인증키 (.env의 FOOD_API_KEY)
-const API_KEY = process.env.FOOD_API_KEY;
-if (!API_KEY) throw new Error('FOOD_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.');
-
-// API 조회 시작 인덱스
-const START_IDX = 1;
-
-// API 조회 종료 인덱스
-const END_IDX = 1000;
-
-// 샘플 데이터가 저장된 디렉터리 경로
-const SAMPLES_DIR = path.join(__dirname, 'samples');
-
-// pino logger 설정
-const logger = pino({
-  // 환경변수 LOG_LEVEL이 있으면 해당 레벨을 사용하고, 없으면 info 사용
-  level: process.env.LOG_LEVEL || 'info',
-
-  // 로그를 터미널에서 보기 좋게 출력하기 위한 설정
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'yyyy-mm-dd HH:MM:ss',
-      ignore: 'pid,hostname'
-    }
-  }
-});
+const logger = require('../utils/logger');
 
 // 밀리초 단위 대기 함수
 function sleep(ms) {

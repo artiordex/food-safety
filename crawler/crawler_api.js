@@ -24,29 +24,7 @@ const path = require('path');
 const readline = require('readline');
 
 // console 대신 사용할 pino logger 불러오기
-const pino = require('pino');
-
-// 크롤링 결과 메타데이터를 저장할 캐시 파일 경로
-const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
-
-// 최종 생성할 엑셀 보고서 파일명
-const OUTPUT_XLSX = '식품안전나라_API_분석결과.xlsx';
-
-// pino logger 설정
-const logger = pino({
-  // 로그 레벨 설정
-  level: process.env.LOG_LEVEL || 'info',
-
-  // 로그를 보기 좋게 출력하기 위한 pino-pretty 설정
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'yyyy-mm-dd HH:MM:ss',
-      ignore: 'pid,hostname'
-    }
-  }
-});
+const logger = require('../utils/logger');
 
 // 터미널에서 사용자 입력을 받는 함수
 function askQuestion(query) {

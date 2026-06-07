@@ -35,20 +35,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const pino = require('pino');
-const ss = require('simple-statistics');
-const strSim = require('string-similarity');
-const aq = require('arquero');
-const { DirectedGraph } = require('graphology');
-const Fuse = require('fuse.js');
-
-const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-        target: 'pino-pretty',
-        options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
-    }
-});
+const logger = require('../utils/logger');
 
 function log(level, msg) {
     if (level === 'ERR') return logger.error(msg);

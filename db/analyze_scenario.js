@@ -21,69 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const aq = require('arquero');
-const pino = require('pino');
-
-// =============================================================================
-// 섹션 0. 기본 설정
-// =============================================================================
-
-// 기본 샘플 JSON 디렉터리 경로
-const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
-
-// 기본 crawl_cache.json 경로
-const DEFAULT_CACHE = path.join(__dirname, '../crawler/crawl_cache.json');
-
-// 기본 JSON 결과 파일 경로
-const DEFAULT_JSON = path.join(__dirname, 'scenario_analysis.json');
-
-// 기본 Markdown 결과 파일 경로
-const DEFAULT_MD = path.join(__dirname, 'scenario_analysis.md');
-
-// 유사 키 동의어 그룹
-// 서로 다른 컬럼명이지만 같은 개념을 가리키는 필드들을 같은 그룹으로 묶음
-const KEY_SYNONYM_GROUPS = [
-    ['LCNS_NO', 'LICENSE_NO', 'LCNS_NO_MF', 'EDCR_LCNS_NO'],
-    ['PRDLST_REPORT_NO', 'ITEM_REPORT_NO', 'PRDLST_RPRT_NO'],
-    ['BAR_CD', 'BARCODE_NO', 'BARCODE'],
-    ['BSSH_NO', 'BSSHN_NO', 'SHOP_NO'],
-    ['HACCP_NO', 'HCCP_NO', 'HACCP_APPN_NO'],
-    ['PRDLST_CD', 'FOOD_CD', 'PRDT_CD'],
-    ['TESTITM_CD', 'TEST_ITEM_CD'],
-    ['CRTFC_NO', 'CERT_NO', 'CRTFC_SERNO'],
-];
-
-// 약한 키 패턴
-// 값이 일치해도 단독 JOIN 키로 사용하기 부적절한 컬럼을 제외하기 위한 정규식
-const WEAK_KEY_PATTERN = /(_NM|_NAME|_CD_NM|ADDR|TEL|FAX|_DT|DTM|DATE|_CN|_DESC|_CONT|_CONTENT|_MEMO)$/i;
-
-// 최소 값 겹침 비율
-// 샘플 데이터는 건수가 적으므로 낮게 설정함
-const MIN_OVERLAP_RATIO = 0.01;
-
-// 시나리오 최소 참여 데이터셋 수
-const MIN_DATASETS_PER_SCENARIO = 2;
-
-// Markdown/JSON에 저장할 상위 시나리오 수
-const TOP_SCENARIOS = 50;
-
-// JSON 결과에 저장할 상위 관계 수
-const TOP_RELATIONS = 200;
-
-// SQL 힌트에 포함할 최대 테이블 수
-const MAX_SQL_TABLES = 4;
-
-// pino logger 설정
-const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-            translateTime: 'yyyy-mm-dd HH:MM:ss',
-            ignore: 'pid,hostname'
-        }
-    }
-});
+const logger = require('../utils/logger');
 
 // =============================================================================
 // 섹션 1. 유틸

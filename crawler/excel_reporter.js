@@ -1,13 +1,5 @@
 const ExcelJS = require('exceljs');
-const pino = require('pino');
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
-  }
-});
+const logger = require('../utils/logger');
 
 // 기존 호출부와 호환되는 log 래퍼
 const log = {

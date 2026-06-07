@@ -18,18 +18,18 @@ const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
 
 const path = window.location.pathname;
-if (path.includes('/dataset/')) {
+if (path.includes('/data/dataset.html')) {
   activeTab = urlParams.get('tab') || 'explorer';
-} else if (path.includes('/datamap/')) {
+} else if (path.includes('/data/datamap.html')) {
   activeTab = urlParams.get('tab') || 'datamap';
-} else if (path.includes('/erdmap/')) {
+} else if (path.includes('/data/erdmap.html')) {
   activeTab = urlParams.get('tab') || 'erdmap';
-} else if (path.includes('/dberd/')) {
+} else if (path.includes('/data/dberd.html')) {
   activeTab = urlParams.get('tab') || 'db-erd';
-} else if (path.includes('/scenario/')) {
+} else if (path.includes('/data/scenario.html')) {
   activeTab = urlParams.get('tab') || 'recommend-beginner';
   if (activeTab === 'recommend') activeTab = 'recommend-beginner';
-} else if (path.includes('/analysis/')) {
+} else if (path.includes('/data/analysis.html')) {
   activeTab = urlParams.get('tab') || 'sql-playground';
 } else {
   // 인덱스 페이지 등 기타 가변 서빙에 대한 분기
@@ -93,9 +93,9 @@ const updateActiveTabUI = () => {
   
   if (datamapTabBar) {
     // 쪼개진 정적 페이지에 속한 서브 탭들의 보임/숨김 제어
-    const isDatamapPage = window.location.pathname.includes('/datamap/');
-    const isScenarioPage = window.location.pathname.includes('/scenario/');
-    const isAnalysisPage = window.location.pathname.includes('/analysis/');
+    const isDatamapPage = window.location.pathname.includes('/data/datamap.html');
+    const isScenarioPage = window.location.pathname.includes('/data/scenario.html');
+    const isAnalysisPage = window.location.pathname.includes('/data/analysis.html');
     
     datamapTabBar.style.display = (isDatamapPage || isScenarioPage || isAnalysisPage) ? 'block' : 'none';
     if (datamapTabs) datamapTabs.style.display = isDatamapPage ? 'flex' : 'none';
@@ -104,7 +104,7 @@ const updateActiveTabUI = () => {
   }
 
   // datamap 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatamapPage = window.location.pathname.includes('/datamap/');
+  const isDatamapPage = window.location.pathname.includes('/data/datamap.html');
   if (isDatamapPage) {
     const container = document.getElementById('datamap-tabs-container');
     if (container) {
@@ -121,7 +121,7 @@ const updateActiveTabUI = () => {
   }
 
   // dataset 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatasetPage = window.location.pathname.includes('/dataset/');
+  const isDatasetPage = window.location.pathname.includes('/data/dataset.html');
   if (isDatasetPage) {
     const container = document.getElementById('dataset-tabs-container');
     if (container) {
@@ -138,7 +138,7 @@ const updateActiveTabUI = () => {
   }
 
   // analysis 페이지의 통합 탭바 디자인 활성화 제어
-  const isAnalysisPage = window.location.pathname.includes('/analysis/');
+  const isAnalysisPage = window.location.pathname.includes('/data/analysis.html');
   if (isAnalysisPage) {
     const container = document.getElementById('analysis-tabs-container');
     if (container) {
@@ -155,7 +155,7 @@ const updateActiveTabUI = () => {
   }
 
   // scenario 페이지의 통합 탭바 디자인 활성화 제어
-  const isScenarioPage = window.location.pathname.includes('/scenario/');
+  const isScenarioPage = window.location.pathname.includes('/data/scenario.html');
   if (isScenarioPage) {
     const container = document.getElementById('scenario-tabs-container');
     if (container) {
@@ -220,19 +220,19 @@ const updateActiveTabUI = () => {
 };
 
 const TAB_PAGES = {
-  'explorer': '/dataset/dataset.html',
-  'datamap': '/datamap/datamap.html',
-  'keyword-datamap': '/datamap/datamap.html',
-  'erdmap': '/datamap/datamap.html',
-  'db-erd': '/datamap/datamap.html',
-  'recommend-beginner': '/scenario/scenario.html',
-  'recommend-developer': '/scenario/scenario.html',
-  'sql-playground': '/analysis/analysis.html',
-  'api-explorer': '/dataset/dataset.html',
-  'api-live-join': '/analysis/analysis.html',
-  'api-hygiene': '/analysis/analysis.html',
-  'api-barcode': '/analysis/analysis.html',
-  'nongshim-spec': '/analysis/analysis.html'
+  'explorer': '/data/dataset.html',
+  'datamap': '/data/datamap.html',
+  'keyword-datamap': '/data/datamap.html',
+  'erdmap': '/data/datamap.html',
+  'db-erd': '/data/datamap.html',
+  'recommend-beginner': '/data/scenario.html',
+  'recommend-developer': '/data/scenario.html',
+  'sql-playground': '/data/analysis.html',
+  'api-explorer': '/data/dataset.html',
+  'api-live-join': '/data/analysis.html',
+  'api-hygiene': '/data/analysis.html',
+  'api-barcode': '/data/analysis.html',
+  'nongshim-spec': '/data/analysis.html'
 };
 
 const changeTab = (tabId) => {

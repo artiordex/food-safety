@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <!-- INCLUDE_HEAD -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans KR', 'Inter', sans-serif !important; }
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif !important;
+        }
 
         /* 서브 탭 네비게이션 */
         .sub-tab-wrap {
@@ -14,6 +18,7 @@
             justify-content: center;
             gap: 0;
         }
+
         .sub-tab-wrap a {
             display: inline-block;
             padding: 16px 32px;
@@ -24,6 +29,7 @@
             font-weight: 500;
             transition: all 0.2s;
         }
+
         .sub-tab-wrap a.active,
         .sub-tab-wrap a:hover {
             color: #2563eb;
@@ -46,6 +52,7 @@
             margin-bottom: 12px;
             letter-spacing: -0.5px;
         }
+
         .intro-page .page-sub {
             font-size: 16px;
             color: #6b7280;
@@ -57,6 +64,7 @@
         .intro-page section {
             margin-bottom: 56px;
         }
+
         .intro-page section h2 {
             font-size: 22px;
             font-weight: 700;
@@ -72,22 +80,26 @@
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
         }
+
         .feature-card {
             background: #f8fafc;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 24px;
         }
+
         .feature-card .icon {
             font-size: 28px;
             margin-bottom: 12px;
         }
+
         .feature-card h3 {
             font-size: 16px;
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 8px;
         }
+
         .feature-card p {
             font-size: 14px;
             color: #6b7280;
@@ -100,11 +112,13 @@
             flex-direction: column;
             gap: 20px;
         }
+
         .step-item {
             display: flex;
             align-items: flex-start;
             gap: 20px;
         }
+
         .step-num {
             flex-shrink: 0;
             width: 40px;
@@ -118,6 +132,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .step-body strong {
             display: block;
             font-size: 16px;
@@ -125,6 +140,7 @@
             color: #111827;
             margin-bottom: 4px;
         }
+
         .step-body p {
             font-size: 14px;
             color: #6b7280;
@@ -139,6 +155,7 @@
             padding: 20px 24px;
             margin-bottom: 16px;
         }
+
         .api-url-block .method-badge {
             display: inline-block;
             background: #dbeafe;
@@ -149,6 +166,7 @@
             border-radius: 4px;
             margin-right: 12px;
         }
+
         .api-url-block code {
             font-family: monospace;
             font-size: 13px;
@@ -163,6 +181,7 @@
             border-radius: 10px;
             padding: 20px 24px;
         }
+
         .notice-list li {
             font-size: 14px;
             color: #78350f;
@@ -170,6 +189,7 @@
             padding-left: 20px;
             position: relative;
         }
+
         .notice-list li::before {
             content: "·";
             position: absolute;
@@ -183,6 +203,7 @@
             border-collapse: collapse;
             font-size: 14px;
         }
+
         .param-table th {
             background: #f8fafc;
             color: #374151;
@@ -191,29 +212,29 @@
             text-align: left;
             border-bottom: 2px solid #e5e7eb;
         }
+
         .param-table td {
             padding: 12px 16px;
             border-bottom: 1px solid #f0f0f0;
             color: #4b5563;
         }
+
         .param-table td code {
             font-family: monospace;
             font-size: 13px;
             color: #7c3aed;
         }
-        .required-mark { color: #ef4444; font-weight: 700; }
+
+        .required-mark {
+            color: #ef4444;
+            font-weight: 700;
+        }
     </style>
 </head>
+
 <body>
     <div id="wrap">
         <!-- INCLUDE_HEADER -->
-
-        <!-- 서브 탭 네비게이션 -->
-        <div class="sub-tab-wrap">
-            <a href="/public/includes/ServiceIntro.html" class="active">서비스 소개</a>
-            <a href="/serviceUse/serviceUse.html">서비스 이용방법</a>
-        </div>
-
         <div id="container">
             <div class="intro-page">
 
@@ -363,4 +384,5 @@
         <!-- INCLUDE_FOOTER -->
     </div>
 </body>
+
 </html>

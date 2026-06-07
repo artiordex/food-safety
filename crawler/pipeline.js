@@ -9,28 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const pino = require('pino');
-
-// analyze_pk_fk.js 모듈 가져오기
-const {
-  analyze,
-  buildEntropyMap,
-  parseSampleJson
-} = require('../db/analyze_pk_fk');
-
-const { buildExcel } = require('./excel_reporter');
-
-const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
-const SAMPLES_DIR = path.join(__dirname, 'samples');
-const OUTPUT_XLSX = '식품안전나라_API_분석결과.xlsx';
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
-  }
-});
+const logger = require('../utils/logger');
 
 // JSON 샘플을 로드하여 recordsMap 생성
 function loadSamples(datasets, samplesDir) {

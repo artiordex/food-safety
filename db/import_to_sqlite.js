@@ -47,70 +47,7 @@
 const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-const pino = require('pino');
-
-// analyze_pk_fk.js에서 공유 함수를 가져온다.
-// parseSampleJson : 샘플 JSON 파싱 — 이 파일에서 중복 구현하지 않는다.
-// analyze         : datasets + recordsMap → analysis 객체 (파일 I/O 없음)
-// writeReports    : analysis 객체 → json/md/sql 파일 생성
-const {
-    parseSampleJson,
-    analyze: analyzePkFk,
-    writeReports: writePkFkReports
-} = require('./analyze_pk_fk');
-
-// =============================================================================
-// 섹션 0. 기본 설정
-// =============================================================================
-
-const DEFAULT_CACHE = path.join(__dirname, '../crawler/crawl_cache.json');
-const DEFAULT_DB = path.join(__dirname, 'foodsafety.db');
-const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
-const DEFAULT_ERD = path.join(__dirname, 'foodsafety_erd.sql');
-
-// 샘플 JSON에 섞일 수 있는 API 응답 메타 필드 제외
-const SYSTEM_SAMPLE_FIELDS = new Set([
-    'ROW_NUM',
-    'ROWNUM',
-    'RNUM',
-    'RESULT',
-    'RESULT_CODE',
-    'RESULT_MSG',
-    'MSG',
-    'CODE',
-    'TOTAL_COUNT',
-    'TOTALCOUNT',
-    'PAGE_NO',
-    'PAGENO',
-    'NUM_OF_ROWS',
-    'NUMOFROWS'
-]);
-
-const RELATION_INDEX_FIELDS = [
-    'LCNS_NO',
-    'BSSH_NO',
-    'BARCODE_NO',
-    'PRDLST_REPORT_NO',
-    'PRDLST_CD',
-    'HACCP_NO',
-    'CRTFC_NO',
-    'TESTITM_CD',
-    'UNIT_CD',
-    'INDUTY_CD'
-];
-
-const SEARCH_INDEX_FIELDS = [
-    'PRDT_NM',
-    'BSSH_NM'
-];
-
-const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-        target: 'pino-pretty',
-        options: { colorize: true, translateTime: 'yyyy-mm-dd HH:MM:ss', ignore: 'pid,hostname' }
-    }
-});
+const logger = require('../utils/logger');
 
 function log(level, msg) {
     if (level === 'ERR')  return logger.error(msg);

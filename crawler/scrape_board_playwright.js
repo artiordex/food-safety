@@ -21,41 +21,7 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 
 // console 대신 사용할 pino logger 불러오기
-const pino = require('pino');
-
-// 식품안전나라 데이터 활용 사례 게시판 목록 URL
-const LIST_URL = 'https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899';
-
-// 상세 게시글 URL 생성에 사용할 고정 파라미터
-const DETAIL_BASE_URL = 'https://www.foodsafetykorea.go.kr/api/board/boardDetail.do?menu_grp=MENU_GRP35&menu_no=3899&bbs_no=bbs082';
-
-// 최종 Excel 파일 저장 경로
-const OUTPUT_PATH = path.join(__dirname, '..', '데이터_활용사례_Playwright.xlsx');
-
-// 페이지 로딩 후 대기 시간
-const DEFAULT_WAIT_MS = 1500;
-
-// 목록 페이지 이동 후 대기 시간
-const LIST_WAIT_MS = 3000;
-
-// 페이지 이동 제한 시간
-const PAGE_TIMEOUT_MS = 60000;
-
-// 상세 페이지 이동 제한 시간
-const DETAIL_TIMEOUT_MS = 30000;
-
-// pino logger 설정
-const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-            translateTime: 'yyyy-mm-dd HH:MM:ss',
-            ignore: 'pid,hostname'
-        }
-    }
-});
+const logger = require('../utils/logger');
 
 // 지정한 시간만큼 대기하는 함수
 function sleep(ms) {
