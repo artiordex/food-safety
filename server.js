@@ -12,6 +12,9 @@ function applyIncludes(html, vars = {}) {
         { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
         { placeholder: '<!-- INCLUDE_HEAD_SEARCH -->', file: 'head_search.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
         { placeholder: '<!-- INCLUDE_HEADER -->', file: 'header.html', transform: c => c },
+        { placeholder: '<!-- INCLUDE_HERO -->', file: 'hero.html', transform: c => c },
+        { placeholder: '<!-- INCLUDE_MAIN_BOARD -->', file: 'mainBoard.html', transform: c => c },
+        { placeholder: '<!-- INCLUDE_FOOTER -->', file: 'footer.html', transform: c => c },
         { placeholder: '<!-- INCLUDE_SEARCH -->', file: 'search.html', transform: c => c },
     ];
     for (const { placeholder, file, transform } of replacements) {
