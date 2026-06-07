@@ -10,59 +10,62 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // 기존 페이지들과의 스타일 충돌 방지: index.html 등 기존 페이지에서는 Tailwind Preflight(스타일 초기화)를 꺼줍니다.
-      const isTailwindPage = window.location.pathname.includes('/datamap/') || window.location.pathname.includes('/analysis/') || window.location.pathname.includes('/serviceUse/');
-      // search 페이지는 기존 CSS(common/layout/sub/search.css) 사용 → preflight OFF
-      const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('/search/');
-      tailwind.config = {
-        corePlugins: {
-          preflight: isTailwindPage && !isLegacyPage
-        },
-        theme: {
-          extend: {
-            colors: {
-              gov: {
-                50: "#eef5ff", 100: "#d9e8ff", 200: "#bcd8ff", 300: "#8ebeff",
-                400: "#5999ff", 500: "#3374f6", 600: "#1a5fb4", 700: "#154a8c",
-                800: "#164074", 900: "#173862", 950: "#0f2340",
-              },
-              teal: {
-                50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4",
-                400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
-                800: "#115e59", 900: "#134e4a",
-              },
-              emerald: {
-                50: "#ecfdf5", 100: "#d1fae5", 500: "#10b981", 600: "#059669", 700: "#047857",
-              },
-              rose: {
-                50: "#fff1f2", 100: "#ffe4e6", 500: "#f43f5e", 600: "#e11d48",
-              },
+        // 기존 페이지들과의 스타일 충돌 방지: index.html 등 기존 페이지에서는 Tailwind Preflight(스타일 초기화)를 꺼줍니다.
+        const isTailwindPage = window.location.pathname.includes('/datamap/') || window.location.pathname.includes('/analysis/') || window.location.pathname.includes('/serviceUse/');
+        // search 페이지는 기존 CSS(common/layout/sub/search.css) 사용 → preflight OFF
+        const isLegacyPage = window.location.pathname.includes('datasetAllSearch') || window.location.pathname.includes('/search/');
+        tailwind.config = {
+            corePlugins: {
+                preflight: isTailwindPage && !isLegacyPage
             },
-            fontFamily: {
-              sans: ["Inter", "Pretendard", "system-ui", "-apple-system", "sans-serif"],
-            },
-          }
+            theme: {
+                extend: {
+                    colors: {
+                        gov: {
+                            50: "#eef5ff", 100: "#d9e8ff", 200: "#bcd8ff", 300: "#8ebeff",
+                            400: "#5999ff", 500: "#3374f6", 600: "#1a5fb4", 700: "#154a8c",
+                            800: "#164074", 900: "#173862", 950: "#0f2340",
+                        },
+                        teal: {
+                            50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4",
+                            400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e",
+                            800: "#115e59", 900: "#134e4a",
+                        },
+                        emerald: {
+                            50: "#ecfdf5", 100: "#d1fae5", 500: "#10b981", 600: "#059669", 700: "#047857",
+                        },
+                        rose: {
+                            50: "#fff1f2", 100: "#ffe4e6", 500: "#f43f5e", 600: "#e11d48",
+                        },
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "Pretendard", "system-ui", "-apple-system", "sans-serif"],
+                    },
+                }
+            }
         }
-      }
     </script>
-    
+
     <meta http-equiv="X-UA-Compatible" id="document_mode" content="IE=edge">
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>식품안전나라
-        
+
     </title>
 
     <!-- 새로 추가  -->
-    <link rel="shortcut icon" href="https://www.foodsafetykorea.go.kr/images/common/favicon.ico"/>
+    <link rel="shortcut icon" href="https://www.foodsafetykorea.go.kr/images/common/favicon.ico" />
     <link type="text/css" href="/public/assets/common.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/layout.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/sub.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/main.css" rel="stylesheet">
     <link type="text/css" href="/public/assets/search.css" rel="stylesheet">
-    <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" rel="stylesheet">
+    <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
+        rel="stylesheet">
     <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" rel="stylesheet">
+    <!-- 공통 커스텀 CSS -->
+    <link rel="stylesheet" href="/public/css/main.css">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/public/assets/jquery.sidr.min.js"></script>
@@ -72,14 +75,8 @@
     <script src="/public/assets/jquery.selecter.min.js"></script>
     <script src="/public/assets/jquery.fancybox.js"></script>
     <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.js"></script>
-    <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.charts.js"></script>
-    <script type="text/javascript" src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.fusion.js"></script>
-
-
-
-    <!-- anyidAdaptor 및 쿠키/팝업 유틸 함수는 /view/index_app.js 로 이동됨 -->
-
-
-    <!-- slidebox, 팝업, 리셋 CSS → /index.css 로 이동됨 -->
-
+    <script type="text/javascript"
+        src="https://cdn.fusioncharts.com/fusioncharts/latest/fusioncharts.charts.js"></script>
+    <script type="text/javascript"
+        src="https://cdn.fusioncharts.com/fusioncharts/latest/themes/fusioncharts.theme.fusion.js"></script>
 </head>
