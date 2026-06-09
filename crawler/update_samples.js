@@ -115,79 +115,85 @@ async function main() {
       // 식품안전나라 Open API 요청 URL 생성
       const url = `http://openapi.foodsafetykorea.go.kr/api/${API_KEY}/${serviceId}/${dataType}/${START_IDX}/${END_IDX}`;
 
-      try {
-        // API 요청 실행
-        const response = await context.get(url, { timeout: 60000 });
+      let maxRetries = 3;
+      for (let retry = 1; retry <= maxRetries; retry++) {
+        try {
+          // API 요청 실행 (데이터 양이 많으므로 90초 타임아웃 지정)
+          const response = await context.get(url, { timeout: 90000 });
 
-        // HTTP 응답이 정상인 경우
-        if (response.ok()) {
-          const content = await response.text();
-          // Wi-Fi 캡티브 포털 등에서 HTML을 반환하는 경우 방지
-          if (content.trim().toLowerCase().startsWith('<html') || content.toLowerCase().includes('captive portal')) {
-            logger.warn({
-              serviceId,
-              dataType
-            }, '비정상 응답(HTML/Captive Portal 등)이 감지되어 저장을 건너뜁니다.');
-            continue;
-          }
+          // HTTP 응답이 정상인 경우
+          if (response.ok()) {
+            const content = await response.text();
+            
+            // Wi-Fi 캡티브 포털 등에서 HTML을 반환하는 경우 방지
+            if (content.trim().toLowerCase().startsWith('<html') || content.toLowerCase().includes('captive portal')) {
+              throw new Error('비정상 응답(HTML/Captive Portal 등) 감지됨');
+            }
 
-          // 저장 경로 설정
-          const outPath = path.join(SAMPLES_DIR, `${serviceId}.${dataType}`);
+            // 저장 경로 설정
+            const outPath = path.join(SAMPLES_DIR, `${serviceId}.${dataType}`);
 
-          // JSON 응답은 파싱 후 정렬된 형태로 저장 시도
-          if (dataType === 'json') {
-            try {
-              // JSON 파싱
-              const jsonObj = JSON.parse(content);
+            // JSON 응답은 파싱 후 정렬된 형태로 저장 시도
+            if (dataType === 'json') {
+              try {
+                // JSON 파싱
+                const jsonObj = JSON.parse(content);
 
-              // 보기 좋은 JSON 형식으로 저장
-              fs.writeFileSync(outPath, JSON.stringify(jsonObj, null, 2), 'utf8');
+                // 보기 좋은 JSON 형식으로 저장
+                fs.writeFileSync(outPath, JSON.stringify(jsonObj, null, 2), 'utf8');
 
-              // JSON 저장 성공 로그 출력
+                // JSON 저장 성공 로그 출력
+                logger.info({
+                  serviceId,
+                  dataType,
+                  filePath: outPath,
+                  size: toKbText(content.length),
+                  formatted: true
+                }, 'JSON 샘플 데이터 업데이트가 완료되었습니다.');
+                
+                // 성공 시 재시도 루프 탈출
+                break;
+              } catch (err) {
+                // 파싱 실패 시 재시도하도록 에러 발생
+                throw new Error(`JSON 파싱 실패: ${err.message}`);
+              }
+            } else {
+              // XML 응답은 원본 그대로 저장
+              fs.writeFileSync(outPath, content, 'utf8');
+
+              // XML 저장 성공 로그 출력
               logger.info({
                 serviceId,
                 dataType,
                 filePath: outPath,
-                size: toKbText(content.length),
-                formatted: true
-              }, 'JSON 샘플 데이터 업데이트가 완료되었습니다.');
-            } catch (err) {
-              // JSON 파싱 실패 시 저장하지 않음 (기존: 원본 그대로 저장)
-              logger.warn({
-                serviceId,
-                dataType,
-                size: toKbText(content.length),
-                errorMessage: err.message
-              }, 'JSON 파싱에 실패하여 비정상 데이터로 간주하고 저장을 생략합니다.');
+                size: toKbText(content.length)
+              }, 'XML 샘플 데이터 업데이트가 완료되었습니다.');
+              
+              // 성공 시 재시도 루프 탈출
+              break;
             }
           } else {
-            // XML 응답은 원본 그대로 저장
-            fs.writeFileSync(outPath, content, 'utf8');
-
-            // XML 저장 성공 로그 출력
-            logger.info({
-              serviceId,
-              dataType,
-              filePath: outPath,
-              size: toKbText(content.length)
-            }, 'XML 샘플 데이터 업데이트가 완료되었습니다.');
+            throw new Error(`HTTP 응답 오류: ${response.status()} ${response.statusText()}`);
           }
-        } else {
-          // HTTP 응답이 실패인 경우 오류 로그 출력
-          logger.error({
+        } catch (err) {
+          logger.warn({
             serviceId,
             dataType,
-            status: response.status(),
-            statusText: response.statusText()
-          }, 'API 요청 중 HTTP 오류가 발생했습니다.');
+            retry,
+            errorMessage: err.message
+          }, 'API 요청 중 예외 발생, 재시도합니다.');
+          
+          if (retry === maxRetries) {
+            logger.error({
+              serviceId,
+              dataType,
+              errorMessage: err.message
+            }, '최대 재시도 횟수를 초과하여 샘플 업데이트를 건너뜁니다.');
+          } else {
+            // 서버 부담 완화를 위해 2초 대기 후 재시도
+            await sleep(2000);
+          }
         }
-      } catch (err) {
-        // 요청 예외 발생 시 오류 로그 출력
-        logger.error({
-          serviceId,
-          dataType,
-          errorMessage: err.message
-        }, '샘플 데이터 크롤링 중 예외가 발생했습니다.');
       }
     }
 
