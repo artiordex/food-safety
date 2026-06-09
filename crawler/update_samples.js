@@ -115,7 +115,7 @@ async function main() {
       // 식품안전나라 Open API 요청 URL 생성
       const url = `http://openapi.foodsafetykorea.go.kr/api/${API_KEY}/${serviceId}/${dataType}/${START_IDX}/${END_IDX}`;
 
-      let maxRetries = 3;
+      let maxRetries = 5;
       for (let retry = 1; retry <= maxRetries; retry++) {
         try {
           // API 요청 실행 (데이터 양이 많으므로 90초 타임아웃 지정)
