@@ -22,6 +22,11 @@ const path = require('path');
 // console 대신 사용할 pino logger 불러오기
 const logger = require('../utils/logger');
 
+const SAMPLES_DIR = path.join(__dirname, 'samples');
+const API_KEY = process.env.FOOD_SAFETY_KOREA_API_KEY || 'sample';
+const START_IDX = 1;
+const END_IDX = 100;
+
 // 밀리초 단위 대기 함수
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -116,8 +121,15 @@ async function main() {
 
         // HTTP 응답이 정상인 경우
         if (response.ok()) {
-          // 응답 본문 추출
           const content = await response.text();
+          // Wi-Fi 캡티브 포털 등에서 HTML을 반환하는 경우 방지
+          if (content.trim().toLowerCase().startsWith('<html') || content.toLowerCase().includes('captive portal')) {
+            logger.warn({
+              serviceId,
+              dataType
+            }, '비정상 응답(HTML/Captive Portal 등)이 감지되어 저장을 건너뜁니다.');
+            continue;
+          }
 
           // 저장 경로 설정
           const outPath = path.join(SAMPLES_DIR, `${serviceId}.${dataType}`);
@@ -140,17 +152,13 @@ async function main() {
                 formatted: true
               }, 'JSON 샘플 데이터 업데이트가 완료되었습니다.');
             } catch (err) {
-              // JSON 파싱 실패 시 원본 그대로 저장
-              fs.writeFileSync(outPath, content, 'utf8');
-
-              // JSON 원본 저장 로그 출력
+              // JSON 파싱 실패 시 저장하지 않음 (기존: 원본 그대로 저장)
               logger.warn({
                 serviceId,
                 dataType,
-                filePath: outPath,
                 size: toKbText(content.length),
                 errorMessage: err.message
-              }, 'JSON 파싱에 실패하여 원본 응답을 그대로 저장했습니다.');
+              }, 'JSON 파싱에 실패하여 비정상 데이터로 간주하고 저장을 생략합니다.');
             }
           } else {
             // XML 응답은 원본 그대로 저장

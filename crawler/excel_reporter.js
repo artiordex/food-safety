@@ -71,29 +71,35 @@ const TAB_COLORS = {
 // 공통 유틸리티
 // ═════════════════════════════════════════════════════════════
 
+// 전달된 값을 항상 배열 형태로 변환하여 반환 (null/undefined 방지)
 function toArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+// 전달된 값을 항상 객체 형태로 변환하여 반환
 function toObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
+// 문자열 변환 및 최대 길이 제한 처리
 function toSafeString(value, maxLen = null) {
   const str = value === undefined || value === null ? '' : String(value);
   return Number.isFinite(maxLen) && maxLen >= 0 ? str.substring(0, maxLen) : str;
 }
 
+// 안전한 숫자형 변환 (NaN 방지)
 function toSafeNumber(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
 
+// 천 단위 콤마가 포함된 숫자로 포맷팅
 function safeLocaleNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString() : '0';
 }
 
+// 엑셀 생성에 필요한 필수 인자값 유효성 검증
 function validateInputs(datasets, ka, scenarios, outputPath) {
   if (!Array.isArray(datasets)) {
     throw new Error('datasets는 배열이어야 합니다.');
@@ -112,6 +118,7 @@ function validateInputs(datasets, ka, scenarios, outputPath) {
   }
 }
 
+// 부가 데이터(SQL, 체인 조인 결과 등)의 유효성 검증
 function validateExtraData(extraData) {
   if (!extraData || typeof extraData !== 'object') return;
   if (extraData.joinSqlText !== undefined && typeof extraData.joinSqlText !== 'string') {
@@ -122,6 +129,7 @@ function validateExtraData(extraData) {
   }
 }
 
+// 공통키 분석 결과 객체의 데이터 구조 정규화 및 기본값 보장
 function normalizeKeyAnalysis(ka) {
   return {
     field_freq: toObject(ka?.field_freq),
@@ -134,6 +142,7 @@ function normalizeKeyAnalysis(ka) {
   };
 }
 
+// 단일 시나리오 객체의 데이터 구조 정규화
 function normalizeScenario(sc) {
   const sharedKeys = toArray(sc?.shared_keys);
   return {
@@ -153,6 +162,7 @@ function normalizeScenario(sc) {
   };
 }
 
+// 전체 시나리오 배열 정규화
 function normalizeScenarios(scenarios) {
   return toArray(scenarios).map(normalizeScenario);
 }
@@ -193,6 +203,7 @@ function formatCell(cell, {
   if (border) cell.border = thinBorder;
 }
 
+// 엑셀 워크시트에 특정 행의 컬럼 데이터를 일괄 기록
 function writeRow(ws, rowNo, cols, defaultStyle = {}) {
   cols.forEach((col, idx) => {
     const cell = ws.getCell(rowNo, idx + 1);
@@ -249,6 +260,7 @@ function renderHeader(ws, row, headers, bg = '1F4E79', fg = 'FFFFFF') {
   });
 }
 
+// 데이터가 없을 때 빈 화면(안내 문구)을 표시하는 셀 렌더링
 function renderEmptyNotice(ws, message, range = 'A1:D1') {
   ws.mergeCells(range);
   formatCell(ws.getCell(range.split(':')[0]), {
@@ -260,6 +272,7 @@ function renderEmptyNotice(ws, message, range = 'A1:D1') {
   });
 }
 
+// 워크시트 공통 속성 설정 (그리드라인 제거 등)
 function setWorksheetCommon(ws, sheetName, views = [{ showGridLines: false }]) {
   ws.views = views;
   ws.properties.tabColor = { argb: `FF${TAB_COLORS[sheetName] || '1F4E79'}` };
@@ -768,6 +781,7 @@ function shChainJoins(ws, chainJoinsText) {
 // ═════════════════════════════════════════════════════════════
 // 워크북 설정
 // ═════════════════════════════════════════════════════════════
+// 엑셀 워크북의 작성자 등 메타데이터 기본 설정
 function setupWorkbookMetadata(workbook) {
   workbook.creator = '식품안전나라 API 분석기';
   workbook.lastModifiedBy = '식품안전나라 API 분석기';
@@ -781,6 +795,7 @@ function setupWorkbookMetadata(workbook) {
   };
 }
 
+// 분석된 데이터를 기반으로 모든 엑셀 시트 생성 및 데이터 추가
 function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   shCover(workbook.addWorksheet(SHEET_NAMES.COVER), datasets, ka, scenarios);
   shList(workbook.addWorksheet(SHEET_NAMES.DATASETS), datasets, ka);

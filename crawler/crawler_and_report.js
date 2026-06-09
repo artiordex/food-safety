@@ -98,7 +98,7 @@ async function main() {
     logger.warn({ err }, 'scrape_board_playwright.js 실패 — 파이프라인은 완료되었습니다.');
   }
 
-  logger.info(`🎉 전체 통합 파이프라인이 완료되었습니다! 엑셀 보고서: ${OUTPUT_XLSX}`);
+  logger.info(`전체 통합 파이프라인이 완료되었습니다! 엑셀 보고서: ${OUTPUT_XLSX}`);
 }
 
 main();

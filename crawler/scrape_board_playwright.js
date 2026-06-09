@@ -65,12 +65,26 @@ function htmlToCleanText(html) {
         .trim();
 }
 
-// 본문 텍스트를 줄 단위 배열로 변환하는 함수
+// 게시판 UI에서 나오는 노이즈 문자열 (정확히 일치하는 줄 제거)
+const NOISE_LINES = new Set([
+    '작성일', '조회수', '원문보기', '좋아요', '이전글', '다음글', '목록', '삭제', '수정',
+    '프린트', '공유', '신고', '스크랩', '추천', '첨부파일', '태그',
+]);
+
+// 노이즈 줄 판단 (정확 일치 또는 저작권 안내 문구)
+function isNoiseLine(line) {
+    if (NOISE_LINES.has(line)) return true;
+    if (/^해당 정보를 무단으로/.test(line)) return true;
+    if (/저작권법.*법적책임/.test(line)) return true;
+    return false;
+}
+
+// 본문 텍스트를 줄 단위 배열로 변환하는 함수 (UI 노이즈 제거)
 function splitTextLines(text) {
     return text
         .split('\n')
         .map(line => line.trim())
-        .filter(Boolean);
+        .filter(line => line && !isNoiseLine(line));
 }
 
 // 특정 레이블에 해당하는 값을 줄 목록에서 추출하는 함수 (다중 줄 지원)
@@ -209,13 +223,69 @@ function parsePostText(text, meta = {}) {
     };
 }
 
+// 컬럼별 헤더 배경색 정의
+const COLUMN_HEADER_COLORS = {
+    '서비스 명':        'FF1565C0',  // 진파랑 (메인 식별)
+    '서비스 유형':      'FF1976D2',  // 파랑
+    '서비스 내용':      'FF1E88E5',  // 밝은 파랑
+    '활용 데이터':      'FF0277BD',  // 청록 파랑 (하이라이트)
+    '데이터 활용 내용': 'FF0288D1',  // 청록 파랑 (하이라이트)
+    '개발사':           'FF5C6BC0',  // 인디고
+    '홈페이지':         'FF7986CB',  // 연한 인디고
+    '출시일':           'FF78909C',  // 블루그레이
+    '비고':             'FF90A4AE',  // 연한 블루그레이
+    '원문 텍스트':      'FFB0BEC5',  // 아주 연한 블루그레이
+};
+
+// 하이라이트 대상 컬럼 (데이터 행에 배경색 적용)
+const HIGHLIGHT_KEYS = new Set(['활용 데이터', '데이터 활용 내용']);
+const HIGHLIGHT_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3F2FD' } };  // 연한 하늘색
+const ROW_ODD_FILL  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F9FF' } };   // 홀수행 아주 연한 파랑
+const ROW_EVEN_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };   // 짝수행 흰색
+
 // Excel 워크시트 스타일을 적용하는 함수
 function applyWorksheetStyle(worksheet) {
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
-    worksheet.eachRow(row => {
-        row.alignment = { vertical: 'middle', wrapText: true };
+    const colKeys = worksheet.columns.map(c => c.key);
+
+    // 헤더 행 스타일
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 28;
+    headerRow.eachCell((cell, colIdx) => {
+        const key = colKeys[colIdx - 1];
+        const argb = COLUMN_HEADER_COLORS[key] || 'FF1565C0';
+        cell.fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb } };
+        cell.font  = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+            top:    { style: 'thin', color: { argb: 'FFFFFFFF' } },
+            bottom: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+            left:   { style: 'thin', color: { argb: 'FFFFFFFF' } },
+            right:  { style: 'thin', color: { argb: 'FFFFFFFF' } },
+        };
     });
+
+    // 데이터 행 스타일
+    worksheet.eachRow((row, rowIdx) => {
+        if (rowIdx === 1) return;
+        const isOdd = rowIdx % 2 === 0;
+        row.height = 60;
+        row.eachCell({ includeEmpty: true }, (cell, colIdx) => {
+            const key = colKeys[colIdx - 1];
+            if (HIGHLIGHT_KEYS.has(key)) {
+                cell.fill = HIGHLIGHT_FILL;
+            } else {
+                cell.fill = isOdd ? ROW_ODD_FILL : ROW_EVEN_FILL;
+            }
+            cell.alignment = { vertical: 'middle', wrapText: true };
+            cell.border = {
+                bottom: { style: 'hair', color: { argb: 'FFCFD8DC' } },
+                right:  { style: 'hair', color: { argb: 'FFCFD8DC' } },
+            };
+        });
+    });
+
+    // 틀 고정 (헤더 행)
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
 }
 
 // 수집 결과를 Excel 파일로 저장하는 함수
@@ -246,8 +316,8 @@ async function saveRecordsToExcel(records, outputPath) {
 const LIST_URL        = 'https://www.foodsafetykorea.go.kr/apiMain.do';
 const GALLERY_URL     = 'https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899';
 const DETAIL_BASE_URL = 'https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899';
-const OUTPUT_PATH     = path.join(__dirname, '../데이터활용갤러리.xlsx');
-const PAGE_TIMEOUT_MS   = 30000;
+const OUTPUT_PATH     = path.join(__dirname, '../식품안전나라_데이터_활용사례.xlsx');
+const PAGE_TIMEOUT_MS   = 60000;
 const DETAIL_TIMEOUT_MS = 30000;
 const LIST_WAIT_MS      = 4000;
 const DEFAULT_WAIT_MS   = 1500;
@@ -314,18 +384,6 @@ async function extractClickableItems(page, detailParams) {
     }
 }
 
-    // 감지된 링크가 없으면 페이지의 모든 a 태그 샘플 출력 (디버그용)
-    if (items.length === 0) {
-        const sample = await page.$$eval('a', els =>
-            els.slice(0, 10).map(el => ({
-                href: el.getAttribute('href') || '',
-                onclick: el.getAttribute('onclick') || '',
-                text: el.innerText?.trim().substring(0, 40) || '',
-            }))
-        );
-        logger.warn({ sample }, '페이지 링크 샘플 (디버그)');
-    }
-}
 
 // 다음 페이지로 이동하는 함수
 async function moveToNextPage(page, currentPage) {
@@ -510,7 +568,7 @@ async function scrapeBoard() {
 
         // 메인 페이지 접속
         await page.goto(LIST_URL, {
-            waitUntil: 'networkidle',
+            waitUntil: 'domcontentloaded',
             timeout: PAGE_TIMEOUT_MS,
         });
         await page.waitForTimeout(LIST_WAIT_MS);
@@ -522,7 +580,7 @@ async function scrapeBoard() {
 
         // 데이터활용 갤러리 링크 클릭
         await page.click('a[href*="menu_no=3899"]');
-        await page.waitForLoadState('networkidle', { timeout: PAGE_TIMEOUT_MS });
+        await page.waitForLoadState('domcontentloaded', { timeout: PAGE_TIMEOUT_MS });
         await page.waitForTimeout(LIST_WAIT_MS);
 
         logger.info({ url: page.url() }, '데이터활용 갤러리 진입 완료');
