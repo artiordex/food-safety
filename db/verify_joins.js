@@ -72,6 +72,14 @@ let VALID_JOIN_KEYS = new Set();
 function buildValidJoinKeys(datasets) {
     const ka = identifyCommonKeys(datasets);
 
+    // 식별자(PK/FK) 성격의 접미사를 가진 컬럼만 허용
+    const isIdentifier = (f) =>
+        /_NO$/i.test(f) ||
+        /_CD$/i.test(f) ||
+        /_ID$/i.test(f) ||
+        /_SEQ$/i.test(f) ||
+        /_SN$/i.test(f);
+
     const isWeak = (f) =>
         /_NM$/i.test(f)      ||  // 명칭류
         /_NAME$/i.test(f)    ||
@@ -79,15 +87,26 @@ function buildValidJoinKeys(datasets) {
         /ADDR$/i.test(f)     ||  // 주소류
         /TEL/i.test(f)       ||  // 전화·팩스류
         /FAX/i.test(f)       ||
-        /_DT$/i.test(f)      ||  // 날짜류
+        /DT$/i.test(f)       ||  // 날짜류
         /DTM$/i.test(f)      ||
         /DATE$/i.test(f)     ||
+        /YEAR$/i.test(f)     ||  // 연도
+        /YR$/i.test(f)       ||
+        /MM$/i.test(f)       ||  // 월
         /_CN$/i.test(f)      ||  // 내용류
         /_DESC$/i.test(f)    ||
         /_CONT$/i.test(f)    ||
-        /_MEMO$/i.test(f);
+        /_MEMO$/i.test(f)    ||
+        /PRVNS$/i.test(f)    ||  // 사유, 조항
+        /VAL$/i.test(f)      ||  // 수치, 값
+        /QY$/i.test(f)       ||  // 수량
+        /^LV_NO$/i.test(f)   ||  // 단순 레벨 번호
+        /^PRODUCTION$/i.test(f)||// 생산여부 플래그
+        /GUBUN$/i.test(f)    ||  // 구분
+        /_YN$/i.test(f)      ||  // 여부류
+        /YN$/i.test(f);
 
-    let keys = ka.common_keys.filter(k => !isWeak(k));
+    let keys = ka.common_keys.filter(k => isIdentifier(k) && !isWeak(k));
 
     // 강제로 보장할 필수 조인 키 (사용자 요청)
     const MUST_HAVE_KEYS = [

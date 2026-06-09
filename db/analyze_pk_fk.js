@@ -66,7 +66,7 @@ const MAX_COMPOSITE_KEY_SIZE = 2;
 // 사용자 요청 반영: 조인이 되는(1건이라도 포함되는) 경우만 매핑하도록 기준 변경
 const FK_MIN_INCLUSION_RATIO = 0.0001;     // 조인되는 값이 1개라도 있으면 확정 FK 후보
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
-const FK_ALLOW_UNCHECKED = false;          // 샘플 부족 미검증 FK는 제거 (데이터가 있는 녀석만)
+const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 논리적 구조 기반으로 유지
 const FK_MAX_PER_FROM_FIELD = 5;           // 동일 From Table.Field 기준 최대 후보 수
 
 // 추정 FK 후보 기준
@@ -511,14 +511,33 @@ const WEAK_FIELD_PATTERNS = [
     /TELNO$/i, /TEL_NO$/i, /_TELNO$/i, /PHONE$/i, /MOBILE$/i, /FAX$/i
 ];
 
-const BAD_PK_FIELD_PATTERNS = WEAK_FIELD_PATTERNS;
+// 집계/통계/측정값 성격의 필드 -- 고유 식별자가 될 수 없으므로 PK 후보에서 제외한다.
+const AGGREGATE_FIELD_PATTERNS = [
+    /_CNT$/i, /_COUNT$/i,           // 건수 (PATNT_CNT, OCCRNC_CNT ...)
+    /_AMT$/i, /_AMOUNT$/i,          // 금액
+    /YEAR$/i, /_YEAR$/i,            // 연도 (ANALS_YEAR ...)
+    /AREA$/i,                        // 면적 (OCCRNC_AREA ...)
+    /^BOD$/i, /^COD$/i,             // 수질: 생물화학적/화학적 산소요구량
+    /^SS$/i, /^DO$/i,               // 수질: 부유물질, 용존산소
+    /^TN$/i, /^TP$/i,               // 수질: 총질소, 총인
+    /^ANALS_/i,                      // 분석값 접두어 (ANALS_RSLT ...)
+    /_RATE$/i, /_RATIO$/i, /_PCT$/i,// 비율
+    /_TOT$/i, /_SUM$/i,             // 합계
+    /_AVG$/i, /_MAX$/i, /_MIN$/i,   // 통계
+    /_QTY$/i, /_WGHT$/i             // 수량, 중량
+];
+
+const BAD_PK_FIELD_PATTERNS = [...WEAK_FIELD_PATTERNS, ...AGGREGATE_FIELD_PATTERNS];
 const EXCLUDED_FK_FIELD_PATTERNS = WEAK_FIELD_PATTERNS;
 
 const BAD_PK_KOR_PATTERNS = [
     /명$/, /이름$/, /업소명$/, /기관명$/, /제품명$/, /품목명$/,
     /대표자$/, /대표자명$/, /주소$/, /소재지$/, /내용$/, /사유$/,
     /비고$/, /메모$/, /방법$/, /전화번호$/, /연락처$/, /팩스$/,
-    /일자$/, /날짜$/, /년월일$/
+    /일자$/, /날짜$/, /년월일$/,
+    // 집계/통계 한글명
+    /건수$/, /면적$/, /연도$/, /년도$/, /금액$/, /비율$/, /율$/,
+    /합계$/, /총계$/, /평균$/, /수량$/, /중량$/, /농도$/
 ];
 
 /**
@@ -1144,8 +1163,9 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
 
     const inclusion = getInclusionStats(fromRecords, toRecords, fieldName, target.pk.fields[0]);
 
-    // ==== 사용자 요청 반영: 데이터가 있고, 조인이 되는(포함률 > 0) 경우만 허용 ====
-    if (!inclusion.checked || inclusion.inclusion_ratio <= 0) {
+    // ==== 데이터 샘플 크기 한계로 인해 교집합이 없어도 
+    // FK_ALLOW_UNCHECKED가 true라면 강제 스킵하지 않고 이후 점수로 평가하도록 변경 ====
+    if ((!inclusion.checked || inclusion.inclusion_ratio <= 0) && !FK_ALLOW_UNCHECKED) {
         return {
             skip: true,
             skip_reason: '데이터가 없거나 조인(교집합)되는 값이 없음',
@@ -2097,6 +2117,9 @@ module.exports = {
     getInclusionStats,
     buildColMap,
 
+    isBadPkField,
+    isStrongIdentifierField,
+    calculateIdentifierScore,
     isKnownRelationKey,
     isExcludedFkField,
     isNameField,

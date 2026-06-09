@@ -23,9 +23,29 @@ const path = require('path');
 const aq = require('arquero');
 const logger = require('../utils/logger');
 
+const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
+const DEFAULT_CACHE   = path.join(__dirname, '../crawler/crawl_cache.json');
+const DEFAULT_JSON    = path.join(__dirname, 'foodsafety_scenarios.json');
+const DEFAULT_MD      = path.join(__dirname, 'foodsafety_scenarios.md');
+
 // =============================================================================
-// 섹션 1. 유틸
+// 섹션 1. 유틸 및 상수
 // =============================================================================
+
+const WEAK_KEY_PATTERN = /_NM$|_NAME$|_CD_NM$|ADDR$|ADDRESS$|_DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$/i;
+
+const KEY_SYNONYM_GROUPS = [
+    ['LCNS_NO', 'BSSH_NO'],
+    ['PRDLST_CD', 'PRDLST_REPORT_NO'],
+    ['BRCD_NO', 'BARCODE_NO', 'BRCDNO', 'BAR_CD']
+];
+
+const MIN_OVERLAP_RATIO = 0.05;
+const MIN_DATASETS_PER_SCENARIO = 3;
+const MAX_SQL_TABLES = 5;
+const TOP_SCENARIOS = 50;
+const TOP_RELATIONS = 100;
+
 
 // 커맨드라인 인수에서 --key value 형태의 옵션을 파싱하는 함수
 function parseArgs() {
@@ -660,60 +680,40 @@ function buildSqlHint(joinKey, rels) {
     const aliases = 'ABCDEFGH'.split('');
     const lines = [];
 
-    // 관계에 등장하는 모든 테이블을 수집함
-    // 기존 방식은 svcB만 추가하여 svcA 쪽에만 등장하는 테이블이 누락될 수 있었음
-    const tables = [];
+    const joinedTables = [];
+    const joins = [];
+
+    // 시작 테이블 (가장 첫 번째 관계의 svcA)
+    const firstRel = rels[0];
+    joinedTables.push(firstRel.svcA);
 
     for (const relation of rels) {
-        if (!tables.includes(relation.svcA)) {
-            tables.push(relation.svcA);
-        }
+        if (joinedTables.length >= MAX_SQL_TABLES) break;
 
-        if (!tables.includes(relation.svcB)) {
-            tables.push(relation.svcB);
+        if (joinedTables.includes(relation.svcA) && !joinedTables.includes(relation.svcB)) {
+            const existingAlias = aliases[joinedTables.indexOf(relation.svcA)];
+            const newAlias = aliases[joinedTables.length];
+            joinedTables.push(relation.svcB);
+            
+            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcB)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colA)} = ${newAlias}.${quoteIdent(relation.colB)}`);
+        } else if (joinedTables.includes(relation.svcB) && !joinedTables.includes(relation.svcA)) {
+            const existingAlias = aliases[joinedTables.indexOf(relation.svcB)];
+            const newAlias = aliases[joinedTables.length];
+            joinedTables.push(relation.svcA);
+
+            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcA)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colB)} = ${newAlias}.${quoteIdent(relation.colA)}`);
         }
     }
 
-    const limitedTables = tables.slice(0, MAX_SQL_TABLES);
-
-    const selects = limitedTables
+    const selects = joinedTables
         .slice(0, 3)
         .map((table, index) => `${aliases[index]}.${quoteIdent(joinKey)}`);
 
     lines.push(`SELECT ${selects.join(', ')}, A.*, B.*`);
-    lines.push(`FROM ${quoteIdent(limitedTables[0])} A`);
-
-    for (let index = 1; index < limitedTables.length; index++) {
-        const prevTable = limitedTables[index - 1];
-        const currentTable = limitedTables[index];
-
-        const relation = rels.find(item =>
-            (item.svcA === prevTable && item.svcB === currentTable) ||
-            (item.svcB === prevTable && item.svcA === currentTable)
-        ) || rels[index - 1];
-
-        const prevAlias = aliases[index - 1];
-        const currentAlias = aliases[index];
-
-        // 현재 관계의 방향에 따라 이전 테이블 컬럼과 현재 테이블 컬럼을 맞춤
-        let leftCol;
-        let rightCol;
-
-        if (relation.svcA === prevTable && relation.svcB === currentTable) {
-            leftCol = relation.colA;
-            rightCol = relation.colB;
-        } else if (relation.svcB === prevTable && relation.svcA === currentTable) {
-            leftCol = relation.colB;
-            rightCol = relation.colA;
-        } else {
-            leftCol = relation.colA;
-            rightCol = relation.colB;
-        }
-
-        const sqlJoinType = normalizeSqlJoinType(relation.joinType);
-
-        lines.push(`${sqlJoinType} ${quoteIdent(currentTable)} ${currentAlias}`);
-        lines.push(`  ON ${prevAlias}.${quoteIdent(leftCol)} = ${currentAlias}.${quoteIdent(rightCol)}`);
+    lines.push(`FROM ${quoteIdent(joinedTables[0])} A`);
+    
+    for (const joinLine of joins) {
+        lines.push(joinLine);
     }
 
     lines.push(`WHERE A.${quoteIdent(joinKey)} IS NOT NULL AND A.${quoteIdent(joinKey)} != ''`);
