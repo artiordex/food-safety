@@ -23,9 +23,9 @@ const path = require('path');
 const logger = require('../utils/logger');
 
 const SAMPLES_DIR = path.join(__dirname, 'samples');
-const API_KEY = process.env.FOOD_SAFETY_KOREA_API_KEY || 'sample';
+const API_KEY = process.env.FOOD_API_KEY;
 const START_IDX = 1;
-const END_IDX = 100;
+const END_IDX = 1000;
 
 // 밀리초 단위 대기 함수
 function sleep(ms) {
