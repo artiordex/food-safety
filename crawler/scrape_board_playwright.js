@@ -28,6 +28,12 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const LIST_URL = 'https://www.foodsafetykorea.go.kr/api/main.do';
+const OUTPUT_PATH = path.join(__dirname, '../데이터활용사례_Playwright.xlsx');
+const LIST_WAIT_MS = 2000;
+const DEFAULT_WAIT_MS = 1500;
+const PAGE_TIMEOUT_MS = 30000;
+
 // 문자열에서 HTML 태그를 제거하고 일반 텍스트로 변환하는 함수
 function htmlToCleanText(html) {
     // 줄바꿈 의미가 있는 태그를 먼저 텍스트 줄바꿈으로 변환

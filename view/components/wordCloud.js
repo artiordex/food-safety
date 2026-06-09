@@ -23,9 +23,15 @@ export function renderWordCloud(container, onSelectDataset) {
           <option value="ALL">전체 통합 데이터베이스 (ALL)</option>
           ${optionsHtml}
         </select>
+        <button id="btn-wc-search" style="padding: 8px 20px; background: #0099d8; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+          <i class="ri-search-line"></i> 분석 시작
+        </button>
+        <button id="btn-wc-capture" style="padding: 8px 20px; background: #27ae60; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; display: flex; align-items: center; gap: 6px;">
+          <i class="ri-camera-line"></i> 화면 캡처
+        </button>
       </div>
 
-      <div id="wordcloud-canvas" style="width: 100%; height: 600px; display: flex; justify-content: center; align-items: center; border: 1px solid #eee; border-radius: 8px; background: #fafafa; position: relative;">
+      <div id="wordcloud-canvas" style="width: 100%; height: 600px; display: flex; justify-content: center; align-items: center; border: 1px solid #eee; border-radius: 8px; background: #fafafa; position: relative; overflow: hidden;">
         <div id="wordcloud-loading" style="position: absolute; font-size: 18px; color: #999;">데이터베이스 분석 결과를 불러오는 중...</div>
       </div>
     </div>
@@ -50,10 +56,9 @@ export function renderWordCloud(container, onSelectDataset) {
     fetch(`/api/wordcloud?tableName=${tableName}`)
       .then(res => {
         if (res.status === 202) {
-          // If still building, retry after 2 seconds
           if (loadingEl) loadingEl.innerText = '데이터베이스 스캔 및 단어 빈도 분석이 진행 중입니다. 잠시만 기다려주세요...';
           currentFetchTimeout = setTimeout(() => fetchWordCloudData(tableName), 2000);
-          throw new Error('BUILDING'); // break the chain
+          throw new Error('BUILDING');
         }
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
@@ -92,10 +97,8 @@ export function renderWordCloud(container, onSelectDataset) {
             .start();
             
           function draw(words) {
-            // Remove old tooltip if any
             d3.selectAll(".wordcloud-tooltip").remove();
 
-            // Setup tooltip
             const tooltip = d3.select("body").append("div")
               .attr("class", "wordcloud-tooltip")
               .style("position", "absolute")
@@ -111,6 +114,7 @@ export function renderWordCloud(container, onSelectDataset) {
             d3.select("#wordcloud-canvas").append("svg")
                 .attr("width", width)
                 .attr("height", height)
+                .style("background", "#fafafa") // 캡처 시 배경색 유지
               .append("g")
                 .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
               .selectAll("text")
@@ -158,12 +162,69 @@ export function renderWordCloud(container, onSelectDataset) {
   };
 
   const selectEl = container.querySelector('#wc-dataset-select');
-  if (selectEl) {
-    selectEl.addEventListener('change', (e) => {
-      fetchWordCloudData(e.target.value);
+  const searchBtn = container.querySelector('#btn-wc-search');
+  const captureBtn = container.querySelector('#btn-wc-capture');
+
+  if (searchBtn && selectEl) {
+    searchBtn.addEventListener('click', () => {
+      fetchWordCloudData(selectEl.value);
     });
   }
 
-  // Initial fetch for ALL
+  // 캡처 기능 구현 (SVG -> Canvas -> PNG)
+  if (captureBtn) {
+    captureBtn.addEventListener('click', () => {
+      const svg = container.querySelector('#wordcloud-canvas svg');
+      if (!svg) {
+        alert('캡처할 워드 클라우드가 없습니다.');
+        return;
+      }
+      
+      captureBtn.disabled = true;
+      captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 캡처 중...';
+
+      try {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement("canvas");
+        const svgSize = svg.getBoundingClientRect();
+        canvas.width = svgSize.width * 2; // 고해상도 처리
+        canvas.height = svgSize.height * 2;
+        const ctx = canvas.getContext("2d");
+        
+        // 배경색
+        ctx.fillStyle = "#fafafa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const img = new Image();
+        img.setAttribute("src", "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData))));
+        
+        img.onload = function() {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imgURL = canvas.toDataURL("image/png");
+
+          const dlLink = document.createElement('a');
+          dlLink.download = `워드클라우드_${selectEl.value}_${new Date().getTime()}.png`;
+          dlLink.href = imgURL;
+          dlLink.click();
+
+          captureBtn.disabled = false;
+          captureBtn.innerHTML = '<i class="ri-camera-line"></i> 화면 캡처';
+        };
+        
+        img.onerror = function() {
+          alert('캡처 중 오류가 발생했습니다.');
+          captureBtn.disabled = false;
+          captureBtn.innerHTML = '<i class="ri-camera-line"></i> 화면 캡처';
+        };
+      } catch (e) {
+        console.error(e);
+        alert('캡처 중 오류가 발생했습니다.');
+        captureBtn.disabled = false;
+        captureBtn.innerHTML = '<i class="ri-camera-line"></i> 화면 캡처';
+      }
+    });
+  }
+
+  // 초기 자동 렌더링
   fetchWordCloudData('ALL');
 }

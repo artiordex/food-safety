@@ -349,7 +349,7 @@ $(document).ready(function () {
     }
 
     // init 데이터구조 조회
-    fn_dataStrutList('기준규격정보', '', 'API_SRT01', '');
+    fn_dataStrutList('기준규격정보', '', '기준규격정보', '');
 
     /* 팝업 open 날짜 검증 (로컬 서버 구동 시 팝업 차단)
     $.each($('.popups'), function () {
@@ -409,55 +409,6 @@ $(document).ready(function () {
     });
 });
 
-//데이터구조 검색 조회
-function fn_dataStrutList(subjct, svcTypeCode, clCdCode, provdInsttCode) {
-    $.ajax({
-        data: {
-            search_svcTypeCode: svcTypeCode,
-            search_clCdCode: clCdCode,
-            search_provdInsttCode: provdInsttCode
-        },
-        dataType: 'json',
-        type: 'POST',
-        url: "/ajax/datasetSearch.do",
-        success: function (resultList) {
-            var list = resultList.dataStrutList;
-            var listLength = list.length;
-
-            $("#datasetSjct").text(subjct);
-
-            if (listLength > 0) {
-                var strHtml = '';
-
-                for (var i in list) {
-                    /*230627 정보원요청으로 숨김처리 ydj*/
-                    if (list[i].svc_nm != '품목제조보고번호유효성확인(대한상공회의소사용)' && list[i].svc_nm != '불량식품 신고이력 조회(내부용)' && list[i].svc_nm != '불량식품 신고정보 조회(내부용)') {
-                        strHtml += '<tr>';
-                        strHtml += '<td>' + list[i].provd_instt_nm + '</td>';
-                        strHtml += '<td>' + list[i].cl_cd_nm + '</td>';
-                        strHtml += '<td class=taL><a href=\'javascript:fn_listMoveDetail(' + '"' + list[i].svc_no + '"' + ',' + '"' + list[i].svc_type_cd + '"' + ',' + '"' + list[i].svc_nm + '"' + ');\'>' + list[i].svc_nm + '</a></td>';
-
-                        if (list[i].svc_type_cd == 'API_TYPE03') {
-                            strHtml += '<td>' + 'F' + '</td>';
-                        } else if (list[i].svc_type_cd == 'API_TYPE06') {
-                            strHtml += '<td>' + 'O' + '</td>';
-                        } else {
-                            strHtml += '<td></td>';
-                        }
-                        strHtml += '</tr>';
-                    }
-                }
-
-                $("#tb_struct_list").html(strHtml);
-            } else {
-                $("#tb_struct_list").html("<tr><td colspan='4'>검색된 정보가 없습니다.</td></tr>");
-            }
-        },
-        error: function (request, status, error) {
-            console.error('API Error (No Local Backend)');   //시스템에러
-        }
-    });
-}
 
 // 서비스유형 상세 화면
 function fn_listMoveDetail(svcNo, types, svcNm) {

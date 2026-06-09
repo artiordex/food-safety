@@ -37,137 +37,68 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     </style>
   `;
 
-  container.innerHTML = styleStr + `
-    <div style="padding: 20px; text-align: center;">
-      <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #1a1a2e;">데이터구조 검색</h2>
-    </div>
+  container.innerHTML = `
+    <div class="max-w-[1400px] mx-auto px-4 py-8 animate-fade-in">
+      <div class="text-center mb-10">
+        <h2 class="text-3xl font-bold text-slate-900 mb-4">전체 데이터세트 탐색</h2>
+        <p class="text-slate-500 text-sm">식품의약품안전처에서 제공하는 169종의 공공데이터를 한눈에 둘러보세요.</p>
+      </div>
 
-    <!-- 검색 영역 -->
-    <div class="search_area">
-      <label style="font-weight: bold; font-size: 14px;">검색어</label>
-      <select id="search-type" style="padding: 6px; border: 1px solid #ccc;">
-        <option value="all">전체 (서비스명 + 제공기관)</option>
-        <option value="svc_nm">서비스명</option>
-        <option value="provd_instt_nm">제공기관</option>
-      </select>
-      <input type="text" id="search-input" placeholder="검색어를 입력하세요." style="flex: 1; padding: 6px 10px; border: 1px solid #ccc;">
-      <button id="search-btn" style="background: #0099d8; color: white; border: none; padding: 6px 20px; cursor: pointer; font-weight: bold;">검색</button>
-    </div>
+      <!-- Category Filter Chips -->
+      <div id="category-chips" class="flex flex-wrap justify-center gap-2 mb-10">
+        <!-- Chips will be generated here -->
+      </div>
 
-    <!-- 레이아웃 -->
-    <div class="site_cnt">
-        <!-- 트리 영역 -->
-        <div class="fl w_317 m_r_6">
-            <div class="box">
-                <h1 class="h05">데이터카테고리</h1>
-                <div id="layerTree">
-                    <ul>
-                        <li class="jstree-open tree-node" data-type="전체" data-val="전체"><a href="#">전체</a>
-                            <ul id="tree-root">
-                                <li class="jstree-open"><a href="#">분류별</a>
-                                    <ul id="tree-cat"></ul>
-                                </li>
-                                <li class="jstree-open"><a href="#">제공기관별</a>
-                                    <ul id="tree-provd"></ul>
-                                </li>
-                                <li class="jstree-open"><a href="#">유형별</a>
-                                    <ul id="tree-type"></ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 데이터 영역 -->
-        <div class="fl w_850 m_r_6">
-            <div class="box">
-                <h1 class="h05" id="datasetSjct">데이터카테고리</h1>
-                <div id="struct_div">
-                    <table class="struct_tb">
-                        <caption>데이터</caption>
-                        <colgroup>
-                            <col style="width:20%;">
-                            <col style="width:15%;">
-                            <col style="width:50%;">
-                            <col style="width:15%;">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th scope="col">제공기관</th>
-                                <th scope="col">분류</th>
-                                <th scope="col">서비스명</th>
-                                <th scope="col">유형</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tb_struct_list">
-                            <tr><td colspan="4">데이터를 불러오는 중입니다...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+      <!-- Dataset Cards Grid -->
+      <div id="dataset-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="col-span-full py-20 text-center text-slate-400">데이터를 불러오는 중입니다...</div>
+      </div>
     </div>
   `;
 
   let allData = [];
-  let currentFilterType = '전체'; // '전체', 'cat', 'provd_instt_nm', 'data_type_nm'
-  let currentFilterValue = '전체';
-  let currentKeyword = '';
-  let currentSearchType = 'all';
+  let currentCategory = '전체';
 
-  const datasetSjct = container.querySelector('#datasetSjct');
-  const tb_struct_list = container.querySelector('#tb_struct_list');
-  const searchInput = container.querySelector('#search-input');
-  const searchType = container.querySelector('#search-type');
-  const searchBtn = container.querySelector('#search-btn');
+  const chipsContainer = container.querySelector('#category-chips');
+  const cardsContainer = container.querySelector('#dataset-cards-container');
 
-  const renderTable = () => {
-    datasetSjct.textContent = currentFilterValue === '전체' ? '전체 데이터' : currentFilterValue;
-    
+  const renderCards = () => {
     let items = allData;
 
-    // 1. 트리 필터 적용
-    if (currentFilterType === 'cat') {
-      items = items.filter(item => item.cat === currentFilterValue);
-    } else if (currentFilterType === 'provd_instt_nm') {
-      items = items.filter(item => item.provd_instt_nm === currentFilterValue);
-    } else if (currentFilterType === 'data_type_nm') {
-      items = items.filter(item => (item.data_type_nm || '').includes(currentFilterValue));
-    }
-
-    // 2. 검색어 필터 적용
-    if (currentKeyword) {
-      items = items.filter(item => {
-        const svcNm = item.svc_nm || '';
-        const provdNm = item.provd_instt_nm || '식품의약품안전처';
-        if (currentSearchType === 'svc_nm') return svcNm.includes(currentKeyword);
-        if (currentSearchType === 'provd_instt_nm') return provdNm.includes(currentKeyword);
-        return svcNm.includes(currentKeyword) || provdNm.includes(currentKeyword);
-      });
+    if (currentCategory !== '전체') {
+      items = items.filter(item => item.cat === currentCategory);
     }
 
     if (items.length === 0) {
-      tb_struct_list.innerHTML = '<tr><td colspan="4" style="padding: 40px; color: #999;">조건에 맞는 데이터가 없습니다.</td></tr>';
+      cardsContainer.innerHTML = '<div class="col-span-full py-20 text-center text-slate-400">해당 카테고리에 데이터가 없습니다.</div>';
       return;
     }
 
-    tb_struct_list.innerHTML = items.map(item => `
-      <tr>
-        <td>${item.provd_instt_nm || '식품의약품안전처'}</td>
-        <td>${item.cat || ''}</td>
-        <td style="text-align: left;">
-          <a href="#" class="service-link" data-id="${item.svc_no}">${item.svc_nm}</a>
-        </td>
-        <td>${item.data_type_nm || 'XML/JSON'}</td>
-      </tr>
+    cardsContainer.innerHTML = items.map(item => `
+      <div class="dataset-card bg-white border border-slate-200 rounded-xl p-5 hover:border-gov-500 hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group" data-id="${item.svc_no}">
+        <div class="flex justify-between items-start mb-3">
+          <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md">${item.data_type_nm || 'OPEN API'}</span>
+          <div class="flex gap-1">
+            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200 group-hover:bg-white transition-colors">JSON</span>
+            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200 group-hover:bg-white transition-colors">XML</span>
+          </div>
+        </div>
+        <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-2 leading-snug group-hover:text-gov-700 transition-colors">${item.svc_nm}</h4>
+        <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">${item.desc || (item.svc_nm + ' 공공데이터입니다.')}</p>
+        <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+            <i class="ri-building-line"></i> ${item.provd_instt_nm || '식약처'}
+          </div>
+          <span class="text-[10px] font-medium text-gov-600 bg-gov-50 px-2 py-1 rounded-full">${item.cat || ''}</span>
+        </div>
+      </div>
     `).join('');
 
-    tb_struct_list.querySelectorAll('.service-link').forEach(link => {
-      link.addEventListener('click', (e) => {
+    // Event listeners for cards
+    cardsContainer.querySelectorAll('.dataset-card').forEach(card => {
+      card.addEventListener('click', (e) => {
         e.preventDefault();
-        const svc_no = e.target.getAttribute('data-id');
+        const svc_no = e.currentTarget.getAttribute('data-id');
         const ds = allData.find(d => d.svc_no === svc_no);
         if (ds && onSelectDataset) {
           onSelectDataset({
@@ -186,34 +117,19 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     });
   };
 
-  const doSearch = () => {
-    currentKeyword = searchInput.value.trim();
-    currentSearchType = searchType.value;
-    renderTable();
-  };
+  const renderChips = (cats) => {
+    const allCats = ['전체', ...cats];
+    chipsContainer.innerHTML = allCats.map(c => `
+      <button class="category-chip px-4 py-2 rounded-full text-sm font-medium transition-all ${c === currentCategory ? 'bg-gov-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}" data-val="${c}">
+        ${c}
+      </button>
+    `).join('');
 
-  searchBtn.addEventListener('click', doSearch);
-  searchInput.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') doSearch();
-  });
-
-  const bindTreeEvents = () => {
-    container.querySelectorAll('.tree-node').forEach(node => {
-      node.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation(); // 중첩 리스트 이벤트 전파 방지
-        const type = e.currentTarget.getAttribute('data-type');
-        const val = e.currentTarget.getAttribute('data-val');
-        
-        if (type && val) {
-          currentFilterType = type;
-          currentFilterValue = val;
-          
-          container.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
-          e.currentTarget.classList.add('active');
-          
-          renderTable();
-        }
+    chipsContainer.querySelectorAll('.category-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        currentCategory = e.currentTarget.getAttribute('data-val');
+        renderChips(cats); // Re-render to update active state
+        renderCards();
       });
     });
   };
@@ -224,31 +140,14 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   ])
     .then(([data, dbTables]) => {
       // DB에 실제 존재하는 테이블만 남기기
-      allData = (data || []).filter(d => dbTables.includes(d.svc_no));
+      const validTableNames = dbTables.map(t => t.name);
+      allData = (data || []).filter(d => validTableNames.includes(d.svc_no));
       
-      // 고유값 추출하여 트리 생성
+      // 고유 카테고리 추출
       const cats = [...new Set(allData.map(d => d.cat).filter(Boolean))].sort();
-      const provds = [...new Set(allData.map(d => d.provd_instt_nm).filter(Boolean))].sort();
-      const types = ['XML/JSON', 'File', 'Link']; // 고정
-
-      container.querySelector('#tree-cat').innerHTML = cats.map(c => 
-        `<li class="tree-node" data-type="cat" data-val="${c}"><a href="#">${c}</a></li>`
-      ).join('');
-
-      container.querySelector('#tree-provd').innerHTML = provds.map(p => 
-        `<li class="tree-node" data-type="provd_instt_nm" data-val="${p}"><a href="#">${p}</a></li>`
-      ).join('');
-
-      container.querySelector('#tree-type').innerHTML = types.map(t => 
-        `<li class="tree-node" data-type="data_type_nm" data-val="${t}"><a href="#">${t}</a></li>`
-      ).join('');
-
-      bindTreeEvents();
       
-      // 초기 '전체' 탭 활성화
-      const rootNode = container.querySelector('.tree-node[data-val="전체"]');
-      if (rootNode) rootNode.classList.add('active');
-      renderTable();
+      renderChips(cats);
+      renderCards();
     })
     .catch(err => {
       console.error(err);

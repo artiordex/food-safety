@@ -58,8 +58,10 @@
 .datastruct .h05 { font-size: 14px; font-weight: 700; color: #1e3a5f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; }
 .datastruct #layerTree ul { list-style: none; padding-left: 16px; margin: 0; }
 .datastruct #layerTree > ul { padding-left: 0; }
-.datastruct #layerTree li { padding: 4px 0; cursor: pointer; font-size: 13px; }
-.datastruct #layerTree li a { color: #374151; text-decoration: none; }
+.datastruct #layerTree li { padding: 4px 0; cursor: pointer; font-size: 13px; position: relative; }
+.datastruct #layerTree li a { color: #374151; text-decoration: none; display: flex; align-items: center; }
+.datastruct #layerTree li a::before { content: "📁"; margin-right: 6px; font-size: 14px; }
+.datastruct #layerTree li li li > a::before { content: "📄"; }
 .datastruct #layerTree li a:hover, .datastruct #layerTree li a.jstree-clicked { color: #2563eb; font-weight: 600; }
 .datastruct #layerTree li > a { font-weight: 600; color: #1e3a5f; cursor: default; }
 .datastruct .struct_tb { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -142,43 +144,43 @@
                                         <ul>
                                             <li class="jstree-open"><a href="#">분류별</a>
                                                 <ul>
-                                                    <li onclick="fn_dataStrutList('기준규격정보','','API_SRT01','')"><a href="#">기준규격정보</a></li>
-                                                    <li onclick="fn_dataStrutList('코드정보','','API_SRT02','')"><a href="#">코드정보</a></li>
-                                                    <li onclick="fn_dataStrutList('식품영양정보','','API_SRT03','')"><a href="#">식품영양정보</a></li>
-                                                    <li onclick="fn_dataStrutList('수질환경정보','','API_SRT04','')"><a href="#">수질환경정보</a></li>
-                                                    <li onclick="fn_dataStrutList('검사기관정보','','API_SRT05','')"><a href="#">검사기관정보</a></li>
-                                                    <li onclick="fn_dataStrutList('식품위해관리','','API_SRT06','')"><a href="#">식품위해관리</a></li>
-                                                    <li onclick="fn_dataStrutList('식품안전관리','','API_SRT07','')"><a href="#">식품안전관리</a></li>
-                                                    <li onclick="fn_dataStrutList('이력추적관리','','API_SRT08','')"><a href="#">이력추적관리</a></li>
-                                                    <li onclick="fn_dataStrutList('어린이식품안전관리','','API_SRT09','')"><a href="#">어린이식품안전관리</a></li>
-                                                    <li onclick="fn_dataStrutList('HACCP지정현황','','API_SRT10','')"><a href="#">HACCP지정현황</a></li>
-                                                    <li onclick="fn_dataStrutList('업체인허가현황','','API_SRT11','')"><a href="#">업체인허가현황</a></li>
-                                                    <li onclick="fn_dataStrutList('위생용품','','API_SRT12','')"><a href="#">위생용품</a></li>
-                                                    <li onclick="fn_dataStrutList('축산물','','API_SRT13','')"><a href="#">축산물</a></li>
-                                                    <li onclick="fn_dataStrutList('건강기능식품','','API_SRT14','')"><a href="#">건강기능식품</a></li>
-                                                    <li onclick="fn_dataStrutList('수입식품 등','','API_SRT15','')"><a href="#">수입식품 등</a></li>
-                                                    <li onclick="fn_dataStrutList('식품 등','','API_SRT16','')"><a href="#">식품 등</a></li>
-                                                    <li onclick="fn_dataStrutList('자료실','','API_SRT17','')"><a href="#">자료실</a></li>
-                                                    <li onclick="fn_dataStrutList('폐업정보','','API_SRT18','')"><a href="#">폐업정보</a></li>
-                                                    <li onclick="fn_dataStrutList('용어사전','','API_SRT19','')"><a href="#">용어사전</a></li>
+                                                    <li onclick="fn_dataStrutList('기준규격정보','','기준규격정보','')"><a href="#">기준규격정보</a></li>
+                                                    <li onclick="fn_dataStrutList('코드정보','','코드정보','')"><a href="#">코드정보</a></li>
+                                                    <li onclick="fn_dataStrutList('식품영양정보','','식품영양정보','')"><a href="#">식품영양정보</a></li>
+                                                    <li onclick="fn_dataStrutList('수질환경정보','','수질환경정보','')"><a href="#">수질환경정보</a></li>
+                                                    <li onclick="fn_dataStrutList('검사기관정보','','검사기관정보','')"><a href="#">검사기관정보</a></li>
+                                                    <li onclick="fn_dataStrutList('식품위해관리','','식품위해관리','')"><a href="#">식품위해관리</a></li>
+                                                    <li onclick="fn_dataStrutList('식품안전관리','','식품안전관리','')"><a href="#">식품안전관리</a></li>
+                                                    <li onclick="fn_dataStrutList('이력추적관리','','이력추적관리','')"><a href="#">이력추적관리</a></li>
+                                                    <li onclick="fn_dataStrutList('어린이식품안전관리','','어린이식품안전관리','')"><a href="#">어린이식품안전관리</a></li>
+                                                    <li onclick="fn_dataStrutList('HACCP지정현황','','HACCP지정현황','')"><a href="#">HACCP지정현황</a></li>
+                                                    <li onclick="fn_dataStrutList('업체인허가현황','','업체인허가현황','')"><a href="#">업체인허가현황</a></li>
+                                                    <li onclick="fn_dataStrutList('위생용품','','위생용품','')"><a href="#">위생용품</a></li>
+                                                    <li onclick="fn_dataStrutList('축산물','','축산물','')"><a href="#">축산물</a></li>
+                                                    <li onclick="fn_dataStrutList('건강기능식품','','건강기능식품','')"><a href="#">건강기능식품</a></li>
+                                                    <li onclick="fn_dataStrutList('수입식품 등','','수입식품 등','')"><a href="#">수입식품 등</a></li>
+                                                    <li onclick="fn_dataStrutList('식품 등','','식품 등','')"><a href="#">식품 등</a></li>
+                                                    <li onclick="fn_dataStrutList('자료실','','자료실','')"><a href="#">자료실</a></li>
+                                                    <li onclick="fn_dataStrutList('폐업정보','','폐업정보','')"><a href="#">폐업정보</a></li>
+                                                    <li onclick="fn_dataStrutList('용어사전','','용어사전','')"><a href="#">용어사전</a></li>
                                                 </ul>
                                             </li>
                                             <li class="jstree-open"><a href="#">제공기관별</a>
                                                 <ul>
-                                                    <li onclick="fn_dataStrutList('식품의약품안전처','','','ORGN01')"><a href="#">식품의약품안전처</a></li>
-                                                    <li onclick="fn_dataStrutList('해양수산부','','','ORGN10')"><a href="#">해양수산부</a></li>
-                                                    <li onclick="fn_dataStrutList('산업통상자원부','','','ORGN13')"><a href="#">산업통상자원부</a></li>
-                                                    <li onclick="fn_dataStrutList('농촌진흥청','','','ORGN09')"><a href="#">농촌진흥청</a></li>
-                                                    <li onclick="fn_dataStrutList('농림축산검역본부','','','ORGN05')"><a href="#">농림축산검역본부</a></li>
-                                                    <li onclick="fn_dataStrutList('국립농산물품질관리원','','','ORGN08')"><a href="#">국립농산물품질관리원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립환경과학원','','','ORGN15')"><a href="#">국립환경과학원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립수산물품질관리원','','','ORGN12')"><a href="#">국립수산물품질관리원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립수산과학원','','','ORGN11')"><a href="#">국립수산과학원</a></li>
-                                                    <li onclick="fn_dataStrutList('행정안전부','','','ORGN16')"><a href="#">행정안전부</a></li>
-                                                    <li onclick="fn_dataStrutList('한국식품안전관리인증원','','','ORGN02')"><a href="#">한국식품안전관리인증원</a></li>
-                                                    <li onclick="fn_dataStrutList('축산물품질평가원','','','ORGN07')"><a href="#">축산물품질평가원</a></li>
-                                                    <li onclick="fn_dataStrutList('한국환경공단','','','ORGN14')"><a href="#">한국환경공단</a></li>
-                                                    <li onclick="fn_dataStrutList('한국수자원공사','','','ORGN17')"><a href="#">한국수자원공사</a></li>
+                                                    <li onclick="fn_dataStrutList('식품의약품안전처','','','식품의약품안전처')"><a href="#">식품의약품안전처</a></li>
+                                                    <li onclick="fn_dataStrutList('해양수산부','','','해양수산부')"><a href="#">해양수산부</a></li>
+                                                    <li onclick="fn_dataStrutList('산업통상자원부','','','산업통상자원부')"><a href="#">산업통상자원부</a></li>
+                                                    <li onclick="fn_dataStrutList('농촌진흥청','','','농촌진흥청')"><a href="#">농촌진흥청</a></li>
+                                                    <li onclick="fn_dataStrutList('농림축산검역본부','','','농림축산검역본부')"><a href="#">농림축산검역본부</a></li>
+                                                    <li onclick="fn_dataStrutList('국립농산물품질관리원','','','국립농산물품질관리원')"><a href="#">국립농산물품질관리원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립환경과학원','','','국립환경과학원')"><a href="#">국립환경과학원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립수산물품질관리원','','','국립수산물품질관리원')"><a href="#">국립수산물품질관리원</a></li>
+                                                    <li onclick="fn_dataStrutList('국립수산과학원','','','국립수산과학원')"><a href="#">국립수산과학원</a></li>
+                                                    <li onclick="fn_dataStrutList('행정안전부','','','행정안전부')"><a href="#">행정안전부</a></li>
+                                                    <li onclick="fn_dataStrutList('한국식품안전관리인증원','','','한국식품안전관리인증원')"><a href="#">한국식품안전관리인증원</a></li>
+                                                    <li onclick="fn_dataStrutList('축산물품질평가원','','','축산물품질평가원')"><a href="#">축산물품질평가원</a></li>
+                                                    <li onclick="fn_dataStrutList('한국환경공단','','','한국환경공단')"><a href="#">한국환경공단</a></li>
+                                                    <li onclick="fn_dataStrutList('한국수자원공사','','','한국수자원공사')"><a href="#">한국수자원공사</a></li>
                                                 </ul>
                                             </li>
                                             <li class="jstree-open"><a href="#">유형별</a>
@@ -229,7 +231,7 @@
             $(document).ready(function() {
                 $(".datastruct_view").on("click", function() {
                     $(".datastruct_op, .datastruct").show();
-                    fn_dataStrutList('기준규격정보', '', 'API_SRT01', '');
+                    fn_dataStrutList('기준규격정보', '', '기준규격정보', '');
                 });
                 $(".datastruct_close").on("click", function(e) {
                     e.preventDefault();

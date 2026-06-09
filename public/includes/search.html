@@ -1354,7 +1354,7 @@
             $.each(cats, function(_, item) {
                 $sel.append('<option value="' + item.cat + '">' + item.cat + ' (' + item.cnt + ')</option>');
             });
-            if ($.fn.selecter) { try { $sel.selecter('destroy').selecter(); } catch(e){} }
+            if ($.fn.selecter) { try { $sel.selecter('update'); } catch(e){} }
             if (urlCat) {
                 $sel.val(urlCat);
                 if ($.fn.selecter) { try { $sel.selecter('update'); } catch(e){} }

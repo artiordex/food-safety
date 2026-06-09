@@ -574,35 +574,41 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 
   return h('section', { className: 'max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in flex flex-col gap-6' },
     // Header
-    h('div', { className: 'flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2' },
-      h('div', { className: 'flex flex-col gap-2' },
-        h('h2', { className: 'text-2xl font-bold text-slate-900 flex items-center gap-2' },
+    h('div', { className: 'flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200' },
+      h('div', { className: 'flex flex-col gap-1' },
+        h('h2', { className: 'text-xl font-bold text-slate-900 flex items-center gap-2' },
           h('i', { className: 'ri-share-circle-fill text-gov-600' }),
           '키워드 데이터맵 (D3 Force)'
         ),
+        h('p', { className: 'text-xs text-slate-500' }, '노드를 드래그하여 유기적인 데이터 관계망을 탐색해 보세요.')
       ),
-      h('div', { className: 'flex items-center gap-2 w-full md:w-auto max-w-[500px]' },
-        h('div', { className: 'relative flex-1 md:w-64' },
+      h('div', { className: 'flex flex-wrap items-center gap-2 w-full md:w-auto' },
+        h('div', { className: 'relative flex-1 min-w-[200px]' },
           h('i', { className: 'ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400' }),
           h('input', {
             type: 'text',
             value: inputVal,
             onChange: e => setInputVal(e.target.value),
             onKeyDown: e => e.key === 'Enter' && setKeyword(inputVal.trim()),
-            className: 'w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-1 focus:ring-gov-500 bg-white font-medium text-slate-800',
-            style: { paddingLeft: '2.5rem' },
-            placeholder: '키워드 검색 (예: 초콜릿, 우유...)'
+            className: 'w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-2 focus:ring-gov-200 bg-slate-50 font-medium text-slate-800 transition-all',
+            placeholder: '검색어 입력 (예: 초콜릿)'
           })
         ),
         h('button', {
           onClick: () => setKeyword(inputVal.trim()),
-          className: 'px-4 py-2 bg-gov-600 text-white rounded-lg text-sm font-medium hover:bg-gov-700 transition-colors whitespace-nowrap'
-        }, '키워드 맵 조회'),
+          className: 'px-5 py-2.5 bg-gov-600 text-white rounded-lg text-sm font-bold hover:bg-gov-700 transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap'
+        }, 
+          h('i', { className: 'ri-search-2-line' }), 
+          '검색'
+        ),
         h('button', {
           onClick: capture,
           disabled: !data || capturing,
-          className: `px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${capturing ? 'bg-slate-300' : 'bg-gov-600 hover:bg-gov-700'}`
-        }, capturing ? '캡처 중...' : '캡처')
+          className: `px-5 py-2.5 text-white rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap ${capturing ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`
+        }, 
+          h('i', { className: capturing ? 'ri-loader-4-line animate-spin' : 'ri-camera-lens-line' }),
+          capturing ? '캡처 중...' : '화면 캡처'
+        )
       )
     ),
 
