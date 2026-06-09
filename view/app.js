@@ -1,5 +1,4 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js';
-import { renderPurposeRecommendation } from './components/purposeRecommendation.js';
 import { renderDataMap } from './components/dataMap.js';
 import { renderErdMap } from './components/erdMap.js';
 import { renderRelationDataMap } from './components/relationDataMap.js';
@@ -13,6 +12,7 @@ import { renderSuperErdMap } from './components/superErdMap.js';
 import { renderSauceDataMap } from './components/sauceDataMap.js';
 import { renderDbErdMap } from './components/dbErdMap.js';
 import { renderNongshimDataset } from './components/nongshimDataset.js';
+import { renderWordCloud } from './components/wordCloud.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
@@ -54,10 +54,6 @@ const renderTabContent = () => {
 
   if (activeTab === 'explorer') {
     renderDatasetExplorer(tabContent, onSelectDataset);
-  } else if (activeTab === 'recommend-beginner') {
-    renderPurposeRecommendation(tabContent, onSelectDataset, 'beginner');
-  } else if (activeTab === 'recommend-developer') {
-    renderPurposeRecommendation(tabContent, onSelectDataset, 'developer');
   } else if (activeTab === 'datamap') {
     renderDataMap(tabContent, onSelectDataset);
   } else if (activeTab === 'erdmap') {
@@ -82,6 +78,8 @@ const renderTabContent = () => {
     renderDbErdMap(tabContent);
   } else if (activeTab === 'nongshim-spec') {
     renderNongshimDataset(tabContent);
+  } else if (activeTab === 'wordcloud') {
+    renderWordCloud(tabContent, onSelectDataset);
   }
 };
 
@@ -110,7 +108,7 @@ const updateActiveTabUI = () => {
     if (container) {
       container.querySelectorAll('button').forEach(btn => {
         const btnTab = btn.getAttribute('data-tab');
-        const isMatch = (btnTab === activeTab) || (btnTab === 'datamap' && activeTab === 'keyword-datamap');
+        const isMatch = (btnTab === activeTab);
         if (isMatch) {
           btn.classList.add('active');
         } else {
@@ -232,7 +230,8 @@ const TAB_PAGES = {
   'api-live-join': '/data/analysis.html',
   'api-hygiene': '/data/analysis.html',
   'api-barcode': '/data/analysis.html',
-  'nongshim-spec': '/data/analysis.html'
+  'nongshim-spec': '/data/analysis.html',
+  'wordcloud': '/data/datamap.html'
 };
 
 const changeTab = (tabId) => {

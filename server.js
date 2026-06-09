@@ -335,6 +335,21 @@ app.post('/api/searchDatasetList.do', async (req, res) => {
   }
 });
 
+// 4.2.1 전체 데이터 세트 구조(트리) API
+app.get('/api/dataset-tree', (req, res) => {
+  try {
+    const cachePath = path.join(__dirname, 'crawler', 'crawl_cache.json');
+    if (!fs.existsSync(cachePath)) {
+      return res.json([]);
+    }
+    const data = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    res.json(data);
+  } catch (err) {
+    logger.error({ err }, '[dataset-tree] 크롤 캐시 읽기 오류');
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 4.3 데이터셋 메타데이터 (컬럼 정의) API - detail.html 용
 app.get('/api/datasetMetadata.do', async (req, res) => {
   let svc_no = req.query.svc_no;
@@ -529,14 +544,152 @@ app.get('/api/column-search', async (req, res) => {
   }
 });
 
-app.get('/api/relationships', (req, res) => {
+let cachedWordCloudData = {};
+let isBuildingWordCloud = {};
+
+// 7.5 워드 클라우드 데이터 생성 API (DB 실시간 분석 후 캐싱)
+app.get('/api/wordcloud', async (req, res) => {
+  const targetTable = req.query.tableName || 'ALL';
+  
+  if (cachedWordCloudData[targetTable]) {
+    return res.json(cachedWordCloudData[targetTable]);
+  }
+
+  if (isBuildingWordCloud[targetTable]) {
+    return res.status(202).json({ message: "데이터베이스 단어 분석이 진행 중입니다. 잠시 후 다시 시도해주세요." });
+  }
+
+  isBuildingWordCloud[targetTable] = true;
+  try {
+    let query = `
+      SELECT svc_no as tableName, field, kor_nm 
+      FROM api_columns 
+      WHERE (sql_type LIKE '%TEXT%' OR sql_type LIKE '%VARCHAR%')
+        AND field NOT LIKE '%_NO'
+        AND field NOT LIKE '%_CD'
+        AND field NOT LIKE '%_SEQ'
+        AND field NOT LIKE '%_DT'
+        AND field NOT LIKE '%_DATE'
+        AND field NOT LIKE '%_ID'
+        AND field NOT LIKE '%URL%'
+        AND field NOT LIKE '%TEL%'
+        AND field NOT LIKE '%ZIP%'
+    `;
+    
+    if (targetTable !== 'ALL') {
+      // Allow only alphanumeric and underscores for safety
+      if (!/^[a-zA-Z0-9_-]+$/.test(targetTable)) {
+        throw new Error("Invalid table name");
+      }
+      query += ` AND svc_no = '${targetTable}'`;
+    }
+
+    const columns = await dbAll(query);
+    const tablesInfo = await dbAll("SELECT name FROM sqlite_master WHERE type='table'");
+    const validTables = new Set(tablesInfo.map(t => t.name));
+
+    const wordCounts = {};
+    const stopWords = ['해당없음', '없음', 'null', 'undefined', '기타', '및', '등', '의', '에', '가', '이', '은', '는'];
+
+    // If targetTable is specified but no columns found in api_columns, let's just pick all TEXT columns from PRAGMA
+    let colsToProcess = columns;
+    if (targetTable !== 'ALL' && colsToProcess.length === 0 && validTables.has(targetTable)) {
+      const pragmaCols = await dbAll(`PRAGMA table_info("${targetTable}")`);
+      colsToProcess = pragmaCols
+        .filter(c => (c.type.includes('TEXT') || c.type.includes('VARCHAR')) && !c.name.includes('_NO') && !c.name.includes('_CD') && !c.name.includes('_DT'))
+        .map(c => ({ tableName: targetTable, field: c.name }));
+    }
+
+    for (const col of colsToProcess) {
+      const { tableName, field } = col;
+      if (!validTables.has(tableName)) continue;
+      
+      try {
+        const tableInfo = await dbAll(`PRAGMA table_info("${tableName}")`);
+        if (!tableInfo.find(c => c.name === field)) continue;
+        
+        const freqRows = await dbAll(`
+          SELECT "${field}" as val, COUNT(*) as cnt 
+          FROM "${tableName}" 
+          WHERE "${field}" IS NOT NULL AND "${field}" != ''
+          GROUP BY "${field}" 
+          ORDER BY cnt DESC 
+          LIMIT 50
+        `);
+        
+        for (const row of freqRows) {
+          if (!row.val) continue;
+          const text = String(row.val).trim();
+          const words = text.split(/[\\s,()\\[\\]<>+]+/).filter(w => w.length > 1);
+          
+          for (const word of words) {
+            if (stopWords.includes(word) || !isNaN(Number(word))) continue;
+            wordCounts[word] = (wordCounts[word] || 0) + row.cnt;
+          }
+        }
+      } catch (err) {
+        // 컬럼 검사 에러 등 무시
+      }
+    }
+
+    const sortedWords = Object.keys(wordCounts)
+      .map(word => ({ text: word, size: wordCounts[word] }))
+      .sort((a, b) => b.size - a.size)
+      .slice(0, 150);
+
+    if (sortedWords.length > 0) {
+      const maxCount = sortedWords[0].size;
+      const sizeRange = 75;
+      sortedWords.forEach(w => {
+        const logScale = maxCount > 1 ? (Math.log(w.size) / Math.log(maxCount)) : 1;
+        w.size = 15 + Math.floor(logScale * sizeRange);
+        w.actualCount = wordCounts[w.text];
+      });
+    }
+
+    cachedWordCloudData[targetTable] = sortedWords;
+    res.json(cachedWordCloudData[targetTable]);
+  } catch (err) {
+    logger.error({ err }, '[wordcloud] 단어 분석 중 오류가 발생했습니다.');
+    res.status(500).json({ error: err.message });
+  } finally {
+    isBuildingWordCloud[targetTable] = false;
+  }
+});
+
+
+let cachedApiRelationships = null;
+
+app.get('/api/relationships', async (req, res) => {
+  if (cachedApiRelationships) {
+    return res.json(cachedApiRelationships);
+  }
+
   const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
   if (fs.existsSync(jsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-      res.json(data.relationships || []);
+      
+      // 실제 데이터 교집합이 1건이라도 존재하는 관계만 1차 필터링
+      const candidates = (data.relationships || []).filter(r => r.inclusion_check && r.inclusion_check.matched_count > 0);
+      const verified = [];
+
+      // SQLite 실데이터 교차 검증 (JSON은 샘플 기반이므로 실제 DB에 없을 수 있음)
+      for (const r of candidates) {
+        try {
+          const row = await dbGet(`SELECT 1 FROM "${r.from_table}" A INNER JOIN "${r.to_table}" B ON A."${r.from_field}" = B."${r.to_field}" LIMIT 1`);
+          if (row) {
+            verified.push(r);
+          }
+        } catch (err) {
+          // 테이블이나 컬럼이 없거나 타입이 안맞아서 나는 에러는 무시
+        }
+      }
+
+      cachedApiRelationships = verified;
+      res.json(verified);
     } catch (err) {
-      res.status(500).json({ error: '관계 데이터 파일을 읽는 중 오류가 발생했습니다.' });
+      res.status(500).json({ error: '관계 데이터 파일을 읽거나 DB를 검증하는 중 오류가 발생했습니다.' });
     }
   } else {
     res.status(404).json({ error: '관계 데이터 분석 결과가 존재하지 않습니다.' });
@@ -1459,128 +1612,62 @@ app.get('/api/db-schema', (req, res) => {
 // ── 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱) ─────────────────────────
 let cachedRelationships = null;
 
-app.get('/api/db-relationships', (req, res) => {
+app.get('/api/db-relationships', async (req, res) => {
   if (cachedRelationships) {
     return res.json(cachedRelationships);
   }
 
-  (async () => {
-    try {
-      // 1. 공통 컬럼 메타 데이터 조회
-      const colRows = await dbAll(
-        `SELECT replace(svc_no,'-','') as tbl, field, kor_nm FROM api_columns
-         WHERE field IS NOT NULL AND field != '' AND length(field) > 2`
-      );
-      // 2. 실제 SQLite에 적재된 전체 테이블 리스트 조회
-      const tables = await dbAll(
-        `SELECT name FROM sqlite_master WHERE type='table'
-         AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'v_%'
-         AND name NOT IN ('api_tables','api_columns')`
-      );
-      const validSet = new Set(tables.map(t => t.name));
-
-      // 약한 식별자(공통 키로 보기 어렵고 값이 무의미하게 같을 수 있는 날짜, 여부 등 필터링)
-      const isWeak = (f) =>
-        /_NM$/i.test(f) || /_NAME$/i.test(f) || /_CD_NM$/i.test(f) ||
-        /ADDR$/i.test(f) || /TEL/i.test(f) || /FAX/i.test(f) ||
-        /_DT$/i.test(f) || /DTM$/i.test(f) || /DATE$/i.test(f) ||
-        /_CN$/i.test(f) || /_DESC$/i.test(f) || /_MEMO$/i.test(f) ||
-        /^AMT_NUM\d+$/.test(f) || /^(SEQ|NUM|CNT|QTY|YN)$/.test(f);
-
-      const fieldMap = {};
-      colRows.forEach(r => {
-        if (!validSet.has(r.tbl) || isWeak(r.field)) return;
-        if (!fieldMap[r.field]) fieldMap[r.field] = { tables: [], kor: r.kor_nm || r.field };
-        if (!fieldMap[r.field].tables.includes(r.tbl)) fieldMap[r.field].tables.push(r.tbl);
-      });
-
-      // 3. 공통 필드별로 두 테이블 간의 실제 매치 여부를 검사할 태스크 생성
-      const checkTasks = [];
-      const rawRelationships = Object.entries(fieldMap)
-        .filter(([, v]) => v.tables.length >= 2)
-        .map(([key, v]) => ({ key, kor: v.kor, tables: v.tables }));
-
-      rawRelationships.forEach(rel => {
-        const tbls = rel.tables;
-        // 각 공통키 필드에 대해 모든 가능한 테이블 쌍(T1, T2) 생성
-        for (let i = 0; i < tbls.length; i++) {
-          for (let j = i + 1; j < tbls.length; j++) {
-            const tA = tbls[i];
-            const tB = tbls[j];
-            checkTasks.push({
-              key: rel.key,
-              kor: rel.kor,
-              tA,
-              tB,
-              fn: async () => {
-                try {
-                  // SQLite EXISTS 쿼리로 실제 교집합 데이터가 최소 1건 이상 존재하는지 체크
-                  // 빈 값이나 공백, 하이픈(-)은 조인 키 매칭에서 제외
-                  const query = `
-                    SELECT EXISTS(
-                      SELECT 1 FROM "${tA}" a
-                      INNER JOIN "${tB}" b ON a."${rel.key}" = b."${rel.key}"
-                      WHERE a."${rel.key}" IS NOT NULL 
-                        AND a."${rel.key}" != '' 
-                        AND a."${rel.key}" != '-'
-                    ) AS has_match
-                  `;
-                  const rows = await dbAll(query);
-                  const matched = rows[0]?.has_match === 1;
-                  return matched ? { tA, tB } : null;
-                } catch (e) {
-                  // 테이블이나 컬럼이 실제 DB에 불일치하거나 깨져 있는 경우 매칭 무시
-                  return null;
-                }
-              }
-            });
-          }
-        }
-      });
-
-      // 4. 동시 실행 부하 제어를 위한 청크 비동기 병렬 검증 (청크당 30개 실행)
-      const verifiedEdgesMap = {};
-      const chunkSize = 30;
-      for (let i = 0; i < checkTasks.length; i += chunkSize) {
-        const chunk = checkTasks.slice(i, i + chunkSize);
-        const chunkResults = await Promise.all(chunk.map(task => task.fn()));
-
-        chunk.forEach((task, idx) => {
-          const edge = chunkResults[idx];
-          if (edge) {
-            if (!verifiedEdgesMap[task.key]) {
-              verifiedEdgesMap[task.key] = {
-                key: task.key,
-                kor: task.kor,
-                edges: [],
-                tablesSet: new Set()
-              };
-            }
-            verifiedEdgesMap[task.key].edges.push({ from: edge.tA, to: edge.tB });
-            verifiedEdgesMap[task.key].tablesSet.add(edge.tA);
-            verifiedEdgesMap[task.key].tablesSet.add(edge.tB);
-          }
-        });
-      }
-
-      // 5. 실제 데이터 매칭 엣지가 존재하는 공통키 연관관계 최종 데이터 구축
-      const result = Object.values(verifiedEdgesMap)
-        .map(item => ({
-          key: item.key,
-          kor: item.kor,
-          count: item.tablesSet.size,
-          tables: Array.from(item.tablesSet),
-          edges: item.edges
-        }))
-        .sort((a, b) => b.edges.length - a.edges.length); // 실제 매칭 연결선 수 기준으로 정렬
-
-      cachedRelationships = result;
-      res.json(result);
-    } catch (err) {
-      logger.error({ err }, '[db-relationships] 관계 분석 중 오류가 발생했습니다.');
-      res.status(500).json({ error: err.message });
+  try {
+    const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
+    if (!fs.existsSync(jsonPath)) {
+      return res.status(404).json({ error: '관계 데이터 분석 결과(foodsafety_key_candidates.json)가 존재하지 않습니다. 먼저 analyze_pk_fk.js를 실행하세요.' });
     }
-  })();
+
+    const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const verifiedEdgesMap = {};
+
+    // 1차 필터링: JSON에 기록된 샘플 매칭 기준
+    const candidates = data.relationships.filter(r => r.inclusion_check && r.inclusion_check.matched_count > 0);
+
+    // 2차 필터링: 실제 SQLite 라이브 데이터 교집합 검증
+    for (const r of candidates) {
+      try {
+        const row = await dbGet(`SELECT 1 FROM "${r.from_table}" A INNER JOIN "${r.to_table}" B ON A."${r.from_field}" = B."${r.to_field}" LIMIT 1`);
+        if (row) {
+          const key = r.from_field;
+          if (!verifiedEdgesMap[key]) {
+            verifiedEdgesMap[key] = {
+              key: key,
+              kor: r.from_kor_nm || r.to_kor_nm || key,
+              edges: [],
+              tablesSet: new Set()
+            };
+          }
+          verifiedEdgesMap[key].edges.push({ from: r.from_table, to: r.to_table });
+          verifiedEdgesMap[key].tablesSet.add(r.from_table);
+          verifiedEdgesMap[key].tablesSet.add(r.to_table);
+        }
+      } catch(err) {
+        // 테이블이나 컬럼 누락 에러 무시
+      }
+    }
+
+    const result = Object.values(verifiedEdgesMap)
+      .map(item => ({
+        key: item.key,
+        kor: item.kor,
+        count: item.tablesSet.size,
+        tables: Array.from(item.tablesSet),
+        edges: item.edges
+      }))
+      .sort((a, b) => b.edges.length - a.edges.length);
+
+    cachedRelationships = result;
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, '[db-relationships] 관계 데이터 파싱 중 오류가 발생했습니다.');
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 글로벌 Express 에러 핸들러 — async 라우터에서 next(err)로 전달된 에러를 최종 처리

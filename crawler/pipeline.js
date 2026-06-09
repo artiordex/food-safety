@@ -11,6 +11,18 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
+const CACHE_FILE  = path.join(__dirname, 'crawl_cache.json');
+const SAMPLES_DIR = path.join(__dirname, 'samples');
+const OUTPUT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
+
+const {
+  analyze,
+  buildEntropyMap,
+  parseSampleJson,
+} = require('../db/analyze_pk_fk.js');
+
+const { buildExcel } = require('./excel_reporter.js');
+
 // JSON 샘플을 로드하여 recordsMap 생성
 function loadSamples(datasets, samplesDir) {
   const recordsMap = new Map();
@@ -177,6 +189,15 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     }
   } catch (err) {
     logger.warn('db/chain_joins.sql 로딩 실패');
+  }
+
+  try {
+    const joinSqlPath = path.join(__dirname, '../db/join.sql');
+    if (fs.existsSync(joinSqlPath)) {
+      extraData.joinSqlText = fs.readFileSync(joinSqlPath, 'utf8');
+    }
+  } catch (err) {
+    logger.warn('db/join.sql 로딩 실패');
   }
 
   logger.info('STEP 6: 엑셀 파일 생성 중...');

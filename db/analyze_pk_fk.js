@@ -37,6 +37,12 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
+const Fuse            = require('fuse.js');
+const aq              = require('arquero');
+const ss              = require('simple-statistics');
+const strSim          = require('string-similarity');
+const { DirectedGraph } = require('graphology');
+
 function log(level, msg) {
     if (level === 'ERR') return logger.error(msg);
     if (level === 'WARN') return logger.warn(msg);
@@ -60,7 +66,6 @@ const MAX_COMPOSITE_KEY_SIZE = 2;
 // 사용자 요청 반영: 조인이 되는(1건이라도 포함되는) 경우만 매핑하도록 기준 변경
 const FK_MIN_INCLUSION_RATIO = 0.0001;     // 조인되는 값이 1개라도 있으면 확정 FK 후보
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
-// ─────────────────────────────────────────────────────────────────────────
 const FK_ALLOW_UNCHECKED = false;          // 샘플 부족 미검증 FK는 제거 (데이터가 있는 녀석만)
 const FK_MAX_PER_FROM_FIELD = 5;           // 동일 From Table.Field 기준 최대 후보 수
 

@@ -40,85 +40,6 @@ const KEY_COLORS = {
   'ITEM_REPORT_NO': '#22c55e'
 };
 
-// 지능형 더미 데이터 생성기 (50개행)
-function generateMockRows(cols, count = 50) {
-  const rows = [];
-  for (let i = 0; i < count; i++) {
-    const row = {};
-    cols.forEach(c => {
-      const field = c.name || c.field;
-      const type = String(c.type || 'VARCHAR').toUpperCase();
-      const kor = c.kor || c.kor_nm || '';
-
-      if (field === 'LCNS_NO') {
-        row[field] = `1882030800${i + 1}`;
-      } else if (field === 'PRDLST_REPORT_NO') {
-        row[field] = `2015002010${i + 1}`;
-      } else if (field === 'BAR_CD' || field === 'BARCODE_NO') {
-        row[field] = `880123456789${i}`;
-      } else if (field === 'BSSH_NO') {
-        row[field] = `201802100${i + 1}`;
-      } else if (field === 'REG_DT' || field === 'PRMS_DT' || field === 'CHG_DT') {
-        row[field] = `2026-06-0${i + 1}`;
-      } else if (type.includes('INT') || type.includes('NUM') || type.includes('DEC') || type.includes('REAL')) {
-        row[field] = Math.floor(Math.random() * 500) + 1;
-      } else {
-        row[field] = `${kor || field} 샘플값 ${i + 1}`;
-      }
-    });
-    rows.push(row);
-  }
-  return rows;
-}
-
-// 두 테이블 간 조인 더미 데이터 시뮬레이터 (50개행)
-function generateMockJoinRows(fromT, toT, key, schemaList, count = 50) {
-  const fromMeta = schemaList.find(s => s.table === fromT);
-  const toMeta = schemaList.find(s => s.table === toT);
-  
-  const fromCols = fromMeta ? (fromMeta.columns || []) : [{ name: key, type: 'VARCHAR', kor: '식별키' }];
-  const toCols = toMeta ? (toMeta.columns || []) : [{ name: key, type: 'VARCHAR', kor: '식별키' }];
-
-  const fromColsCopy = [...fromCols];
-  const toColsCopy = [...toCols];
-
-  if (!fromColsCopy.find(c => (c.name || c.field) === key)) {
-    fromColsCopy.push({ name: key, type: 'VARCHAR', kor: '식별키' });
-  }
-  if (!toColsCopy.find(c => (c.name || c.field) === key)) {
-    toColsCopy.push({ name: key, type: 'VARCHAR', kor: '식별키' });
-  }
-
-  const fromRows = generateMockRows(fromColsCopy, count);
-  const toRows = generateMockRows(toColsCopy, count);
-
-  const joined = [];
-  for (let i = 0; i < count; i++) {
-    const fRow = { ...fromRows[i] };
-    const tRow = { ...toRows[i] };
-
-    const commonVal = key === 'LCNS_NO' ? `1882030800${i + 1}` :
-                      key === 'PRDLST_REPORT_NO' ? `2015002010${i + 1}` :
-                      key === 'BAR_CD' ? `880123456789${i}` :
-                      key === 'BSSH_NO' ? `201802100${i + 1}` : `MOCK_KEY_${i + 1}`;
-
-    fRow[key] = commonVal;
-    tRow[key] = commonVal;
-
-    const merged = { ...fRow };
-    Object.keys(tRow).forEach(k => {
-      if (k === key) {
-        merged[k] = tRow[k];
-      } else {
-        const targetKey = merged[k] !== undefined ? `${toT}_${k}` : k;
-        merged[targetKey] = tRow[k];
-      }
-    });
-    joined.push(merged);
-  }
-  return joined;
-}
-
 // CDN을 이용해 D3.js 동적 주입 헬퍼
 function loadD3(callback) {
   if (window.d3) {
@@ -376,7 +297,7 @@ export function renderDbErdMap(container) {
       // 카테고리별로 초기 위치를 약간 다른 그룹 영역에 뿌려주어 물리 뭉침이 원활해지도록 분산
       const catIdx = categories.indexOf(t.category || '기타');
       const angle = (catIdx / categories.length) * 2 * Math.PI;
-      const radius = 300 + Math.random() * 100;
+      const radius = 600 + Math.random() * 800;
       
       return {
         id: t.table,
@@ -446,15 +367,27 @@ export function renderDbErdMap(container) {
     // 초기 줌: 전체 170개 노드 집합이 짤리지 않고 다 보일 수 있도록 0.15배 줌아웃 상태로 시작
     svg.call(zoomBehavior.transform, d3.zoomIdentity.translate(width * 0.42, height * 0.42).scale(0.12));
 
-    // 4. Force 물리 시뮬레이션 설정
+    // 4. Force 물리 시뮬레이션 설정 (사전 연산으로 겹침 방지 최적화)
     simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id(d => d.id).distance(240).strength(0.3))
-      .force('charge', d3.forceManyBody().strength(-1200).distanceMax(1000))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(150)) // 테이블 카드 충돌 반경 확보 (230xH)
-      .on('tick', ticked);
+      .force('charge', d3.forceManyBody().strength(-2000).distanceMax(2000))
+      .force('center', d3.forceCenter(width / 2, height / 2).strength(0.05))
+      .force('collision', d3.forceCollide().radius(180)); // 테이블 카드 충돌 반경 여유 있게 확보
 
+    // 화면에 겹쳐서 그려지는 현상을 없애기 위해 물리 엔진을 백그라운드에서 400틱 강제 사전 연산
+    simulation.stop();
+    for (let i = 0; i < 400; i++) {
+      simulation.alpha(0.1);
+      simulation.tick();
+    }
+
+    // 요소들을 먼저 DOM에 생성 (이 시점엔 좌표가 적용되지 않음)
     updateView();
+    // 생성된 DOM에 사전 연산된 완벽한 x,y 좌표 일괄 적용
+    ticked();
+    
+    // 이후 상호작용(드래그 등)을 위한 틱 핸들러 등록
+    simulation.on('tick', ticked);
   }
 
   // 매 틱마다 위치 업데이트
@@ -998,17 +931,19 @@ export function renderDbErdMap(container) {
     })
       .then(res => res.json())
       .then(rows => {
+        if (rows && rows.error) {
+          joinDataWrapper.innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444;font-size:11px;">조인 쿼리 오류: ${rows.error}</div>`;
+          return;
+        }
         if (!rows || rows.length === 0) {
-          const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, schema, 50);
-          renderJoinRows(mockJoinData, true);
+          joinDataWrapper.innerHTML = `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:11px;">매칭 데이터가 없습니다. (두 테이블 간 공통 값 없음)</div>`;
           return;
         }
         renderJoinRows(rows, false);
       })
       .catch(err => {
-        console.warn("로컬 ERD 조인 쿼리 실패, 더미 결합 데이터로 폴백:", err);
-        const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, schema, 50);
-        renderJoinRows(mockJoinData, true);
+        console.warn("로컬 ERD 조인 쿼리 실패:", err);
+        joinDataWrapper.innerHTML = `<div style="padding:24px;text-align:center;color:#94a3b8;font-size:11px;">서버에 연결할 수 없습니다.</div>`;
       });
   }
 

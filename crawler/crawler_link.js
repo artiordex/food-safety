@@ -5,40 +5,19 @@
  * 1. 공공데이터포털 식품영양성분 API 호출
  * 2. 수집한 데이터의 메타데이터를 crawl_cache.json에 저장
  * 3. 샘플 데이터를 crawler/samples/1471000.json에 저장
- * 4. SQLite foodsafety.db에 1471000 테이블 생성 및 데이터 적재
  */
-
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const logger = require('../utils/logger');
 
-// SQLite DB Promise 헬퍼
-function dbRun(db, sql, params = []) {
-  return new Promise((resolve, reject) =>
-    db.run(sql, params, err => (err ? reject(err) : resolve()))
-  );
-}
-function dbFinalize(stmt) {
-  return new Promise((resolve, reject) =>
-    stmt.finalize(err => (err ? reject(err) : resolve()))
-  );
-}
-function dbClose(db) {
-  return new Promise((resolve, reject) =>
-    db.close(err => (err ? reject(err) : resolve()))
-  );
-}
-
-const DB_PATH    = path.join(__dirname, '../db', 'foodsafety.db');
 const CACHE_PATH = path.join(__dirname, 'crawl_cache.json');
 const SAMPLE_DIR = path.join(__dirname, 'samples');
-const API_URL    = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02?serviceKey=edacbf8d03ba77b54a1e5c7d9f1149b47582fc23fc9b1e038776fc5b896e143d&pageNo=1&numOfRows=500&type=json';
+const API_URL = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02?serviceKey=edacbf8d03ba77b54a1e5c7d9f1149b47582fc23fc9b1e038776fc5b896e143d&pageNo=1&numOfRows=500&type=json';
 
 async function main() {
   logger.info('식품영양성분 API 데이터 수집을 시작합니다.');
 
-  // ── 1. API 호출 ────────────────────────────────────────────────────────────
+  // 1. API 호출
   const res = await fetch(API_URL);
   if (!res.ok) throw new Error(`API 응답 오류: HTTP ${res.status}`);
   const data = await res.json();
@@ -50,7 +29,7 @@ async function main() {
   }
   logger.info({ count: items.length }, 'API 데이터 수집 완료');
 
-  // ── 2. crawl_cache.json 갱신 ──────────────────────────────────────────────
+  // 2. crawl_cache.json 갱신
   let cache = [];
   if (fs.existsSync(CACHE_PATH)) {
     try {
@@ -78,12 +57,12 @@ async function main() {
 
   const idx = cache.findIndex(d => d.svc_no === '1471000');
   if (idx >= 0) { cache[idx] = metaData; logger.info('기존 메타데이터 갱신'); }
-  else          { cache.push(metaData);  logger.info('신규 메타데이터 추가'); }
+  else { cache.push(metaData); logger.info('신규 메타데이터 추가'); }
 
   fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2), 'utf-8');
   logger.info('crawl_cache.json 저장 완료');
 
-  // ── 3. 샘플 데이터 저장 ───────────────────────────────────────────────────
+  // 3. 샘플 데이터 저장
   if (!fs.existsSync(SAMPLE_DIR)) fs.mkdirSync(SAMPLE_DIR, { recursive: true });
   fs.writeFileSync(
     path.join(SAMPLE_DIR, '1471000.json'),
@@ -91,44 +70,6 @@ async function main() {
   );
   logger.info('샘플 데이터 저장 완료 (1471000.json)');
 
-  // ── 4. SQLite 적재 ────────────────────────────────────────────────────────
-  const db = await new Promise((resolve, reject) => {
-    const conn = new sqlite3.Database(DB_PATH, err =>
-      err ? reject(err) : resolve(conn)
-    );
-  });
-  logger.info('SQLite DB 연결 완료');
-
-  try {
-    const columns   = Object.keys(items[0]);
-    const colDefs   = columns.map(c => `"${c}" TEXT`).join(', ');
-    const colNames  = columns.map(c => `"${c}"`).join(', ');
-    const holders   = columns.map(() => '?').join(', ');
-
-    await dbRun(db, `DROP TABLE IF EXISTS "1471000"`);
-    await dbRun(db, `CREATE TABLE "1471000" (${colDefs})`);
-    logger.info('1471000 테이블 재생성 완료');
-
-    const stmt = db.prepare(`INSERT INTO "1471000" (${colNames}) VALUES (${holders})`);
-    let inserted = 0, failed = 0;
-
-    await new Promise((resolve, reject) => {
-      db.parallelize(() => {
-        for (const item of items) {
-          const vals = columns.map(c =>
-            typeof item[c] === 'object' ? JSON.stringify(item[c]) : (item[c] ?? null)
-          );
-          stmt.run(vals, err => { err ? failed++ : inserted++; });
-        }
-      });
-      stmt.finalize(err => err ? reject(err) : resolve());
-    });
-
-    logger.info({ inserted, failed }, '1471000 데이터 적재 완료');
-  } finally {
-    await dbClose(db);
-    logger.info('SQLite DB 연결 종료');
-  }
 }
 
 main().catch(err => {

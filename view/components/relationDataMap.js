@@ -334,105 +334,7 @@ export function renderRelationDataMap(container, onSelectDataset) {
     }
   };
 
-  // 컬럼 명세 기반 지능형 더미 데이터 생성기 (5개행 분량)
-  const generateMockRows = (cols, count = 5) => {
-    const rows = [];
-    const bsshNames = ["식약처푸드(주)", "진이네종합식품", "글로벌웰빙푸드", "우리어묵유통", "태백산맥식음료"];
-    const prdlstNames = ["맛있는 초코칩 쿠키", "유기농 딸기잼", "신선한 우유 1000ml", "바삭한 갈릭새우칩", "아침에 마시는 유기농 감귤주스"];
-    const rawNames = ["정제수", "백설탕", "밀가루(밀:미국산)", "대두유", "합성향료(바닐라향)", "비타민C", "정제소금"];
-    const addrList = [
-      "서울특별시 강남구 테헤란로 152 (역삼동)",
-      "경기도 화성시 동탄중앙로 22 (반송동)",
-      "부산광역시 해운대구 우동 1405",
-      "인천광역시 서구 검단로 84-2",
-      "충청북도 청주시 흥덕구 오송읍 오송생명5로 12"
-    ];
-    const cityList = ["서울", "화성", "부산", "인천", "청주"];
-    
-    for (let i = 0; i < count; i++) {
-      const row = {};
-      cols.forEach(c => {
-        const field = c.field || c.name || "";
-        const type = (c.sql_type || c.type || "VARCHAR").toUpperCase();
-        const kor = c.kor_nm || c.name || "";
-        
-        if (field === 'LCNS_NO') {
-          row[field] = `1882030800${i + 1}`;
-        } else if (field === 'PRDLST_REPORT_NO') {
-          row[field] = `2015002010${i + 1}`;
-        } else if (field === 'BAR_CD' || field === 'BARCODE_NO') {
-          row[field] = `880123456789${i}`;
-        } else if (field === 'BSSH_NO') {
-          row[field] = `201802100${i + 1}`;
-        } else if (field.includes('BSSH') || kor.includes('업소') || kor.includes('제조사')) {
-          row[field] = bsshNames[i % bsshNames.length];
-        } else if (field.includes('PRDLST') || kor.includes('제품') || kor.includes('품목')) {
-          row[field] = prdlstNames[i % prdlstNames.length];
-        } else if (field.includes('RAWMTRL') || kor.includes('원재료') || kor.includes('성분')) {
-          row[field] = rawNames[i % rawNames.length];
-        } else if (field.includes('ADDR') || kor.includes('주소') || kor.includes('소재지')) {
-          row[field] = addrList[i % addrList.length];
-        } else if (field.includes('TEL') || kor.includes('전화') || kor.includes('연락처')) {
-          row[field] = `02-1234-567${i + 1}`;
-        } else if (field.includes('CITY') || kor.includes('시도') || kor.includes('시군구')) {
-          row[field] = cityList[i % cityList.length];
-        } else if (field.includes('DT') || field.includes('DATE') || type.includes('DATE') || type.includes('TIME')) {
-          row[field] = `2026-06-0${i + 1}`;
-        } else if (type.includes('INT') || type.includes('NUM') || type.includes('DEC') || type.includes('REAL')) {
-          row[field] = Math.floor(Math.random() * 500) + 1;
-        } else {
-          row[field] = `${kor || field} 샘플값 ${i + 1}`;
-        }
-      });
-      rows.push(row);
-    }
-    return rows;
-  };
 
-  // 두 테이블의 스키마 및 공통키를 결합한 지능형 융합 더미 데이터 생성기 (50개행 분량)
-  const generateMockJoinRows = (fromT, toT, key, count = 50) => {
-    const fromCols = allColumnsMap[fromT] || [{ field: key, type: 'VARCHAR', kor_nm: '식별키' }];
-    const toCols = allColumnsMap[toT] || [{ field: key, type: 'VARCHAR', kor_nm: '식별키' }];
-
-    // key가 각 컬럼 목록에 없는 경우 강제 보강
-    if (!fromCols.find(c => (c.field || c.name) === key)) {
-      fromCols.push({ field: key, type: 'VARCHAR', kor_nm: '식별키' });
-    }
-    if (!toCols.find(c => (c.field || c.name) === key)) {
-      toCols.push({ field: key, type: 'VARCHAR', kor_nm: '식별키' });
-    }
-
-    const fromRows = generateMockRows(fromCols, count);
-    const toRows = generateMockRows(toCols, count);
-
-    const joined = [];
-    for (let i = 0; i < count; i++) {
-      const fRow = { ...fromRows[i] };
-      const tRow = { ...toRows[i] };
-
-      // 조인 식별 키의 고유 공유값 맞춤화
-      const commonVal = key === 'LCNS_NO' ? `1882030800${i + 1}` :
-                        key === 'PRDLST_REPORT_NO' ? `2015002010${i + 1}` :
-                        key === 'BAR_CD' ? `880123456789${i}` :
-                        key === 'BSSH_NO' ? `201802100${i + 1}` : `MOCK_KEY_${i + 1}`;
-
-      fRow[key] = commonVal;
-      tRow[key] = commonVal;
-
-      const merged = { ...fRow };
-      Object.keys(tRow).forEach(k => {
-        if (k === key) {
-          merged[k] = tRow[k];
-        } else {
-          // 컬럼명 충돌 시 접두사 추가
-          const targetKey = merged[k] !== undefined ? `${toT}_${k}` : k;
-          merged[targetKey] = tRow[k];
-        }
-      });
-      joined.push(merged);
-    }
-    return joined;
-  };
 
   // 좌측 체크 필터 변수
   let selectedDomains = {
@@ -883,17 +785,17 @@ export function renderRelationDataMap(container, onSelectDataset) {
       physics: {
         enabled: activePhysics,
         barnesHut: {
-          gravitationalConstant: -3000,
-          centralGravity: 0.3,
-          springLength: 120,
+          gravitationalConstant: -4000,
+          centralGravity: 0.1,
+          springLength: 180,
           springConstant: 0.04,
           damping: 0.09,
-          avoidOverlap: 0.6
+          avoidOverlap: 1.0
         },
         stabilization: {
           enabled: true,
-          iterations: 120,
-          updateInterval: 25
+          iterations: 500,
+          updateInterval: 50
         }
       }
     };
@@ -1404,18 +1306,24 @@ export function renderRelationDataMap(container, onSelectDataset) {
     })
       .then(res => res.json())
       .then(rows => {
-        if (!rows || rows.length === 0) {
-          // [폴백] 매칭된 실데이터가 없으면 지능형 결합 더미 생성
-          const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, 50);
-          renderJoinRows(mockJoinData, true);
+        if (!rows || rows.length === 0 || rows.error) {
+          if (networkInstance && networkInstance.body && networkInstance.body.data && networkInstance.body.data.edges) {
+            // 해당 데이터가 존재하지 않으면 연결을 조용히 없앰
+            const edgesDS = networkInstance.body.data.edges;
+            const edgesToRemove = edgesDS.get().filter(e => 
+              (e.from === fromTable && e.to === toTable) || 
+              (e.from === toTable && e.to === fromTable)
+            );
+            edgesToRemove.forEach(e => edgesDS.remove(e.id));
+          }
+          hideTableDetail();
           return;
         }
         renderJoinRows(rows, false);
       })
       .catch(err => {
-        console.warn("공통키 결합 데이터 쿼리 실패, 폴백 시뮬레이션 생성:", err);
-        const mockJoinData = generateMockJoinRows(fromTable, toTable, fromKey, 50);
-        renderJoinRows(mockJoinData, true);
+        console.warn("공통키 결합 데이터 쿼리 실패:", err);
+        renderJoinRows([], false);
       });
   };
 

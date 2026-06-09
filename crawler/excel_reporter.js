@@ -24,6 +24,7 @@ const SHEET_NAMES = {
   CROSS: '키x데이터셋 맵',
   SCENARIOS: '결합 시나리오',
   ARQUERO: 'Arquero 상세 분석',
+  JOIN_SQL: 'SQLite 직접 조인 검증 (SQL)',
   CHAIN_SQL: 'SQLite 체인 조인 (SQL)',
   RAW: '출력항목 원본',
 };
@@ -61,6 +62,7 @@ const TAB_COLORS = {
   [SHEET_NAMES.CROSS]: '2F5496',
   [SHEET_NAMES.SCENARIOS]: '7030A0',
   [SHEET_NAMES.ARQUERO]: 'A569BD',
+  [SHEET_NAMES.JOIN_SQL]: '1A7D44',
   [SHEET_NAMES.CHAIN_SQL]: 'F39C12',
   [SHEET_NAMES.RAW]: 'C55A11',
 };
@@ -107,6 +109,16 @@ function validateInputs(datasets, ka, scenarios, outputPath) {
 
   if (!ka || typeof ka !== 'object') {
     throw new Error('ka(공통키 분석 결과) 객체가 유효하지 않습니다.');
+  }
+}
+
+function validateExtraData(extraData) {
+  if (!extraData || typeof extraData !== 'object') return;
+  if (extraData.joinSqlText !== undefined && typeof extraData.joinSqlText !== 'string') {
+    throw new Error('extraData.joinSqlText는 string이어야 합니다.');
+  }
+  if (extraData.chainJoinsText !== undefined && typeof extraData.chainJoinsText !== 'string') {
+    throw new Error('extraData.chainJoinsText는 string이어야 합니다.');
   }
 }
 
@@ -325,11 +337,15 @@ function shCover(ws, datasets, ka, scenarios) {
   ws.getRow(12).height = 24;
 
   const steps = [
-    ['STEP 1', '목록 크롤링', 'searchDatasetList.do AJAX POST → 전체 Open API 및 FILE 데이터셋 목록 수집'],
-    ['STEP 2', '상세 크롤링', '각 데이터셋 상세 페이지 → 출력항목 탭(#view-item) table 및 4단 구성 전략 파싱'],
-    ['STEP 3', '공통키 식별', `전체 필드 출현 빈도 집계 → 임계값(${ka.threshold || '5% or 3건'}) 이상 필드를 공통키로 자동 분류`],
-    ['STEP 4', '결합 시나리오', '데이터셋 쌍별 공유 공통키 분석 → 키 신뢰도 가중치 기반 점수 산출 → 상위 시나리오 도출'],
-    ['STEP 5', '엑셀 보고서', '6개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·출력항목원본'],
+    ['STEP 1', '목록 크롤링',        'crawler_api.js: searchDatasetList.do AJAX POST → 전체 Open API 데이터셋 목록 수집'],
+    ['STEP 2', '링크 수집',          'crawler_link.js: 각 데이터셋 링크 캐시 업데이트 및 SQLite 적재'],
+    ['STEP 3', '상세 크롤링',        'crawler_api.js: 출력항목 탭 파싱 → 필드·한글명·타입·샘플 수집'],
+    ['STEP 4', '샘플 업데이트',      'update_samples.js: Open API 호출 → 최대 1000건 샘플 JSON 저장'],
+    ['STEP 5', 'SQLite 적재',        'import_to_sqlite.js: 샘플 데이터를 테이블별 SQLite DB 적재'],
+    ['STEP 6', 'PK/FK 분석',         'analyze_pk_fk.js: 엔트로피·포함률·Fuse.js 기반 PK/FK 후보 자동 도출'],
+    ['STEP 7', '조인 검증',          'verify_joins.js: 실제 SQLite INNER JOIN 검증 → join.sql · chain_joins.sql 생성'],
+    ['STEP 8', '시각화 분석 (선택)', 'analyze_scenario.js: Arquero 기반 복합 FK 탐지 및 시나리오 분석'],
+    ['STEP 9', '엑셀 보고서',        `excel_reporter.js: ${Object.keys(SHEET_NAMES).length}개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·Arquero·직접조인·체인조인·출력항목원본`],
   ];
 
   steps.forEach(([step, title, desc], idx) => {
@@ -368,6 +384,7 @@ function shCover(ws, datasets, ka, scenarios) {
     [SHEET_NAMES.CROSS, `공통키 × 데이터셋 크로스 매핑 (표시값: Y, 상위 ${MAX_CROSS_KEYS}개)`],
     [SHEET_NAMES.SCENARIOS, '점수순 결합 시나리오 + JOIN 유형 + SQL 힌트'],
     [SHEET_NAMES.ARQUERO, 'Arquero 기반 값 겹침(Overlap) 통계 기반 시나리오 상세 분석'],
+    [SHEET_NAMES.JOIN_SQL, '실제 INNER JOIN 성공 관계 SQL 목록 (일치율·매칭건수·신뢰도 포함)'],
     [SHEET_NAMES.CHAIN_SQL, '실데이터 기반 N차 체인 조인 (SQLite 검증 완료)'],
     [SHEET_NAMES.RAW, '데이터셋별 크롤링된 출력항목 RAW 데이터 전체'],
   ];
@@ -700,11 +717,35 @@ function shArquero(ws, arqueroScenarios) {
 }
 
 // ═════════════════════════════════════════════════════════════
+// 시트 7: SQLite 직접 조인 검증 쿼리
+// ═════════════════════════════════════════════════════════════
+function shJoinSql(ws, joinSqlText) {
+  setWorksheetCommon(ws, SHEET_NAMES.JOIN_SQL, [{ showGridLines: false }]);
+  setColWidths(ws, [120]);
+
+  renderHeader(ws, 1, ['직접 JOIN 검증 SQL (실제 매칭 확인된 관계만 포함)'], '1A7D44');
+
+  if (!joinSqlText) {
+    renderEmptyNotice(ws, 'join.sql 파일 데이터가 없습니다.', 'A2:A2');
+    return;
+  }
+
+  const lines = joinSqlText.split('\n');
+  lines.forEach((line, idx) => {
+    const r = idx + 2;
+    const bg = line.startsWith('--') ? 'F0F4F8' : 'FFFFFF';
+    const fg = line.startsWith('--') ? '64748B' : '1E293B';
+    const bold = line.startsWith('-- ===') || line.startsWith('-- ---');
+    ws.getRow(r).height = 14;
+    formatCell(ws.getCell(r, 1), { val: line, bg, fg, bold, sz: 8, ha: 'left', wrap: false, border: false });
+  });
+}
+
 // 시트 8: SQLite 체인 조인 쿼리 (추가 데이터)
 // ═════════════════════════════════════════════════════════════
 function shChainJoins(ws, chainJoinsText) {
   setWorksheetCommon(ws, SHEET_NAMES.CHAIN_SQL, [{ showGridLines: false }]);
-  setColWidths(ws, [100]);
+  setColWidths(ws, [120]);
 
   renderHeader(ws, 1, ['체인 조인 SQL 원문 (N차 연결 결과)'], 'F39C12');
 
@@ -713,11 +754,15 @@ function shChainJoins(ws, chainJoinsText) {
     return;
   }
 
-  // 텍스트를 줄바꿈 기준으로 적절히 넣거나, 셀 1개에 통째로 넣기
-  ws.getRow(2).height = 600;
-  writeRow(ws, 2, [
-    { v: chainJoinsText, ha: 'left', wrap: true, sz: 8, bgOv: 'F2F3F4' }
-  ]);
+  const lines = chainJoinsText.split('\n');
+  lines.forEach((line, idx) => {
+    const r = idx + 2;
+    const bg = line.startsWith('--') ? 'FFF8EE' : 'FFFFFF';
+    const fg = line.startsWith('--') ? '92400E' : '1E293B';
+    const bold = line.startsWith('-- ===') || line.startsWith('-- ---');
+    ws.getRow(r).height = 14;
+    formatCell(ws.getCell(r, 1), { val: line, bg, fg, bold, sz: 8, ha: 'left', wrap: false, border: false });
+  });
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -746,6 +791,9 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   if (extraData.arqueroScenarios) {
     shArquero(workbook.addWorksheet(SHEET_NAMES.ARQUERO), extraData.arqueroScenarios);
   }
+  if (extraData.joinSqlText) {
+    shJoinSql(workbook.addWorksheet(SHEET_NAMES.JOIN_SQL), extraData.joinSqlText);
+  }
   if (extraData.chainJoinsText) {
     shChainJoins(workbook.addWorksheet(SHEET_NAMES.CHAIN_SQL), extraData.chainJoinsText);
   }
@@ -764,9 +812,10 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
  * @param {string} outputPath - 생성할 엑셀 파일 경로
  */
 async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
-  log.info('STEP 5: 엑셀 보고서 생성 시작');
+  log.info('STEP 9: 엑셀 보고서 생성 시작');
 
   validateInputs(datasets, ka, scenarios, outputPath);
+  validateExtraData(extraData);
 
   const safeDatasets = toArray(datasets);
   const safeKa = normalizeKeyAnalysis(ka);
@@ -781,7 +830,7 @@ async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   addSheets(workbook, safeDatasets, safeKa, safeScenarios, extraData);
 
   await workbook.xlsx.writeFile(outputPath);
-  log.info(`STEP 5 완료: ${outputPath}`);
+  log.info({ outputPath, sheets: workbook.worksheets.length }, `STEP 9 완료`);
 }
 
 module.exports = {
@@ -801,37 +850,13 @@ module.exports = {
 // 단독 실행 (Standalone) 모드
 // ═════════════════════════════════════════════════════════════
 if (require.main === module) {
-  const fs = require('fs');
-  const path = require('path');
-  const { identifyCommonKeys, deriveScenarios } = require('./crawler_api.js');
+  // pipeline.js가 캐시 로드, PK/FK 분석, ka/시나리오 구성, 엑셀 빌드를 모두 수행한다.
+  const { runAnalysis } = require('./pipeline.js');
 
-  const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
-  const EXCEL_FILE = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
-
-  if (!fs.existsSync(CACHE_FILE)) {
-    log.error(`캐시 파일을 찾을 수 없습니다: ${CACHE_FILE}`);
-    process.exit(1);
-  }
-
-  try {
-    const datasets = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
-    if (!Array.isArray(datasets) || datasets.length === 0) {
-      log.warn('캐시 데이터가 비어 있습니다.');
-      process.exit(0);
-    }
-    log.info(`캐시 데이터 ${datasets.length}건 로드 완료`);
-
-    const commonKeys = identifyCommonKeys(datasets);
-    const scenarios = deriveScenarios(datasets, commonKeys);
-
-    buildExcel(datasets, commonKeys, scenarios, EXCEL_FILE)
-      .then(() => {
-        log.info('엑셀 보고서 독립 생성이 완료되었습니다.');
-      })
-      .catch(err => {
-        log.error(`엑셀 생성 중 에러 발생: ${err.message}`);
-      });
-  } catch (e) {
-    log.error(`캐시 파싱 오류: ${e.message}`);
-  }
+  runAnalysis()
+    .then(() => log.info('엑셀 보고서 독립 생성이 완료되었습니다.'))
+    .catch(err => {
+      log.error({ err }, '엑셀 독립 생성 오류');
+      process.exit(1);
+    });
 }

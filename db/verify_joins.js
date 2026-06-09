@@ -18,7 +18,106 @@ const fs = require('fs');
 // 파일 및 디렉터리 경로 처리를 위한 path 모듈 불러오기
 const path = require('path');
 
-// console 대신 사용할 pino logger 불러오기
+
+
+// pipeline.js에서 공통키 식별 함수를 불러오는 대신 자체 함수를 사용
+// const { identifyCommonKeys } = require('../crawler/pipeline');
+
+// 자체 공통키 식별 함수 (3개 이상 데이터셋에서 등장한 필드 추출)
+function identifyCommonKeys(datasets) {
+    const fieldFreq = {};
+    for (const ds of datasets) {
+        for (const f of ds.fields || []) {
+            const fieldName = (f.field || '').trim().toUpperCase();
+            if (fieldName) fieldFreq[fieldName] = (fieldFreq[fieldName] || 0) + 1;
+        }
+    }
+    return {
+        common_keys: Object.keys(fieldFreq).filter(k => fieldFreq[k] >= 3)
+    };
+}
+
+// 현재 스크립트 기준 DB 디렉터리 경로 설정
+const DB_DIR = __dirname;
+
+// SQLite DB 파일 경로
+const DB_PATH = path.join(DB_DIR, 'foodsafety.db');
+
+// FK/PK 후보 분석 결과 JSON 파일 경로
+const CANDIDATES_PATH = path.join(DB_DIR, 'foodsafety_key_candidates.json');
+
+// 크롤링 메타데이터 캐시 파일 경로
+const CACHE_PATH = path.join(__dirname, '../crawler/crawl_cache.json');
+
+// 직접 JOIN 검증 SQL 출력 파일 경로
+const JOIN_SQL_PATH = path.join(DB_DIR, 'join.sql');
+
+// N차 체인 JOIN 출력 파일 경로
+const CHAIN_JOIN_SQL_PATH = path.join(DB_DIR, 'chain_joins.sql');
+
+// 체인 조인 최소 길이
+const MIN_CHAIN_LENGTH = 3;
+
+// 체인 조인 최대 길이 (성능을 위해 4차 체인으로 제한)
+const MAX_CHAIN_LENGTH = 4;
+
+// SQL 별칭으로 사용할 문자 목록
+const TABLE_ALIASES = 'ABCDEFGH'.split('');
+
+// 실제 조인 후보로 인정할 주요 컬럼 목록 (main()에서 동적으로 설정됨)
+let VALID_JOIN_KEYS = new Set();
+
+// 자체 identifyCommonKeys 결과로 VALID_JOIN_KEYS를 동적 생성하는 함수
+// 날짜·명칭·주소 등 약한 키 패턴은 조인 후보에서 제외함
+function buildValidJoinKeys(datasets) {
+    const ka = identifyCommonKeys(datasets);
+
+    const isWeak = (f) =>
+        /_NM$/i.test(f)      ||  // 명칭류
+        /_NAME$/i.test(f)    ||
+        /_CD_NM$/i.test(f)   ||
+        /ADDR$/i.test(f)     ||  // 주소류
+        /TEL/i.test(f)       ||  // 전화·팩스류
+        /FAX/i.test(f)       ||
+        /_DT$/i.test(f)      ||  // 날짜류
+        /DTM$/i.test(f)      ||
+        /DATE$/i.test(f)     ||
+        /_CN$/i.test(f)      ||  // 내용류
+        /_DESC$/i.test(f)    ||
+        /_CONT$/i.test(f)    ||
+        /_MEMO$/i.test(f);
+
+    let keys = ka.common_keys.filter(k => !isWeak(k));
+
+    // 강제로 보장할 필수 조인 키 (사용자 요청)
+    const MUST_HAVE_KEYS = [
+        'LCNS_NO',
+        'PRDLST_REPORT_NO',
+        'TESTITM_CD',
+        'CMMN_SPEC_CD',
+        'PRDLST_CD',
+        'HF_FNCLTY_MTRAL_RCOGN_NO',
+        'BAR_CD',
+        'DSPS_STDR_CD',
+        'ITEM_REPORT_NO'
+    ];
+    
+    MUST_HAVE_KEYS.forEach(k => {
+        if (!keys.includes(k)) {
+            keys.push(k);
+        }
+    });
+
+    logger.info({
+        totalCommonKeys: ka.common_keys.length,
+        validJoinKeys: keys.length,
+        keys
+    }, 'pipeline.js 분석 결과로 조인 후보 키를 동적 생성했습니다.');
+
+    return new Set(keys);
+}
+
+// pino logger 설정 제거 및 공통 logger 모듈 사용
 const logger = require('../utils/logger');
 
 // SQLite DB 파일 존재 여부 확인
