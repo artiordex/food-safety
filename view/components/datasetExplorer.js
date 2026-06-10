@@ -1,156 +1,336 @@
 export function renderDatasetExplorer(container, onSelectDataset) {
-  // Styles based on the user's HTML structure
-  const styleStr = `
-    <style>
-      .site_cnt { display: flex; max-width: 1200px; margin: 0 auto; gap: 10px; font-family: 'Nanum Gothic', sans-serif; }
-      .fl { float: left; }
-      .w_317 { width: 317px; }
-      .w_850 { width: 850px; flex: 1; }
-      .box { border: 1px solid #ccc; background: #fff; min-height: 600px; }
-      .h05 { background: #0099d8; color: #fff; padding: 12px; margin: 0; font-size: 16px; text-align: center; font-weight: bold; }
-      
-      #layerTree { padding: 15px; }
-      #layerTree ul { list-style: none; padding-left: 15px; margin: 5px 0; }
-      #layerTree > ul { padding-left: 0; }
-      #layerTree li { margin: 3px 0; position: relative; }
-      #layerTree li > a { text-decoration: none; color: #333; font-size: 14px; padding: 2px 5px; display: inline-block; }
-      #layerTree li > a:hover { background-color: #e1f5fe; }
-      #layerTree li.active > a { background-color: #0099d8; color: #fff; font-weight: bold; border-radius: 3px; }
-      
-      /* Folder Icons */
-      #layerTree li > a::before {
-        content: "\\EA4A"; /* Remix Icon folder */
-        font-family: "remixicon";
-        margin-right: 6px;
-        color: #f6c358;
-      }
-      
-      .struct_tb { width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; }
-      .struct_tb caption { display: none; }
-      .struct_tb th { padding: 12px 10px; background: #f4f4f4; border-bottom: 1px solid #ccc; font-weight: bold; }
-      .struct_tb td { padding: 12px 10px; border-bottom: 1px solid #eee; color: #555; }
-      .struct_tb td a { color: #0066cc; text-decoration: none; }
-      .struct_tb td a:hover { text-decoration: underline; }
-      
-      /* 상단 검색 영역 */
-      .search_area { max-width: 1200px; margin: 0 auto 15px auto; padding: 15px 20px; background: #f8f9fa; border: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }
-    </style>
-  `;
+  // ── 상태 ──────────────────────────────────────────────────────────────────
+  let allData      = [];          // 전체 데이터 (로드 후 고정)
+  let selectedCat  = '';          // 분류별 셀렉트
+  let selectedOrg  = '';          // 제공기관별 셀렉트
+  let selectedType = '';          // 유형별 셀렉트
+  let keyword      = '';          // 키워드 검색 (input 임시값)
+  let appliedKeyword = '';        // 검색 버튼을 눌렀을 때 확정된 키워드
+  let pageSize     = 10;          // 10개씩 셀렉트
+  let currentPage  = 1;           // 현재 페이지
 
-  container.innerHTML = `
-    <div class="max-w-[1400px] mx-auto px-4 py-8 animate-fade-in">
-      <div class="text-center mb-10">
-        <h2 class="text-3xl font-bold text-slate-900 mb-4">전체 데이터세트 탐색</h2>
-        <p class="text-slate-500 text-sm">식품의약품안전처에서 제공하는 169종의 공공데이터를 한눈에 둘러보세요.</p>
+  // ── 필터링 ────────────────────────────────────────────────────────────────
+  const getFiltered = () => allData.filter(item => {
+    if (selectedCat  && item.cat             !== selectedCat)  return false;
+    if (selectedOrg  && item.provd_instt_nm  !== selectedOrg)  return false;
+    if (selectedType && item.data_type_nm    !== selectedType) return false;
+    if (appliedKeyword) {
+      const q = appliedKeyword.toLowerCase();
+      const hit = (item.svc_nm  || '').toLowerCase().includes(q)
+               || (item.svc_no  || '').toLowerCase().includes(q)
+               || (item.desc    || '').toLowerCase().includes(q)
+               || (item.cat     || '').toLowerCase().includes(q);
+      if (!hit) return false;
+    }
+    return true;
+  });
+
+  // ── 셀렉트 옵션 생성 헬퍼 ────────────────────────────────────────────────
+  const makeOptions = (values, currentVal, allLabel = '전체') =>
+    [`<option value="">${allLabel}</option>`,
+     ...values.map(v => `<option value="${v}" ${v === currentVal ? 'selected' : ''}>${v}</option>`)
+    ].join('');
+
+  // ── 카드 HTML ─────────────────────────────────────────────────────────────
+  const cardHTML = (item) => `
+    <div class="dataset-card bg-white border border-slate-200 rounded-xl p-5
+                hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer
+                flex flex-col h-full group" data-id="${item.svc_no}">
+      <div class="flex justify-between items-start mb-3">
+        <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md">
+          ${item.data_type_nm || 'OPEN API'}
+        </span>
+        <div class="flex gap-1">
+          <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200">JSON</span>
+          <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200">XML</span>
+        </div>
       </div>
-
-      <!-- Category Filter Chips -->
-      <div id="category-chips" class="flex flex-wrap justify-center gap-2 mb-10">
-        <!-- Chips will be generated here -->
-      </div>
-
-      <!-- Dataset Cards Grid -->
-      <div id="dataset-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div class="col-span-full py-20 text-center text-slate-400">데이터를 불러오는 중입니다...</div>
+      <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors">
+        ${item.svc_nm}
+      </h4>
+      <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">
+        ${item.desc || (item.svc_nm + ' 공공데이터입니다.')}
+      </p>
+      <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+        <div class="flex items-center gap-1.5 text-xs text-slate-500">
+          <i class="ri-building-line"></i> ${item.provd_instt_nm || '식약처'}
+        </div>
+        <span class="text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
+          ${item.cat || ''}
+        </span>
       </div>
     </div>
   `;
 
-  let allData = [];
-  let currentCategory = '전체';
+  // ── 메인 렌더 ─────────────────────────────────────────────────────────────
+  const render = () => {
+    const filtered  = getFiltered();
+    const total     = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = 1;
 
-  const chipsContainer = container.querySelector('#category-chips');
-  const cardsContainer = container.querySelector('#dataset-cards-container');
+    const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  const renderCards = () => {
-    let items = allData;
+    // 셀렉트 옵션용 고유값 목록 (전체 데이터 기준)
+    const cats  = [...new Set(allData.map(d => d.cat).filter(Boolean))].sort();
+    const orgs  = [...new Set(allData.map(d => d.provd_instt_nm).filter(Boolean))].sort();
+    const types = [...new Set(allData.map(d => d.data_type_nm).filter(Boolean))].sort();
 
-    if (currentCategory !== '전체') {
-      items = items.filter(item => item.cat === currentCategory);
-    }
+    // 분류 셀렉트 라벨 (선택된 경우 건수 표시)
+    const catLabel = selectedCat
+      ? `${selectedCat} (${filtered.length})`
+      : '분류별';
 
-    if (items.length === 0) {
-      cardsContainer.innerHTML = '<div class="col-span-full py-20 text-center text-slate-400">해당 카테고리에 데이터가 없습니다.</div>';
-      return;
-    }
+    // 페이지네이션 버튼
+    const pageButtons = (() => {
+      if (totalPages <= 1) return '';
+      const btns = [];
+      const start = Math.max(1, currentPage - 2);
+      const end   = Math.min(totalPages, currentPage + 2);
+      if (start > 1) btns.push(`<button class="page-btn px-2 py-1 text-xs border rounded" data-page="1">1</button>`);
+      if (start > 2) btns.push(`<span class="text-slate-400 text-xs px-1">…</span>`);
+      for (let p = start; p <= end; p++) {
+        btns.push(`<button class="page-btn px-2 py-1 text-xs border rounded
+          ${p === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}"
+          data-page="${p}">${p}</button>`);
+      }
+      if (end < totalPages - 1) btns.push(`<span class="text-slate-400 text-xs px-1">…</span>`);
+      if (end < totalPages)     btns.push(`<button class="page-btn px-2 py-1 text-xs border rounded" data-page="${totalPages}">${totalPages}</button>`);
+      return btns.join('');
+    })();
 
-    cardsContainer.innerHTML = items.map(item => `
-      <div class="dataset-card bg-white border border-slate-200 rounded-xl p-5 hover:border-gov-500 hover:shadow-lg transition-all cursor-pointer flex flex-col h-full group" data-id="${item.svc_no}">
-        <div class="flex justify-between items-start mb-3">
-          <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md">${item.data_type_nm || 'OPEN API'}</span>
-          <div class="flex gap-1">
-            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200 group-hover:bg-white transition-colors">JSON</span>
-            <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200 group-hover:bg-white transition-colors">XML</span>
+    container.innerHTML = `
+      <div class="max-w-[1400px] mx-auto px-4 py-8">
+
+        <!-- 헤더 -->
+        <div class="flex items-end justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">전체 데이터세트 탐색</h2>
+            <p class="text-slate-500 text-sm mt-1">
+              식품의약품안전처에서 제공하는 공공데이터를 검색·필터링하세요.
+            </p>
+          </div>
+          <a href="#" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-700 transition-colors">
+            OpenAPI 이용신청
+          </a>
+        </div>
+
+        <!-- 검색 필터 영역 -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-4 mb-4 flex flex-wrap items-center gap-3">
+
+          <!-- 분류별 -->
+          <select id="sel-cat" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <option value="">분류별</option>
+            ${cats.map(c => `<option value="${c}" ${c === selectedCat ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+
+          <!-- 제공기관별 -->
+          <select id="sel-org" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <option value="">제공기관별</option>
+            ${orgs.map(o => `<option value="${o}" ${o === selectedOrg ? 'selected' : ''}>${o}</option>`).join('')}
+          </select>
+
+          <!-- 유형별 -->
+          <select id="sel-type" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <option value="">유형별</option>
+            ${types.map(t => `<option value="${t}" ${t === selectedType ? 'selected' : ''}>${t}</option>`).join('')}
+          </select>
+
+          <!-- 키워드 검색 -->
+          <input id="inp-keyword" type="text" value="${appliedKeyword}"
+            placeholder="서비스명·코드·설명 검색"
+            class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300" />
+
+          <!-- 검색 버튼 -->
+          <button id="btn-search"
+            class="h-9 px-5 bg-slate-700 text-white text-sm font-bold rounded hover:bg-slate-800 transition-colors">
+            검색
+          </button>
+
+          <!-- 초기화 버튼 -->
+          ${(selectedCat || selectedOrg || selectedType || appliedKeyword) ? `
+          <button id="btn-reset"
+            class="h-9 px-4 border border-slate-300 text-slate-600 text-sm rounded hover:bg-slate-100 transition-colors">
+            초기화
+          </button>` : ''}
+        </div>
+
+        <!-- Total + 페이지당 건수 -->
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm text-slate-600">
+            Total: <strong class="text-slate-900">${total}</strong>
+            ${total !== allData.length ? `<span class="text-blue-600 ml-1">(전체 ${allData.length}건 중 필터)</span>` : ''}
+          </span>
+          <div class="flex items-center gap-2">
+            <select id="sel-pagesize" class="h-8 px-2 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none">
+              ${[10, 20, 30, 40, 50].map(n =>
+                `<option value="${n}" ${n === pageSize ? 'selected' : ''}>${n}개씩</option>`
+              ).join('')}
+            </select>
+            <button id="btn-view"
+              class="h-8 px-4 border border-slate-300 text-slate-700 text-sm rounded hover:bg-slate-100 transition-colors">
+              보기
+            </button>
           </div>
         </div>
-        <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-2 leading-snug group-hover:text-gov-700 transition-colors">${item.svc_nm}</h4>
-        <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">${item.desc || (item.svc_nm + ' 공공데이터입니다.')}</p>
-        <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-          <div class="flex items-center gap-1.5 text-xs text-slate-500">
-            <i class="ri-building-line"></i> ${item.provd_instt_nm || '식약처'}
-          </div>
-          <span class="text-[10px] font-medium text-gov-600 bg-gov-50 px-2 py-1 rounded-full">${item.cat || ''}</span>
+
+        <!-- 카드 그리드 -->
+        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-6">
+          ${paged.length === 0
+            ? `<div class="col-span-full py-20 text-center text-slate-400">
+                <i class="ri-search-line text-4xl block mb-3 opacity-40"></i>
+                검색 결과가 없습니다.
+               </div>`
+            : paged.map(cardHTML).join('')
+          }
         </div>
+
+        <!-- 페이지네이션 -->
+        ${totalPages > 1 ? `
+        <div class="flex items-center justify-center gap-1 mt-2">
+          <button class="page-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-600 hover:bg-slate-50"
+            data-page="${Math.max(1, currentPage - 1)}">‹</button>
+          ${pageButtons}
+          <button class="page-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-600 hover:bg-slate-50"
+            data-page="${Math.min(totalPages, currentPage + 1)}">›</button>
+        </div>` : ''}
+
       </div>
-    `).join('');
+    `;
 
-    // Event listeners for cards
-    cardsContainer.querySelectorAll('.dataset-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        e.preventDefault();
+    bindEvents();
+  };
+
+  // ── 이벤트 바인딩 ─────────────────────────────────────────────────────────
+  const bindEvents = () => {
+    // 분류별 셀렉트 — 즉시 필터 적용
+    const selCat = container.querySelector('#sel-cat');
+    if (selCat) selCat.addEventListener('change', e => {
+      selectedCat = e.target.value;
+      currentPage = 1;
+      render();
+    });
+
+    // 제공기관별 셀렉트 — 즉시 필터 적용
+    const selOrg = container.querySelector('#sel-org');
+    if (selOrg) selOrg.addEventListener('change', e => {
+      selectedOrg = e.target.value;
+      currentPage = 1;
+      render();
+    });
+
+    // 유형별 셀렉트 — 즉시 필터 적용
+    const selType = container.querySelector('#sel-type');
+    if (selType) selType.addEventListener('change', e => {
+      selectedType = e.target.value;
+      currentPage = 1;
+      render();
+    });
+
+    // 키워드 input — 임시 저장 (검색 버튼으로 확정)
+    const inp = container.querySelector('#inp-keyword');
+    if (inp) {
+      inp.addEventListener('input', e => { keyword = e.target.value; });
+      // Enter 키도 검색 실행
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          appliedKeyword = keyword;
+          currentPage = 1;
+          render();
+          container.querySelector('#inp-keyword')?.focus();
+        }
+      });
+    }
+
+    // 검색 버튼
+    const btnSearch = container.querySelector('#btn-search');
+    if (btnSearch) btnSearch.addEventListener('click', () => {
+      appliedKeyword = keyword;
+      currentPage = 1;
+      render();
+    });
+
+    // 초기화 버튼
+    const btnReset = container.querySelector('#btn-reset');
+    if (btnReset) btnReset.addEventListener('click', () => {
+      selectedCat = ''; selectedOrg = ''; selectedType = '';
+      keyword = ''; appliedKeyword = '';
+      currentPage = 1;
+      render();
+    });
+
+    // 페이지당 건수 셀렉트
+    const selPageSize = container.querySelector('#sel-pagesize');
+    if (selPageSize) selPageSize.addEventListener('change', e => {
+      pageSize = parseInt(e.target.value, 10) || 10;
+    });
+
+    // 보기 버튼 — pageSize 확정 후 렌더
+    const btnView = container.querySelector('#btn-view');
+    if (btnView) btnView.addEventListener('click', () => {
+      const sel = container.querySelector('#sel-pagesize');
+      if (sel) pageSize = parseInt(sel.value, 10) || 10;
+      currentPage = 1;
+      render();
+    });
+
+    // 페이지 버튼
+    container.querySelectorAll('.page-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const p = parseInt(e.currentTarget.dataset.page, 10);
+        if (!isNaN(p)) { currentPage = p; render(); }
+        // 렌더 후 스크롤 상단으로
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // 카드 클릭
+    container.querySelectorAll('.dataset-card').forEach(card => {
+      card.addEventListener('click', e => {
         const svc_no = e.currentTarget.getAttribute('data-id');
         const ds = allData.find(d => d.svc_no === svc_no);
         if (ds && onSelectDataset) {
           onSelectDataset({
-            id: ds.svc_no,
-            name: ds.svc_nm,
-            subject: ds.cat,
-            process: ds.cat,
-            issue: '해당없음',
-            theme: ds.cat,
+            id:          ds.svc_no,
+            name:        ds.svc_nm,
+            subject:     ds.cat,
+            process:     ds.cat,
+            issue:       '해당없음',
+            theme:       ds.cat,
             description: ds.desc || '',
             includedData: ds.fields ? ds.fields.map(f => f.kor_nm || f.field) : [],
-            dataCount: ds.sample_data_length || 0
+            dataCount:   ds.sample_data_length || 0
           });
         }
       });
     });
   };
 
-  const renderChips = (cats) => {
-    const allCats = ['전체', ...cats];
-    chipsContainer.innerHTML = allCats.map(c => `
-      <button class="category-chip px-4 py-2 rounded-full text-sm font-medium transition-all ${c === currentCategory ? 'bg-gov-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}" data-val="${c}">
-        ${c}
-      </button>
-    `).join('');
-
-    chipsContainer.querySelectorAll('.category-chip').forEach(chip => {
-      chip.addEventListener('click', (e) => {
-        currentCategory = e.currentTarget.getAttribute('data-val');
-        renderChips(cats); // Re-render to update active state
-        renderCards();
-      });
-    });
-  };
+  // ── 초기 로딩 ─────────────────────────────────────────────────────────────
+  // 로딩 스피너 표시
+  container.innerHTML = `
+    <div class="py-32 text-center text-slate-400">
+      <i class="ri-loader-4-line text-3xl block mb-3 animate-spin opacity-60"></i>
+      데이터를 불러오는 중입니다...
+    </div>
+  `;
 
   Promise.all([
-    fetch('/api/dataset-tree').then(res => res.json()),
-    fetch('/api/tables').then(res => res.json())
+    fetch('/api/dataset-tree').then(r => r.json()),
+    fetch('/api/tables').then(r => r.json())
   ])
     .then(([data, dbTables]) => {
-      // DB에 실제 존재하는 테이블만 남기기
-      const validTableNames = dbTables.map(t => t.name);
-      allData = (data || []).filter(d => validTableNames.includes(d.svc_no));
-      
-      // 고유 카테고리 추출
-      const cats = [...new Set(allData.map(d => d.cat).filter(Boolean))].sort();
-      
-      renderChips(cats);
-      renderCards();
+      const validTableNames = new Set(dbTables.map(t => t.name));
+      allData = (data || []).filter(d => validTableNames.has(d.svc_no));
+      render();
     })
     .catch(err => {
       console.error(err);
-      tb_struct_list.innerHTML = '<tr><td colspan="4" style="color: red; padding: 20px;">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>';
+      container.innerHTML = `
+        <div class="py-20 text-center text-red-500">
+          <i class="ri-error-warning-line text-3xl block mb-3"></i>
+          데이터를 불러오는 중 오류가 발생했습니다.
+        </div>
+      `;
     });
 }

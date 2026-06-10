@@ -48,6 +48,10 @@ const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
+// 이 파일은 JSON 메타데이터와 샘플 데이터를 읽어
+// SQLite 스키마를 추론하고 DB로 이식하는 역할을 합니다.
+// 아래 함수들은 컬럼 타입/길이 추론과 테이블 생성의 핵심입니다.
+
 
 // analyze_pk_fk.js에서 공유 함수를 가져온다.
 // parseSampleJson : 샘플 JSON 파싱 — 이 파일에서 중복 구현하지 않는다.
@@ -106,6 +110,7 @@ const SEARCH_INDEX_FIELDS = [
 
 const logger = require('../utils/logger');
 
+// log: 레벨 기반으로 logger의 로그 함수를 호출하는 간단한 래퍼
 function log(level, msg) {
     if (level === 'ERR')  return logger.error(msg);
     if (level === 'WARN') return logger.warn(msg);
@@ -113,6 +118,7 @@ function log(level, msg) {
     return logger.info(msg);
 }
 
+// parseArgs: CLI 인자를 파싱해 옵션 객체를 반환
 function parseArgs(argv) {
     const args = {
         cache: DEFAULT_CACHE,
@@ -140,6 +146,7 @@ function parseArgs(argv) {
     return args;
 }
 
+// printHelp: 스크립트 사용법을 콘솔에 출력
 function printHelp() {
     logger.info(`
 식품안전나라 Open API SQLite 마이그레이션
@@ -171,30 +178,31 @@ Examples:
 // 섹션 1. SQLite 비동기 헬퍼
 // =============================================================================
 
+// openDb: sqlite3 데이터베이스를 비동기적으로 연다 (Promise 반환)
 function openDb(dbPath) {
     return new Promise((resolve, reject) => {
         const db = new sqlite3.Database(dbPath, err => err ? reject(err) : resolve(db));
     });
 }
-
+// runSql: 단일 SQL 문 실행 (prepared params) — 실행 결과 this를 resolve
 function runSql(db, sql, params = []) {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function onRun(err) { err ? reject(err) : resolve(this); });
     });
 }
-
+// execSql: 여러 SQL 문이 포함된 문자열을 exec으로 실행
 function execSql(db, sql) {
     return new Promise((resolve, reject) => {
         db.exec(sql, err => err ? reject(err) : resolve());
     });
 }
-
+// allSql: SELECT 등 결과 행 전체를 배열로 반환 (db.all 래퍼)
 function allSql(db, sql, params = []) {
     return new Promise((resolve, reject) => {
         db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
     });
 }
-
+// closeDb: DB 연결을 닫는다 (Promise)
 function closeDb(db) {
     return new Promise((resolve, reject) => {
         db.close(err => err ? reject(err) : resolve());
@@ -208,6 +216,8 @@ function closeDb(db) {
 //    두 ERD 파일 간 타입이 항상 일치한다.
 // =============================================================================
 
+// 접미사 패턴: 필드명으로 타입을 추론할 때 사용됩니다.
+// 예: *_CNT → 수치, *_DT → 날짜, *_CD → 코드, *_NM → 이름 등
 const NUMERIC_SUFFIXES = /(_CNT|_QTY|_AMT|_PRICE|_SEQ|_SZ|_RATE|_PCT|_NUM|_QT|_MG|_KG|_ML|_QNTT|_SCNT|_MCNT|_DCNT|_TOT|_AMT_SUM|_VAL)$/;
 const DATE_SUFFIXES = /(_DT|_YMD|_DE|_DAT|DATE|DTM|ENDDT|BGNDT)$/;
 const CODE_SUFFIXES = /(_CD|_CODE|_DVS_CD|_CLCD|_INSTTCD)$/;
@@ -218,6 +228,7 @@ const YESNO_SUFFIXES = /(_YN)$/;
 const TEL_SUFFIXES = /(TELNO|TEL_NO|PHONE|MOBILE|FAX)$/;
 const NO_SUFFIXES = /(_NO|NO)$/;
 
+// 원본 메타 타입 문자열을 정규화해 매핑할 때 사용되는 표
 const TYPE_MAP = [
     ['varchar', 'VARCHAR'], ['char', 'VARCHAR'], ['string', 'VARCHAR'],
     ['text', 'TEXT'], ['number', 'NUMERIC'], ['numeric', 'NUMERIC'],
@@ -227,10 +238,12 @@ const TYPE_MAP = [
     ['clob', 'TEXT'], ['blob', 'BLOB']
 ];
 
+// isEmptyValue: 값이 빈 값인지(true/false) 판정
 function isEmptyValue(value) {
     return value === undefined || value === null || String(value).trim() === '';
 }
 
+// getSampleValues: records 배열에서 특정 필드의 non-empty 샘플 문자열 목록 반환
 function getSampleValues(records, fieldName) {
     if (!Array.isArray(records)) return [];
     return records
@@ -239,25 +252,33 @@ function getSampleValues(records, fieldName) {
         .map(v => String(v).trim());
 }
 
+// 샘플 레코드 배열에서 특정 필드의 비어있지 않은 값 목록을 문자열로 반환
+// (추론 로직에서 샘플 통계/패턴 검사용)
+
+// getMaxSampleLength: 문자열 배열에서 최대 길이 반환
 function getMaxSampleLength(values) {
     if (!values || values.length === 0) return 0;
     return Math.max(...values.map(v => String(v).length));
 }
 
+// allValuesMatch: 모든 값이 주어진 정규식에 매치되는지 확인
 function allValuesMatch(values, regex) {
     return values && values.length > 0 && values.every(v => regex.test(String(v).trim()));
 }
 
+// allNumericLike: 소수 허용 숫자 패턴인지 확인 (천단위 콤마 허용)
 function allNumericLike(values) {
     return values && values.length > 0 &&
         values.every(v => /^-?\d+(\.\d+)?$/.test(String(v).trim().replace(/,/g, '')));
 }
 
+// allIntegerLike: 정수 패턴인지 확인
 function allIntegerLike(values) {
     return values && values.length > 0 &&
         values.every(v => /^-?\d+$/.test(String(v).trim().replace(/,/g, '')));
 }
 
+// allDateLike: 날짜 형식(YYYYMMDD, YYYY-MM-DD 등) 패턴만으로 구성되는지 확인
 function allDateLike(values) {
     return values && values.length > 0 &&
         values.every(v => {
@@ -281,11 +302,17 @@ function roundVarcharLength(maxLen, minimum = 50) {
     return 2000;
 }
 
+// roundVarcharLength: 샘플 최대 길이를 몇 가지 구간으로 반올림해
+// 기본 VARCHAR 길이로 사용하는 헬퍼 (예: 30, 50, 100, 200 등)
+
 /**
  * 필드 메타데이터 + 샘플값을 기반으로 SQLite 컬럼 스펙을 추론한다.
  * 반환값의 sqlType은 analyze_pk_fk.js의 generateKeysErdSql에서도 그대로 사용한다.
  */
 function inferColumnSpec(field, records = []) {
+    // 입력: API에서 온 필드 메타 `field` (예: {field, type, length, kor_nm})
+    //        그리고 해당 테이블의 샘플 레코드 배열 `records`
+    // 출력: { sqlType, dataType, length, reason }
     const rawType = String(field.type || '').trim().toLowerCase();
     const rawLength = String(field.length || '').trim();
     const fieldNm = String(field.field || '').trim();
@@ -297,6 +324,7 @@ function inferColumnSpec(field, records = []) {
 
     // 1. 원본 type 값이 있으면 우선 사용
     if (rawType) {
+        // API 메타에 타입 정보가 있으면 이를 우선으로 매핑
         for (const [key, mappedType] of TYPE_MAP) {
             if (!rawType.includes(key)) continue;
             if (mappedType === 'VARCHAR') {
@@ -317,6 +345,7 @@ function inferColumnSpec(field, records = []) {
     if (DATE_SUFFIXES.test(upperField) ||
         /일자$|년월일$|날짜$|등록일$|수정일$|시작일자$|종료일자$|허가일자$|지정일자$|취소일자$|폐업일자$/.test(korNm) ||
         allDateLike(sampleValues)) {
+        // 필드명/한글명/샘플값에서 날짜 패턴이 보이면 DATE로 처리
         return { sqlType: 'DATE', dataType: 'DATE', length: '8', reason: '필드명/한글명/샘플값 날짜 패턴' };
     }
 
@@ -339,6 +368,7 @@ function inferColumnSpec(field, records = []) {
 
     // 6. 번호값
     if (NO_SUFFIXES.test(upperField) || /지정번호|일련번호|순번|번호$/.test(korNm) || NUMERIC_SUFFIXES.test(upperField)) {
+        // 식별번호 계열은 보존할지 숫자로 변환할지 korNm/필드명 및 샘플값으로 판정
         const keepAsText =
             /바코드|전화|팩스|우편|인허가번호|품목제조보고번호|사업자|등록번호/.test(korNm) ||
             /BARCODE|BRCD|TEL|FAX|ZIP|LCNS_NO|PRDLST_REPORT_NO|BIZRNO/.test(upperField);
@@ -399,6 +429,7 @@ function inferColumnSpec(field, records = []) {
 }
 
 function inferSqlType(field, records = []) {
+    // inferSqlType: inferColumnSpec의 sqlType만 간단히 반환하는 유틸
     return inferColumnSpec(field, records).sqlType;
 }
 
@@ -407,12 +438,14 @@ function inferSqlType(field, records = []) {
 // =============================================================================
 
 function safeViewName(svcNo, svcNm) {
+    // safeViewName: 서비스 번호/이름으로 안전한 뷰 이름 생성
     let clean = String(svcNm || '').replace(/[^\w가-힣]/g, '_');
     clean = clean.replace(/_+/g, '_').replace(/^_+|_+$/g, '');
     return clean ? `v_${svcNo}_${clean}` : `v_${svcNo}`;
 }
 
 function quoteIdent(identifier) {
+    // quoteIdent: 식별자(테이블/컬럼명)를 쌍따옴표로 감싸 SQL에 안전하게 사용
     return `"${String(identifier).replace(/"/g, '""')}"`;
 }
 
@@ -422,18 +455,22 @@ function normalizeValue(value) {
     return value;
 }
 
+// fileSizeIfExists: 파일이 존재하면 크기(바이트)를 반환, 없으면 0
 function fileSizeIfExists(filePath) {
     try { return fs.statSync(filePath).size; } catch { return 0; }
 }
 
+// sanitizeSqlComment: SQL 주석으로 들어갈 텍스트 정리 (줄바꿈/-- 제거)
 function sanitizeSqlComment(text) {
     return String(text || '').replace(/\r?\n/g, ' ').replace(/--/g, '－').trim();
 }
 
+// isSystemSampleField: 샘플에서 무시할 시스템 메타 필드인지 판정
 function isSystemSampleField(fieldName) {
     return SYSTEM_SAMPLE_FIELDS.has(String(fieldName || '').trim().toUpperCase());
 }
 
+// loadDatasets: crawl_cache.json을 읽어 datasets 배열 반환 (예외 throw 가능)
 function loadDatasets(cachePath) {
     if (!fs.existsSync(cachePath)) {
         throw new Error(`캐시 파일 없음: ${cachePath} → 먼저 크롤러를 실행하세요.`);
@@ -465,6 +502,21 @@ function loadRecordsMap(datasets, samplesDir) {
     return recordsMap;
 }
 
+// enrichDatasetsWithSqlTypes: datasets의 각 field에 대해 inferColumnSpec로 sqlType을 채움
+function enrichDatasetsWithSqlTypes(datasets, recordsMap) {
+    return datasets.map(ds => {
+        const svcNo = String(ds.svc_no || '').trim();
+        const records = recordsMap.get(svcNo) || [];
+        const fields = (Array.isArray(ds.fields) ? ds.fields : [])
+            .filter(f => !isSystemSampleField(f.field || f.field_id || ''))
+            .map(f => ({
+                ...f,
+                sqlType: inferColumnSpec(f, records).sqlType
+            }));
+        return { ...ds, fields };
+    });
+}
+
 function enrichDatasetsWithSqlTypes(datasets, recordsMap) {
     return datasets.map(ds => {
         const svcNo = String(ds.svc_no || '').trim();
@@ -490,11 +542,17 @@ function getHighConfidencePkForTable(pkFkAnalysis, svcNo, colMeta) {
     return bestPk;
 }
 
+// buildHighConfidenceFksMap: pkFkAnalysis에서 HIGH 신뢰도 FK만 추려 Map으로 반환
 function buildHighConfidenceFksMap(pkFkAnalysis) {
     const allFksMap = new Map();
     if (!pkFkAnalysis) return allFksMap;
 
-    for (const rel of pkFkAnalysis.relationships) {
+    const allRelationships = [
+        ...(pkFkAnalysis.relationships || []),
+        ...(pkFkAnalysis.composite_fks || [])
+    ];
+
+    for (const rel of allRelationships) {
         if (rel.confidence !== 'HIGH') continue;
 
         if (!allFksMap.has(rel.from_table)) {
@@ -517,6 +575,7 @@ function buildColMeta(fields, records, svcNo) {
 
         const spec = inferColumnSpec(f, records);
 
+        // apiColumnRows는 이후 db의 api_columns 테이블에 저장되는 레코드 목록
         apiColumnRows.push({
             svcNo,
             field: fname,
@@ -528,6 +587,7 @@ function buildColMeta(fields, records, svcNo) {
             sample: String(f.sample || '').trim()
         });
 
+        // colMeta는 실제 CREATE TABLE 시 사용되는 컬럼 메타맵 (name → {sqlType,...})
         if (!colMeta.has(fname)) {
             colMeta.set(fname, {
                 sqlType: spec.sqlType,
@@ -559,6 +619,7 @@ function buildColMeta(fields, records, svcNo) {
     return { colMeta, apiColumnRows, extraColumns };
 }
 
+// insertApiColumns: api_columns 메타 테이블에 컬럼 메타 정보를 삽입
 async function insertApiColumns(db, apiColumnRows) {
     for (const row of apiColumnRows) {
         await runSql(db,
@@ -574,6 +635,7 @@ async function insertApiColumns(db, apiColumnRows) {
     }
 }
 
+// insertExtraApiColumns: 샘플에만 등장하는 누락 필드를 api_columns에 추가
 async function insertExtraApiColumns(db, svcNo, extraColumns) {
     for (const { key, spec } of extraColumns) {
         log('INFO', `        누락 필드 자동 추가: ${key} (${spec.sqlType})`);
@@ -587,6 +649,9 @@ async function insertExtraApiColumns(db, svcNo, extraColumns) {
     }
 }
 
+// createDatasetTable: colMeta로부터 CREATE TABLE 문을 생성해 실제 테이블을 만든다.
+// colMeta의 value.sqlType를 그대로 DDL에 사용.
+
 // =============================================================================
 // 섹션 4. ERD용 SQL DDL 생성
 // =============================================================================
@@ -597,6 +662,8 @@ async function insertExtraApiColumns(db, svcNo, extraColumns) {
  * @param {Map}    recordsMap     — Map<svcNo, records[]>
  * @param {Object} pkFkAnalysis   — analyze_pk_fk.js의 analyze() 반환값 (없으면 FK 표시 생략)
  */
+// generateErdSqlFile: datasets와 컬럼 추론 결과로 ERD용 DDL(.sql) 파일 생성
+// 출력은 물리 컬럼명과 논리 한글명을 주석으로 함께 포함
 function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAnalysis = null) {
     if (!outputPath) return;
 
@@ -652,9 +719,11 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
                 const fname = String(f.field || '').trim();
                 const spec = inferColumnSpec(f, records);
                 const korNm = sanitizeSqlComment(f.kor_nm || '');
-                const columnFks = fksList.filter(fk => fk.from_field === fname);
+                const columnFks = fksList.filter(fk => 
+                    fk.relation_type === 'COMPOSITE_FK' ? fk.from_fields.includes(fname) : fk.from_field === fname
+                );
                 const fkComment = columnFks.length > 0
-                    ? ` / FK 후보: ${columnFks.map(fk => `${fk.to_table}.${fk.to_field}(${fk.confidence})`).join(', ')}`
+                    ? ` / FK 후보: ${columnFks.map(fk => fk.relation_type === 'COMPOSITE_FK' ? `${fk.to_table}(${fk.to_fields.join('+')})(${fk.confidence})` : `${fk.to_table}.${fk.to_field}(${fk.confidence})`).join(', ')}`
                     : '';
                 const pkComment = bestPk && bestPk.fields.includes(fname) ? ` / PK 후보(${bestPk.confidence})` : '';
                 const hasNext = idx < validFields.length - 1 || hasPk || hasFks;
@@ -668,8 +737,10 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
                 fieldLines.push(`  PRIMARY KEY (${bestPk.fields.map(quoteIdent).join(', ')})${hasFks ? ',' : ''}`);
             }
             fksList.forEach((fk, idx) => {
+                const fromCols = fk.relation_type === 'COMPOSITE_FK' ? fk.from_fields.map(quoteIdent).join(', ') : quoteIdent(fk.from_field);
+                const toCols = fk.relation_type === 'COMPOSITE_FK' ? fk.to_fields.map(quoteIdent).join(', ') : quoteIdent(fk.to_field);
                 fieldLines.push(
-                    `  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})${idx < fksList.length - 1 ? ',' : ''}`
+                    `  FOREIGN KEY (${fromCols}) REFERENCES ${quoteIdent(fk.to_table)} (${toCols})${idx < fksList.length - 1 ? ',' : ''}`
                 );
             });
 
@@ -704,6 +775,7 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
 // 섹션 5. DB 생성 세부 로직
 // =============================================================================
 
+// createMetaTables: api_tables, api_columns 같은 메타 테이블을 생성
 async function createMetaTables(db) {
     await execSql(db, `
         CREATE TABLE IF NOT EXISTS api_tables (
@@ -735,6 +807,7 @@ async function createMetaTables(db) {
     `);
 }
 
+// insertApiTableRow: api_tables에 dataset 행을 삽입/갱신
 async function insertApiTableRow(db, ds, sampleDataLength, fieldCount) {
     await runSql(db,
         `INSERT OR REPLACE INTO api_tables
@@ -753,6 +826,7 @@ async function insertApiTableRow(db, ds, sampleDataLength, fieldCount) {
     );
 }
 
+// buildPkConstraint: HIGH 신뢰도 PK 후보가 있으면 DDL용 PRIMARY KEY 절을 생성
 function buildPkConstraint(pkFkAnalysis, svcNo, colMeta, applyConstraints) {
     if (!applyConstraints) return '';
 
@@ -763,6 +837,7 @@ function buildPkConstraint(pkFkAnalysis, svcNo, colMeta, applyConstraints) {
     return `,\n  PRIMARY KEY (${bestPk.fields.map(quoteIdent).join(', ')})`;
 }
 
+// buildFkConstraint: HIGH 신뢰도 FK 후보를 DDL용 FOREIGN KEY 절로 변환
 function buildFkConstraint(allFksMap, svcNo, colMeta, applyConstraints) {
     if (!applyConstraints) return '';
 
@@ -777,6 +852,7 @@ function buildFkConstraint(allFksMap, svcNo, colMeta, applyConstraints) {
     return ',\n' + fkDefs.join(',\n');
 }
 
+// createIndexesForFields: 지정한 컬럼명 목록을 각 테이블에 대해 인덱스 생성
 async function createIndexesForFields(db, datasets, fields, label) {
     log('STEP', `${label} 인덱스 생성`);
 
@@ -849,6 +925,10 @@ async function insertRecords(db, svcNo, records, colMeta) {
     }
 }
 
+// insertRecords는 colMeta 키 순서대로 INSERT 쿼리를 만들고 트랜잭션으로 다수 행을 삽입합니다.
+// normalizeValue로 객체 타입을 JSON 문자열로 변환해 저장합니다.
+
+// createLogicalView: 실제 컬럼명을 한글 논리명으로 맵핑한 VIEW를 생성
 async function createLogicalView(db, svcNo, svcNm, colMeta) {
     if (colMeta.size === 0) return null;
 
@@ -872,6 +952,7 @@ async function createLogicalView(db, svcNo, svcNm, colMeta) {
     }
 }
 
+// migrateDataset: 개별 dataset에 대해 메타 저장, 테이블 생성, 데이터 삽입, 뷰 생성까지 수행
 async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis, allFksMap, options) {
     const svcNo = String(ds.svc_no || '').trim();
     const svcNm = String(ds.svc_nm || '').trim();
@@ -905,6 +986,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
 
     await createDatasetTable(db, svcNo, colMeta, pkDef, fkDef);
 
+    // 테이블 생성 후 샘플 레코드를 삽입
     const preview = [...colMeta.entries()].slice(0, 4)
         .map(([fn, m]) => `${fn}:${m.sqlType}`).join('  ');
     log('INFO', `테이블 생성: ${colMeta.size}개 컬럼  ${preview}${colMeta.size > 4 ? ' ...' : ''}`);
@@ -920,6 +1002,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
 
 // [REMOVED] 중복 createIndexesForFields 제거 — PRAGMA 기반 버전(위)을 사용합니다.
 
+// validateForeignKeysIfNeeded: applyConstraints 모드에서 PRAGMA foreign_key_check 실행
 async function validateForeignKeysIfNeeded(db, applyConstraints) {
     if (!applyConstraints) return { checked: false, errorCount: 0 };
 
@@ -946,6 +1029,7 @@ async function validateForeignKeysIfNeeded(db, applyConstraints) {
     return { checked: true, errorCount: fkErrors.length };
 }
 
+// printSummary: 마이그레이션 결과 요약을 콘솔에 출력
 function printSummary(summary) {
     const sep = '='.repeat(62);
     logger.info(`\n${sep}`);
@@ -977,6 +1061,7 @@ function printSummary(summary) {
 // 섹션 6. 메인 마이그레이션 로직
 // =============================================================================
 
+// run: 메인 마이그레이션 실행 함수 (cachePath, dbPath 등 옵션을 받아 전체 흐름 수행)
 async function run({
     cachePath,
     dbPath,

@@ -441,6 +441,13 @@ function findSimilarPkFields(upperField, pkFieldIndex) {
 // 섹션 2. 샘플 JSON 파싱
 // =============================================================================
 
+/**
+ * 샘플 JSON 파일을 읽어 데이터 레코드 배열로 파싱 및 추출합니다.
+ *
+ * @param {string} jsonPath - 샘플 JSON 파일 경로
+ * @param {string} svcNo - 데이터셋 서비스 번호
+ * @returns {object[]} 파싱된 레코드 객체 배열
+ */
 function parseSampleJson(jsonPath, svcNo) {
     let obj;
     try {
@@ -676,6 +683,10 @@ function buildEntropyMap(recordsMap) {
 // 섹션 5. 유일성/포함률 통계
 // =============================================================================
 
+/**
+ * 샘플 레코드에서 지정된 필드(또는 필드 조합)의 고유성(Uniqueness) 통계를 반환합니다.
+ * (총 건수, 고유 건수, 중복 건수, 빈값 포함 여부 등)
+ */
 function getUniquenessStats(records, fields) {
     if (!Array.isArray(records) || records.length === 0) {
         return {
@@ -710,6 +721,9 @@ function getUniquenessStats(records, fields) {
     };
 }
 
+/**
+ * 자식 테이블(fromRecords)의 값이 부모 테이블(toRecords)에 얼마나 포함되는지(포함률)를 계산합니다.
+ */
 function getInclusionStats(fromRecords, toRecords, fromField, toField) {
     const fromValues = new Set(
         (fromRecords || [])
@@ -751,6 +765,10 @@ function getInclusionStats(fromRecords, toRecords, fromField, toField) {
 // 섹션 6. PK 후보 점수 계산
 // =============================================================================
 
+/**
+ * 특정 필드가 기본키(PK) 식별자로 사용되기에 얼마나 적합한지 종합 점수(Score)를 계산합니다.
+ * (필드명 패턴, 한글명, 엔트로피, 샘플 고유성 등을 반영)
+ */
 function calculateIdentifierScore(field, records) {
     const fname = getFieldName(field);
     const upper = fname.toUpperCase();
@@ -835,6 +853,9 @@ function makeCombinations(arr, size) {
 // 섹션 7. PK 후보 분석
 // =============================================================================
 
+/**
+ * 단일 데이터셋(테이블)의 필드 목록과 샘플 레코드를 바탕으로, 단일/복합 기본키(PK) 후보를 추출합니다.
+ */
 function analyzePkCandidatesForTable(ds, records) {
     const fields = Array.isArray(ds.fields) ? ds.fields : [];
     const validFields = fields.filter(f => getFieldName(f));
@@ -1082,25 +1103,22 @@ function buildPkFieldIndex(tableAnalyses) {
     const pkFieldIndex = new Map();
 
     for (const table of tableAnalyses) {
-        const bestPk = table.pk_candidates[0];
-        if (!bestPk) continue;
-
-        // 복합 PK는 단일 필드 FK 추론에서 제외한다.
-        if (bestPk.fields.length !== 1) continue;
+        const bestSinglePk = table.pk_candidates.find(pk => pk.type === 'single');
+        if (!bestSinglePk) continue;
 
         // ── 변경 2/3 ──────────────────────────────────────────────────────────
         // 기존: PK 신뢰도 LOW인 테이블은 부모 후보에서 완전 제외
         // 변경: MEDIUM 이상 허용 → LOW만 제외, MEDIUM/HIGH는 모두 부모 후보에 포함
         // 이유: LOW 제외로 인해 실제 관계가 있는 테이블이 부모 후보 풀에서 빠지는 문제 완화
-        if (bestPk.confidence === 'LOW') continue;
+        if (bestSinglePk.confidence === 'LOW') continue;
         // ─────────────────────────────────────────────────────────────────────
 
-        const pkField = bestPk.fields[0].toUpperCase();
+        const pkField = bestSinglePk.fields[0].toUpperCase();
         if (!pkFieldIndex.has(pkField)) pkFieldIndex.set(pkField, []);
         pkFieldIndex.get(pkField).push({
             svc_no: table.svc_no,
             svc_nm: table.svc_nm,
-            pk: bestPk
+            pk: bestSinglePk
         });
     }
 
@@ -1253,6 +1271,9 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
     };
 }
 
+/**
+ * 대상 데이터셋의 단일 필드들이 다른 테이블의 단일키(PK)를 참조하는 외래키(FK)인지 분석하고 점수를 매깁니다.
+ */
 function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null) {
     const tableLookup = createTableLookup(tableAnalyses);
     const existingSvcNoSet = new Set(tableAnalyses.map(t => normalizeSvcNo(t.svc_no)));
@@ -1276,7 +1297,7 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
             if (!fieldName) continue;
 
             if (isExcludedFkField(fieldName)) continue;
-            if (!isKnownRelationKey(upperField) && !isCodeField(field)) continue;
+            if (!isKnownRelationKey(upperField) && !isCodeField(field) && !isStrongIdentifierField(field)) continue;
 
             // 마스터 테이블은 부모로 사용하고, 자식 FK 생성 대상에서는 제외한다.
             if (shouldSkipByMasterRule(fromSvcNo, upperField, existingSvcNoSet)) continue;
@@ -1402,6 +1423,10 @@ function removeDuplicateRejectedRelationships(relationships) {
 // 섹션 9. 컬럼 Map 구성
 // =============================================================================
 
+/**
+ * API 데이터셋 메타정보(ds.fields)와 실제 샘플 데이터의 키를 취합하여,
+ * 중복 없는 전체 컬럼 맵(Map)을 생성합니다.
+ */
 function buildColMap(ds, records) {
     const colMap = new Map();
 
@@ -1609,6 +1634,10 @@ function computeConnectedComponents(graph) {
  * - 순환 참조 경고
  * - 위상 정렬 (SQL 실행 순서)
  * - 도메인 클러스터 (연결 컴포넌트)
+ */
+/**
+ * 탐지된 PK/FK 관계를 바탕으로 방향 그래프(Directed Graph)를 구성하고,
+ * 진입차수(In-degree) 기반 마스터 테이블 추출, 순환 참조 감지, 도메인 그룹핑을 수행합니다.
  */
 function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
     const graph = buildFkGraph(tableAnalyses, relationships, compositeFks);

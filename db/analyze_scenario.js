@@ -32,7 +32,8 @@ const DEFAULT_MD      = path.join(__dirname, 'foodsafety_scenarios.md');
 // 섹션 1. 유틸 및 상수
 // =============================================================================
 
-const WEAK_KEY_PATTERN = /_NM$|_NAME$|_CD_NM$|ADDR$|ADDRESS$|_DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$/i;
+// 명칭·주소·날짜·연락처 계열 — JOIN 키로 의미 없는 설명성 필드
+const WEAK_KEY_PATTERN = /_NM$|_NAME$|_CD_NM$|ADDR$|ADDRESS$|_DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$/i;
 
 const KEY_SYNONYM_GROUPS = [
     ['LCNS_NO', 'BSSH_NO'],
@@ -50,16 +51,55 @@ const TOP_RELATIONS = 100;
 // 커맨드라인 인수에서 --key value 형태의 옵션을 파싱하는 함수
 function parseArgs() {
     const args = process.argv.slice(2);
-    const opts = {};
+    const opts = {
+        samples: DEFAULT_SAMPLES,
+        cache:   DEFAULT_CACHE,
+        json:    DEFAULT_JSON,
+        md:      DEFAULT_MD,
+        noJson:  false,
+        noMd:    false
+    };
 
     for (let i = 0; i < args.length; i++) {
-        if (args[i].startsWith('--') && args[i + 1]) {
-            opts[args[i].slice(2)] = args[i + 1];
-            i++;
+        const arg = args[i];
+
+        if ((arg === '-h' || arg === '--help')) {
+            printHelp();
+            process.exit(0);
+        } else if (arg === '--no-json') {
+            opts.noJson = true;
+        } else if (arg === '--no-md') {
+            opts.noMd = true;
+        } else if (arg.startsWith('--') && args[i + 1]) {
+            opts[arg.slice(2)] = args[++i];
         }
     }
 
     return opts;
+}
+
+// 도움말 출력 함수
+function printHelp() {
+    logger.info(`
+데이터셋 사용 시나리오 분석기
+
+Usage:
+  node db/analyze_scenario.js [options]
+
+Options:
+  --samples <path>    샘플 JSON 폴더 경로     기본값: ${DEFAULT_SAMPLES}
+  --cache   <path>    crawl_cache.json 경로   기본값: ${DEFAULT_CACHE}
+  --json    <path>    JSON 결과 파일 경로     기본값: ${DEFAULT_JSON}
+  --md      <path>    Markdown 결과 파일 경로 기본값: ${DEFAULT_MD}
+  --no-json           JSON 결과 생성 생략
+  --no-md             Markdown 결과 생성 생략
+  -h, --help          도움말 출력
+
+Examples:
+  node db/analyze_scenario.js
+  node db/analyze_scenario.js --samples ./crawler/samples --cache ./crawler/crawl_cache.json
+  node db/analyze_scenario.js --no-md
+`);
 }
 
 // 값 비교 전에 null, 공백, 하이픈, 문자열 null/undefined를 제거하기 위한 정규화 함수
@@ -99,7 +139,8 @@ function toValueSet(values) {
 }
 
 // JSON 구조 안에서 실제 데이터 row 배열을 최대한 찾아내는 함수
-function extractRowsFromSampleJson(json) {
+// depth 인자로 재귀 깊이를 제한해 순환 참조나 과도한 중첩에 의한 스택 오버플로우를 방지한다.
+function extractRowsFromSampleJson(json, depth = 0) {
     // 최상위가 배열이면 그대로 row 목록으로 사용
     if (Array.isArray(json)) {
         return json;
@@ -136,9 +177,14 @@ function extractRowsFromSampleJson(json) {
         }
     }
 
+    // 재귀 깊이 초과 시 탐색 중단
+    if (depth >= 5) {
+        return [];
+    }
+
     // 내부 깊은 곳에 배열이 숨어 있는 경우 재귀적으로 탐색
     for (const value of Object.values(json)) {
-        const rows = extractRowsFromSampleJson(value);
+        const rows = extractRowsFromSampleJson(value, depth + 1);
 
         if (rows.length > 0) {
             return rows;
@@ -540,6 +586,13 @@ function buildPairRelations(allProfiles, meta) {
 
             checkedPairs++;
 
+            if (checkedPairs % 500 === 0) {
+                logger.info({
+                    checkedPairs,
+                    validRelations: relations.length
+                }, '쌍별 분석 진행 중...');
+            }
+
             if (candidates.length === 0) {
                 continue;
             }
@@ -620,24 +673,26 @@ function clusterByJoinKey(relations) {
             continue;
         }
 
-        // 평균 점수 계산
+        // 점수 내림차순으로 정렬 (평균 점수·SQL 생성·relations 출력에 일관되게 사용)
+        const sortedRels = [...rels]
+            .sort((a, b) => b.score - a.score || b.matched - a.matched);
+
+        // 평균 점수 계산 (전체 관계 기준)
         const avgScore = Math.round(
-            rels.reduce((sum, relation) => sum + relation.score, 0) / rels.length
+            sortedRels.reduce((sum, relation) => sum + relation.score, 0) / sortedRels.length
         );
 
-        // 시나리오 내 최고 신뢰도 산정
-        const maxConfidence = rels.some(relation => relation.confidence === 'HIGH')
+        // 시나리오 내 최고 신뢰도 산정 (전체 관계 기준)
+        const maxConfidence = sortedRels.some(relation => relation.confidence === 'HIGH')
             ? 'HIGH'
-            : rels.some(relation => relation.confidence === 'MEDIUM')
+            : sortedRels.some(relation => relation.confidence === 'MEDIUM')
                 ? 'MEDIUM'
                 : 'LOW';
 
-        // SQL 힌트 생성용으로 점수 높은 관계를 우선 사용
-        const sortedRels = [...rels]
-            .sort((a, b) => b.score - a.score || b.matched - a.matched)
-            .slice(0, 3);
-
-        const sqlHint = buildSqlHint(joinKey, sortedRels);
+        // datasets은 전체 관계에서 수집하고, SQL 힌트는 상위 관계만 사용한다.
+        // 이전에는 sortedRels.slice(0, 3) 기준으로 datasets을 수집해
+        // datasetCount와 실제 datasets 목록이 불일치하는 문제가 있었다.
+        const sqlHint = buildSqlHint(joinKey, sortedRels.slice(0, MAX_SQL_TABLES - 1));
 
         scenarios.push({
             id: `SCN_${String(scenarioId++).padStart(3, '0')}`,
@@ -681,11 +736,15 @@ function buildSqlHint(joinKey, rels) {
     const lines = [];
 
     const joinedTables = [];
+    // 각 테이블이 실제로 사용하는 컬럼명을 별도로 추적한다.
+    // 동의어 키 쌍(LCNS_NO ↔ BSSH_NO)처럼 테이블마다 실제 컬럼명이 다를 수 있기 때문이다.
+    const joinedCols = [];
     const joins = [];
 
     // 시작 테이블 (가장 첫 번째 관계의 svcA)
     const firstRel = rels[0];
     joinedTables.push(firstRel.svcA);
+    joinedCols.push(firstRel.colA);
 
     for (const relation of rels) {
         if (joinedTables.length >= MAX_SQL_TABLES) break;
@@ -694,29 +753,34 @@ function buildSqlHint(joinKey, rels) {
             const existingAlias = aliases[joinedTables.indexOf(relation.svcA)];
             const newAlias = aliases[joinedTables.length];
             joinedTables.push(relation.svcB);
-            
+            joinedCols.push(relation.colB);
+
             joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcB)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colA)} = ${newAlias}.${quoteIdent(relation.colB)}`);
         } else if (joinedTables.includes(relation.svcB) && !joinedTables.includes(relation.svcA)) {
             const existingAlias = aliases[joinedTables.indexOf(relation.svcB)];
             const newAlias = aliases[joinedTables.length];
             joinedTables.push(relation.svcA);
+            joinedCols.push(relation.colA);
 
             joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcA)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colB)} = ${newAlias}.${quoteIdent(relation.colA)}`);
         }
     }
 
-    const selects = joinedTables
+    // 각 테이블의 실제 컬럼명으로 SELECT 절을 구성한다.
+    const selects = joinedCols
         .slice(0, 3)
-        .map((table, index) => `${aliases[index]}.${quoteIdent(joinKey)}`);
+        .map((col, index) => `${aliases[index]}.${quoteIdent(col)}`);
 
     lines.push(`SELECT ${selects.join(', ')}, A.*, B.*`);
     lines.push(`FROM ${quoteIdent(joinedTables[0])} A`);
-    
+
     for (const joinLine of joins) {
         lines.push(joinLine);
     }
 
-    lines.push(`WHERE A.${quoteIdent(joinKey)} IS NOT NULL AND A.${quoteIdent(joinKey)} != ''`);
+    // WHERE 절도 시작 테이블(A)의 실제 컬럼명을 사용한다.
+    const firstCol = quoteIdent(joinedCols[0]);
+    lines.push(`WHERE A.${firstCol} IS NOT NULL AND A.${firstCol} != ''`);
     lines.push('LIMIT 100;');
 
     return lines.join('\n');
@@ -788,9 +852,11 @@ function writeMd(scenarios, relations, outputPath) {
         }
 
         lines.push('');
-        lines.push('```sql');
-        lines.push(scenario.sql);
-        lines.push('```');
+        if (scenario.sql) {
+            lines.push('```sql');
+            lines.push(scenario.sql);
+            lines.push('```');
+        }
         lines.push('');
     }
 
@@ -809,16 +875,18 @@ function writeMd(scenarios, relations, outputPath) {
 async function main() {
     const opts = parseArgs();
 
-    const samplesDir = opts.samples || DEFAULT_SAMPLES;
-    const cachePath = opts.cache || DEFAULT_CACHE;
-    const jsonOut = opts.json || DEFAULT_JSON;
-    const mdOut = opts.md || DEFAULT_MD;
+    const samplesDir = opts.samples;
+    const cachePath  = opts.cache;
+    const jsonOut    = opts.json;
+    const mdOut      = opts.md;
+    const noJson     = opts.noJson;
+    const noMd       = opts.noMd;
 
     logger.info({
         samplesDir,
         cachePath,
-        jsonOut,
-        mdOut
+        jsonOut: noJson ? '(생략)' : jsonOut,
+        mdOut:   noMd   ? '(생략)' : mdOut
     }, '데이터셋 사용 시나리오 분석을 시작합니다.');
 
     // 1. 데이터 로딩
@@ -864,20 +932,46 @@ async function main() {
     });
 
     // 6. 결과 파일 저장
-    writeJson(scenarios, relations, jsonOut);
-    writeMd(scenarios, relations, mdOut);
+    if (!noJson) writeJson(scenarios, relations, jsonOut);
+    if (!noMd)   writeMd(scenarios, relations, mdOut);
 
     logger.info({
-        jsonOut,
-        mdOut
+        jsonOut: noJson ? '(생략)' : jsonOut,
+        mdOut:   noMd   ? '(생략)' : mdOut
     }, '전체 분석이 완료되었습니다.');
 }
 
 // 스크립트 실행 및 최상위 오류 처리
-main().catch(err => {
-    logger.fatal({
-        err
-    }, '분석 중 심각한 오류가 발생했습니다.');
+if (require.main === module) {
+    main().catch(err => {
+        logger.fatal({
+            err
+        }, '분석 중 심각한 오류가 발생했습니다.');
 
-    process.exit(1);
-});
+        process.exit(1);
+    });
+}
+
+// =============================================================================
+// exports — import_to_sqlite.js 등 외부 모듈에서 재사용 가능하도록 공개
+// =============================================================================
+
+module.exports = {
+    loadSampleTables,
+    loadMetadata,
+    profileTable,
+    profileAllTables,
+    buildPairRelations,
+    clusterByJoinKey,
+    buildSqlHint,
+    writeJson,
+    writeMd,
+    // 유틸
+    normalizeValue,
+    normalizeColName,
+    areSynonyms,
+    canonicalKey,
+    computeOverlap,
+    classifyJoin,
+    findJoinCandidates
+};
