@@ -27,6 +27,8 @@ const SHEET_NAMES = {
   JOIN_SQL: 'SQLite 직접 조인 검증 (SQL)',
   CHAIN_SQL: 'SQLite 체인 조인 (SQL)',
   RAW: '출력항목 원본',
+  PK_CANDIDATES: 'PK 후보 분석',
+  FK_CANDIDATES: 'FK 후보 분석',
 };
 
 // 데이터셋 카테고리별 배경색
@@ -65,6 +67,8 @@ const TAB_COLORS = {
   [SHEET_NAMES.JOIN_SQL]: '1A7D44',
   [SHEET_NAMES.CHAIN_SQL]: 'F39C12',
   [SHEET_NAMES.RAW]: 'C55A11',
+  [SHEET_NAMES.PK_CANDIDATES]: '70AD47',
+  [SHEET_NAMES.FK_CANDIDATES]: 'ED7D31',
 };
 
 // ═════════════════════════════════════════════════════════════
@@ -779,6 +783,135 @@ function shChainJoins(ws, chainJoinsText) {
 }
 
 // ═════════════════════════════════════════════════════════════
+// 신뢰도 배경색
+// ═════════════════════════════════════════════════════════════
+const CONF_BG = { HIGH: 'C6EFCE', MEDIUM: 'FFEB9C', LOW: 'FFC7CE', SUGGESTED: 'FCE4D6' };
+
+function confidenceBg(confidence, rowIdx) {
+  return CONF_BG[confidence] || (rowIdx % 2 ? 'F9F9F9' : 'FFFFFF');
+}
+
+// ═════════════════════════════════════════════════════════════
+// 시트: PK 후보 분석
+// ═════════════════════════════════════════════════════════════
+function shPkCandidates(ws, tables) {
+  setWorksheetCommon(ws, SHEET_NAMES.PK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
+  setColWidths(ws, [5, 12, 36, 18, 22, 22, 10, 10, 8, 10, 12, 10, 60]);
+  renderHeader(ws, 1, [
+    '#', '서비스번호', '데이터셋명', '카테고리',
+    'PK 필드', '한글명', '유형', '신뢰도', '점수',
+    '샘플건수', 'Unique 여부', '중복건수', '선정 사유',
+  ], '70AD47');
+
+  toArray(tables).forEach((t, idx) => {
+    const r = idx + 2;
+    const pk = toArray(t.pk_candidates)[0] || null;
+    const bg = confidenceBg(pk ? pk.confidence : null, idx);
+    ws.getRow(r).height = 22;
+
+    if (!pk) {
+      writeRow(ws, r, [
+        { v: idx + 1, ha: 'center' },
+        { v: t.svc_no || '', ha: 'center', bold: true },
+        { v: t.svc_nm || '', ha: 'left' },
+        { v: t.cat || '', ha: 'center' },
+        { v: '-', ha: 'center' }, { v: '-', ha: 'center' }, { v: '-', ha: 'center' },
+        { v: '-', ha: 'center' }, { v: '-', ha: 'center' },
+        { v: t.sample_record_count || 0, ha: 'center' },
+        { v: '-', ha: 'center' }, { v: '-', ha: 'center' },
+        { v: '후보 없음', ha: 'left' },
+      ], { bg });
+      return;
+    }
+
+    const uc = pk.unique_check || {};
+    writeRow(ws, r, [
+      { v: idx + 1, ha: 'center' },
+      { v: t.svc_no || '', ha: 'center', bold: true },
+      { v: t.svc_nm || '', ha: 'left' },
+      { v: t.cat || '', ha: 'center' },
+      { v: toArray(pk.fields).join(' + '), ha: 'center', bold: true },
+      { v: toArray(pk.kor_names).join(' + '), ha: 'left' },
+      { v: pk.type || '', ha: 'center' },
+      { v: pk.confidence || '', ha: 'center', bold: true },
+      { v: pk.score || 0, ha: 'center' },
+      { v: t.sample_record_count || 0, ha: 'center' },
+      { v: uc.is_unique ? '✓' : '✗', ha: 'center', bold: true, bgOv: uc.is_unique ? 'C6EFCE' : 'FFC7CE' },
+      { v: uc.duplicate_count ?? '-', ha: 'center' },
+      { v: pk.reason || '', ha: 'left', sz: 8 },
+    ], { bg });
+  });
+
+  ws.autoFilter = `A1:M${Math.max(toArray(tables).length + 1, 1)}`;
+}
+
+// ═════════════════════════════════════════════════════════════
+// 시트: FK 후보 분석
+// ═════════════════════════════════════════════════════════════
+function shFkCandidates(ws, relationships, compositeFks) {
+  setWorksheetCommon(ws, SHEET_NAMES.FK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
+  setColWidths(ws, [5, 12, 12, 12, 32, 20, 12, 32, 20, 8, 10, 10, 10, 70]);
+  renderHeader(ws, 1, [
+    '#', '유형', '관계종류',
+    'From 테이블', 'From 이름', 'From 필드',
+    'To 테이블', 'To 이름', 'To 필드',
+    '점수', '신뢰도', '포함률(%)', '매칭건수', '선정 사유',
+  ], 'ED7D31');
+
+  let r = 1;
+
+  toArray(relationships).forEach((rel, idx) => {
+    r++;
+    const inc = rel.inclusion_check || {};
+    const ratio = inc.inclusion_ratio != null ? (inc.inclusion_ratio * 100).toFixed(1) : '-';
+    const bg = confidenceBg(rel.confidence, idx);
+    ws.getRow(r).height = 22;
+    writeRow(ws, r, [
+      { v: r - 1, ha: 'center' },
+      { v: '단일 FK', ha: 'center' },
+      { v: rel.relation_type || '', ha: 'center' },
+      { v: rel.from_table || '', ha: 'center', bold: true },
+      { v: rel.from_table_name || '', ha: 'left', sz: 8 },
+      { v: rel.from_field || '', ha: 'center' },
+      { v: rel.to_table || '', ha: 'center', bold: true },
+      { v: rel.to_table_name || '', ha: 'left', sz: 8 },
+      { v: rel.to_field || '', ha: 'center' },
+      { v: rel.score || 0, ha: 'center' },
+      { v: rel.confidence || '', ha: 'center', bold: true },
+      { v: ratio, ha: 'center' },
+      { v: inc.matched_count ?? '-', ha: 'center' },
+      { v: rel.reason || '', ha: 'left', sz: 8 },
+    ], { bg });
+  });
+
+  toArray(compositeFks).forEach((fk, idx) => {
+    r++;
+    const inc = fk.inclusion_check || {};
+    const ratio = inc.inclusion_ratio != null ? (inc.inclusion_ratio * 100).toFixed(1) : '-';
+    const bg = confidenceBg(fk.confidence, toArray(relationships).length + idx);
+    ws.getRow(r).height = 22;
+    writeRow(ws, r, [
+      { v: r - 1, ha: 'center' },
+      { v: '복합 FK', ha: 'center' },
+      { v: fk.relation_type || '', ha: 'center' },
+      { v: fk.from_table || '', ha: 'center', bold: true },
+      { v: fk.from_table_name || '', ha: 'left', sz: 8 },
+      { v: toArray(fk.from_fields).join(' + '), ha: 'center' },
+      { v: fk.to_table || '', ha: 'center', bold: true },
+      { v: fk.to_table_name || '', ha: 'left', sz: 8 },
+      { v: toArray(fk.to_fields).join(' + '), ha: 'center' },
+      { v: fk.score || 0, ha: 'center' },
+      { v: fk.confidence || '', ha: 'center', bold: true },
+      { v: ratio, ha: 'center' },
+      { v: inc.matched ?? '-', ha: 'center' },
+      { v: `복합키: ${toArray(fk.from_fields).join(' + ')} (pk_confidence=${fk.pk_confidence || '-'})`, ha: 'left', sz: 8 },
+    ], { bg });
+  });
+
+  ws.autoFilter = `A1:N${Math.max(r, 1)}`;
+}
+
+// ═════════════════════════════════════════════════════════════
 // 워크북 설정
 // ═════════════════════════════════════════════════════════════
 // 엑셀 워크북의 작성자 등 메타데이터 기본 설정
@@ -848,8 +981,65 @@ async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   log.info({ outputPath, sheets: workbook.worksheets.length }, `STEP 9 완료`);
 }
 
+// ═════════════════════════════════════════════════════════════
+// 기존 xlsx에 시트 교체 (부분 갱신용)
+// ═════════════════════════════════════════════════════════════
+
+/**
+ * 기존 엑셀 파일의 PK/FK 시트를 갱신한다.
+ * analyze_pk_fk.js 에서 호출.
+ * @param {Object} analysis - foodsafety_key_candidates.json 내용
+ * @param {string} xlsxPath - 갱신할 xlsx 경로
+ */
+async function updatePkFkSheets(analysis, xlsxPath) {
+  log.info('PK/FK 시트 갱신 시작');
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(xlsxPath);
+
+  for (const name of [SHEET_NAMES.PK_CANDIDATES, SHEET_NAMES.FK_CANDIDATES]) {
+    const existing = workbook.getWorksheet(name);
+    if (existing) workbook.removeWorksheet(existing.id);
+  }
+
+  shPkCandidates(workbook.addWorksheet(SHEET_NAMES.PK_CANDIDATES), toArray(analysis.tables));
+  shFkCandidates(
+    workbook.addWorksheet(SHEET_NAMES.FK_CANDIDATES),
+    toArray(analysis.relationships),
+    toArray(analysis.composite_fks),
+  );
+
+  await workbook.xlsx.writeFile(xlsxPath);
+  const s = analysis.summary || {};
+  log.info(
+    `PK/FK 시트 갱신 완료 — PK ${s.tables_with_pk_candidates ?? '?'}개 테이블, ` +
+    `FK 단일 ${s.relationship_count ?? '?'}개 + 복합 ${s.composite_fk_count ?? '?'}개 → ${xlsxPath}`,
+  );
+}
+
+/**
+ * 기존 엑셀 파일의 Arquero 상세 분석 시트를 갱신한다.
+ * analyze_scenario.js 에서 호출.
+ * @param {Array}  scenarios - clusterByJoinKey() 결과
+ * @param {string} xlsxPath  - 갱신할 xlsx 경로
+ */
+async function updateArqueroSheet(scenarios, xlsxPath) {
+  log.info('Arquero 시트 갱신 시작');
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(xlsxPath);
+
+  const existing = workbook.getWorksheet(SHEET_NAMES.ARQUERO);
+  if (existing) workbook.removeWorksheet(existing.id);
+
+  shArquero(workbook.addWorksheet(SHEET_NAMES.ARQUERO), { scenarios });
+
+  await workbook.xlsx.writeFile(xlsxPath);
+  log.info(`Arquero 시트 갱신 완료 — 시나리오 ${toArray(scenarios).length}개 → ${xlsxPath}`);
+}
+
 module.exports = {
   buildExcel,
+  updatePkFkSheets,
+  updateArqueroSheet,
 
   // 테스트 및 외부 재사용용
   normalizeKeyAnalysis,

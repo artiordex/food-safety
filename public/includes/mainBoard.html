@@ -20,10 +20,10 @@
                 <button type="button" data-tab="tab-1" class="on"><strong>인기데이터</strong></button>
                 <button type="button" data-tab="tab-2"><strong>최근등록데이터</strong></button>
             </div>
-            <div id="tab-1" class="tab-content on">
+            <div id="tab-1" class="tab-content on" style="overflow: hidden;">
 
                 <div class="chart" id="chart-container"
-                    style="height: 242px; width: 45%; float: left; margin-top: 1px; margin-left: 0.5px;">
+                    style="height: 242px; width: 100%; box-sizing: border-box; overflow: hidden;">
                     <script>
                         FusionCharts.ready(function () {
                             var chartData = {

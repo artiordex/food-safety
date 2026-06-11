@@ -316,7 +316,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   `;
 
   Promise.all([
-    fetch('/api/dataset-tree').then(r => r.json()),
+    fetch('/crawler/crawl_cache.json').then(r => r.json()),
     fetch('/api/tables').then(r => r.json())
   ])
     .then(([data, dbTables]) => {

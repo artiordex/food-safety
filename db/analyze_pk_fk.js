@@ -67,7 +67,7 @@ const MAX_COMPOSITE_KEY_SIZE = 2;
 const FK_MIN_INCLUSION_RATIO = 0.0001;     // 조인되는 값이 1개라도 있으면 확정 FK 후보
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
 const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 논리적 구조 기반으로 유지
-const FK_MAX_PER_FROM_FIELD = 5;           // 동일 From Table.Field 기준 최대 후보 수
+const FK_MAX_PER_FROM_FIELD = 2;           // 동일 From Table.Field 기준 최대 후보 수
 
 // 추정 FK 후보 기준
 const FK_SUGGESTED_MIN_SCORE = 60;         // 이 점수 이상이면 추정 후보로 보존
@@ -137,19 +137,6 @@ const FK_DOMAIN_PARENT_CHILD_RULES = [
 const FK_DOMAIN_CONFIRMED_BONUS = 25; // 업무 명칭 규칙 매칭 시 CONFIRMED 승격 점수 가산
 
 /**
- * 데이터셋명(from)이 자식 키워드를 포함하고,
- * 데이터셋명(to)이 부모 키워드를 포함하면 true를 반환한다.
- */
-function matchesDomainParentChildRule(fromSvcNm, toSvcNm) {
-    for (const rule of FK_DOMAIN_PARENT_CHILD_RULES) {
-        const childMatch = rule.childKeywords.some(kw => fromSvcNm.includes(kw));
-        const parentMatch = rule.parentKeywords.some(kw => toSvcNm.includes(kw));
-        if (childMatch && parentMatch) return true;
-    }
-    return false;
-}
-
-/**
  * 공통키별 대표 마스터 테이블 후보.
  *
  * 목적:
@@ -177,8 +164,7 @@ const MASTER_TABLE_BY_KEY = {
         'I2711'  // 위생용품품목제조보고
     ],
     PRDLST_CD: [
-        'I2510', // 품목유형코드
-        'I0950'  // 식품첨가물공전
+        'I2510'  // 품목유형코드
     ],
     TESTITM_CD: [
         'I2530'  // 시험항목코드
@@ -213,7 +199,8 @@ function parseArgs(argv) {
         sql: DEFAULT_SQL,
         noSql: false,
         noMd: false,
-        noJson: false
+        noJson: false,
+        noXlsx: false
     };
 
     for (let i = 0; i < argv.length; i++) {
@@ -226,6 +213,7 @@ function parseArgs(argv) {
         else if (arg === '--no-json') args.noJson = true;
         else if (arg === '--no-md') args.noMd = true;
         else if (arg === '--no-sql') args.noSql = true;
+        else if (arg === '--no-xlsx') args.noXlsx = true;
         else if (arg === '-h' || arg === '--help') { printHelp(); process.exit(0); }
         else log('WARN', `알 수 없는 인자 무시: ${arg}`);
     }
@@ -248,6 +236,7 @@ Options:
   --no-json           JSON 결과 생성 생략
   --no-md             Markdown 결과 생성 생략
   --no-sql            ERD SQL 생성 생략
+  --no-xlsx           엑셀 시트 갱신 생략
   -h, --help          도움말 출력
 
 Examples:
@@ -388,7 +377,7 @@ function keywordMatchesText(keyword, text, fuseIndex) {
 
 /**
  * Fuse.js 및 공백 정규화를 활용한 도메인 부모-자식 규칙 매칭.
- * 기존 matchesDomainParentChildRule의 exact-only 방식을 대체한다.
+ * exact includes 및 공백 정규화보다 넓은 범위를 커버한다.
  */
 function matchesDomainParentChildRuleFuzzy(fromSvcNm, toSvcNm, fuseIndex) {
     for (const rule of FK_DOMAIN_PARENT_CHILD_RULES) {
@@ -479,10 +468,11 @@ function parseSampleJson(jsonPath, svcNo) {
 
     if (isRecordArray(obj)) return obj;
 
+    // 최상위 값 중 레코드 배열이 정확히 하나만 있으면 그것을 사용한다.
+    // 여러 개면 어느 것이 맞는지 알 수 없으므로 빈 배열을 반환한다.
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-        for (const val of Object.values(obj)) {
-            if (isRecordArray(val) && val.length > 0) return val;
-        }
+        const found = Object.values(obj).filter(val => isRecordArray(val) && val.length > 0);
+        if (found.length === 1) return found[0];
     }
 
     return [];
@@ -606,10 +596,6 @@ function isKnownRelationKey(fieldName) {
 
 function isExcludedFkField(fieldName) {
     return matchesAny(String(fieldName || ''), EXCLUDED_FK_FIELD_PATTERNS);
-}
-
-function isNameField(fieldName) {
-    return isExcludedFkField(fieldName);
 }
 
 // =============================================================================
@@ -1148,9 +1134,11 @@ function shouldSkipByMasterRule(fromSvcNo, fieldName, existingSvcNoSet) {
     return isMasterTableForKey(fromSvcNo, upperField, existingSvcNoSet);
 }
 
-function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fieldName, fuseIndex = null }) {
+function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fieldName, fuseIndex = null, thresholds = null }) {
     const fieldSimilarity = target.fieldSimilarity ?? 1.0;
     const exactFieldMatch = target.exactFieldMatch ?? true;
+    const minRatio = thresholds?.min ?? FK_MIN_INCLUSION_RATIO;
+    const strongRatio = thresholds?.strong ?? FK_STRONG_INCLUSION_RATIO;
     let score = 45;
     const reasons = [];
 
@@ -1210,11 +1198,11 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
     if (inclusion.checked) {
         const pct = (inclusion.inclusion_ratio * 100).toFixed(1);
 
-        if (inclusion.inclusion_ratio >= FK_STRONG_INCLUSION_RATIO) {
+        if (inclusion.inclusion_ratio >= strongRatio) {
             score += 30;
             relationType = 'CONFIRMED';
             reasons.push(`값 포함률 ${pct}%`);
-        } else if (inclusion.inclusion_ratio >= FK_MIN_INCLUSION_RATIO) {
+        } else if (inclusion.inclusion_ratio >= minRatio) {
             score += 15;
             relationType = 'CONFIRMED';
             reasons.push(`값 포함률 ${pct}%`);
@@ -1274,13 +1262,15 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
 /**
  * 대상 데이터셋의 단일 필드들이 다른 테이블의 단일키(PK)를 참조하는 외래키(FK)인지 분석하고 점수를 매깁니다.
  */
-function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null) {
+function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null, thresholds = null) {
     const tableLookup = createTableLookup(tableAnalyses);
     const existingSvcNoSet = new Set(tableAnalyses.map(t => normalizeSvcNo(t.svc_no)));
     const pkFieldIndex = buildPkFieldIndex(tableAnalyses);
 
     const relationships = [];
     const rejectedRelationships = [];
+    // 순환 참조 탐지용 Set: "toTable|toField|fromTable|fromField" 형태로 기존 관계를 기록
+    const reverseRelSet = new Set();
 
     for (const ds of datasets) {
         const fromSvcNo = String(ds.svc_no || '').trim();
@@ -1330,13 +1320,8 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
             for (const target of targets) {
                 if (target.svc_no === fromSvcNo) continue;
 
-                // 순환 참조 방지
-                if (relationships.some(r =>
-                    r.from_table === target.svc_no &&
-                    r.to_table === fromSvcNo &&
-                    r.from_field === target.pk.fields[0] &&
-                    r.to_field === fieldName
-                )) continue;
+                // 순환 참조 방지 (O(1) Set 조회)
+                if (reverseRelSet.has(`${target.svc_no}|${target.pk.fields[0]}|${fromSvcNo}|${fieldName}`)) continue;
 
                 const toRecords = recordsMap.get(target.svc_no) || [];
                 const scored = scoreFkCandidate({
@@ -1346,7 +1331,8 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                     fromRecords,
                     toRecords,
                     fieldName,
-                    fuseIndex
+                    fuseIndex,
+                    thresholds
                 });
 
                 if (scored.skip) {
@@ -1389,7 +1375,10 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
             candidatesForField
                 .sort((a, b) => b.score - a.score)
                 .slice(0, FK_MAX_PER_FROM_FIELD)
-                .forEach(rel => relationships.push(rel));
+                .forEach(rel => {
+                    relationships.push(rel);
+                    reverseRelSet.add(`${rel.from_table}|${rel.from_field}|${rel.to_table}|${rel.to_field}`);
+                });
         }
     }
 
@@ -1550,26 +1539,42 @@ function computeInDegreeRanking(graph, tableAnalyses) {
  */
 function detectFkCycles(graph) {
     const visited = new Set();
-    const recStack = new Set();
     const cycles = [];
 
-    function dfs(node, path) {
-        visited.add(node);
-        recStack.add(node);
+    for (const start of graph.nodes()) {
+        if (visited.has(start)) continue;
 
-        for (const nb of graph.outNeighbors(node)) {
+        // 반복 DFS: [node, path, neighborIndex] 스택
+        const recStack = new Set();
+        const stack = [[start, [start], 0]];
+
+        while (stack.length > 0) {
+            const frame = stack[stack.length - 1];
+            const [node, path, nIdx] = frame;
+
+            if (nIdx === 0) {
+                visited.add(node);
+                recStack.add(node);
+            }
+
+            const neighbors = graph.outNeighbors(node);
+
+            if (nIdx >= neighbors.length) {
+                recStack.delete(node);
+                stack.pop();
+                continue;
+            }
+
+            frame[2]++;
+            const nb = neighbors[nIdx];
+
             if (!visited.has(nb)) {
-                dfs(nb, [...path, nb]);
+                stack.push([nb, [...path, nb], 0]);
             } else if (recStack.has(nb)) {
                 const idx = path.indexOf(nb);
                 cycles.push(idx >= 0 ? path.slice(idx) : [node, nb]);
             }
         }
-        recStack.delete(node);
-    }
-
-    for (const node of graph.nodes()) {
-        if (!visited.has(node)) dfs(node, [node]);
     }
 
     return cycles;
@@ -1585,9 +1590,10 @@ function computeTopologicalOrder(graph) {
     const inDeg = new Map(graph.nodes().map(n => [n, graph.inDegree(n)]));
     const queue = graph.nodes().filter(n => inDeg.get(n) === 0);
     const order = [];
+    let head = 0;
 
-    while (queue.length > 0) {
-        const node = queue.shift();
+    while (head < queue.length) {
+        const node = queue[head++];
         order.push(node);
         for (const nb of graph.outNeighbors(node)) {
             const d = inDeg.get(nb) - 1;
@@ -1611,9 +1617,10 @@ function computeConnectedComponents(graph) {
         if (visited.has(start)) continue;
         const comp = [];
         const queue = [start];
+        let head = 0;
 
-        while (queue.length > 0) {
-            const node = queue.shift();
+        while (head < queue.length) {
+            const node = queue[head++];
             if (visited.has(node)) continue;
             visited.add(node);
             comp.push(node);
@@ -1629,15 +1636,8 @@ function computeConnectedComponents(graph) {
 }
 
 /**
- * 전체 그래프 구조를 분석해 반환한다.
- * - 마스터 테이블 자동 감지 (in-degree 기반)
- * - 순환 참조 경고
- * - 위상 정렬 (SQL 실행 순서)
- * - 도메인 클러스터 (연결 컴포넌트)
- */
-/**
- * 탐지된 PK/FK 관계를 바탕으로 방향 그래프(Directed Graph)를 구성하고,
- * 진입차수(In-degree) 기반 마스터 테이블 추출, 순환 참조 감지, 도메인 그룹핑을 수행합니다.
+ * PK/FK 관계로 방향 그래프를 구성하고 in-degree 기반 마스터 테이블 추출,
+ * 순환 참조 감지, 위상 정렬, 도메인 클러스터링을 수행한다.
  */
 function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
     const graph = buildFkGraph(tableAnalyses, relationships, compositeFks);
@@ -1671,9 +1671,7 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
 // 섹션 10. 핵심 분석 함수 — analyze()
 // =============================================================================
 
-function analyze(datasets, recordsMap = new Map(), entropyMap = null) {
-    const resolvedEntropyMap = entropyMap || buildEntropyMap(recordsMap);
-
+function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     const tableAnalyses = datasets.map(ds => {
         const svcNo = String(ds.svc_no || '').trim();
         const records = recordsMap.get(svcNo) || [];
@@ -1695,7 +1693,7 @@ function analyze(datasets, recordsMap = new Map(), entropyMap = null) {
 
     const fuseIndex = buildDatasetFuseIndex(datasets);
     log('INFO', `Fuse.js 인덱스 구성: ${datasets.length}개 데이터셋`);
-    const fkResult = analyzeFkCandidates(datasets, tableAnalyses, recordsMap, fuseIndex);
+    const fkResult = analyzeFkCandidates(datasets, tableAnalyses, recordsMap, fuseIndex, thresholds);
     const relationships = fkResult.relationships;
     const rejectedRelationships = fkResult.rejected_relationships;
 
@@ -1747,23 +1745,36 @@ function analyze(datasets, recordsMap = new Map(), entropyMap = null) {
 // 섹션 11. 결과 파일 생성 — writeReports()
 // =============================================================================
 
-function writeReports(analysis, opts = {}) {
+const DEFAULT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
+
+async function writeReports(analysis, opts = {}) {
     const {
         json = DEFAULT_JSON,
         md = DEFAULT_MD,
         sql = DEFAULT_SQL,
+        xlsx = DEFAULT_XLSX,
         noJson = false,
         noMd = false,
-        noSql = false
+        noSql = false,
+        noXlsx = false
     } = opts;
 
     if (!noJson) generateJsonReport(analysis, json);
-    if (!noMd) generateMarkdownReport(analysis, md);
-    if (!noSql) {
-        generateKeysErdSql(analysis, sql);
-        // foodsafety_erd.sql 파일도 동일한 관계 스키마 데이터로 항상 자동 동기화
-        const erdPath = path.join(path.dirname(sql), 'foodsafety_erd.sql');
-        generateKeysErdSql(analysis, erdPath);
+    if (!noMd)   generateMarkdownReport(analysis, md);
+    if (!noSql)  generateKeysErdSql(analysis, sql);
+    if (!noXlsx) await generateExcelReport(analysis, xlsx);
+}
+
+async function generateExcelReport(analysis, xlsxPath) {
+    if (!fs.existsSync(xlsxPath)) {
+        log('WARN', `엑셀 파일 없음 (생략): ${xlsxPath}`);
+        return;
+    }
+    try {
+        const { updatePkFkSheets } = require('../crawler/excel_reporter');
+        await updatePkFkSheets(analysis, xlsxPath);
+    } catch (err) {
+        log('WARN', `엑셀 생성 실패 (분석 결과는 정상 저장됨): ${err.message}`);
     }
 }
 
@@ -1890,7 +1901,7 @@ function generateKeysErdSql(analysis, outputPath) {
 
     const fksByTable = new Map();
     for (const rel of analysis.relationships) {
-        // 모든 후보 관계(CONFIRMED, SUGGESTED 등 무관하게 전체 목록)를 필터링 없이 연결 처리
+        if (!FK_INCLUDE_SUGGESTED_IN_SQL && rel.relation_type === 'SUGGESTED') continue;
         if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, []);
         fksByTable.get(rel.from_table).push(rel);
     }
@@ -1985,7 +1996,7 @@ function generateKeysErdSql(analysis, outputPath) {
 // =============================================================================
 
 async function run(options) {
-    const { cache, samples, json, md, sql, noJson, noMd, noSql } = options;
+    const { cache, samples, json, md, sql, noJson, noMd, noSql, noXlsx } = options;
 
     log('STEP', 'crawl_cache.json 로드');
     if (!fs.existsSync(cache)) { log('ERR', `캐시 파일 없음: ${cache}`); process.exit(1); }
@@ -1998,7 +2009,7 @@ async function run(options) {
     const recordsMap = new Map();
 
     // SQLite 데이터베이스가 존재하면 우선적으로 연결
-    const dbPath = path.join(process.cwd(), 'foodsafety.db');
+    const dbPath = path.join(__dirname, '..', 'foodsafety.db');
     let db = null;
     if (fs.existsSync(dbPath)) {
         try {
@@ -2033,7 +2044,7 @@ async function run(options) {
         return new Promise((resolve) => {
             if (db) {
                 // SQLite 적재된 실제 데이터가 있는지 조회 (최대 5000개 로드하여 정확도 극대화)
-                db.all(`SELECT * FROM "${svcNo}" LIMIT 5000;`, [], (err, rows) => {
+                db.all(`SELECT * FROM ${quoteIdent(svcNo)} LIMIT 5000;`, [], (err, rows) => {
                     if (!err && rows && rows.length > 0) {
                         recordsMap.set(svcNo, rows);
                         resolve();
@@ -2051,15 +2062,13 @@ async function run(options) {
     await Promise.all(loadPromises);
 
     if (db) {
-        db.close();
+        db.close(err => {
+            if (err) log('WARN', `SQLite 연결 해제 실패: ${err.message}`);
+        });
         log('INFO', `SQLite 연결 정상 해제 및 ${recordsMap.size}개 테이블 데이터 분석 준비 완료`);
     }
 
     log('STEP', 'PK/FK 후보 분석');
-
-    // 엔트로피 맵 사전 계산
-    const entropyMap = buildEntropyMap(recordsMap);
-    log('INFO', `엔트로피 맵 생성: ${entropyMap.size}개 테이블`);
 
     // 포함률 임계값을 실제 데이터 분포에서 도출 (사전 패스)
     const allInclusionRatios = [];
@@ -2077,12 +2086,12 @@ async function run(options) {
         }
     }
     const derivedThresholds = deriveInclusionThresholds(allInclusionRatios);
-    log('INFO', `포함률 임계값 자동 도출 — min: ${derivedThresholds.min.toFixed(4)}, strong: ${derivedThresholds.strong.toFixed(4)} (샘플 ${allInclusionRatios.length}쌍)`);
+    log('INFO', `포함률 임계값 자동 도출 적용 — min: ${derivedThresholds.min.toFixed(4)}, strong: ${derivedThresholds.strong.toFixed(4)} (샘플 ${allInclusionRatios.length}쌍)`);
 
-    const analysis = analyze(datasets, recordsMap, entropyMap);
+    const analysis = analyze(datasets, recordsMap, derivedThresholds);
 
     log('STEP', '결과 파일 생성');
-    writeReports(analysis, { json, md, sql, noJson, noMd, noSql });
+    await writeReports(analysis, { json, md, sql, noJson, noMd, noSql, noXlsx });
 
     const sep = '='.repeat(62);
     log('INFO', `\n${sep}`);
@@ -2151,7 +2160,6 @@ module.exports = {
     calculateIdentifierScore,
     isKnownRelationKey,
     isExcludedFkField,
-    isNameField,
 
     getMasterTablesForKey,
     isMasterTableForKey,

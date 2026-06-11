@@ -1,82 +1,11 @@
 {
-  "generatedAt": "2026-06-09T12:29:11.066Z",
+  "generatedAt": "2026-06-11T06:25:05.677Z",
   "summary": {
-    "totalScenarios": 16,
-    "totalRelations": 163,
-    "highConfidence": 5
+    "totalScenarios": 15,
+    "totalRelations": 155,
+    "highConfidence": 4
   },
   "scenarios": [
-    {
-      "id": "SCN_002",
-      "joinKey": "INJRY_YN",
-      "datasets": [
-        "I0930",
-        "I0940",
-        "I0950",
-        "I2580",
-        "I2600"
-      ],
-      "datasetCount": 5,
-      "relations": [
-        {
-          "from": "I0930",
-          "fromNm": "식품공전",
-          "to": "I0940",
-          "toNm": "식품용 기구 및 용기.포장 공전",
-          "colFrom": "INJRY_YN",
-          "colTo": "INJRY_YN",
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "sampleMatches": [
-            "N"
-          ]
-        },
-        {
-          "from": "I0930",
-          "fromNm": "식품공전",
-          "to": "I0950",
-          "toNm": "식품첨가물공전",
-          "colFrom": "INJRY_YN",
-          "colTo": "INJRY_YN",
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "sampleMatches": [
-            "N"
-          ]
-        },
-        {
-          "from": "I0930",
-          "fromNm": "식품공전",
-          "to": "I2580",
-          "toNm": "개별기준규격",
-          "colFrom": "INJRY_YN",
-          "colTo": "INJRY_YN",
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "sampleMatches": [
-            "N"
-          ]
-        }
-      ],
-      "score": 100,
-      "confidence": "HIGH",
-      "sql": "SELECT A.\"INJRY_YN\", B.\"INJRY_YN\", C.\"INJRY_YN\", A.*, B.*\nFROM \"I0930\" A\nINNER JOIN \"I0940\" B\n  ON A.\"INJRY_YN\" = B.\"INJRY_YN\"\nINNER JOIN \"I0950\" C\n  ON A.\"INJRY_YN\" = C.\"INJRY_YN\"\nINNER JOIN \"I2580\" D\n  ON A.\"INJRY_YN\" = D.\"INJRY_YN\"\nWHERE A.\"INJRY_YN\" IS NOT NULL AND A.\"INJRY_YN\" != ''\nLIMIT 100;"
-    },
     {
       "id": "SCN_003",
       "joinKey": "STEP",
@@ -144,7 +73,7 @@
       ],
       "score": 100,
       "confidence": "HIGH",
-      "sql": "SELECT A.\"STEP\", B.\"STEP\", C.\"STEP\", A.*, B.*\nFROM \"I1040\" A\nINNER JOIN \"I1050\" B\n  ON A.\"STEP\" = B.\"STEP\"\nINNER JOIN \"I1080\" C\n  ON A.\"STEP\" = C.\"STEP\"\nWHERE A.\"STEP\" IS NOT NULL AND A.\"STEP\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"STEP\", B.\"STEP\", C.\"STEP\", A.*, B.*, C.*\nFROM \"I1040\" A\nINNER JOIN \"I1050\" B\n  ON A.\"STEP\" = B.\"STEP\"\nINNER JOIN \"I1080\" C\n  ON A.\"STEP\" = C.\"STEP\"\nWHERE A.\"STEP\" IS NOT NULL AND A.\"STEP\" != ''\nLIMIT 100;"
     },
     {
       "id": "SCN_004",
@@ -215,97 +144,405 @@
             "Y",
             "N"
           ]
+        },
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2550",
+          "toNm": "처분기준코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2520",
+          "fromNm": "식품원재료코드",
+          "to": "I2530",
+          "toNm": "시험항목코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2520",
+          "fromNm": "식품원재료코드",
+          "to": "I2540",
+          "toNm": "법령코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2520",
+          "fromNm": "식품원재료코드",
+          "to": "I2550",
+          "toNm": "처분기준코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2530",
+          "fromNm": "시험항목코드",
+          "to": "I2540",
+          "toNm": "법령코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2530",
+          "fromNm": "시험항목코드",
+          "to": "I2550",
+          "toNm": "처분기준코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2540",
+          "fromNm": "법령코드",
+          "to": "I2550",
+          "toNm": "처분기준코드",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y",
+            "N"
+          ]
+        },
+        {
+          "from": "I2520",
+          "fromNm": "식품원재료코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y"
+          ]
+        },
+        {
+          "from": "I2530",
+          "fromNm": "시험항목코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y"
+          ]
+        },
+        {
+          "from": "I2540",
+          "fromNm": "법령코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y"
+          ]
+        },
+        {
+          "from": "I2550",
+          "fromNm": "처분기준코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "USE_YN",
+          "colTo": "USE_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "Y"
+          ]
         }
       ],
       "score": 93,
       "confidence": "HIGH",
-      "sql": "SELECT A.\"USE_YN\", B.\"USE_YN\", C.\"USE_YN\", A.*, B.*\nFROM \"I2510\" A\nINNER JOIN \"I2520\" B\n  ON A.\"USE_YN\" = B.\"USE_YN\"\nINNER JOIN \"I2530\" C\n  ON A.\"USE_YN\" = C.\"USE_YN\"\nINNER JOIN \"I2540\" D\n  ON A.\"USE_YN\" = D.\"USE_YN\"\nWHERE A.\"USE_YN\" IS NOT NULL AND A.\"USE_YN\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"USE_YN\", B.\"USE_YN\", C.\"USE_YN\", A.*, B.*, C.*, D.*, E.*\nFROM \"I2510\" A\nINNER JOIN \"I2520\" B\n  ON A.\"USE_YN\" = B.\"USE_YN\"\nINNER JOIN \"I2530\" C\n  ON A.\"USE_YN\" = C.\"USE_YN\"\nINNER JOIN \"I2540\" D\n  ON A.\"USE_YN\" = D.\"USE_YN\"\nINNER JOIN \"I2550\" E\n  ON A.\"USE_YN\" = E.\"USE_YN\"\nWHERE A.\"USE_YN\" IS NOT NULL AND A.\"USE_YN\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_005",
-      "joinKey": "OCCRNC_CNT",
+      "id": "SCN_002",
+      "joinKey": "INJRY_YN",
       "datasets": [
-        "I2849",
-        "I2850",
-        "I2848"
+        "I0930",
+        "I0940",
+        "I2580",
+        "I2600",
+        "I0950"
       ],
-      "datasetCount": 3,
+      "datasetCount": 5,
       "relations": [
         {
-          "from": "I2849",
-          "fromNm": "식중독 원인시설별 현황",
-          "to": "I2850",
-          "toNm": "식중독 원인물질별 현황",
-          "colFrom": "OCCRNC_CNT",
-          "colTo": "OCCRNC_CNT",
+          "from": "I0930",
+          "fromNm": "식품공전",
+          "to": "I0940",
+          "toNm": "식품용 기구 및 용기.포장 공전",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 82,
+          "score": 100,
           "confidence": "HIGH",
-          "matched": 26,
-          "ratioA": 0.743,
-          "ratioB": 0.897,
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 1,
           "sampleMatches": [
-            "14",
-            "24",
-            "6"
+            "N"
           ]
         },
         {
-          "from": "I2848",
-          "fromNm": "식중독 지역별 현황",
-          "to": "I2850",
-          "toNm": "식중독 원인물질별 현황",
-          "colFrom": "OCCRNC_CNT",
-          "colTo": "OCCRNC_CNT",
+          "from": "I0930",
+          "fromNm": "식품공전",
+          "to": "I2580",
+          "toNm": "개별기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 79,
+          "score": 100,
           "confidence": "HIGH",
-          "matched": 17,
+          "matched": 1,
           "ratioA": 1,
-          "ratioB": 0.586,
+          "ratioB": 1,
           "sampleMatches": [
-            "23",
-            "1",
-            "3"
+            "N"
           ]
         },
         {
-          "from": "I2848",
-          "fromNm": "식중독 지역별 현황",
-          "to": "I2849",
-          "toNm": "식중독 원인시설별 현황",
-          "colFrom": "OCCRNC_CNT",
-          "colTo": "OCCRNC_CNT",
-          "joinType": "LEFT JOIN (A→B)",
+          "from": "I0930",
+          "fromNm": "식품공전",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 74,
+          "score": 100,
           "confidence": "HIGH",
-          "matched": 17,
+          "matched": 1,
           "ratioA": 1,
-          "ratioB": 0.486,
+          "ratioB": 1,
           "sampleMatches": [
-            "23",
-            "1",
-            "3"
+            "N"
+          ]
+        },
+        {
+          "from": "I0940",
+          "fromNm": "식품용 기구 및 용기.포장 공전",
+          "to": "I2580",
+          "toNm": "개별기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "from": "I0940",
+          "fromNm": "식품용 기구 및 용기.포장 공전",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "from": "I0930",
+          "fromNm": "식품공전",
+          "to": "I0950",
+          "toNm": "식품첨가물공전",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "from": "I0940",
+          "fromNm": "식품용 기구 및 용기.포장 공전",
+          "to": "I0950",
+          "toNm": "식품첨가물공전",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "from": "I0950",
+          "fromNm": "식품첨가물공전",
+          "to": "I2580",
+          "toNm": "개별기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "from": "I0950",
+          "fromNm": "식품첨가물공전",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "INJRY_YN",
+          "colTo": "INJRY_YN",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "sampleMatches": [
+            "N"
           ]
         }
       ],
-      "score": 78,
+      "score": 89,
       "confidence": "HIGH",
-      "sql": "SELECT A.\"OCCRNC_CNT\", B.\"OCCRNC_CNT\", C.\"OCCRNC_CNT\", A.*, B.*\nFROM \"I2849\" A\nINNER JOIN \"I2850\" B\n  ON A.\"OCCRNC_CNT\" = B.\"OCCRNC_CNT\"\nINNER JOIN \"I2848\" C\n  ON B.\"OCCRNC_CNT\" = C.\"OCCRNC_CNT\"\nWHERE A.\"OCCRNC_CNT\" IS NOT NULL AND A.\"OCCRNC_CNT\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"INJRY_YN\", B.\"INJRY_YN\", C.\"INJRY_YN\", A.*, B.*, C.*, D.*\nFROM \"I0930\" A\nINNER JOIN \"I0940\" B\n  ON A.\"INJRY_YN\" = B.\"INJRY_YN\"\nINNER JOIN \"I2580\" C\n  ON A.\"INJRY_YN\" = C.\"INJRY_YN\"\nINNER JOIN \"I2600\" D\n  ON A.\"INJRY_YN\" = D.\"INJRY_YN\"\nWHERE A.\"INJRY_YN\" IS NOT NULL AND A.\"INJRY_YN\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_008",
+      "id": "SCN_006",
       "joinKey": "DSPS_ENDDT",
       "datasets": [
         "I0480",
         "I2630",
-        "I0482",
-        "I0481"
+        "I0482"
       ],
-      "datasetCount": 4,
+      "datasetCount": 3,
       "relations": [
         {
           "from": "I0480",
@@ -316,15 +553,15 @@
           "colTo": "DSPS_ENDDT",
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
-          "score": 55,
+          "score": 59,
           "confidence": "MEDIUM",
-          "matched": 18,
-          "ratioA": 0.9,
-          "ratioB": 0.198,
+          "matched": 19,
+          "ratioA": 0.95,
+          "ratioB": 0.221,
           "sampleMatches": [
+            "20260616",
             "20260714",
-            "20260630",
-            "20260701"
+            "20260707"
           ]
         },
         {
@@ -335,45 +572,45 @@
           "colFrom": "DSPS_ENDDT",
           "colTo": "DSPS_ENDDT",
           "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 51,
+          "cardinality": "1:N",
+          "score": 52,
           "confidence": "MEDIUM",
-          "matched": 10,
-          "ratioA": 0.909,
-          "ratioB": 0.11,
+          "matched": 11,
+          "ratioA": 0.917,
+          "ratioB": 0.128,
           "sampleMatches": [
+            "20260624",
             "20260606",
-            "20260724",
-            "20260531"
+            "20260724"
           ]
         },
         {
-          "from": "I0481",
-          "fromNm": "행정처분결과(식품판매업)",
-          "to": "I2630",
-          "toNm": "행정처분결과(식품접객업)",
+          "from": "I0480",
+          "fromNm": "행정처분결과(식품제조가공업)",
+          "to": "I0482",
+          "toNm": "행정처분결과(수입식품업)",
           "colFrom": "DSPS_ENDDT",
           "colTo": "DSPS_ENDDT",
-          "joinType": "LEFT JOIN (A→B)",
+          "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:N",
-          "score": 44,
-          "confidence": "MEDIUM",
-          "matched": 10,
-          "ratioA": 0.769,
-          "ratioB": 0.11,
+          "score": 33,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.25,
+          "ratioB": 0.417,
           "sampleMatches": [
-            "20260614",
-            "20260622",
-            "20260617"
+            "20260616",
+            "20260624",
+            "20260618"
           ]
         }
       ],
-      "score": 45,
+      "score": 48,
       "confidence": "MEDIUM",
-      "sql": "SELECT A.\"DSPS_ENDDT\", B.\"DSPS_ENDDT\", C.\"DSPS_ENDDT\", A.*, B.*\nFROM \"I0480\" A\nLEFT JOIN \"I2630\" B\n  ON A.\"DSPS_ENDDT\" = B.\"DSPS_ENDDT\"\nLEFT JOIN \"I0482\" C\n  ON B.\"DSPS_ENDDT\" = C.\"DSPS_ENDDT\"\nLEFT JOIN \"I0481\" D\n  ON B.\"DSPS_ENDDT\" = D.\"DSPS_ENDDT\"\nWHERE A.\"DSPS_ENDDT\" IS NOT NULL AND A.\"DSPS_ENDDT\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"DSPS_ENDDT\", B.\"DSPS_ENDDT\", C.\"DSPS_ENDDT\", A.*, B.*, C.*\nFROM \"I0480\" A\nLEFT JOIN \"I2630\" B\n  ON A.\"DSPS_ENDDT\" = B.\"DSPS_ENDDT\"\nLEFT JOIN \"I0482\" C\n  ON B.\"DSPS_ENDDT\" = C.\"DSPS_ENDDT\"\nWHERE A.\"DSPS_ENDDT\" IS NOT NULL AND A.\"DSPS_ENDDT\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_006",
+      "id": "SCN_005",
       "joinKey": "PRDLST_DCNM",
       "datasets": [
         "C002",
@@ -403,8 +640,8 @@
           "ratioB": 0.447,
           "sampleMatches": [
             "어묵",
-            "조미김",
-            "숙면"
+            "숙면",
+            "두류가공품"
           ]
         },
         {
@@ -436,24 +673,1219 @@
           "colTo": "PRDLST_DCNM",
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 52,
+          "score": 53,
           "confidence": "MEDIUM",
-          "matched": 51,
-          "ratioA": 0.386,
-          "ratioB": 0.654,
+          "matched": 60,
+          "ratioA": 0.455,
+          "ratioB": 0.612,
           "sampleMatches": [
             "기타가공품",
-            "액상차",
-            "김치"
+            "캔디류",
+            "액상차"
+          ]
+        },
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 47,
+          "confidence": "MEDIUM",
+          "matched": 41,
+          "ratioA": 0.519,
+          "ratioB": 0.418,
+          "sampleMatches": [
+            "어묵",
+            "두류가공품",
+            "복합조미식품"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 41,
+          "confidence": "MEDIUM",
+          "matched": 6,
+          "ratioA": 0.75,
+          "ratioB": 0.061,
+          "sampleMatches": [
+            "포장육",
+            "분쇄가공육제품",
+            "양념육"
+          ]
+        },
+        {
+          "from": "C005",
+          "fromNm": "바코드연계제품정보",
+          "to": "C006",
+          "toNm": "축산물품목제조보고(원재료)",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 40,
+          "confidence": "MEDIUM",
+          "matched": 6,
+          "ratioA": 0.045,
+          "ratioB": 0.75,
+          "sampleMatches": [
+            "아이스밀크",
+            "분쇄가공육제품",
+            "햄"
+          ]
+        },
+        {
+          "from": "C005",
+          "fromNm": "바코드연계제품정보",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 32,
+          "confidence": "LOW",
+          "matched": 15,
+          "ratioA": 0.114,
+          "ratioB": 0.536,
+          "sampleMatches": [
+            "가공유",
+            "아이스밀크",
+            "소시지"
+          ]
+        },
+        {
+          "from": "C005",
+          "fromNm": "바코드연계제품정보",
+          "to": "I1250",
+          "toNm": "식품(첨가물)품목제조보고",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 32,
+          "confidence": "LOW",
+          "matched": 13,
+          "ratioA": 0.098,
+          "ratioB": 0.542,
+          "sampleMatches": [
+            "기타가공품",
+            "고추장",
+            "혼합간장"
+          ]
+        },
+        {
+          "from": "I1250",
+          "fromNm": "식품(첨가물)품목제조보고",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 8,
+          "ratioA": 0.333,
+          "ratioB": 0.082,
+          "sampleMatches": [
+            "소스",
+            "복합조미식품",
+            "혼합장"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 16,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.25,
+          "ratioB": 0.071,
+          "sampleMatches": [
+            "아이스밀크",
+            "햄"
+          ]
+        },
+        {
+          "from": "I1310",
+          "fromNm": "축산물 품목제조정보",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "PRDLST_DCNM",
+          "colTo": "PRDLST_DCNM",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 4,
+          "ratioA": 0.143,
+          "ratioB": 0.041,
+          "sampleMatches": [
+            "아이스밀크",
+            "햄",
+            "농후발효유"
           ]
         }
       ],
       "score": 37,
       "confidence": "MEDIUM",
-      "sql": "SELECT A.\"PRDLST_DCNM\", B.\"PRDLST_DCNM\", C.\"PRDLST_DCNM\", A.*, B.*\nFROM \"C002\" A\nLEFT JOIN \"C005\" B\n  ON A.\"PRDLST_DCNM\" = B.\"PRDLST_DCNM\"\nLEFT JOIN \"I2852\" C\n  ON B.\"PRDLST_DCNM\" = C.\"PRDLST_DCNM\"\nWHERE A.\"PRDLST_DCNM\" IS NOT NULL AND A.\"PRDLST_DCNM\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"PRDLST_DCNM\", B.\"PRDLST_DCNM\", C.\"PRDLST_DCNM\", A.*, B.*, C.*\nFROM \"C002\" A\nLEFT JOIN \"C005\" B\n  ON A.\"PRDLST_DCNM\" = B.\"PRDLST_DCNM\"\nLEFT JOIN \"I2852\" C\n  ON B.\"PRDLST_DCNM\" = C.\"PRDLST_DCNM\"\nWHERE A.\"PRDLST_DCNM\" IS NOT NULL AND A.\"PRDLST_DCNM\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_010",
+      "id": "SCN_001",
+      "joinKey": "LCNS_NO",
+      "datasets": [
+        "C001",
+        "I1260",
+        "I0680",
+        "I1540",
+        "I2500",
+        "I2560",
+        "I-0020",
+        "I0630",
+        "I2860",
+        "I1220",
+        "I2859",
+        "I0030",
+        "I1200",
+        "I2861",
+        "C003",
+        "I1300",
+        "I1310",
+        "I1250",
+        "I0310",
+        "I0060",
+        "I2711",
+        "I2713",
+        "I2712",
+        "I1230",
+        "I0490",
+        "I2640",
+        "I2851",
+        "I2823",
+        "I0080",
+        "C006",
+        "I1320",
+        "I0610",
+        "I0482",
+        "I2852",
+        "C002",
+        "I0300",
+        "I1420",
+        "I2620"
+      ],
+      "datasetCount": 38,
+      "relations": [
+        {
+          "from": "C001",
+          "fromNm": "수입식품등영업신고대장",
+          "to": "I1260",
+          "toNm": "식품등수입판매업정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "INNER JOIN",
+          "cardinality": "1:1",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 1000,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20200009171",
+            "20220020542",
+            "20230026008"
+          ]
+        },
+        {
+          "from": "I2500",
+          "fromNm": "인허가 업소 정보",
+          "to": "I2560",
+          "toNm": "영업소재지 GIS 코드",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "INNER JOIN",
+          "cardinality": "1:1",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 999,
+          "ratioA": 0.999,
+          "ratioB": 0.999,
+          "sampleMatches": [
+            "18820308001",
+            "18830478001",
+            "18890592003"
+          ]
+        },
+        {
+          "from": "I0680",
+          "fromNm": "위생관리등급별 업소 현황",
+          "to": "I1540",
+          "toNm": "식품위생등급평가관리내역",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 759,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20250024175",
+            "20250028835",
+            "20250019495"
+          ]
+        },
+        {
+          "from": "I-0020",
+          "fromNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "to": "I0630",
+          "toNm": "건강기능식품GMP 지정 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "INNER JOIN",
+          "cardinality": "1:1",
+          "score": 83,
+          "confidence": "HIGH",
+          "matched": 478,
+          "ratioA": 0.863,
+          "ratioB": 0.794,
+          "sampleMatches": [
+            "20140020025",
+            "20230001042",
+            "20080018016"
+          ]
+        },
+        {
+          "from": "I-0020",
+          "fromNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "to": "I2860",
+          "toNm": "건강기능식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "INNER JOIN",
+          "cardinality": "1:N",
+          "score": 78,
+          "confidence": "HIGH",
+          "matched": 315,
+          "ratioA": 0.569,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20140020025",
+            "20080018016",
+            "20070019018"
+          ]
+        },
+        {
+          "from": "I0630",
+          "fromNm": "건강기능식품GMP 지정 현황",
+          "to": "I2860",
+          "toNm": "건강기능식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 71,
+          "confidence": "HIGH",
+          "matched": 293,
+          "ratioA": 0.487,
+          "ratioB": 0.93,
+          "sampleMatches": [
+            "20250024573",
+            "20250017868",
+            "20250011527"
+          ]
+        },
+        {
+          "from": "I1220",
+          "fromNm": "식품제조가공업정보",
+          "to": "I2859",
+          "toNm": "식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 67,
+          "confidence": "MEDIUM",
+          "matched": 343,
+          "ratioA": 0.343,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20060169056",
+            "20200502025",
+            "20190424108"
+          ]
+        },
+        {
+          "from": "I-0020",
+          "fromNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "to": "I0030",
+          "toNm": "건강기능식품 품목제조 신고사항 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 63,
+          "confidence": "MEDIUM",
+          "matched": 141,
+          "ratioA": 0.255,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20040019002",
+            "20040017030",
+            "20120017010"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I0630",
+          "toNm": "건강기능식품GMP 지정 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 61,
+          "confidence": "MEDIUM",
+          "matched": 139,
+          "ratioA": 0.986,
+          "ratioB": 0.231,
+          "sampleMatches": [
+            "20140017002",
+            "20110020001",
+            "20040015100"
+          ]
+        },
+        {
+          "from": "I1200",
+          "fromNm": "식품접객업정보",
+          "to": "I2861",
+          "toNm": "음식점업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 58,
+          "confidence": "MEDIUM",
+          "matched": 157,
+          "ratioA": 0.157,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20180222214",
+            "20060056349",
+            "20210387627"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I2860",
+          "toNm": "건강기능식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 55,
+          "confidence": "MEDIUM",
+          "matched": 107,
+          "ratioA": 0.759,
+          "ratioB": 0.34,
+          "sampleMatches": [
+            "20140017002",
+            "20110020001",
+            "20040015100"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I-0020",
+          "toNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 53,
+          "confidence": "MEDIUM",
+          "matched": 30,
+          "ratioA": 1,
+          "ratioB": 0.054,
+          "sampleMatches": [
+            "20040015039",
+            "20040015070",
+            "20040015100"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I0630",
+          "toNm": "건강기능식품GMP 지정 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 52,
+          "confidence": "MEDIUM",
+          "matched": 30,
+          "ratioA": 1,
+          "ratioB": 0.05,
+          "sampleMatches": [
+            "20040015039",
+            "20040015070",
+            "20040015100"
+          ]
+        },
+        {
+          "from": "I1300",
+          "fromNm": "축산물 가공업허가정보",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 51,
+          "confidence": "MEDIUM",
+          "matched": 10,
+          "ratioA": 0.01,
+          "ratioB": 1,
+          "sampleMatches": [
+            "20140502008",
+            "19790257016",
+            "19640448001"
+          ]
+        },
+        {
+          "from": "I1250",
+          "fromNm": "식품(첨가물)품목제조보고",
+          "to": "I2500",
+          "toNm": "인허가 업소 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 50,
+          "confidence": "MEDIUM",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 0.002,
+          "sampleMatches": [
+            "19550509001",
+            "19630364001"
+          ]
+        },
+        {
+          "from": "I1250",
+          "fromNm": "식품(첨가물)품목제조보고",
+          "to": "I2560",
+          "toNm": "영업소재지 GIS 코드",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 50,
+          "confidence": "MEDIUM",
+          "matched": 2,
+          "ratioA": 1,
+          "ratioB": 0.002,
+          "sampleMatches": [
+            "19550509001",
+            "19630364001"
+          ]
+        },
+        {
+          "from": "I0060",
+          "fromNm": "주류제조.면허자 식품제조.가공영업 등록 현황",
+          "to": "I0680",
+          "toNm": "위생관리등급별 업소 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 43,
+          "confidence": "MEDIUM",
+          "matched": 372,
+          "ratioA": 0.372,
+          "ratioB": 0.49,
+          "sampleMatches": [
+            "20190012114",
+            "20172860142",
+            "20130019294"
+          ]
+        },
+        {
+          "from": "I0060",
+          "fromNm": "주류제조.면허자 식품제조.가공영업 등록 현황",
+          "to": "I1540",
+          "toNm": "식품위생등급평가관리내역",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 43,
+          "confidence": "MEDIUM",
+          "matched": 372,
+          "ratioA": 0.372,
+          "ratioB": 0.49,
+          "sampleMatches": [
+            "20190012114",
+            "20172860142",
+            "20130019294"
+          ]
+        },
+        {
+          "from": "I-0020",
+          "fromNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "to": "I0310",
+          "toNm": "건강기능식품 생산실적 보고 품목 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 43,
+          "confidence": "MEDIUM",
+          "matched": 15,
+          "ratioA": 0.027,
+          "ratioB": 0.833,
+          "sampleMatches": [
+            "20150010002",
+            "20250004967",
+            "20200004746"
+          ]
+        },
+        {
+          "from": "I0310",
+          "fromNm": "건강기능식품 생산실적 보고 품목 현황",
+          "to": "I0630",
+          "toNm": "건강기능식품GMP 지정 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 43,
+          "confidence": "MEDIUM",
+          "matched": 15,
+          "ratioA": 0.833,
+          "ratioB": 0.025,
+          "sampleMatches": [
+            "20220020472",
+            "20220016693",
+            "20200003927"
+          ]
+        },
+        {
+          "from": "I2711",
+          "fromNm": "위생용품품목제조보고",
+          "to": "I2713",
+          "toNm": "위생용품영업정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 42,
+          "confidence": "MEDIUM",
+          "matched": 35,
+          "ratioA": 0.814,
+          "ratioB": 0.035,
+          "sampleMatches": [
+            "19879368002",
+            "19879415001",
+            "19889294002"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I2860",
+          "toNm": "건강기능식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 42,
+          "confidence": "MEDIUM",
+          "matched": 23,
+          "ratioA": 0.767,
+          "ratioB": 0.073,
+          "sampleMatches": [
+            "20040015070",
+            "20040015100",
+            "20040015104"
+          ]
+        },
+        {
+          "from": "I2712",
+          "fromNm": "위생용품품목제조보고(원재료)",
+          "to": "I2713",
+          "toNm": "위생용품영업정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 41,
+          "confidence": "MEDIUM",
+          "matched": 115,
+          "ratioA": 0.714,
+          "ratioB": 0.115,
+          "sampleMatches": [
+            "20259370002",
+            "20249492001",
+            "20259350002"
+          ]
+        },
+        {
+          "from": "I1230",
+          "fromNm": "식품첨가물제조업",
+          "to": "I1250",
+          "toNm": "식품(첨가물)품목제조보고",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 25,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.001,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "19630364001"
+          ]
+        },
+        {
+          "from": "I2713",
+          "fromNm": "위생용품영업정보",
+          "to": "I2851",
+          "toNm": "위생용품영업 생산실적보고",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 24,
+          "confidence": "LOW",
+          "matched": 71,
+          "ratioA": 0.071,
+          "ratioB": 0.415,
+          "sampleMatches": [
+            "20189380002",
+            "20059355002",
+            "20189360002"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 24,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.023,
+          "ratioB": 0.455,
+          "sampleMatches": [
+            "20160333083",
+            "20000320226",
+            "20140333104"
+          ]
+        },
+        {
+          "from": "I0310",
+          "fromNm": "건강기능식품 생산실적 보고 품목 현황",
+          "to": "I2860",
+          "toNm": "건강기능식품업소 인허가 변경 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 18,
+          "confidence": "LOW",
+          "matched": 6,
+          "ratioA": 0.333,
+          "ratioB": 0.019,
+          "sampleMatches": [
+            "20220016693",
+            "20040016020",
+            "20040016036"
+          ]
+        },
+        {
+          "from": "I2823",
+          "fromNm": "위생용품 폐업정보",
+          "to": "I2851",
+          "toNm": "위생용품영업 생산실적보고",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 15,
+          "confidence": "LOW",
+          "matched": 45,
+          "ratioA": 0.045,
+          "ratioB": 0.263,
+          "sampleMatches": [
+            "19859273001",
+            "19859447001",
+            "19899336001"
+          ]
+        },
+        {
+          "from": "I1310",
+          "fromNm": "축산물 품목제조정보",
+          "to": "I2500",
+          "toNm": "인허가 업소 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 15,
+          "confidence": "LOW",
+          "matched": 3,
+          "ratioA": 0.3,
+          "ratioB": 0.003,
+          "sampleMatches": [
+            "19640448001",
+            "19670230001",
+            "19690086016"
+          ]
+        },
+        {
+          "from": "I1310",
+          "fromNm": "축산물 품목제조정보",
+          "to": "I2560",
+          "toNm": "영업소재지 GIS 코드",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 15,
+          "confidence": "LOW",
+          "matched": 3,
+          "ratioA": 0.3,
+          "ratioB": 0.003,
+          "sampleMatches": [
+            "19640448001",
+            "19670230001",
+            "19690086016"
+          ]
+        },
+        {
+          "from": "I2711",
+          "fromNm": "위생용품품목제조보고",
+          "to": "I2851",
+          "toNm": "위생용품영업 생산실적보고",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 10,
+          "confidence": "LOW",
+          "matched": 7,
+          "ratioA": 0.163,
+          "ratioB": 0.041,
+          "sampleMatches": [
+            "19899221002",
+            "20079445004",
+            "19939614001"
+          ]
+        },
+        {
+          "from": "I0080",
+          "fromNm": "어린이 기호식품 품질인증 현황 및 재심사 현황",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 10,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.009,
+          "ratioB": 0.2,
+          "sampleMatches": [
+            "19770262001",
+            "19790532001"
+          ]
+        },
+        {
+          "from": "I0610",
+          "fromNm": "축산물HACCP 지정정보",
+          "to": "I1300",
+          "toNm": "축산물 가공업허가정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:1",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 93,
+          "ratioA": 0.096,
+          "ratioB": 0.093,
+          "sampleMatches": [
+            "20260261007",
+            "20230904005",
+            "20250371008"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I1320",
+          "toNm": "축산물 식육포장처리업영업허가대장",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 19,
+          "ratioA": 0.165,
+          "ratioB": 0.019,
+          "sampleMatches": [
+            "20040484772",
+            "20050368569",
+            "20070368449"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I0310",
+          "toNm": "건강기능식품 생산실적 보고 품목 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.067,
+          "ratioB": 0.111,
+          "sampleMatches": [
+            "20040015191",
+            "20040015119"
+          ]
+        },
+        {
+          "from": "I0080",
+          "fromNm": "어린이 기호식품 품질인증 현황 및 재심사 현황",
+          "to": "I1300",
+          "toNm": "축산물 가공업허가정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 7,
+          "confidence": "LOW",
+          "matched": 24,
+          "ratioA": 0.111,
+          "ratioB": 0.024,
+          "sampleMatches": [
+            "19930448001",
+            "20120379026",
+            "20100448003"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I0310",
+          "toNm": "건강기능식품 생산실적 보고 품목 현황",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 6,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.014,
+          "ratioB": 0.111,
+          "sampleMatches": [
+            "20040016020",
+            "20040015191"
+          ]
+        },
+        {
+          "from": "I0482",
+          "fromNm": "행정처분결과(수입식품업)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 6,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.022,
+          "ratioB": 0.091,
+          "sampleMatches": [
+            "20250017312"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I1300",
+          "toNm": "축산물 가공업허가정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 5,
+          "confidence": "LOW",
+          "matched": 11,
+          "ratioA": 0.096,
+          "ratioB": 0.011,
+          "sampleMatches": [
+            "20230881186",
+            "20180455015",
+            "20120405030"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 5,
+          "confidence": "LOW",
+          "matched": 8,
+          "ratioA": 0.057,
+          "ratioB": 0.044,
+          "sampleMatches": [
+            "20040020002",
+            "20100019004",
+            "20190009483"
+          ]
+        },
+        {
+          "from": "I0610",
+          "fromNm": "축산물HACCP 지정정보",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 5,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.001,
+          "ratioB": 0.1,
+          "sampleMatches": [
+            "19790532001"
+          ]
+        },
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "I1220",
+          "toNm": "식품제조가공업정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 4,
+          "confidence": "LOW",
+          "matched": 17,
+          "ratioA": 0.064,
+          "ratioB": 0.017,
+          "sampleMatches": [
+            "19950433026",
+            "20080449004",
+            "19990461386"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I0490",
+          "toNm": "회수.판매중지 정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 4,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.067,
+          "ratioB": 0.009,
+          "sampleMatches": [
+            "20040015104",
+            "20040015107"
+          ]
+        },
+        {
+          "from": "I-0020",
+          "fromNm": "건강기능식품 전문.벤처제조업인허가 현황",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 9,
+          "ratioA": 0.016,
+          "ratioB": 0.05,
+          "sampleMatches": [
+            "20100019004",
+            "20190009483",
+            "20080015058"
+          ]
+        },
+        {
+          "from": "I0630",
+          "fromNm": "건강기능식품GMP 지정 현황",
+          "to": "I2852",
+          "toNm": "생산중단제품정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 9,
+          "ratioA": 0.015,
+          "ratioB": 0.05,
+          "sampleMatches": [
+            "20190004553",
+            "20190009483",
+            "20080015058"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I0610",
+          "toNm": "축산물HACCP 지정정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 6,
+          "ratioA": 0.052,
+          "ratioB": 0.006,
+          "sampleMatches": [
+            "20120405030",
+            "19930405001",
+            "20050415158"
+          ]
+        },
+        {
+          "from": "I0610",
+          "fromNm": "축산물HACCP 지정정보",
+          "to": "I2620",
+          "toNm": "검사부적합(국내)",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.005,
+          "ratioB": 0.06,
+          "sampleMatches": [
+            "20250371008",
+            "20250681018",
+            "20100036761"
+          ]
+        },
+        {
+          "from": "I0300",
+          "fromNm": "식품.식품첨가물 생산실적 보고 현황",
+          "to": "I1220",
+          "toNm": "식품제조가공업정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 3,
+          "ratioA": 0.056,
+          "ratioB": 0.003,
+          "sampleMatches": [
+            "20080236134",
+            "20030467180",
+            "20100530033"
+          ]
+        },
+        {
+          "from": "I0610",
+          "fromNm": "축산물HACCP 지정정보",
+          "to": "I1420",
+          "toNm": "축산물 생산실적정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.002,
+          "ratioB": 0.061,
+          "sampleMatches": [
+            "20150036608",
+            "20160333045"
+          ]
+        },
+        {
+          "from": "I1320",
+          "fromNm": "축산물 식육포장처리업영업허가대장",
+          "to": "I1420",
+          "toNm": "축산물 생산실적정보",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 2,
+          "ratioA": 0.002,
+          "ratioB": 0.061,
+          "sampleMatches": [
+            "20150356019",
+            "20160333045"
+          ]
+        }
+      ],
+      "score": 33,
+      "confidence": "HIGH",
+      "sql": "SELECT A.\"LCNS_NO\", B.\"LCNS_NO\", A.*, B.*\nFROM \"C001\" A\nINNER JOIN \"I1260\" B\n  ON A.\"LCNS_NO\" = B.\"LCNS_NO\"\nWHERE A.\"LCNS_NO\" IS NOT NULL AND A.\"LCNS_NO\" != ''\nLIMIT 100;"
+    },
+    {
+      "id": "SCN_008",
       "joinKey": "DSPS_BGNDT",
       "datasets": [
         "I0480",
@@ -476,10 +1908,10 @@
           "confidence": "MEDIUM",
           "matched": 80,
           "ratioA": 0.53,
-          "ratioB": 0.388,
+          "ratioB": 0.392,
           "sampleMatches": [
+            "20260610",
             "20260608",
-            "20260601",
             "20260602"
           ]
         },
@@ -515,132 +1947,21 @@
           "score": 24,
           "confidence": "LOW",
           "matched": 31,
-          "ratioA": 0.267,
+          "ratioA": 0.265,
           "ratioB": 0.205,
           "sampleMatches": [
-            "20240614",
             "20240613",
+            "20240614",
             "20240619"
           ]
         }
       ],
       "score": 32,
       "confidence": "MEDIUM",
-      "sql": "SELECT A.\"DSPS_BGNDT\", B.\"DSPS_BGNDT\", C.\"DSPS_BGNDT\", A.*, B.*\nFROM \"I0480\" A\nLEFT JOIN \"I0481\" B\n  ON A.\"DSPS_BGNDT\" = B.\"DSPS_BGNDT\"\nLEFT JOIN \"I0482\" C\n  ON B.\"DSPS_BGNDT\" = C.\"DSPS_BGNDT\"\nLEFT JOIN \"I0470\" D\n  ON A.\"DSPS_BGNDT\" = D.\"DSPS_BGNDT\"\nWHERE A.\"DSPS_BGNDT\" IS NOT NULL AND A.\"DSPS_BGNDT\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"DSPS_BGNDT\", B.\"DSPS_BGNDT\", C.\"DSPS_BGNDT\", A.*, B.*, C.*, D.*\nFROM \"I0480\" A\nLEFT JOIN \"I0481\" B\n  ON A.\"DSPS_BGNDT\" = B.\"DSPS_BGNDT\"\nLEFT JOIN \"I0482\" C\n  ON B.\"DSPS_BGNDT\" = C.\"DSPS_BGNDT\"\nLEFT JOIN \"I0470\" D\n  ON A.\"DSPS_BGNDT\" = D.\"DSPS_BGNDT\"\nWHERE A.\"DSPS_BGNDT\" IS NOT NULL AND A.\"DSPS_BGNDT\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_001",
-      "joinKey": "LCNS_NO",
-      "datasets": [
-        "C001",
-        "I1260",
-        "I0680",
-        "I1540",
-        "I2500",
-        "I2560",
-        "I-0020",
-        "I0630",
-        "I2860",
-        "I1220",
-        "I2859",
-        "I0030",
-        "I1200",
-        "I2861",
-        "C003",
-        "I1300",
-        "I1310",
-        "I1250",
-        "I0310",
-        "I0060",
-        "I2711",
-        "I2713",
-        "I2712",
-        "I1230",
-        "I2851",
-        "I2823",
-        "I0080",
-        "C006",
-        "I1320",
-        "I0610",
-        "I2852",
-        "I0482",
-        "I2640",
-        "C002",
-        "I0490",
-        "I0580",
-        "I0300",
-        "I1420",
-        "I2620"
-      ],
-      "datasetCount": 39,
-      "relations": [
-        {
-          "from": "C001",
-          "fromNm": "수입식품등영업신고대장",
-          "to": "I1260",
-          "toNm": "식품등수입판매업정보",
-          "colFrom": "LCNS_NO",
-          "colTo": "LCNS_NO",
-          "joinType": "INNER JOIN",
-          "cardinality": "1:1",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 1000,
-          "ratioA": 1,
-          "ratioB": 1,
-          "sampleMatches": [
-            "20200009171",
-            "20220020542",
-            "20230026008"
-          ]
-        },
-        {
-          "from": "I2500",
-          "fromNm": "인허가 업소 정보",
-          "to": "I2560",
-          "toNm": "영업소재지 GIS 코드",
-          "colFrom": "LCNS_NO",
-          "colTo": "LCNS_NO",
-          "joinType": "INNER JOIN",
-          "cardinality": "1:1",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 998,
-          "ratioA": 0.998,
-          "ratioB": 0.998,
-          "sampleMatches": [
-            "18820308001",
-            "18830478001",
-            "18890592003"
-          ]
-        },
-        {
-          "from": "I0680",
-          "fromNm": "위생관리등급별 업소 현황",
-          "to": "I1540",
-          "toNm": "식품위생등급평가관리내역",
-          "colFrom": "LCNS_NO",
-          "colTo": "LCNS_NO",
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "matched": 758,
-          "ratioA": 1,
-          "ratioB": 1,
-          "sampleMatches": [
-            "20250019495",
-            "20250016500",
-            "20250019624"
-          ]
-        }
-      ],
-      "score": 31,
-      "confidence": "HIGH",
-      "sql": "SELECT A.\"LCNS_NO\", B.\"LCNS_NO\", A.*, B.*\nFROM \"C001\" A\nINNER JOIN \"I1260\" B\n  ON A.\"LCNS_NO\" = B.\"LCNS_NO\"\nWHERE A.\"LCNS_NO\" IS NOT NULL AND A.\"LCNS_NO\" != ''\nLIMIT 100;"
-    },
-    {
-      "id": "SCN_013",
+      "id": "SCN_012",
       "joinKey": "HIST_TRACE_REG_NO",
       "datasets": [
         "I1930",
@@ -662,7 +1983,7 @@
           "confidence": "LOW",
           "matched": 3,
           "ratioA": 0.6,
-          "ratioB": 0.033,
+          "ratioB": 0.041,
           "sampleMatches": [
             "1020",
             "0600",
@@ -698,24 +2019,24 @@
           "colTo": "HIST_TRACE_REG_NO",
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 8,
+          "score": 10,
           "confidence": "LOW",
-          "matched": 11,
-          "ratioA": 0.042,
-          "ratioB": 0.121,
+          "matched": 12,
+          "ratioA": 0.046,
+          "ratioB": 0.162,
           "sampleMatches": [
             "0633",
-            "1508",
-            "1071"
+            "1129",
+            "0844"
           ]
         }
       ],
       "score": 24,
       "confidence": "LOW",
-      "sql": "SELECT A.\"HIST_TRACE_REG_NO\", B.\"HIST_TRACE_REG_NO\", C.\"HIST_TRACE_REG_NO\", A.*, B.*\nFROM \"I1930\" A\nLEFT JOIN \"I1940\" B\n  ON A.\"HIST_TRACE_REG_NO\" = B.\"HIST_TRACE_REG_NO\"\nLEFT JOIN \"I1920\" C\n  ON A.\"HIST_TRACE_REG_NO\" = C.\"HIST_TRACE_REG_NO\"\nWHERE A.\"HIST_TRACE_REG_NO\" IS NOT NULL AND A.\"HIST_TRACE_REG_NO\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"HIST_TRACE_REG_NO\", B.\"HIST_TRACE_REG_NO\", C.\"HIST_TRACE_REG_NO\", A.*, B.*, C.*\nFROM \"I1930\" A\nLEFT JOIN \"I1940\" B\n  ON A.\"HIST_TRACE_REG_NO\" = B.\"HIST_TRACE_REG_NO\"\nLEFT JOIN \"I1920\" C\n  ON A.\"HIST_TRACE_REG_NO\" = C.\"HIST_TRACE_REG_NO\"\nWHERE A.\"HIST_TRACE_REG_NO\" IS NOT NULL AND A.\"HIST_TRACE_REG_NO\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_011",
+      "id": "SCN_009",
       "joinKey": "TESTITM_CD",
       "datasets": [
         "I2580",
@@ -757,15 +2078,15 @@
           "colTo": "TESTITM_CD",
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "1:N",
-          "score": 36,
+          "score": 38,
           "confidence": "LOW",
-          "matched": 103,
-          "ratioA": 0.609,
-          "ratioB": 0.103,
+          "matched": 97,
+          "ratioA": 0.66,
+          "ratioB": 0.097,
           "sampleMatches": [
+            "A40151",
             "A40128",
-            "A40155",
-            "A40119"
+            "A40155"
           ]
         },
         {
@@ -787,14 +2108,114 @@
             "A10018",
             "A10019"
           ]
+        },
+        {
+          "from": "I2530",
+          "fromNm": "시험항목코드",
+          "to": "I2610",
+          "toNm": "공통기준제외",
+          "colFrom": "TESTITM_CD",
+          "colTo": "TESTITM_CD",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 29,
+          "confidence": "LOW",
+          "matched": 4,
+          "ratioA": 0.004,
+          "ratioB": 0.571,
+          "sampleMatches": [
+            "B10002",
+            "B10004",
+            "B10006"
+          ]
+        },
+        {
+          "from": "I0950",
+          "fromNm": "식품첨가물공전",
+          "to": "I2530",
+          "toNm": "시험항목코드",
+          "colFrom": "TESTITM_CD",
+          "colTo": "TESTITM_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 24,
+          "confidence": "LOW",
+          "matched": 27,
+          "ratioA": 0.458,
+          "ratioB": 0.027,
+          "sampleMatches": [
+            "A30003",
+            "A10088",
+            "A20001"
+          ]
+        },
+        {
+          "from": "I0940",
+          "fromNm": "식품용 기구 및 용기.포장 공전",
+          "to": "I2530",
+          "toNm": "시험항목코드",
+          "colFrom": "TESTITM_CD",
+          "colTo": "TESTITM_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 12,
+          "ratioA": 0.169,
+          "ratioB": 0.012,
+          "sampleMatches": [
+            "B20048",
+            "B10001",
+            "B10003"
+          ]
+        },
+        {
+          "from": "I0950",
+          "fromNm": "식품첨가물공전",
+          "to": "I0960",
+          "toNm": "건강기능식품공전",
+          "colFrom": "TESTITM_CD",
+          "colTo": "TESTITM_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 6,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.085,
+          "ratioB": 0.034,
+          "sampleMatches": [
+            "A30010",
+            "B20003",
+            "A40005"
+          ]
+        },
+        {
+          "from": "I2530",
+          "fromNm": "시험항목코드",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "TESTITM_CD",
+          "colTo": "TESTITM_CD",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 3,
+          "confidence": "LOW",
+          "matched": 16,
+          "ratioA": 0.016,
+          "ratioB": 0.054,
+          "sampleMatches": [
+            "A10029",
+            "A30023",
+            "B10001"
+          ]
         }
       ],
       "score": 23,
       "confidence": "MEDIUM",
-      "sql": "SELECT A.\"TESTITM_CD\", B.\"TESTITM_CD\", C.\"TESTITM_CD\", A.*, B.*\nFROM \"I2580\" A\nLEFT JOIN \"I2610\" B\n  ON A.\"TESTITM_CD\" = B.\"TESTITM_CD\"\nLEFT JOIN \"I2530\" C\n  ON A.\"TESTITM_CD\" = C.\"TESTITM_CD\"\nWHERE A.\"TESTITM_CD\" IS NOT NULL AND A.\"TESTITM_CD\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"TESTITM_CD\", B.\"TESTITM_CD\", C.\"TESTITM_CD\", A.*, B.*, C.*\nFROM \"I2580\" A\nLEFT JOIN \"I2610\" B\n  ON A.\"TESTITM_CD\" = B.\"TESTITM_CD\"\nLEFT JOIN \"I2530\" C\n  ON A.\"TESTITM_CD\" = C.\"TESTITM_CD\"\nWHERE A.\"TESTITM_CD\" IS NOT NULL AND A.\"TESTITM_CD\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_012",
+      "id": "SCN_011",
       "joinKey": "DSPSCN",
       "datasets": [
         "I0470",
@@ -813,11 +2234,11 @@
           "colTo": "DSPSCN",
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 32,
+          "score": 33,
           "confidence": "LOW",
           "matched": 6,
           "ratioA": 0.207,
-          "ratioB": 0.429,
+          "ratioB": 0.462,
           "sampleMatches": [
             "영업소폐쇄",
             "식품위생법 위반에 따른 영업소 폐쇄",
@@ -837,7 +2258,7 @@
           "confidence": "LOW",
           "matched": 9,
           "ratioA": 0.31,
-          "ratioB": 0.129,
+          "ratioB": 0.125,
           "sampleMatches": [
             "영업소폐쇄",
             "식품위생법 위반에 따른 영업소 폐쇄",
@@ -865,9 +2286,9 @@
           ]
         }
       ],
-      "score": 22,
+      "score": 23,
       "confidence": "LOW",
-      "sql": "SELECT A.\"DSPSCN\", B.\"DSPSCN\", C.\"DSPSCN\", A.*, B.*\nFROM \"I0470\" A\nLEFT JOIN \"I0481\" B\n  ON A.\"DSPSCN\" = B.\"DSPSCN\"\nLEFT JOIN \"I2630\" C\n  ON A.\"DSPSCN\" = C.\"DSPSCN\"\nLEFT JOIN \"I0482\" D\n  ON A.\"DSPSCN\" = D.\"DSPSCN\"\nWHERE A.\"DSPSCN\" IS NOT NULL AND A.\"DSPSCN\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"DSPSCN\", B.\"DSPSCN\", C.\"DSPSCN\", A.*, B.*, C.*, D.*\nFROM \"I0470\" A\nLEFT JOIN \"I0481\" B\n  ON A.\"DSPSCN\" = B.\"DSPSCN\"\nLEFT JOIN \"I2630\" C\n  ON A.\"DSPSCN\" = C.\"DSPSCN\"\nLEFT JOIN \"I0482\" D\n  ON A.\"DSPSCN\" = D.\"DSPSCN\"\nWHERE A.\"DSPSCN\" IS NOT NULL AND A.\"DSPSCN\" != ''\nLIMIT 100;"
     },
     {
       "id": "SCN_007",
@@ -941,14 +2362,214 @@
             "제조일로부터 12개월",
             "제조일로부터 24개월"
           ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I1250",
+          "toNm": "식품(첨가물)품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 26,
+          "confidence": "LOW",
+          "matched": 13,
+          "ratioA": 0.232,
+          "ratioB": 0.283,
+          "sampleMatches": [
+            "제조일로부터 2년",
+            "제조일로부터 24개월",
+            "제조일로부터 1년"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "C005",
+          "toNm": "바코드연계제품정보",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 21,
+          "ratioA": 0.375,
+          "ratioB": 0.048,
+          "sampleMatches": [
+            "제조일로부터 2년",
+            "제조일로부터 24개월",
+            "제조일로부터 1년"
+          ]
+        },
+        {
+          "from": "C005",
+          "fromNm": "바코드연계제품정보",
+          "to": "I2711",
+          "toNm": "위생용품품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 14,
+          "ratioA": 0.032,
+          "ratioB": 0.389,
+          "sampleMatches": [
+            "24개월",
+            "1년",
+            "36개월"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I2711",
+          "toNm": "위생용품품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 9,
+          "ratioA": 0.161,
+          "ratioB": 0.25,
+          "sampleMatches": [
+            "제조일로부터 2년",
+            "2년",
+            "18개월"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I2711",
+          "toNm": "위생용품품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 20,
+          "confidence": "LOW",
+          "matched": 8,
+          "ratioA": 0.178,
+          "ratioB": 0.222,
+          "sampleMatches": [
+            "18개월",
+            "36개월",
+            "2년"
+          ]
+        },
+        {
+          "from": "I1250",
+          "fromNm": "식품(첨가물)품목제조보고",
+          "to": "I2711",
+          "toNm": "위생용품품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 17,
+          "confidence": "LOW",
+          "matched": 7,
+          "ratioA": 0.152,
+          "ratioB": 0.194,
+          "sampleMatches": [
+            "18개월",
+            "제조일로부터 2년",
+            "12개월"
+          ]
+        },
+        {
+          "from": "I1250",
+          "fromNm": "식품(첨가물)품목제조보고",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 11,
+          "confidence": "LOW",
+          "matched": 8,
+          "ratioA": 0.174,
+          "ratioB": 0.037,
+          "sampleMatches": [
+            "제조일로부터 24개월",
+            "제조일로부터 2년",
+            "제조일로부터 6개월"
+          ]
+        },
+        {
+          "from": "I1310",
+          "fromNm": "축산물 품목제조정보",
+          "to": "I2711",
+          "toNm": "위생용품품목제조보고",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 8,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.023,
+          "ratioB": 0.139,
+          "sampleMatches": [
+            "없음",
+            "제조일로부터 2년",
+            "해당없음"
+          ]
+        },
+        {
+          "from": "C003",
+          "fromNm": "건강기능식품 품목제조신고(원재료)",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 5,
+          "confidence": "LOW",
+          "matched": 4,
+          "ratioA": 0.071,
+          "ratioB": 0.019,
+          "sampleMatches": [
+            "제조일로부터 2년",
+            "제조일로부터 24개월",
+            "2년"
+          ]
+        },
+        {
+          "from": "I0030",
+          "fromNm": "건강기능식품 품목제조 신고사항 현황",
+          "to": "I1310",
+          "toNm": "축산물 품목제조정보",
+          "colFrom": "POG_DAYCNT",
+          "colTo": "POG_DAYCNT",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 4,
+          "confidence": "LOW",
+          "matched": 3,
+          "ratioA": 0.067,
+          "ratioB": 0.014,
+          "sampleMatches": [
+            "제조일로부터 24개월",
+            "2년",
+            "제조일로부터 2년"
+          ]
         }
       ],
       "score": 21,
       "confidence": "MEDIUM",
-      "sql": "SELECT A.\"POG_DAYCNT\", B.\"POG_DAYCNT\", C.\"POG_DAYCNT\", A.*, B.*\nFROM \"C003\" A\nINNER JOIN \"I0030\" B\n  ON A.\"POG_DAYCNT\" = B.\"POG_DAYCNT\"\nLEFT JOIN \"I1250\" C\n  ON B.\"POG_DAYCNT\" = C.\"POG_DAYCNT\"\nLEFT JOIN \"C005\" D\n  ON B.\"POG_DAYCNT\" = D.\"POG_DAYCNT\"\nWHERE A.\"POG_DAYCNT\" IS NOT NULL AND A.\"POG_DAYCNT\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"POG_DAYCNT\", B.\"POG_DAYCNT\", C.\"POG_DAYCNT\", A.*, B.*, C.*, D.*\nFROM \"C003\" A\nINNER JOIN \"I0030\" B\n  ON A.\"POG_DAYCNT\" = B.\"POG_DAYCNT\"\nLEFT JOIN \"I1250\" C\n  ON B.\"POG_DAYCNT\" = C.\"POG_DAYCNT\"\nLEFT JOIN \"C005\" D\n  ON B.\"POG_DAYCNT\" = D.\"POG_DAYCNT\"\nWHERE A.\"POG_DAYCNT\" IS NOT NULL AND A.\"POG_DAYCNT\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_009",
+      "id": "SCN_010",
       "joinKey": "PRDLST_CD",
       "datasets": [
         "I0960",
@@ -970,10 +2591,10 @@
           "colTo": "PRDLST_CD",
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 47,
+          "score": 41,
           "confidence": "MEDIUM",
           "matched": 112,
-          "ratioA": 0.34,
+          "ratioA": 0.217,
           "ratioB": 0.605,
           "sampleMatches": [
             "E0301700000000",
@@ -1020,14 +2641,132 @@
             "A0100000000000",
             "A0100100000000"
           ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I0940",
+          "toNm": "식품용 기구 및 용기.포장 공전",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 12,
+          "confidence": "LOW",
+          "matched": 9,
+          "ratioA": 0.075,
+          "ratioB": 0.161,
+          "sampleMatches": [
+            "F0000000000000",
+            "F1100000100000",
+            "F0100001100000"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2580",
+          "toNm": "개별기준규격",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 10,
+          "confidence": "LOW",
+          "matched": 15,
+          "ratioA": 0.125,
+          "ratioB": 0.081,
+          "sampleMatches": [
+            "E0201400000000",
+            "E0205100000000",
+            "E0202500000000"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 10,
+          "confidence": "LOW",
+          "matched": 13,
+          "ratioA": 0.108,
+          "ratioB": 0.094,
+          "sampleMatches": [
+            "F0000000000000",
+            "C0309030200000",
+            "E0000000000000"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I0960",
+          "toNm": "건강기능식품공전",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 6,
+          "confidence": "LOW",
+          "matched": 12,
+          "ratioA": 0.1,
+          "ratioB": 0.023,
+          "sampleMatches": [
+            "E0201400000000",
+            "E0000000000000",
+            "E0328800000000"
+          ]
+        },
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2610",
+          "toNm": "공통기준제외",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 6,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.001,
+          "ratioB": 0.125,
+          "sampleMatches": [
+            "A0000000000000"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2510",
+          "toNm": "품목유형코드",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 5,
+          "confidence": "LOW",
+          "matched": 11,
+          "ratioA": 0.092,
+          "ratioB": 0.011,
+          "sampleMatches": [
+            "A0500401304000",
+            "A0500501000000",
+            "A0500501100000"
+          ]
         }
       ],
-      "score": 17,
+      "score": 16,
       "confidence": "MEDIUM",
       "sql": "SELECT A.\"PRDLST_CD\", B.\"PRDLST_CD\", A.*, B.*\nFROM \"I0960\" A\nLEFT JOIN \"I2580\" B\n  ON A.\"PRDLST_CD\" = B.\"PRDLST_CD\"\nWHERE A.\"PRDLST_CD\" IS NOT NULL AND A.\"PRDLST_CD\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_014",
+      "id": "SCN_013",
       "joinKey": "BASIS_LAWORD",
       "datasets": [
         "I1670",
@@ -1078,10 +2817,10 @@
       ],
       "score": 16,
       "confidence": "LOW",
-      "sql": "SELECT A.\"BASIS_LAWORD\", B.\"BASIS_LAWORD\", C.\"BASIS_LAWORD\", A.*, B.*\nFROM \"I1670\" A\nLEFT JOIN \"I2550\" B\n  ON A.\"BASIS_LAWORD\" = B.\"BASIS_LAWORD\"\nLEFT JOIN \"I1660\" C\n  ON B.\"BASIS_LAWORD\" = C.\"BASIS_LAWORD\"\nWHERE A.\"BASIS_LAWORD\" IS NOT NULL AND A.\"BASIS_LAWORD\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"BASIS_LAWORD\", B.\"BASIS_LAWORD\", C.\"BASIS_LAWORD\", A.*, B.*, C.*\nFROM \"I1670\" A\nLEFT JOIN \"I2550\" B\n  ON A.\"BASIS_LAWORD\" = B.\"BASIS_LAWORD\"\nLEFT JOIN \"I1660\" C\n  ON B.\"BASIS_LAWORD\" = C.\"BASIS_LAWORD\"\nWHERE A.\"BASIS_LAWORD\" IS NOT NULL AND A.\"BASIS_LAWORD\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_015",
+      "id": "SCN_014",
       "joinKey": "SPEC_VAL_SUMUP",
       "datasets": [
         "I0930",
@@ -1100,15 +2839,15 @@
           "colTo": "SPEC_VAL_SUMUP",
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
-          "score": 13,
+          "score": 10,
           "confidence": "LOW",
-          "matched": 15,
-          "ratioA": 0.197,
-          "ratioB": 0.055,
+          "matched": 11,
+          "ratioA": 0.145,
+          "ratioB": 0.045,
           "sampleMatches": [
             "0.05이하",
             "5.0이하",
-            "4.0이하"
+            "1.0이하"
           ]
         },
         {
@@ -1120,11 +2859,11 @@
           "colTo": "SPEC_VAL_SUMUP",
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 10,
+          "score": 8,
           "confidence": "LOW",
-          "matched": 17,
-          "ratioA": 0.063,
-          "ratioB": 0.145,
+          "matched": 13,
+          "ratioA": 0.054,
+          "ratioB": 0.111,
           "sampleMatches": [
             "불검출",
             "1.0이하",
@@ -1144,7 +2883,7 @@
           "confidence": "LOW",
           "matched": 8,
           "ratioA": 0.075,
-          "ratioB": 0.029,
+          "ratioB": 0.033,
           "sampleMatches": [
             "0.1 이하",
             "0.5 이하",
@@ -1152,40 +2891,20 @@
           ]
         }
       ],
-      "score": 9,
+      "score": 8,
       "confidence": "LOW",
-      "sql": "SELECT A.\"SPEC_VAL_SUMUP\", B.\"SPEC_VAL_SUMUP\", C.\"SPEC_VAL_SUMUP\", A.*, B.*\nFROM \"I0930\" A\nLEFT JOIN \"I0960\" B\n  ON A.\"SPEC_VAL_SUMUP\" = B.\"SPEC_VAL_SUMUP\"\nLEFT JOIN \"I2600\" C\n  ON B.\"SPEC_VAL_SUMUP\" = C.\"SPEC_VAL_SUMUP\"\nLEFT JOIN \"I0940\" D\n  ON B.\"SPEC_VAL_SUMUP\" = D.\"SPEC_VAL_SUMUP\"\nWHERE A.\"SPEC_VAL_SUMUP\" IS NOT NULL AND A.\"SPEC_VAL_SUMUP\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"SPEC_VAL_SUMUP\", B.\"SPEC_VAL_SUMUP\", C.\"SPEC_VAL_SUMUP\", A.*, B.*, C.*, D.*\nFROM \"I0930\" A\nLEFT JOIN \"I0960\" B\n  ON A.\"SPEC_VAL_SUMUP\" = B.\"SPEC_VAL_SUMUP\"\nLEFT JOIN \"I2600\" C\n  ON B.\"SPEC_VAL_SUMUP\" = C.\"SPEC_VAL_SUMUP\"\nLEFT JOIN \"I0940\" D\n  ON B.\"SPEC_VAL_SUMUP\" = D.\"SPEC_VAL_SUMUP\"\nWHERE A.\"SPEC_VAL_SUMUP\" IS NOT NULL AND A.\"SPEC_VAL_SUMUP\" != ''\nLIMIT 100;"
     },
     {
-      "id": "SCN_016",
+      "id": "SCN_015",
       "joinKey": "PRDTNM",
       "datasets": [
         "I0460",
-        "I2640",
-        "I2620"
+        "I2620",
+        "I2640"
       ],
       "datasetCount": 3,
       "relations": [
-        {
-          "from": "I0460",
-          "fromNm": "수거검사 계획 및 실적 관련 현황",
-          "to": "I2640",
-          "toNm": "검사부적합 현황(농산물)",
-          "colFrom": "PRDTNM",
-          "colTo": "PRDTNM",
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:N",
-          "score": 6,
-          "confidence": "LOW",
-          "matched": 12,
-          "ratioA": 0.013,
-          "ratioB": 0.103,
-          "sampleMatches": [
-            "부추",
-            "상추",
-            "시금치"
-          ]
-        },
         {
           "from": "I0460",
           "fromNm": "수거검사 계획 및 실적 관련 현황",
@@ -1197,19 +2916,39 @@
           "cardinality": "1:N",
           "score": 4,
           "confidence": "LOW",
-          "matched": 13,
-          "ratioA": 0.014,
-          "ratioB": 0.065,
+          "matched": 12,
+          "ratioA": 0.013,
+          "ratioB": 0.059,
           "sampleMatches": [
-            "한우육회",
-            "부추",
-            "상추"
+            "양파",
+            "감자",
+            "한우육회"
+          ]
+        },
+        {
+          "from": "I0460",
+          "fromNm": "수거검사 계획 및 실적 관련 현황",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "PRDTNM",
+          "colTo": "PRDTNM",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 4,
+          "confidence": "LOW",
+          "matched": 9,
+          "ratioA": 0.01,
+          "ratioB": 0.076,
+          "sampleMatches": [
+            "양파",
+            "감자",
+            "고추잎"
           ]
         }
       ],
-      "score": 5,
+      "score": 4,
       "confidence": "LOW",
-      "sql": "SELECT A.\"PRDTNM\", B.\"PRDTNM\", C.\"PRDTNM\", A.*, B.*\nFROM \"I0460\" A\nLEFT JOIN \"I2640\" B\n  ON A.\"PRDTNM\" = B.\"PRDTNM\"\nLEFT JOIN \"I2620\" C\n  ON A.\"PRDTNM\" = C.\"PRDTNM\"\nWHERE A.\"PRDTNM\" IS NOT NULL AND A.\"PRDTNM\" != ''\nLIMIT 100;"
+      "sql": "SELECT A.\"PRDTNM\", B.\"PRDTNM\", C.\"PRDTNM\", A.*, B.*, C.*\nFROM \"I0460\" A\nLEFT JOIN \"I2620\" B\n  ON A.\"PRDTNM\" = B.\"PRDTNM\"\nLEFT JOIN \"I2640\" C\n  ON A.\"PRDTNM\" = C.\"PRDTNM\"\nWHERE A.\"PRDTNM\" IS NOT NULL AND A.\"PRDTNM\" != ''\nLIMIT 100;"
     }
   ],
   "relations": [
@@ -1341,20 +3080,20 @@
       "cardinality": "N:M",
       "score": 100,
       "confidence": "HIGH",
-      "matched": 758,
+      "matched": 759,
       "ratioA": 1,
       "ratioB": 1,
       "sampleMatches": [
-        "20250019495",
-        "20250016500",
-        "20250019624"
+        "20250024175",
+        "20250028835",
+        "20250019495"
       ],
       "allCandidates": [
         {
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 758,
+          "matched": 759,
           "ratioA": 1,
           "ratioB": 1,
           "joinType": "INNER JOIN",
@@ -1362,9 +3101,9 @@
           "score": 100,
           "confidence": "HIGH",
           "sampleMatches": [
-            "20250019495",
-            "20250016500",
-            "20250019624"
+            "20250024175",
+            "20250028835",
+            "20250019495"
           ]
         }
       ]
@@ -1374,44 +3113,6 @@
       "svcB": "I0940",
       "nmA": "식품공전",
       "nmB": "식품용 기구 및 용기.포장 공전",
-      "catA": "기준규격정보",
-      "catB": "기준규격정보",
-      "joinKey": "INJRY_YN",
-      "colA": "INJRY_YN",
-      "colB": "INJRY_YN",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 100,
-      "confidence": "HIGH",
-      "matched": 1,
-      "ratioA": 1,
-      "ratioB": 1,
-      "sampleMatches": [
-        "N"
-      ],
-      "allCandidates": [
-        {
-          "colA": "INJRY_YN",
-          "colB": "INJRY_YN",
-          "canonicalKey": "INJRY_YN",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "N"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0930",
-      "svcB": "I0950",
-      "nmA": "식품공전",
-      "nmB": "식품첨가물공전",
       "catA": "기준규격정보",
       "catB": "기준규격정보",
       "joinKey": "INJRY_YN",
@@ -1551,61 +3252,6 @@
             "50이하",
             "1.0 이하 (건조물 기준으로서)",
             "0.05이하"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0940",
-      "svcB": "I0950",
-      "nmA": "식품용 기구 및 용기.포장 공전",
-      "nmB": "식품첨가물공전",
-      "catA": "기준규격정보",
-      "catB": "기준규격정보",
-      "joinKey": "INJRY_YN",
-      "colA": "INJRY_YN",
-      "colB": "INJRY_YN",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 100,
-      "confidence": "HIGH",
-      "matched": 1,
-      "ratioA": 1,
-      "ratioB": 1,
-      "sampleMatches": [
-        "N"
-      ],
-      "allCandidates": [
-        {
-          "colA": "INJRY_YN",
-          "colB": "INJRY_YN",
-          "canonicalKey": "INJRY_YN",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "N"
-          ]
-        },
-        {
-          "colA": "TESTITM_CD",
-          "colB": "TESTITM_CD",
-          "canonicalKey": "TESTITM_CD",
-          "matched": 3,
-          "ratioA": 0.042,
-          "ratioB": 0.088,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 7,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "B10001",
-            "B10003",
-            "B90054"
           ]
         }
       ]
@@ -1799,165 +3445,6 @@
             "F0000000000000",
             "F0800000100000",
             "F1100000100000"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0950",
-      "svcB": "I2580",
-      "nmA": "식품첨가물공전",
-      "nmB": "개별기준규격",
-      "catA": "기준규격정보",
-      "catB": "기준규격정보",
-      "joinKey": "INJRY_YN",
-      "colA": "INJRY_YN",
-      "colB": "INJRY_YN",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 100,
-      "confidence": "HIGH",
-      "matched": 1,
-      "ratioA": 1,
-      "ratioB": 1,
-      "sampleMatches": [
-        "N"
-      ],
-      "allCandidates": [
-        {
-          "colA": "INJRY_YN",
-          "colB": "INJRY_YN",
-          "canonicalKey": "INJRY_YN",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "N"
-          ]
-        },
-        {
-          "colA": "SPEC_VAL_SUMUP",
-          "colB": "SPEC_VAL_SUMUP",
-          "canonicalKey": "SPEC_VAL_SUMUP",
-          "matched": 79,
-          "ratioA": 0.878,
-          "ratioB": 0.276,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 58,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "이 품목을 젖산 0.8g에 대응하는 양을 취하여 물 10mL를 가하여 녹이고 수산화칼슘시액 40mL를 가하여 2분간 끓일 때, 탁하여서는 아니 된다.",
-            "(3) 규산염 : 위 (2)의 A액 10mL에 페놀프탈레인시액 1방울을 가하고, 홍색이 없어질 때까지 묽은염산을 가한다. 수욕중에서 15분간 가열한 다음 식히고 액이 홍색을 나타낼 때는 홍색이 없어질 때까지 다시 묽은염산을 가한다. 이에 메틸렌블루시액 1방울 및 포화염화암모늄용액 10mL를 가하고 2시간 방치할 때, 그 액은 색깔이 있는 침전 또는 색깔이 있는 혼탁이 생겨서는 아니 된다.",
-            "(2) 납 : 「혼합제제」의 순도시험 (2)에 따라 시험한다."
-          ]
-        },
-        {
-          "colA": "TESTITM_CD",
-          "colB": "TESTITM_CD",
-          "canonicalKey": "TESTITM_CD",
-          "matched": 32,
-          "ratioA": 0.941,
-          "ratioB": 0.146,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 54,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "A40005",
-            "A10008",
-            "B10001"
-          ]
-        },
-        {
-          "colA": "PRDLST_CD",
-          "colB": "PRDLST_CD",
-          "canonicalKey": "PRDLST_CD",
-          "matched": 21,
-          "ratioA": 0.875,
-          "ratioB": 0.114,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 49,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "D0401300000000",
-            "D0300300027000",
-            "D0300300001000"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0950",
-      "svcB": "I2600",
-      "nmA": "식품첨가물공전",
-      "nmB": "공통기준규격",
-      "catA": "기준규격정보",
-      "catB": "기준규격정보",
-      "joinKey": "INJRY_YN",
-      "colA": "INJRY_YN",
-      "colB": "INJRY_YN",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 100,
-      "confidence": "HIGH",
-      "matched": 1,
-      "ratioA": 1,
-      "ratioB": 1,
-      "sampleMatches": [
-        "N"
-      ],
-      "allCandidates": [
-        {
-          "colA": "INJRY_YN",
-          "colB": "INJRY_YN",
-          "canonicalKey": "INJRY_YN",
-          "matched": 1,
-          "ratioA": 1,
-          "ratioB": 1,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 100,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "N"
-          ]
-        },
-        {
-          "colA": "SORC",
-          "colB": "SORC",
-          "canonicalKey": "SORC",
-          "matched": 1,
-          "ratioA": 0.25,
-          "ratioB": 0.25,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 25,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "식품공전(제2017-57호,170630)"
-          ]
-        },
-        {
-          "colA": "TESTITM_CD",
-          "colB": "TESTITM_CD",
-          "canonicalKey": "TESTITM_CD",
-          "matched": 4,
-          "ratioA": 0.118,
-          "ratioB": 0.013,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 7,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "B10001",
-            "B90054",
-            "A10029"
           ]
         }
       ]
@@ -2211,9 +3698,9 @@
       "cardinality": "1:1",
       "score": 100,
       "confidence": "HIGH",
-      "matched": 998,
-      "ratioA": 0.998,
-      "ratioB": 0.998,
+      "matched": 999,
+      "ratioA": 0.999,
+      "ratioB": 0.999,
       "sampleMatches": [
         "18820308001",
         "18830478001",
@@ -2224,9 +3711,9 @@
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 998,
-          "ratioA": 0.998,
-          "ratioB": 0.998,
+          "matched": 999,
+          "ratioA": 0.999,
+          "ratioB": 0.999,
           "joinType": "INNER JOIN",
           "cardinality": "1:1",
           "score": 100,
@@ -2888,48 +4375,6 @@
       ]
     },
     {
-      "svcA": "I1810",
-      "svcB": "I1820",
-      "nmA": "쇠고기(국내)이력추적 생산정보",
-      "nmB": "쇠고기(국내)이력추적 정보",
-      "catA": "이력추적관리",
-      "catB": "이력추적관리",
-      "joinKey": "VACIN_LAST_INOCL_OPNO",
-      "colA": "VACIN_LAST_INOCL_OPNO",
-      "colB": "VACIN_LAST_INOCL_OPNO",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 93,
-      "confidence": "HIGH",
-      "matched": 26,
-      "ratioA": 0.929,
-      "ratioB": 0.929,
-      "sampleMatches": [
-        "8",
-        "9",
-        "11"
-      ],
-      "allCandidates": [
-        {
-          "colA": "VACIN_LAST_INOCL_OPNO",
-          "colB": "VACIN_LAST_INOCL_OPNO",
-          "canonicalKey": "VACIN_LAST_INOCL_OPNO",
-          "matched": 26,
-          "ratioA": 0.929,
-          "ratioB": 0.929,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 93,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "8",
-            "9",
-            "11"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I2620",
       "svcB": "I2640",
       "nmA": "검사부적합(국내)",
@@ -2941,39 +4386,39 @@
       "colB": "MNFDT",
       "joinType": "INNER JOIN",
       "cardinality": "N:M",
-      "score": 92,
+      "score": 93,
       "confidence": "HIGH",
-      "matched": 92,
-      "ratioA": 0.844,
+      "matched": 95,
+      "ratioA": 0.856,
       "ratioB": 1,
       "sampleMatches": [
-        "20251208",
+        "20251214",
         "데이터없음",
-        "2025-12-10 00:00:00.0"
+        "20251215"
       ],
       "allCandidates": [
         {
           "colA": "MNFDT",
           "colB": "MNFDT",
           "canonicalKey": "MNFDT",
-          "matched": 92,
-          "ratioA": 0.844,
+          "matched": 95,
+          "ratioA": 0.856,
           "ratioB": 1,
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 92,
+          "score": 93,
           "confidence": "HIGH",
           "sampleMatches": [
-            "20251208",
+            "20251214",
             "데이터없음",
-            "2025-12-10 00:00:00.0"
+            "20251215"
           ]
         },
         {
           "colA": "TESTANALS_RSLT",
           "colB": "TESTANALS_RSLT",
           "canonicalKey": "TESTANALS_RSLT",
-          "matched": 170,
+          "matched": 174,
           "ratioA": 0.702,
           "ratioB": 1,
           "joinType": "INNER JOIN",
@@ -2981,67 +4426,50 @@
           "score": 85,
           "confidence": "HIGH",
           "sampleMatches": [
-            "0.34 mg/kg",
-            "0.04 mg/kg",
-            "0.03 mg/kg"
-          ]
-        },
-        {
-          "colA": "RTRVLDSUSE_SEQ",
-          "colB": "RTRVLDSUSE_SEQ",
-          "canonicalKey": "RTRVLDSUSE_SEQ",
-          "matched": 232,
-          "ratioA": 0.682,
-          "ratioB": 1,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 84,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "3000216762",
-            "3000216875",
-            "3000216878"
+            "0.33 mg/kg",
+            "2.43 mg/kg",
+            "5.0 mg/kg"
           ]
         },
         {
           "colA": "TEST_ITMNM",
           "colB": "TEST_ITMNM",
           "canonicalKey": "TEST_ITMNM",
-          "matched": 74,
-          "ratioA": 0.685,
+          "matched": 76,
+          "ratioA": 0.691,
           "ratioB": 1,
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 84,
+          "score": 85,
           "confidence": "HIGH",
           "sampleMatches": [
-            "터부포스",
-            "메토밀",
-            "오메토에이트"
+            "포레이트",
+            "피플루뷰마이드",
+            "파클로부트라졸"
           ]
         },
         {
-          "colA": "STDR_STND",
-          "colB": "STDR_STND",
-          "canonicalKey": "STDR_STND",
-          "matched": 61,
-          "ratioA": 0.678,
+          "colA": "RTRVLDSUSE_SEQ",
+          "colB": "RTRVLDSUSE_SEQ",
+          "canonicalKey": "RTRVLDSUSE_SEQ",
+          "matched": 235,
+          "ratioA": 0.681,
           "ratioB": 1,
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
           "score": 84,
           "confidence": "HIGH",
           "sampleMatches": [
-            "0.05 mg/kg",
-            "0.01 mg/kg",
-            "0.01 이하"
+            "3000216999",
+            "3000217026",
+            "3000217040"
           ]
         },
         {
           "colA": "BSSHNM",
           "colB": "BSSHNM",
           "canonicalKey": "BSSHNM",
-          "matched": 192,
+          "matched": 194,
           "ratioA": 0.669,
           "ratioB": 1,
           "joinType": "INNER JOIN",
@@ -3049,16 +4477,33 @@
           "score": 83,
           "confidence": "HIGH",
           "sampleMatches": [
-            "임*곤",
-            "유한회사 다온",
-            "주식회사 대정"
+            "한*언",
+            "김*겸",
+            "김*수"
+          ]
+        },
+        {
+          "colA": "STDR_STND",
+          "colB": "STDR_STND",
+          "canonicalKey": "STDR_STND",
+          "matched": 62,
+          "ratioA": 0.667,
+          "ratioB": 1,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 83,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "0.01 mg/kg",
+            "0.01 mg/kg 이하 (PLS)",
+            "2.0 mg/kg 이하"
           ]
         },
         {
           "colA": "PRDTNM",
           "colB": "PRDTNM",
           "canonicalKey": "PRDTNM",
-          "matched": 116,
+          "matched": 119,
           "ratioA": 0.583,
           "ratioB": 1,
           "joinType": "INNER JOIN",
@@ -3066,42 +4511,42 @@
           "score": 79,
           "confidence": "HIGH",
           "sampleMatches": [
-            "시금치",
-            "백목이버섯",
-            "냉동 람부탄"
+            "상추",
+            "깻잎",
+            "근대"
           ]
         },
         {
           "colA": "DISTBTMLMT",
           "colB": "DISTBTMLMT",
           "canonicalKey": "DISTBTMLMT",
-          "matched": 67,
-          "ratioA": 0.511,
+          "matched": 66,
+          "ratioA": 0.504,
           "ratioB": 1,
           "joinType": "INNER JOIN",
           "cardinality": "N:M",
-          "score": 76,
+          "score": 75,
           "confidence": "HIGH",
           "sampleMatches": [
-            "2027.10.11",
-            "2028.06.12",
-            "포장일자: 2024.10.3, 소비기한: 포장일로부터 36개월까지"
+            "2025.12.15(의뢰일자)",
+            "2025.12.16",
+            "2025.12.17"
           ]
         },
         {
           "colA": "FRMLCUNIT",
           "colB": "FRMLCUNIT",
           "canonicalKey": "FRMLCUNIT",
-          "matched": 18,
-          "ratioA": 0.474,
+          "matched": 17,
+          "ratioA": 0.436,
           "ratioB": 1,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 74,
+          "score": 72,
           "confidence": "HIGH",
           "sampleMatches": [
             "박스",
-            "500g",
+            "단",
             "1kg"
           ]
         },
@@ -3109,34 +4554,76 @@
           "colA": "BRCDNO",
           "colB": "BRCDNO",
           "canonicalKey": "BRCD_NO",
-          "matched": 16,
-          "ratioA": 0.271,
+          "matched": 15,
+          "ratioA": 0.259,
           "ratioB": 1,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 64,
+          "score": 63,
           "confidence": "MEDIUM",
           "sampleMatches": [
-            "8809225440811",
-            "8809153040398",
-            "8809415401837"
+            "8809288920930",
+            "8809415401837",
+            "8809316910056"
           ]
         },
         {
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 12,
-          "ratioA": 0.141,
+          "matched": 11,
+          "ratioA": 0.131,
           "ratioB": 1,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
           "score": 57,
           "confidence": "MEDIUM",
           "sampleMatches": [
-            "20250017312",
-            "20030115203",
-            "20240017800"
+            "20120275140",
+            "20240017800",
+            "20250017312"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I1810",
+      "svcB": "I1820",
+      "nmA": "쇠고기(국내)이력추적 생산정보",
+      "nmB": "쇠고기(국내)이력추적 정보",
+      "catA": "이력추적관리",
+      "catB": "이력추적관리",
+      "joinKey": "VACIN_LAST_INOCL_OPNO",
+      "colA": "VACIN_LAST_INOCL_OPNO",
+      "colB": "VACIN_LAST_INOCL_OPNO",
+      "joinType": "INNER JOIN",
+      "cardinality": "N:M",
+      "score": 88,
+      "confidence": "HIGH",
+      "matched": 25,
+      "ratioA": 0.893,
+      "ratioB": 0.862,
+      "sampleMatches": [
+        "8",
+        "9",
+        "11"
+      ],
+      "allCandidates": [
+        {
+          "colA": "VACIN_LAST_INOCL_OPNO",
+          "colB": "VACIN_LAST_INOCL_OPNO",
+          "canonicalKey": "VACIN_LAST_INOCL_OPNO",
+          "matched": 25,
+          "ratioA": 0.893,
+          "ratioB": 0.862,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 88,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "8",
+            "9",
+            "11"
           ]
         }
       ]
@@ -3155,9 +4642,9 @@
       "cardinality": "1:1",
       "score": 83,
       "confidence": "HIGH",
-      "matched": 476,
-      "ratioA": 0.862,
-      "ratioB": 0.792,
+      "matched": 478,
+      "ratioA": 0.863,
+      "ratioB": 0.794,
       "sampleMatches": [
         "20140020025",
         "20230001042",
@@ -3168,9 +4655,9 @@
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 476,
-          "ratioA": 0.862,
-          "ratioB": 0.792,
+          "matched": 478,
+          "ratioA": 0.863,
+          "ratioB": 0.794,
           "joinType": "INNER JOIN",
           "cardinality": "1:1",
           "score": 83,
@@ -3179,65 +4666,6 @@
             "20140020025",
             "20230001042",
             "20080018016"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I2849",
-      "svcB": "I2850",
-      "nmA": "식중독 원인시설별 현황",
-      "nmB": "식중독 원인물질별 현황",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "OCCRNC_CNT",
-      "colA": "OCCRNC_CNT",
-      "colB": "OCCRNC_CNT",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 82,
-      "confidence": "HIGH",
-      "matched": 26,
-      "ratioA": 0.743,
-      "ratioB": 0.897,
-      "sampleMatches": [
-        "14",
-        "24",
-        "6"
-      ],
-      "allCandidates": [
-        {
-          "colA": "OCCRNC_CNT",
-          "colB": "OCCRNC_CNT",
-          "canonicalKey": "OCCRNC_CNT",
-          "matched": 26,
-          "ratioA": 0.743,
-          "ratioB": 0.897,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 82,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "14",
-            "24",
-            "6"
-          ]
-        },
-        {
-          "colA": "PATNT_CNT",
-          "colB": "PATNT_CNT",
-          "canonicalKey": "PATNT_CNT",
-          "matched": 181,
-          "ratioA": 0.573,
-          "ratioB": 0.699,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 64,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "62",
-            "147",
-            "221"
           ]
         }
       ]
@@ -3311,10 +4739,10 @@
       "colB": "LCNS_NO",
       "joinType": "INNER JOIN",
       "cardinality": "1:N",
-      "score": 79,
+      "score": 78,
       "confidence": "HIGH",
       "matched": 315,
-      "ratioA": 0.571,
+      "ratioA": 0.569,
       "ratioB": 1,
       "sampleMatches": [
         "20140020025",
@@ -3327,75 +4755,16 @@
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
           "matched": 315,
-          "ratioA": 0.571,
+          "ratioA": 0.569,
           "ratioB": 1,
           "joinType": "INNER JOIN",
           "cardinality": "1:N",
-          "score": 79,
+          "score": 78,
           "confidence": "HIGH",
           "sampleMatches": [
             "20140020025",
             "20080018016",
             "20070019018"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I2848",
-      "svcB": "I2850",
-      "nmA": "식중독 지역별 현황",
-      "nmB": "식중독 원인물질별 현황",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "OCCRNC_CNT",
-      "colA": "OCCRNC_CNT",
-      "colB": "OCCRNC_CNT",
-      "joinType": "INNER JOIN",
-      "cardinality": "N:M",
-      "score": 79,
-      "confidence": "HIGH",
-      "matched": 17,
-      "ratioA": 1,
-      "ratioB": 0.586,
-      "sampleMatches": [
-        "23",
-        "1",
-        "3"
-      ],
-      "allCandidates": [
-        {
-          "colA": "OCCRNC_CNT",
-          "colB": "OCCRNC_CNT",
-          "canonicalKey": "OCCRNC_CNT",
-          "matched": 17,
-          "ratioA": 1,
-          "ratioB": 0.586,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 79,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "23",
-            "1",
-            "3"
-          ]
-        },
-        {
-          "colA": "PATNT_CNT",
-          "colB": "PATNT_CNT",
-          "canonicalKey": "PATNT_CNT",
-          "matched": 145,
-          "ratioA": 0.767,
-          "ratioB": 0.56,
-          "joinType": "INNER JOIN",
-          "cardinality": "N:M",
-          "score": 66,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "16",
-            "80",
-            "83"
           ]
         }
       ]
@@ -3438,6 +4807,175 @@
             "옥시벤다졸",
             "오비플록사신",
             "세프퀴놈"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0930",
+      "svcB": "I0950",
+      "nmA": "식품공전",
+      "nmB": "식품첨가물공전",
+      "catA": "기준규격정보",
+      "catB": "기준규격정보",
+      "joinKey": "INJRY_YN",
+      "colA": "INJRY_YN",
+      "colB": "INJRY_YN",
+      "joinType": "INNER JOIN",
+      "cardinality": "N:M",
+      "score": 75,
+      "confidence": "HIGH",
+      "matched": 1,
+      "ratioA": 1,
+      "ratioB": 0.5,
+      "sampleMatches": [
+        "N"
+      ],
+      "allCandidates": [
+        {
+          "colA": "INJRY_YN",
+          "colB": "INJRY_YN",
+          "canonicalKey": "INJRY_YN",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.5,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "N"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0940",
+      "svcB": "I0950",
+      "nmA": "식품용 기구 및 용기.포장 공전",
+      "nmB": "식품첨가물공전",
+      "catA": "기준규격정보",
+      "catB": "기준규격정보",
+      "joinKey": "INJRY_YN",
+      "colA": "INJRY_YN",
+      "colB": "INJRY_YN",
+      "joinType": "INNER JOIN",
+      "cardinality": "N:M",
+      "score": 75,
+      "confidence": "HIGH",
+      "matched": 1,
+      "ratioA": 1,
+      "ratioB": 0.5,
+      "sampleMatches": [
+        "N"
+      ],
+      "allCandidates": [
+        {
+          "colA": "INJRY_YN",
+          "colB": "INJRY_YN",
+          "canonicalKey": "INJRY_YN",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.5,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "N"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0950",
+      "svcB": "I2580",
+      "nmA": "식품첨가물공전",
+      "nmB": "개별기준규격",
+      "catA": "기준규격정보",
+      "catB": "기준규격정보",
+      "joinKey": "INJRY_YN",
+      "colA": "INJRY_YN",
+      "colB": "INJRY_YN",
+      "joinType": "INNER JOIN",
+      "cardinality": "N:M",
+      "score": 75,
+      "confidence": "HIGH",
+      "matched": 1,
+      "ratioA": 0.5,
+      "ratioB": 1,
+      "sampleMatches": [
+        "N"
+      ],
+      "allCandidates": [
+        {
+          "colA": "INJRY_YN",
+          "colB": "INJRY_YN",
+          "canonicalKey": "INJRY_YN",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "N"
+          ]
+        },
+        {
+          "colA": "TESTITM_CD",
+          "colB": "TESTITM_CD",
+          "canonicalKey": "TESTITM_CD",
+          "matched": 6,
+          "ratioA": 0.102,
+          "ratioB": 0.027,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 6,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "B20003",
+            "A40005",
+            "A10008"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0950",
+      "svcB": "I2600",
+      "nmA": "식품첨가물공전",
+      "nmB": "공통기준규격",
+      "catA": "기준규격정보",
+      "catB": "기준규격정보",
+      "joinKey": "INJRY_YN",
+      "colA": "INJRY_YN",
+      "colB": "INJRY_YN",
+      "joinType": "INNER JOIN",
+      "cardinality": "N:M",
+      "score": 75,
+      "confidence": "HIGH",
+      "matched": 1,
+      "ratioA": 0.5,
+      "ratioB": 1,
+      "sampleMatches": [
+        "N"
+      ],
+      "allCandidates": [
+        {
+          "colA": "INJRY_YN",
+          "colB": "INJRY_YN",
+          "canonicalKey": "INJRY_YN",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 1,
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "sampleMatches": [
+            "N"
           ]
         }
       ]
@@ -3531,23 +5069,6 @@
             "0.182",
             "0.021",
             "0.188"
-          ]
-        },
-        {
-          "colA": "EEC_QTY",
-          "colB": "EEC_QTY",
-          "canonicalKey": "EEC_QTY",
-          "matched": 71,
-          "ratioA": 0.33,
-          "ratioB": 0.291,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 31,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "460",
-            "250",
-            "180"
           ]
         }
       ]
@@ -3705,65 +5226,6 @@
       ]
     },
     {
-      "svcA": "I2848",
-      "svcB": "I2849",
-      "nmA": "식중독 지역별 현황",
-      "nmB": "식중독 원인시설별 현황",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "OCCRNC_CNT",
-      "colA": "OCCRNC_CNT",
-      "colB": "OCCRNC_CNT",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 74,
-      "confidence": "HIGH",
-      "matched": 17,
-      "ratioA": 1,
-      "ratioB": 0.486,
-      "sampleMatches": [
-        "23",
-        "1",
-        "3"
-      ],
-      "allCandidates": [
-        {
-          "colA": "OCCRNC_CNT",
-          "colB": "OCCRNC_CNT",
-          "canonicalKey": "OCCRNC_CNT",
-          "matched": 17,
-          "ratioA": 1,
-          "ratioB": 0.486,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 74,
-          "confidence": "HIGH",
-          "sampleMatches": [
-            "23",
-            "1",
-            "3"
-          ]
-        },
-        {
-          "colA": "PATNT_CNT",
-          "colB": "PATNT_CNT",
-          "canonicalKey": "PATNT_CNT",
-          "matched": 156,
-          "ratioA": 0.825,
-          "ratioB": 0.494,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 66,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "16",
-            "80",
-            "83"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I1020",
       "svcB": "I2520",
       "nmA": "식품원재료(식물,동물,미생물,수산물) 정보",
@@ -3837,7 +5299,7 @@
       "score": 71,
       "confidence": "HIGH",
       "matched": 293,
-      "ratioA": 0.488,
+      "ratioA": 0.487,
       "ratioB": 0.93,
       "sampleMatches": [
         "20250024573",
@@ -3850,7 +5312,7 @@
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
           "matched": 293,
-          "ratioA": 0.488,
+          "ratioA": 0.487,
           "ratioB": 0.93,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:N",
@@ -4285,8 +5747,8 @@
       "ratioB": 0.447,
       "sampleMatches": [
         "어묵",
-        "조미김",
-        "숙면"
+        "숙면",
+        "두류가공품"
       ],
       "allCandidates": [
         {
@@ -4302,8 +5764,101 @@
           "confidence": "MEDIUM",
           "sampleMatches": [
             "어묵",
-            "조미김",
-            "숙면"
+            "숙면",
+            "두류가공품"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0480",
+      "svcB": "I2630",
+      "nmA": "행정처분결과(식품제조가공업)",
+      "nmB": "행정처분결과(식품접객업)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "DSPS_ENDDT",
+      "colA": "DSPS_ENDDT",
+      "colB": "DSPS_ENDDT",
+      "joinType": "LEFT JOIN (A→B)",
+      "cardinality": "N:M",
+      "score": 59,
+      "confidence": "MEDIUM",
+      "matched": 19,
+      "ratioA": 0.95,
+      "ratioB": 0.221,
+      "sampleMatches": [
+        "20260616",
+        "20260714",
+        "20260707"
+      ],
+      "allCandidates": [
+        {
+          "colA": "DSPS_ENDDT",
+          "colB": "DSPS_ENDDT",
+          "canonicalKey": "DSPS_ENDDT",
+          "matched": 19,
+          "ratioA": 0.95,
+          "ratioB": 0.221,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 59,
+          "confidence": "MEDIUM",
+          "sampleMatches": [
+            "20260616",
+            "20260714",
+            "20260707"
+          ]
+        },
+        {
+          "colA": "DSPS_DCSNDT",
+          "colB": "DSPS_DCSNDT",
+          "canonicalKey": "DSPS_DCSNDT",
+          "matched": 57,
+          "ratioA": 0.383,
+          "ratioB": 0.363,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 37,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260610",
+            "20260604",
+            "20260602"
+          ]
+        },
+        {
+          "colA": "DSPS_BGNDT",
+          "colB": "DSPS_BGNDT",
+          "canonicalKey": "DSPS_BGNDT",
+          "matched": 59,
+          "ratioA": 0.391,
+          "ratioB": 0.299,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 35,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260610",
+            "20260615",
+            "20260608"
+          ]
+        },
+        {
+          "colA": "DSPSCN",
+          "colB": "DSPSCN",
+          "canonicalKey": "DSPSCN",
+          "matched": 5,
+          "ratioA": 0.161,
+          "ratioB": 0.069,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 12,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "영업허가ㆍ등록취소",
+            "영업소폐쇄",
+            "영업정지"
           ]
         }
       ]
@@ -4469,99 +6024,6 @@
       ]
     },
     {
-      "svcA": "I0480",
-      "svcB": "I2630",
-      "nmA": "행정처분결과(식품제조가공업)",
-      "nmB": "행정처분결과(식품접객업)",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "DSPS_ENDDT",
-      "colA": "DSPS_ENDDT",
-      "colB": "DSPS_ENDDT",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 55,
-      "confidence": "MEDIUM",
-      "matched": 18,
-      "ratioA": 0.9,
-      "ratioB": 0.198,
-      "sampleMatches": [
-        "20260714",
-        "20260630",
-        "20260701"
-      ],
-      "allCandidates": [
-        {
-          "colA": "DSPS_ENDDT",
-          "colB": "DSPS_ENDDT",
-          "canonicalKey": "DSPS_ENDDT",
-          "matched": 18,
-          "ratioA": 0.9,
-          "ratioB": 0.198,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 55,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "20260714",
-            "20260630",
-            "20260701"
-          ]
-        },
-        {
-          "colA": "DSPS_DCSNDT",
-          "colB": "DSPS_DCSNDT",
-          "canonicalKey": "DSPS_DCSNDT",
-          "matched": 57,
-          "ratioA": 0.385,
-          "ratioB": 0.354,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 37,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260604",
-            "20260602",
-            "20260601"
-          ]
-        },
-        {
-          "colA": "DSPS_BGNDT",
-          "colB": "DSPS_BGNDT",
-          "canonicalKey": "DSPS_BGNDT",
-          "matched": 60,
-          "ratioA": 0.397,
-          "ratioB": 0.299,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 35,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260615",
-            "20260608",
-            "20260601"
-          ]
-        },
-        {
-          "colA": "DSPSCN",
-          "colB": "DSPSCN",
-          "canonicalKey": "DSPSCN",
-          "matched": 5,
-          "ratioA": 0.167,
-          "ratioB": 0.071,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 12,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "영업허가ㆍ등록취소",
-            "영업소폐쇄",
-            "영업정지"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I2711",
       "svcB": "I2712",
       "nmA": "위생용품품목제조보고",
@@ -4621,48 +6083,6 @@
       ]
     },
     {
-      "svcA": "I2780",
-      "svcB": "I2781",
-      "nmA": "수입쇠고기 냉동전환 정보",
-      "nmB": "수입축산물 냉동전환 정보",
-      "catA": "수입식품 등",
-      "catB": "수입식품 등",
-      "joinKey": "FREEZING_CNVRS_QTY",
-      "colA": "FREEZING_CNVRS_QTY",
-      "colB": "FREEZING_CNVRS_QTY",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 54,
-      "confidence": "MEDIUM",
-      "matched": 41,
-      "ratioA": 0.891,
-      "ratioB": 0.198,
-      "sampleMatches": [
-        "20",
-        "0",
-        "7"
-      ],
-      "allCandidates": [
-        {
-          "colA": "FREEZING_CNVRS_QTY",
-          "colB": "FREEZING_CNVRS_QTY",
-          "canonicalKey": "FREEZING_CNVRS_QTY",
-          "matched": 41,
-          "ratioA": 0.891,
-          "ratioB": 0.198,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 54,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "20",
-            "0",
-            "7"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "C003",
       "svcB": "I-0020",
       "nmA": "건강기능식품 품목제조신고(원재료)",
@@ -4700,6 +6120,48 @@
             "20040015039",
             "20040015070",
             "20040015100"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "C005",
+      "svcB": "I2852",
+      "nmA": "바코드연계제품정보",
+      "nmB": "생산중단제품정보",
+      "catA": "코드정보",
+      "catB": "업체인허가현황",
+      "joinKey": "PRDLST_DCNM",
+      "colA": "PRDLST_DCNM",
+      "colB": "PRDLST_DCNM",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 53,
+      "confidence": "MEDIUM",
+      "matched": 60,
+      "ratioA": 0.455,
+      "ratioB": 0.612,
+      "sampleMatches": [
+        "기타가공품",
+        "캔디류",
+        "액상차"
+      ],
+      "allCandidates": [
+        {
+          "colA": "PRDLST_DCNM",
+          "colB": "PRDLST_DCNM",
+          "canonicalKey": "PRDLST_DCNM",
+          "matched": 60,
+          "ratioA": 0.455,
+          "ratioB": 0.612,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 53,
+          "confidence": "MEDIUM",
+          "sampleMatches": [
+            "기타가공품",
+            "캔디류",
+            "액상차"
           ]
         }
       ]
@@ -4747,48 +6209,6 @@
       ]
     },
     {
-      "svcA": "C005",
-      "svcB": "I2852",
-      "nmA": "바코드연계제품정보",
-      "nmB": "생산중단제품정보",
-      "catA": "코드정보",
-      "catB": "업체인허가현황",
-      "joinKey": "PRDLST_DCNM",
-      "colA": "PRDLST_DCNM",
-      "colB": "PRDLST_DCNM",
-      "joinType": "LEFT JOIN (B→A)",
-      "cardinality": "N:M",
-      "score": 52,
-      "confidence": "MEDIUM",
-      "matched": 51,
-      "ratioA": 0.386,
-      "ratioB": 0.654,
-      "sampleMatches": [
-        "기타가공품",
-        "액상차",
-        "김치"
-      ],
-      "allCandidates": [
-        {
-          "colA": "PRDLST_DCNM",
-          "colB": "PRDLST_DCNM",
-          "canonicalKey": "PRDLST_DCNM",
-          "matched": 51,
-          "ratioA": 0.386,
-          "ratioB": 0.654,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 52,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "기타가공품",
-            "액상차",
-            "김치"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I0482",
       "svcB": "I2630",
       "nmA": "행정처분결과(수입식품업)",
@@ -4799,67 +6219,67 @@
       "colA": "DSPS_ENDDT",
       "colB": "DSPS_ENDDT",
       "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 51,
+      "cardinality": "1:N",
+      "score": 52,
       "confidence": "MEDIUM",
-      "matched": 10,
-      "ratioA": 0.909,
-      "ratioB": 0.11,
+      "matched": 11,
+      "ratioA": 0.917,
+      "ratioB": 0.128,
       "sampleMatches": [
+        "20260624",
         "20260606",
-        "20260724",
-        "20260531"
+        "20260724"
       ],
       "allCandidates": [
         {
           "colA": "DSPS_ENDDT",
           "colB": "DSPS_ENDDT",
           "canonicalKey": "DSPS_ENDDT",
-          "matched": 10,
-          "ratioA": 0.909,
-          "ratioB": 0.11,
+          "matched": 11,
+          "ratioA": 0.917,
+          "ratioB": 0.128,
           "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 51,
+          "cardinality": "1:N",
+          "score": 52,
           "confidence": "MEDIUM",
           "sampleMatches": [
+            "20260624",
             "20260606",
-            "20260724",
-            "20260531"
+            "20260724"
           ]
         },
         {
           "colA": "DSPS_DCSNDT",
           "colB": "DSPS_DCSNDT",
           "canonicalKey": "DSPS_DCSNDT",
-          "matched": 20,
-          "ratioA": 0.556,
-          "ratioB": 0.124,
+          "matched": 19,
+          "ratioA": 0.528,
+          "ratioB": 0.121,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
-          "score": 34,
+          "score": 32,
           "confidence": "LOW",
           "sampleMatches": [
+            "20260610",
             "20260602",
-            "20260529",
-            "20260526"
+            "20260529"
           ]
         },
         {
           "colA": "DSPS_BGNDT",
           "colB": "DSPS_BGNDT",
           "canonicalKey": "DSPS_BGNDT",
-          "matched": 20,
-          "ratioA": 0.556,
-          "ratioB": 0.1,
+          "matched": 19,
+          "ratioA": 0.528,
+          "ratioB": 0.096,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
-          "score": 33,
+          "score": 31,
           "confidence": "LOW",
           "sampleMatches": [
+            "20260610",
             "20260602",
-            "20260529",
-            "20260526"
+            "20260529"
           ]
         }
       ]
@@ -5036,15 +6456,15 @@
       "joinKey": "PRDLST_DCNM",
       "colA": "PRDLST_DCNM",
       "colB": "PRDLST_DCNM",
-      "joinType": "LEFT JOIN (B→A)",
+      "joinType": "LEFT JOIN (A→B)",
       "cardinality": "N:M",
-      "score": 48,
+      "score": 47,
       "confidence": "MEDIUM",
-      "matched": 38,
-      "ratioA": 0.481,
-      "ratioB": 0.487,
+      "matched": 41,
+      "ratioA": 0.519,
+      "ratioB": 0.418,
       "sampleMatches": [
-        "조미김",
+        "어묵",
         "두류가공품",
         "복합조미식품"
       ],
@@ -5053,108 +6473,17 @@
           "colA": "PRDLST_DCNM",
           "colB": "PRDLST_DCNM",
           "canonicalKey": "PRDLST_DCNM",
-          "matched": 38,
-          "ratioA": 0.481,
-          "ratioB": 0.487,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 48,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "조미김",
-            "두류가공품",
-            "복합조미식품"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0960",
-      "svcB": "I2580",
-      "nmA": "건강기능식품공전",
-      "nmB": "개별기준규격",
-      "catA": "기준규격정보",
-      "catB": "기준규격정보",
-      "joinKey": "PRDLST_CD",
-      "colA": "PRDLST_CD",
-      "colB": "PRDLST_CD",
-      "joinType": "LEFT JOIN (B→A)",
-      "cardinality": "N:M",
-      "score": 47,
-      "confidence": "MEDIUM",
-      "matched": 112,
-      "ratioA": 0.34,
-      "ratioB": 0.605,
-      "sampleMatches": [
-        "E0301700000000",
-        "E0317300000000",
-        "E0303400000000"
-      ],
-      "allCandidates": [
-        {
-          "colA": "PRDLST_CD",
-          "colB": "PRDLST_CD",
-          "canonicalKey": "PRDLST_CD",
-          "matched": 112,
-          "ratioA": 0.34,
-          "ratioB": 0.605,
-          "joinType": "LEFT JOIN (B→A)",
+          "matched": 41,
+          "ratioA": 0.519,
+          "ratioB": 0.418,
+          "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 47,
           "confidence": "MEDIUM",
           "sampleMatches": [
-            "E0301700000000",
-            "E0317300000000",
-            "E0303400000000"
-          ]
-        },
-        {
-          "colA": "TESTITM_CD",
-          "colB": "TESTITM_CD",
-          "canonicalKey": "TESTITM_CD",
-          "matched": 59,
-          "ratioA": 0.349,
-          "ratioB": 0.269,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 31,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "B90438",
-            "B90435",
-            "B90436"
-          ]
-        },
-        {
-          "colA": "SPEC_VAL_SUMUP",
-          "colB": "SPEC_VAL_SUMUP",
-          "canonicalKey": "SPEC_VAL_SUMUP",
-          "matched": 65,
-          "ratioA": 0.239,
-          "ratioB": 0.227,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 23,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "불검출",
-            "50.0-100.0",
-            "1.0-30.0"
-          ]
-        },
-        {
-          "colA": "SORC",
-          "colB": "SORC",
-          "canonicalKey": "SORC",
-          "matched": 1,
-          "ratioA": 0.015,
-          "ratioB": 0.333,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 17,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "제2014-9호"
+            "어묵",
+            "두류가공품",
+            "복합조미식품"
           ]
         }
       ]
@@ -5175,10 +6504,10 @@
       "confidence": "MEDIUM",
       "matched": 80,
       "ratioA": 0.53,
-      "ratioB": 0.388,
+      "ratioB": 0.392,
       "sampleMatches": [
+        "20260610",
         "20260608",
-        "20260601",
         "20260602"
       ],
       "allCandidates": [
@@ -5188,14 +6517,14 @@
           "canonicalKey": "DSPS_BGNDT",
           "matched": 80,
           "ratioA": 0.53,
-          "ratioB": 0.388,
+          "ratioB": 0.392,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 46,
           "confidence": "MEDIUM",
           "sampleMatches": [
+            "20260610",
             "20260608",
-            "20260601",
             "20260602"
           ]
         },
@@ -5204,8 +6533,8 @@
           "colB": "DSPS_DCSNDT",
           "canonicalKey": "DSPS_DCSNDT",
           "matched": 79,
-          "ratioA": 0.534,
-          "ratioB": 0.389,
+          "ratioA": 0.53,
+          "ratioB": 0.391,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 46,
@@ -5221,11 +6550,11 @@
           "colB": "DSPSCN",
           "canonicalKey": "DSPSCN",
           "matched": 4,
-          "ratioA": 0.133,
-          "ratioB": 0.286,
+          "ratioA": 0.129,
+          "ratioB": 0.308,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 21,
+          "score": 22,
           "confidence": "LOW",
           "sampleMatches": [
             "영업허가ㆍ등록취소",
@@ -5239,10 +6568,10 @@
           "canonicalKey": "DSPS_ENDDT",
           "matched": 3,
           "ratioA": 0.15,
-          "ratioB": 0.231,
+          "ratioB": 0.273,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:N",
-          "score": 19,
+          "score": 21,
           "confidence": "LOW",
           "sampleMatches": [
             "20260624",
@@ -5265,99 +6594,6 @@
             "(20260220)허용한 식품첨가물 외의 식품첨가물 사용하여 제조된 식품을 판매함\n- 음료베이스에 식품첨가물(보존료: 소브산칼륨) 사용\n- 위반제품: 프룻스타 초당옥수수베이스(품목보고번호 20200363209-252, 식품유형: 음료베이스)",
             "(20260330)멸실",
             "(20251117)영업시설물 전부 철거"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0481",
-      "svcB": "I2630",
-      "nmA": "행정처분결과(식품판매업)",
-      "nmB": "행정처분결과(식품접객업)",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "DSPS_ENDDT",
-      "colA": "DSPS_ENDDT",
-      "colB": "DSPS_ENDDT",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "1:N",
-      "score": 44,
-      "confidence": "MEDIUM",
-      "matched": 10,
-      "ratioA": 0.769,
-      "ratioB": 0.11,
-      "sampleMatches": [
-        "20260614",
-        "20260622",
-        "20260617"
-      ],
-      "allCandidates": [
-        {
-          "colA": "DSPS_ENDDT",
-          "colB": "DSPS_ENDDT",
-          "canonicalKey": "DSPS_ENDDT",
-          "matched": 10,
-          "ratioA": 0.769,
-          "ratioB": 0.11,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "1:N",
-          "score": 44,
-          "confidence": "MEDIUM",
-          "sampleMatches": [
-            "20260614",
-            "20260622",
-            "20260617"
-          ]
-        },
-        {
-          "colA": "DSPS_DCSNDT",
-          "colB": "DSPS_DCSNDT",
-          "canonicalKey": "DSPS_DCSNDT",
-          "matched": 67,
-          "ratioA": 0.33,
-          "ratioB": 0.416,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 37,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260605",
-            "20260602",
-            "20260601"
-          ]
-        },
-        {
-          "colA": "DSPS_BGNDT",
-          "colB": "DSPS_BGNDT",
-          "canonicalKey": "DSPS_BGNDT",
-          "matched": 72,
-          "ratioA": 0.35,
-          "ratioB": 0.358,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 35,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260701",
-            "20260608",
-            "20260601"
-          ]
-        },
-        {
-          "colA": "DSPSCN",
-          "colB": "DSPSCN",
-          "canonicalKey": "DSPSCN",
-          "matched": 6,
-          "ratioA": 0.429,
-          "ratioB": 0.086,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 26,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "영업정지",
-            "영업정지 15일",
-            "영업소폐쇄"
           ]
         }
       ]
@@ -5460,9 +6696,9 @@
       "cardinality": "1:N",
       "score": 43,
       "confidence": "MEDIUM",
-      "matched": 373,
-      "ratioA": 0.373,
-      "ratioB": 0.492,
+      "matched": 372,
+      "ratioA": 0.372,
+      "ratioB": 0.49,
       "sampleMatches": [
         "20190012114",
         "20172860142",
@@ -5473,9 +6709,9 @@
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 373,
-          "ratioA": 0.373,
-          "ratioB": 0.492,
+          "matched": 372,
+          "ratioA": 0.372,
+          "ratioB": 0.49,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:N",
           "score": 43,
@@ -5502,9 +6738,9 @@
       "cardinality": "1:N",
       "score": 43,
       "confidence": "MEDIUM",
-      "matched": 373,
-      "ratioA": 0.373,
-      "ratioB": 0.492,
+      "matched": 372,
+      "ratioA": 0.372,
+      "ratioB": 0.49,
       "sampleMatches": [
         "20190012114",
         "20172860142",
@@ -5515,9 +6751,9 @@
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 373,
-          "ratioA": 0.373,
-          "ratioB": 0.492,
+          "matched": 372,
+          "ratioA": 0.372,
+          "ratioB": 0.49,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:N",
           "score": 43,
@@ -5672,7 +6908,7 @@
       "confidence": "MEDIUM",
       "matched": 6,
       "ratioA": 0.75,
-      "ratioB": 0.077,
+      "ratioB": 0.061,
       "sampleMatches": [
         "포장육",
         "분쇄가공육제품",
@@ -5685,7 +6921,7 @@
           "canonicalKey": "PRDLST_DCNM",
           "matched": 6,
           "ratioA": 0.75,
-          "ratioB": 0.077,
+          "ratioB": 0.061,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 41,
@@ -5694,6 +6930,97 @@
             "포장육",
             "분쇄가공육제품",
             "양념육"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0960",
+      "svcB": "I2580",
+      "nmA": "건강기능식품공전",
+      "nmB": "개별기준규격",
+      "catA": "기준규격정보",
+      "catB": "기준규격정보",
+      "joinKey": "PRDLST_CD",
+      "colA": "PRDLST_CD",
+      "colB": "PRDLST_CD",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 41,
+      "confidence": "MEDIUM",
+      "matched": 112,
+      "ratioA": 0.217,
+      "ratioB": 0.605,
+      "sampleMatches": [
+        "E0301700000000",
+        "E0317300000000",
+        "E0303400000000"
+      ],
+      "allCandidates": [
+        {
+          "colA": "PRDLST_CD",
+          "colB": "PRDLST_CD",
+          "canonicalKey": "PRDLST_CD",
+          "matched": 112,
+          "ratioA": 0.217,
+          "ratioB": 0.605,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 41,
+          "confidence": "MEDIUM",
+          "sampleMatches": [
+            "E0301700000000",
+            "E0317300000000",
+            "E0303400000000"
+          ]
+        },
+        {
+          "colA": "TESTITM_CD",
+          "colB": "TESTITM_CD",
+          "canonicalKey": "TESTITM_CD",
+          "matched": 31,
+          "ratioA": 0.211,
+          "ratioB": 0.142,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 18,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "B90438",
+            "B90435",
+            "B90436"
+          ]
+        },
+        {
+          "colA": "SORC",
+          "colB": "SORC",
+          "canonicalKey": "SORC",
+          "matched": 1,
+          "ratioA": 0.004,
+          "ratioB": 0.333,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 17,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "제2014-9호"
+          ]
+        },
+        {
+          "colA": "SPEC_VAL_SUMUP",
+          "colB": "SPEC_VAL_SUMUP",
+          "canonicalKey": "SPEC_VAL_SUMUP",
+          "matched": 43,
+          "ratioA": 0.178,
+          "ratioB": 0.15,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 16,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "불검출",
+            "50.0-100.0",
+            "1.0-30.0"
           ]
         }
       ]
@@ -5712,30 +7039,30 @@
       "cardinality": "1:N",
       "score": 41,
       "confidence": "MEDIUM",
-      "matched": 114,
-      "ratioA": 0.708,
-      "ratioB": 0.114,
+      "matched": 115,
+      "ratioA": 0.714,
+      "ratioB": 0.115,
       "sampleMatches": [
         "20259370002",
-        "20259370003",
-        "20189036001"
+        "20249492001",
+        "20259350002"
       ],
       "allCandidates": [
         {
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 114,
-          "ratioA": 0.708,
-          "ratioB": 0.114,
+          "matched": 115,
+          "ratioA": 0.714,
+          "ratioB": 0.115,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "1:N",
           "score": 41,
           "confidence": "MEDIUM",
           "sampleMatches": [
             "20259370002",
-            "20259370003",
-            "20189036001"
+            "20249492001",
+            "20259350002"
           ]
         }
       ]
@@ -5842,145 +7169,94 @@
       ]
     },
     {
-      "svcA": "I0490",
-      "svcB": "I2620",
-      "nmA": "회수.판매중지 정보",
-      "nmB": "검사부적합(국내)",
+      "svcA": "I0481",
+      "svcB": "I2630",
+      "nmA": "행정처분결과(식품판매업)",
+      "nmB": "행정처분결과(식품접객업)",
       "catA": "식품위해관리",
       "catB": "식품위해관리",
-      "joinKey": "FRMLCUNIT",
-      "colA": "FRMLCUNIT",
-      "colB": "FRMLCUNIT",
+      "joinKey": "DSPS_DCSNDT",
+      "colA": "DSPS_DCSNDT",
+      "colB": "DSPS_DCSNDT",
       "joinType": "LEFT JOIN (B→A)",
       "cardinality": "N:M",
-      "score": 36,
+      "score": 38,
       "confidence": "LOW",
-      "matched": 22,
-      "ratioA": 0.138,
-      "ratioB": 0.579,
+      "matched": 67,
+      "ratioA": 0.332,
+      "ratioB": 0.427,
       "sampleMatches": [
-        "400g",
-        "500g",
-        "900g"
+        "20260605",
+        "20260602",
+        "20260601"
       ],
       "allCandidates": [
         {
-          "colA": "FRMLCUNIT",
-          "colB": "FRMLCUNIT",
-          "canonicalKey": "FRMLCUNIT",
-          "matched": 22,
-          "ratioA": 0.138,
-          "ratioB": 0.579,
+          "colA": "DSPS_DCSNDT",
+          "colB": "DSPS_DCSNDT",
+          "canonicalKey": "DSPS_DCSNDT",
+          "matched": 67,
+          "ratioA": 0.332,
+          "ratioB": 0.427,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
+          "score": 38,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260605",
+            "20260602",
+            "20260601"
+          ]
+        },
+        {
+          "colA": "DSPS_ENDDT",
+          "colB": "DSPS_ENDDT",
+          "canonicalKey": "DSPS_ENDDT",
+          "matched": 7,
+          "ratioA": 0.636,
+          "ratioB": 0.081,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
           "score": 36,
           "confidence": "LOW",
           "sampleMatches": [
-            "400g",
-            "500g",
-            "900g"
+            "20260614",
+            "20260622",
+            "20260617"
           ]
         },
         {
-          "colA": "BRCDNO",
-          "colB": "BRCDNO",
-          "canonicalKey": "BRCD_NO",
-          "matched": 26,
-          "ratioA": 0.16,
-          "ratioB": 0.441,
+          "colA": "DSPS_BGNDT",
+          "colB": "DSPS_BGNDT",
+          "canonicalKey": "DSPS_BGNDT",
+          "matched": 70,
+          "ratioA": 0.343,
+          "ratioB": 0.355,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
-          "score": 30,
+          "score": 35,
           "confidence": "LOW",
           "sampleMatches": [
-            "8809045620752",
-            "8809458913335",
-            "4589840672234"
+            "20260701",
+            "20260608",
+            "20260601"
           ]
         },
         {
-          "colA": "LCNS_NO",
-          "colB": "LCNS_NO",
-          "canonicalKey": "LCNS_NO",
-          "matched": 35,
-          "ratioA": 0.16,
-          "ratioB": 0.412,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 29,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20200574235",
-            "20120254022",
-            "20130115305"
-          ]
-        },
-        {
-          "colA": "PRDLST_REPORT_NO",
-          "colB": "PRDLST_REPORT_NO",
-          "canonicalKey": "PRDLST_CD",
-          "matched": 18,
-          "ratioA": 0.117,
-          "ratioB": 0.346,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:N",
-          "score": 23,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "2017047206438",
-            "2018004236216",
-            "2003061807477"
-          ]
-        },
-        {
-          "colA": "PRDTNM",
-          "colB": "PRDTNM",
-          "canonicalKey": "PRDTNM",
-          "matched": 35,
-          "ratioA": 0.114,
-          "ratioB": 0.176,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 15,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "국화",
-            "강황가루",
-            "냉동흰다리새우살(두절,탈각)"
-          ]
-        },
-        {
-          "colA": "BSSHNM",
-          "colB": "BSSHNM",
-          "canonicalKey": "BSSHNM",
-          "matched": 37,
-          "ratioA": 0.148,
-          "ratioB": 0.129,
+          "colA": "DSPSCN",
+          "colB": "DSPSCN",
+          "canonicalKey": "DSPSCN",
+          "matched": 6,
+          "ratioA": 0.462,
+          "ratioB": 0.083,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
-          "score": 14,
+          "score": 27,
           "confidence": "LOW",
           "sampleMatches": [
-            "주식회사샘그린유통",
-            "(주)진성바이오지점",
-            "(주)해우씨푸드"
-          ]
-        },
-        {
-          "colA": "RTRVLDSUSE_SEQ",
-          "colB": "RTRVLDSUSE_SEQ",
-          "canonicalKey": "RTRVLDSUSE_SEQ",
-          "matched": 44,
-          "ratioA": 0.126,
-          "ratioB": 0.129,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:N",
-          "score": 13,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "3000226584",
-            "3000226157",
-            "3000225787"
+            "영업정지",
+            "영업정지 15일",
+            "영업소폐쇄"
           ]
         }
       ]
@@ -5997,32 +7273,235 @@
       "colB": "TESTITM_CD",
       "joinType": "LEFT JOIN (A→B)",
       "cardinality": "1:N",
-      "score": 36,
+      "score": 38,
       "confidence": "LOW",
-      "matched": 103,
-      "ratioA": 0.609,
-      "ratioB": 0.103,
+      "matched": 97,
+      "ratioA": 0.66,
+      "ratioB": 0.097,
       "sampleMatches": [
+        "A40151",
         "A40128",
-        "A40155",
-        "A40119"
+        "A40155"
       ],
       "allCandidates": [
         {
           "colA": "TESTITM_CD",
           "colB": "TESTITM_CD",
           "canonicalKey": "TESTITM_CD",
-          "matched": 103,
-          "ratioA": 0.609,
-          "ratioB": 0.103,
+          "matched": 97,
+          "ratioA": 0.66,
+          "ratioB": 0.097,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "1:N",
-          "score": 36,
+          "score": 38,
           "confidence": "LOW",
           "sampleMatches": [
+            "A40151",
             "A40128",
-            "A40155",
-            "A40119"
+            "A40155"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0490",
+      "svcB": "I2620",
+      "nmA": "회수.판매중지 정보",
+      "nmB": "검사부적합(국내)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "FRMLCUNIT",
+      "colA": "FRMLCUNIT",
+      "colB": "FRMLCUNIT",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 37,
+      "confidence": "LOW",
+      "matched": 23,
+      "ratioA": 0.144,
+      "ratioB": 0.59,
+      "sampleMatches": [
+        "500ml",
+        "400g",
+        "500g"
+      ],
+      "allCandidates": [
+        {
+          "colA": "FRMLCUNIT",
+          "colB": "FRMLCUNIT",
+          "canonicalKey": "FRMLCUNIT",
+          "matched": 23,
+          "ratioA": 0.144,
+          "ratioB": 0.59,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 37,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "500ml",
+            "400g",
+            "500g"
+          ]
+        },
+        {
+          "colA": "LCNS_NO",
+          "colB": "LCNS_NO",
+          "canonicalKey": "LCNS_NO",
+          "matched": 35,
+          "ratioA": 0.16,
+          "ratioB": 0.417,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 29,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20210016021",
+            "20200574235",
+            "20120254022"
+          ]
+        },
+        {
+          "colA": "BRCDNO",
+          "colB": "BRCDNO",
+          "canonicalKey": "BRCD_NO",
+          "matched": 24,
+          "ratioA": 0.147,
+          "ratioB": 0.414,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 28,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "8809045620752",
+            "8809458913335",
+            "0629262003347"
+          ]
+        },
+        {
+          "colA": "PRDLST_REPORT_NO",
+          "colB": "PRDLST_REPORT_NO",
+          "canonicalKey": "PRDLST_CD",
+          "matched": 20,
+          "ratioA": 0.129,
+          "ratioB": 0.377,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 25,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "202100160214",
+            "2021001602110",
+            "2017047206438"
+          ]
+        },
+        {
+          "colA": "BSSHNM",
+          "colB": "BSSHNM",
+          "canonicalKey": "BSSHNM",
+          "matched": 37,
+          "ratioA": 0.148,
+          "ratioB": 0.128,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 14,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "비틀",
+            "주식회사샘그린유통",
+            "(주)진성바이오지점"
+          ]
+        },
+        {
+          "colA": "PRDTNM",
+          "colB": "PRDTNM",
+          "canonicalKey": "PRDTNM",
+          "matched": 35,
+          "ratioA": 0.114,
+          "ratioB": 0.172,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 14,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "비틀16로제",
+            "비틀10",
+            "국화"
+          ]
+        },
+        {
+          "colA": "RTRVLDSUSE_SEQ",
+          "colB": "RTRVLDSUSE_SEQ",
+          "canonicalKey": "RTRVLDSUSE_SEQ",
+          "matched": 43,
+          "ratioA": 0.123,
+          "ratioB": 0.125,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 12,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "3000226993",
+            "3000227028",
+            "3000226584"
+          ]
+        },
+        {
+          "colA": "DISTBTMLMT",
+          "colB": "DISTBTMLMT",
+          "canonicalKey": "DISTBTMLMT",
+          "matched": 7,
+          "ratioA": 0.033,
+          "ratioB": 0.053,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 4,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "제조일로부터 180일",
+            "제조일로부터 60일",
+            "제조일로부터 24개월"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0580",
+      "svcB": "I0610",
+      "nmA": "HACCP 적용업소 지정 현황",
+      "nmB": "축산물HACCP 지정정보",
+      "catA": "HACCP지정현황",
+      "catB": "HACCP지정현황",
+      "joinKey": "CRTFC_ENDDT",
+      "colA": "CRTFC_ENDDT",
+      "colB": "CRTFC_ENDDT",
+      "joinType": "LEFT JOIN (A→B)",
+      "cardinality": "N:M",
+      "score": 35,
+      "confidence": "LOW",
+      "matched": 17,
+      "ratioA": 0.607,
+      "ratioB": 0.083,
+      "sampleMatches": [
+        "20290609",
+        "20290608",
+        "20290607"
+      ],
+      "allCandidates": [
+        {
+          "colA": "CRTFC_ENDDT",
+          "colB": "CRTFC_ENDDT",
+          "canonicalKey": "CRTFC_ENDDT",
+          "matched": 17,
+          "ratioA": 0.607,
+          "ratioB": 0.083,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 35,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20290609",
+            "20290608",
+            "20290607"
           ]
         }
       ]
@@ -6124,6 +7603,241 @@
             "폴리에틸렌(PE)",
             "PE,PP",
             "PE"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0470",
+      "svcB": "I0481",
+      "nmA": "행정처분결과",
+      "nmB": "행정처분결과(식품판매업)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "DSPSCN",
+      "colA": "DSPSCN",
+      "colB": "DSPSCN",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 33,
+      "confidence": "LOW",
+      "matched": 6,
+      "ratioA": 0.207,
+      "ratioB": 0.462,
+      "sampleMatches": [
+        "영업소폐쇄",
+        "식품위생법 위반에 따른 영업소 폐쇄",
+        "영업허가ㆍ등록취소"
+      ],
+      "allCandidates": [
+        {
+          "colA": "DSPSCN",
+          "colB": "DSPSCN",
+          "canonicalKey": "DSPSCN",
+          "matched": 6,
+          "ratioA": 0.207,
+          "ratioB": 0.462,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 33,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "영업소폐쇄",
+            "식품위생법 위반에 따른 영업소 폐쇄",
+            "영업허가ㆍ등록취소"
+          ]
+        },
+        {
+          "colA": "DSPS_BGNDT",
+          "colB": "DSPS_BGNDT",
+          "canonicalKey": "DSPS_BGNDT",
+          "matched": 44,
+          "ratioA": 0.376,
+          "ratioB": 0.216,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 30,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20240612",
+            "20240613",
+            "20240617"
+          ]
+        },
+        {
+          "colA": "DSPS_DCSNDT",
+          "colB": "DSPS_DCSNDT",
+          "canonicalKey": "DSPS_DCSNDT",
+          "matched": 38,
+          "ratioA": 0.362,
+          "ratioB": 0.188,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 28,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20240612",
+            "20240613",
+            "20240617"
+          ]
+        },
+        {
+          "colA": "VILTCN",
+          "colB": "VILTCN",
+          "canonicalKey": "VILTCN",
+          "matched": 63,
+          "ratioA": 0.113,
+          "ratioB": 0.177,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 15,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "(20240509)영업시설의 전부를 철거한 경우",
+            "(20240328)영업시설의 전부를 철거",
+            "(20240516)영업시설의 전부를 철거한 경우"
+          ]
+        },
+        {
+          "colA": "PRCSCITYPOINT_BSSHNM",
+          "colB": "PRCSCITYPOINT_BSSHNM",
+          "canonicalKey": "PRCSCITYPOINT_BSSHNM",
+          "matched": 83,
+          "ratioA": 0.087,
+          "ratioB": 0.13,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:1",
+          "score": 11,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "주식회사 피케이네츄럴",
+            "농협공판장 302번",
+            "웰링"
+          ]
+        },
+        {
+          "colA": "LCNS_NO",
+          "colB": "LCNS_NO",
+          "canonicalKey": "LCNS_NO",
+          "matched": 79,
+          "ratioA": 0.08,
+          "ratioB": 0.122,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:1",
+          "score": 10,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20190073611",
+            "20140154100",
+            "20220257431"
+          ]
+        },
+        {
+          "colA": "DSPSDTLS_SEQ",
+          "colB": "DSPSDTLS_SEQ",
+          "canonicalKey": "DSPSDTLS_SEQ",
+          "matched": 79,
+          "ratioA": 0.079,
+          "ratioB": 0.122,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:1",
+          "score": 10,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "4612784",
+            "4613145",
+            "4614115"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0480",
+      "svcB": "I0482",
+      "nmA": "행정처분결과(식품제조가공업)",
+      "nmB": "행정처분결과(수입식품업)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "DSPS_ENDDT",
+      "colA": "DSPS_ENDDT",
+      "colB": "DSPS_ENDDT",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "1:N",
+      "score": 33,
+      "confidence": "LOW",
+      "matched": 5,
+      "ratioA": 0.25,
+      "ratioB": 0.417,
+      "sampleMatches": [
+        "20260616",
+        "20260624",
+        "20260618"
+      ],
+      "allCandidates": [
+        {
+          "colA": "DSPS_ENDDT",
+          "colB": "DSPS_ENDDT",
+          "canonicalKey": "DSPS_ENDDT",
+          "matched": 5,
+          "ratioA": 0.25,
+          "ratioB": 0.417,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 33,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260616",
+            "20260624",
+            "20260618"
+          ]
+        },
+        {
+          "colA": "DSPS_DCSNDT",
+          "colB": "DSPS_DCSNDT",
+          "canonicalKey": "DSPS_DCSNDT",
+          "matched": 15,
+          "ratioA": 0.101,
+          "ratioB": 0.417,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 26,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260610",
+            "20260602",
+            "20260529"
+          ]
+        },
+        {
+          "colA": "DSPS_BGNDT",
+          "colB": "DSPS_BGNDT",
+          "canonicalKey": "DSPS_BGNDT",
+          "matched": 13,
+          "ratioA": 0.086,
+          "ratioB": 0.361,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 22,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260610",
+            "20260602",
+            "20260529"
+          ]
+        },
+        {
+          "colA": "DSPSCN",
+          "colB": "DSPSCN",
+          "canonicalKey": "DSPSCN",
+          "matched": 1,
+          "ratioA": 0.032,
+          "ratioB": 0.053,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 4,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "영업허가·등록취소"
           ]
         }
       ]
@@ -6289,150 +8003,6 @@
       ]
     },
     {
-      "svcA": "I0470",
-      "svcB": "I0481",
-      "nmA": "행정처분결과",
-      "nmB": "행정처분결과(식품판매업)",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "DSPSCN",
-      "colA": "DSPSCN",
-      "colB": "DSPSCN",
-      "joinType": "LEFT JOIN (B→A)",
-      "cardinality": "N:M",
-      "score": 32,
-      "confidence": "LOW",
-      "matched": 6,
-      "ratioA": 0.207,
-      "ratioB": 0.429,
-      "sampleMatches": [
-        "영업소폐쇄",
-        "식품위생법 위반에 따른 영업소 폐쇄",
-        "영업허가ㆍ등록취소"
-      ],
-      "allCandidates": [
-        {
-          "colA": "DSPSCN",
-          "colB": "DSPSCN",
-          "canonicalKey": "DSPSCN",
-          "matched": 6,
-          "ratioA": 0.207,
-          "ratioB": 0.429,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 32,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "영업소폐쇄",
-            "식품위생법 위반에 따른 영업소 폐쇄",
-            "영업허가ㆍ등록취소"
-          ]
-        },
-        {
-          "colA": "DSPS_BGNDT",
-          "colB": "DSPS_BGNDT",
-          "canonicalKey": "DSPS_BGNDT",
-          "matched": 44,
-          "ratioA": 0.379,
-          "ratioB": 0.214,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 30,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20240612",
-            "20240613",
-            "20240617"
-          ]
-        },
-        {
-          "colA": "DSPS_DCSNDT",
-          "colB": "DSPS_DCSNDT",
-          "canonicalKey": "DSPS_DCSNDT",
-          "matched": 38,
-          "ratioA": 0.365,
-          "ratioB": 0.187,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 28,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20240611",
-            "20240612",
-            "20240613"
-          ]
-        },
-        {
-          "colA": "VILTCN",
-          "colB": "VILTCN",
-          "canonicalKey": "VILTCN",
-          "matched": 64,
-          "ratioA": 0.116,
-          "ratioB": 0.179,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 15,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "(20240514)75조1항제7호 변경신고없이 소재지 이전한 경우 \n75조 3항 정당한 사유없이 6개월 이상 휴업한 경우",
-            "(20240509)영업시설의 전부를 철거한 경우",
-            "(20240328)영업시설의 전부를 철거"
-          ]
-        },
-        {
-          "colA": "PRCSCITYPOINT_BSSHNM",
-          "colB": "PRCSCITYPOINT_BSSHNM",
-          "canonicalKey": "PRCSCITYPOINT_BSSHNM",
-          "matched": 84,
-          "ratioA": 0.088,
-          "ratioB": 0.131,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:1",
-          "score": 11,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "명가푸드",
-            "농업회사법인강원사랑유한회사",
-            "주식회사 피케이네츄럴"
-          ]
-        },
-        {
-          "colA": "LCNS_NO",
-          "colB": "LCNS_NO",
-          "canonicalKey": "LCNS_NO",
-          "matched": 80,
-          "ratioA": 0.081,
-          "ratioB": 0.123,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:1",
-          "score": 10,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20150386322",
-            "20190073611",
-            "20140154100"
-          ]
-        },
-        {
-          "colA": "DSPSDTLS_SEQ",
-          "colB": "DSPSDTLS_SEQ",
-          "canonicalKey": "DSPSDTLS_SEQ",
-          "matched": 80,
-          "ratioA": 0.08,
-          "ratioB": 0.123,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:1",
-          "score": 10,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "4608562",
-            "4612784",
-            "4613145"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I1930",
       "svcB": "I1940",
       "nmA": "수산물이력정보-생산정보",
@@ -6448,7 +8018,7 @@
       "confidence": "LOW",
       "matched": 3,
       "ratioA": 0.6,
-      "ratioB": 0.033,
+      "ratioB": 0.041,
       "sampleMatches": [
         "1020",
         "0600",
@@ -6461,7 +8031,7 @@
           "canonicalKey": "HIST_TRACE_REG_NO",
           "matched": 3,
           "ratioA": 0.6,
-          "ratioB": 0.033,
+          "ratioB": 0.041,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 32,
@@ -6512,48 +8082,6 @@
             "0633",
             "0600",
             "0336"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0580",
-      "svcB": "I0610",
-      "nmA": "HACCP 적용업소 지정 현황",
-      "nmB": "축산물HACCP 지정정보",
-      "catA": "HACCP지정현황",
-      "catB": "HACCP지정현황",
-      "joinKey": "CRTFC_ENDDT",
-      "colA": "CRTFC_ENDDT",
-      "colB": "CRTFC_ENDDT",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 30,
-      "confidence": "LOW",
-      "matched": 14,
-      "ratioA": 0.538,
-      "ratioB": 0.069,
-      "sampleMatches": [
-        "20290605",
-        "20290604",
-        "20290603"
-      ],
-      "allCandidates": [
-        {
-          "colA": "CRTFC_ENDDT",
-          "colB": "CRTFC_ENDDT",
-          "canonicalKey": "CRTFC_ENDDT",
-          "matched": 14,
-          "ratioA": 0.538,
-          "ratioB": 0.069,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 30,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20290605",
-            "20290604",
-            "20290603"
           ]
         }
       ]
@@ -6638,207 +8166,6 @@
             "B10002",
             "B10004",
             "B10006"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0480",
-      "svcB": "I0482",
-      "nmA": "행정처분결과(식품제조가공업)",
-      "nmB": "행정처분결과(수입식품업)",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "DSPS_ENDDT",
-      "colA": "DSPS_ENDDT",
-      "colB": "DSPS_ENDDT",
-      "joinType": "LEFT JOIN (B→A)",
-      "cardinality": "N:M",
-      "score": 28,
-      "confidence": "LOW",
-      "matched": 4,
-      "ratioA": 0.2,
-      "ratioB": 0.364,
-      "sampleMatches": [
-        "20260618",
-        "20260616",
-        "20260716"
-      ],
-      "allCandidates": [
-        {
-          "colA": "DSPS_ENDDT",
-          "colB": "DSPS_ENDDT",
-          "canonicalKey": "DSPS_ENDDT",
-          "matched": 4,
-          "ratioA": 0.2,
-          "ratioB": 0.364,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 28,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260618",
-            "20260616",
-            "20260716"
-          ]
-        },
-        {
-          "colA": "DSPS_DCSNDT",
-          "colB": "DSPS_DCSNDT",
-          "canonicalKey": "DSPS_DCSNDT",
-          "matched": 15,
-          "ratioA": 0.101,
-          "ratioB": 0.417,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 26,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260602",
-            "20260529",
-            "20260526"
-          ]
-        },
-        {
-          "colA": "DSPS_BGNDT",
-          "colB": "DSPS_BGNDT",
-          "canonicalKey": "DSPS_BGNDT",
-          "matched": 12,
-          "ratioA": 0.079,
-          "ratioB": 0.333,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 21,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20260602",
-            "20260529",
-            "20260526"
-          ]
-        },
-        {
-          "colA": "DSPSCN",
-          "colB": "DSPSCN",
-          "canonicalKey": "DSPSCN",
-          "matched": 1,
-          "ratioA": 0.033,
-          "ratioB": 0.053,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 4,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "영업허가·등록취소"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0490",
-      "svcB": "I2640",
-      "nmA": "회수.판매중지 정보",
-      "nmB": "검사부적합 현황(농산물)",
-      "catA": "식품위해관리",
-      "catB": "식품위해관리",
-      "joinKey": "BRCD_NO",
-      "colA": "BRCDNO",
-      "colB": "BRCDNO",
-      "joinType": "LEFT JOIN (B→A)",
-      "cardinality": "N:M",
-      "score": 27,
-      "confidence": "LOW",
-      "matched": 8,
-      "ratioA": 0.049,
-      "ratioB": 0.5,
-      "sampleMatches": [
-        "8809052505004",
-        "1100001247554",
-        "8809237783074"
-      ],
-      "allCandidates": [
-        {
-          "colA": "BRCDNO",
-          "colB": "BRCDNO",
-          "canonicalKey": "BRCD_NO",
-          "matched": 8,
-          "ratioA": 0.049,
-          "ratioB": 0.5,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 27,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "8809052505004",
-            "1100001247554",
-            "8809237783074"
-          ]
-        },
-        {
-          "colA": "LCNS_NO",
-          "colB": "LCNS_NO",
-          "canonicalKey": "LCNS_NO",
-          "matched": 6,
-          "ratioA": 0.027,
-          "ratioB": 0.5,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 26,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "20160333083",
-            "20000320226",
-            "20140333104"
-          ]
-        },
-        {
-          "colA": "FRMLCUNIT",
-          "colB": "FRMLCUNIT",
-          "canonicalKey": "FRMLCUNIT",
-          "matched": 8,
-          "ratioA": 0.05,
-          "ratioB": 0.444,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 25,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "500g",
-            "100g",
-            "1kg"
-          ]
-        },
-        {
-          "colA": "PRDTNM",
-          "colB": "PRDTNM",
-          "canonicalKey": "PRDTNM",
-          "matched": 10,
-          "ratioA": 0.033,
-          "ratioB": 0.086,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "N:M",
-          "score": 6,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "국화",
-            "구기자",
-            "청양 구기자"
-          ]
-        },
-        {
-          "colA": "RTRVLDSUSE_SEQ",
-          "colB": "RTRVLDSUSE_SEQ",
-          "canonicalKey": "RTRVLDSUSE_SEQ",
-          "matched": 12,
-          "ratioA": 0.034,
-          "ratioB": 0.052,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:N",
-          "score": 4,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "3000226584",
-            "3000225170",
-            "3000224680"
           ]
         }
       ]
@@ -6947,57 +8274,15 @@
           "colB": "DSPS_ENDDT",
           "canonicalKey": "DSPS_ENDDT",
           "matched": 2,
-          "ratioA": 0.154,
-          "ratioB": 0.182,
-          "joinType": "LEFT JOIN (B→A)",
-          "cardinality": "1:N",
+          "ratioA": 0.182,
+          "ratioB": 0.167,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:1",
           "score": 17,
           "confidence": "LOW",
           "sampleMatches": [
-            "20260531",
+            "20260624",
             "20260716"
-          ]
-        }
-      ]
-    },
-    {
-      "svcA": "I0950",
-      "svcB": "I2530",
-      "nmA": "식품첨가물공전",
-      "nmB": "시험항목코드",
-      "catA": "기준규격정보",
-      "catB": "코드정보",
-      "joinKey": "TESTITM_CD",
-      "colA": "TESTITM_CD",
-      "colB": "TESTITM_CD",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "1:N",
-      "score": 26,
-      "confidence": "LOW",
-      "matched": 17,
-      "ratioA": 0.5,
-      "ratioB": 0.017,
-      "sampleMatches": [
-        "A40005",
-        "A10008",
-        "B10001"
-      ],
-      "allCandidates": [
-        {
-          "colA": "TESTITM_CD",
-          "colB": "TESTITM_CD",
-          "canonicalKey": "TESTITM_CD",
-          "matched": 17,
-          "ratioA": 0.5,
-          "ratioB": 0.017,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "1:N",
-          "score": 26,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "A40005",
-            "A10008",
-            "B10001"
           ]
         }
       ]
@@ -7041,48 +8326,6 @@
       ]
     },
     {
-      "svcA": "I1250",
-      "svcB": "I2852",
-      "nmA": "식품(첨가물)품목제조보고",
-      "nmB": "생산중단제품정보",
-      "catA": "식품 등",
-      "catB": "업체인허가현황",
-      "joinKey": "PRDLST_DCNM",
-      "colA": "PRDLST_DCNM",
-      "colB": "PRDLST_DCNM",
-      "joinType": "LEFT JOIN (A→B)",
-      "cardinality": "N:M",
-      "score": 25,
-      "confidence": "LOW",
-      "matched": 9,
-      "ratioA": 0.375,
-      "ratioB": 0.115,
-      "sampleMatches": [
-        "소스",
-        "복합조미식품",
-        "혼합장"
-      ],
-      "allCandidates": [
-        {
-          "colA": "PRDLST_DCNM",
-          "colB": "PRDLST_DCNM",
-          "canonicalKey": "PRDLST_DCNM",
-          "matched": 9,
-          "ratioA": 0.375,
-          "ratioB": 0.115,
-          "joinType": "LEFT JOIN (A→B)",
-          "cardinality": "N:M",
-          "score": 25,
-          "confidence": "LOW",
-          "sampleMatches": [
-            "소스",
-            "복합조미식품",
-            "혼합장"
-          ]
-        }
-      ]
-    },
-    {
       "svcA": "I0470",
       "svcB": "I0480",
       "nmA": "행정처분결과",
@@ -7097,11 +8340,11 @@
       "score": 24,
       "confidence": "LOW",
       "matched": 31,
-      "ratioA": 0.267,
+      "ratioA": 0.265,
       "ratioB": 0.205,
       "sampleMatches": [
-        "20240614",
         "20240613",
+        "20240614",
         "20240619"
       ],
       "allCandidates": [
@@ -7110,15 +8353,15 @@
           "colB": "DSPS_BGNDT",
           "canonicalKey": "DSPS_BGNDT",
           "matched": 31,
-          "ratioA": 0.267,
+          "ratioA": 0.265,
           "ratioB": 0.205,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 24,
           "confidence": "LOW",
           "sampleMatches": [
-            "20240614",
             "20240613",
+            "20240614",
             "20240619"
           ]
         },
@@ -7126,9 +8369,9 @@
           "colA": "DSPS_DCSNDT",
           "colB": "DSPS_DCSNDT",
           "canonicalKey": "DSPS_DCSNDT",
-          "matched": 29,
-          "ratioA": 0.279,
-          "ratioB": 0.196,
+          "matched": 30,
+          "ratioA": 0.286,
+          "ratioB": 0.201,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 24,
@@ -7145,24 +8388,24 @@
           "canonicalKey": "DSPSCN",
           "matched": 6,
           "ratioA": 0.207,
-          "ratioB": 0.2,
+          "ratioB": 0.194,
           "joinType": "LEFT JOIN (A→B)",
           "cardinality": "N:M",
           "score": 20,
           "confidence": "LOW",
           "sampleMatches": [
             "영업소폐쇄",
-            "영업허가ㆍ등록취소",
-            "영업등록 취소"
+            "영업등록 취소",
+            "영업허가ㆍ등록취소"
           ]
         },
         {
           "colA": "PRCSCITYPOINT_BSSHNM",
           "colB": "PRCSCITYPOINT_BSSHNM",
           "canonicalKey": "PRCSCITYPOINT_BSSHNM",
-          "matched": 52,
-          "ratioA": 0.054,
-          "ratioB": 0.202,
+          "matched": 53,
+          "ratioA": 0.055,
+          "ratioB": 0.205,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:1",
           "score": 13,
@@ -7177,9 +8420,9 @@
           "colA": "LCNS_NO",
           "colB": "LCNS_NO",
           "canonicalKey": "LCNS_NO",
-          "matched": 49,
-          "ratioA": 0.05,
-          "ratioB": 0.189,
+          "matched": 50,
+          "ratioA": 0.051,
+          "ratioB": 0.192,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:1",
           "score": 12,
@@ -7194,9 +8437,9 @@
           "colA": "DSPSDTLS_SEQ",
           "colB": "DSPSDTLS_SEQ",
           "canonicalKey": "DSPSDTLS_SEQ",
-          "matched": 49,
-          "ratioA": 0.049,
-          "ratioB": 0.188,
+          "matched": 50,
+          "ratioA": 0.05,
+          "ratioB": 0.191,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "1:1",
           "score": 12,
@@ -7211,9 +8454,9 @@
           "colA": "VILTCN",
           "colB": "VILTCN",
           "canonicalKey": "VILTCN",
-          "matched": 36,
-          "ratioA": 0.065,
-          "ratioB": 0.169,
+          "matched": 38,
+          "ratioA": 0.068,
+          "ratioB": 0.178,
           "joinType": "LEFT JOIN (B→A)",
           "cardinality": "N:M",
           "score": 12,
@@ -7237,6 +8480,384 @@
           "confidence": "LOW",
           "sampleMatches": [
             "20260516"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0490",
+      "svcB": "I2640",
+      "nmA": "회수.판매중지 정보",
+      "nmB": "검사부적합 현황(농산물)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "LCNS_NO",
+      "colA": "LCNS_NO",
+      "colB": "LCNS_NO",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 24,
+      "confidence": "LOW",
+      "matched": 5,
+      "ratioA": 0.023,
+      "ratioB": 0.455,
+      "sampleMatches": [
+        "20160333083",
+        "20000320226",
+        "20140333104"
+      ],
+      "allCandidates": [
+        {
+          "colA": "LCNS_NO",
+          "colB": "LCNS_NO",
+          "canonicalKey": "LCNS_NO",
+          "matched": 5,
+          "ratioA": 0.023,
+          "ratioB": 0.455,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 24,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20160333083",
+            "20000320226",
+            "20140333104"
+          ]
+        },
+        {
+          "colA": "FRMLCUNIT",
+          "colB": "FRMLCUNIT",
+          "canonicalKey": "FRMLCUNIT",
+          "matched": 7,
+          "ratioA": 0.044,
+          "ratioB": 0.412,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 23,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "1kg",
+            "100g",
+            "450g"
+          ]
+        },
+        {
+          "colA": "BRCDNO",
+          "colB": "BRCDNO",
+          "canonicalKey": "BRCD_NO",
+          "matched": 6,
+          "ratioA": 0.037,
+          "ratioB": 0.4,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 22,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "8809052505004",
+            "1100001247554",
+            "8809237783074"
+          ]
+        },
+        {
+          "colA": "PRDTNM",
+          "colB": "PRDTNM",
+          "canonicalKey": "PRDTNM",
+          "matched": 8,
+          "ratioA": 0.026,
+          "ratioB": 0.067,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 5,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "국화",
+            "구기자",
+            "청양 구기자"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0950",
+      "svcB": "I2530",
+      "nmA": "식품첨가물공전",
+      "nmB": "시험항목코드",
+      "catA": "기준규격정보",
+      "catB": "코드정보",
+      "joinKey": "TESTITM_CD",
+      "colA": "TESTITM_CD",
+      "colB": "TESTITM_CD",
+      "joinType": "LEFT JOIN (A→B)",
+      "cardinality": "1:N",
+      "score": 24,
+      "confidence": "LOW",
+      "matched": 27,
+      "ratioA": 0.458,
+      "ratioB": 0.027,
+      "sampleMatches": [
+        "A30003",
+        "A10088",
+        "A20001"
+      ],
+      "allCandidates": [
+        {
+          "colA": "TESTITM_CD",
+          "colB": "TESTITM_CD",
+          "canonicalKey": "TESTITM_CD",
+          "matched": 27,
+          "ratioA": 0.458,
+          "ratioB": 0.027,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 24,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "A30003",
+            "A10088",
+            "A20001"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I1670",
+      "svcB": "I2550",
+      "nmA": "과태료부과기준",
+      "nmB": "처분기준코드",
+      "catA": "기준규격정보",
+      "catB": "코드정보",
+      "joinKey": "BASIS_LAWORD",
+      "colA": "BASIS_LAWORD",
+      "colB": "BASIS_LAWORD",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 24,
+      "confidence": "LOW",
+      "matched": 29,
+      "ratioA": 0.123,
+      "ratioB": 0.362,
+      "sampleMatches": [
+        "제67조",
+        "법 제101조제2항제1호",
+        "법 제101조제2항제1호의3"
+      ],
+      "allCandidates": [
+        {
+          "colA": "BASIS_LAWORD",
+          "colB": "BASIS_LAWORD",
+          "canonicalKey": "BASIS_LAWORD",
+          "matched": 29,
+          "ratioA": 0.123,
+          "ratioB": 0.362,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 24,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "제67조",
+            "법 제101조제2항제1호",
+            "법 제101조제2항제1호의3"
+          ]
+        },
+        {
+          "colA": "DSPS_STDR_CD",
+          "colB": "DSPS_STDR_CD",
+          "canonicalKey": "DSPS_STDR_CD",
+          "matched": 66,
+          "ratioA": 0.134,
+          "ratioB": 0.066,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:1",
+          "score": 10,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "00409702000000",
+            "00409702000053",
+            "00409702000010"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I2713",
+      "svcB": "I2851",
+      "nmA": "위생용품영업정보",
+      "nmB": "위생용품영업 생산실적보고",
+      "catA": "위생용품",
+      "catB": "위생용품",
+      "joinKey": "LCNS_NO",
+      "colA": "LCNS_NO",
+      "colB": "LCNS_NO",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "1:N",
+      "score": 24,
+      "confidence": "LOW",
+      "matched": 71,
+      "ratioA": 0.071,
+      "ratioB": 0.415,
+      "sampleMatches": [
+        "20189380002",
+        "20059355002",
+        "20189360002"
+      ],
+      "allCandidates": [
+        {
+          "colA": "LCNS_NO",
+          "colB": "LCNS_NO",
+          "canonicalKey": "LCNS_NO",
+          "matched": 71,
+          "ratioA": 0.071,
+          "ratioB": 0.415,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 24,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20189380002",
+            "20059355002",
+            "20189360002"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "I0470",
+      "svcB": "I2630",
+      "nmA": "행정처분결과",
+      "nmB": "행정처분결과(식품접객업)",
+      "catA": "식품위해관리",
+      "catB": "식품위해관리",
+      "joinKey": "DSPSCN",
+      "colA": "DSPSCN",
+      "colB": "DSPSCN",
+      "joinType": "LEFT JOIN (A→B)",
+      "cardinality": "N:M",
+      "score": 22,
+      "confidence": "LOW",
+      "matched": 9,
+      "ratioA": 0.31,
+      "ratioB": 0.125,
+      "sampleMatches": [
+        "영업소폐쇄",
+        "식품위생법 위반에 따른 영업소 폐쇄",
+        "영업허가ㆍ등록취소"
+      ],
+      "allCandidates": [
+        {
+          "colA": "DSPSCN",
+          "colB": "DSPSCN",
+          "canonicalKey": "DSPSCN",
+          "matched": 9,
+          "ratioA": 0.31,
+          "ratioB": 0.125,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 22,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "영업소폐쇄",
+            "식품위생법 위반에 따른 영업소 폐쇄",
+            "영업허가ㆍ등록취소"
+          ]
+        },
+        {
+          "colA": "DSPS_ENDDT",
+          "colB": "DSPS_ENDDT",
+          "canonicalKey": "DSPS_ENDDT",
+          "matched": 2,
+          "ratioA": 0.286,
+          "ratioB": 0.023,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 15,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "20260415",
+            "20260516"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "C002",
+      "svcB": "C006",
+      "nmA": "식품(첨가물)품목제조보고(원재료)",
+      "nmB": "축산물품목제조보고(원재료)",
+      "catA": "식품 등",
+      "catB": "축산물",
+      "joinKey": "RAWMTRL_ORDNO",
+      "colA": "RAWMTRL_ORDNO",
+      "colB": "RAWMTRL_ORDNO",
+      "joinType": "LEFT JOIN (B→A)",
+      "cardinality": "N:M",
+      "score": 21,
+      "confidence": "LOW",
+      "matched": 22,
+      "ratioA": 0.036,
+      "ratioB": 0.379,
+      "sampleMatches": [
+        "1,2,3,4,5,6,7,8",
+        "7,8,9,10,11,12",
+        "1,2,3"
+      ],
+      "allCandidates": [
+        {
+          "colA": "RAWMTRL_ORDNO",
+          "colB": "RAWMTRL_ORDNO",
+          "canonicalKey": "RAWMTRL_ORDNO",
+          "matched": 22,
+          "ratioA": 0.036,
+          "ratioB": 0.379,
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "1,2,3,4,5,6,7,8",
+            "7,8,9,10,11,12",
+            "1,2,3"
+          ]
+        }
+      ]
+    },
+    {
+      "svcA": "C003",
+      "svcB": "C005",
+      "nmA": "건강기능식품 품목제조신고(원재료)",
+      "nmB": "바코드연계제품정보",
+      "catA": "건강기능식품",
+      "catB": "코드정보",
+      "joinKey": "POG_DAYCNT",
+      "colA": "POG_DAYCNT",
+      "colB": "POG_DAYCNT",
+      "joinType": "LEFT JOIN (A→B)",
+      "cardinality": "N:M",
+      "score": 21,
+      "confidence": "LOW",
+      "matched": 21,
+      "ratioA": 0.375,
+      "ratioB": 0.048,
+      "sampleMatches": [
+        "제조일로부터 2년",
+        "제조일로부터 24개월",
+        "제조일로부터 1년"
+      ],
+      "allCandidates": [
+        {
+          "colA": "POG_DAYCNT",
+          "colB": "POG_DAYCNT",
+          "canonicalKey": "POG_DAYCNT",
+          "matched": 21,
+          "ratioA": 0.375,
+          "ratioB": 0.048,
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "sampleMatches": [
+            "제조일로부터 2년",
+            "제조일로부터 24개월",
+            "제조일로부터 1년"
           ]
         }
       ]

@@ -1,4 +1,4 @@
-
+﻿
 
 
 
@@ -49,7 +49,7 @@
 			<div class="catn01" id="cdsn00">
 			
 			
-			<a href="index.html" class="home"><img src="https://www.foodsafetykorea.go.kr/images/api/common/location_home_icon.png" alt="홈"/></a>
+			<a href="/index.html" class="home"><img src="https://www.foodsafetykorea.go.kr/images/api/common/location_home_icon.png" alt="홈"/></a>
 			
 			</div>
 			
@@ -1091,10 +1091,12 @@
 	$(document).ready(function(){
 
 	  $(".tm_view").on("click", function(){
-		  $(".sitemap_op,.sitemap").show();
+		  if (typeof openMenuModal === 'function') openMenuModal();
+		  else $(".sitemap_op,.sitemap").show();
 	  });
 	  $(".tm_view2").on("click", function(){
-		  $(".sitemap_op,.sitemap").show();
+		  if (typeof openMenuModal === 'function') openMenuModal();
+		  else $(".sitemap_op,.sitemap").show();
 	  });
 	  $(".sitemap .title a").on("click", function(){
 		$(".sitemap_op,.sitemap").hide();
@@ -1343,29 +1345,41 @@
 
         $('#start_idx').val("1");
 
-        var urlKw  = new URLSearchParams(window.location.search).get('search_keyword');
-        var urlCat = new URLSearchParams(window.location.search).get('search_clCdCode');
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlKw    = urlParams.get('search_keyword');
+        var urlCat   = urlParams.get('search_clCdCode');
+        var urlProvd = urlParams.get('search_provdInsttCode');
+        var urlType  = urlParams.get('search_svcTypeCode');
 
-        if (urlKw) { $("#search_keyword").val(urlKw); }
+        if (urlKw)   { $("#search_keyword").val(urlKw); }
+        if (urlType) {
+            $('#search_svcTypeCode').val(urlType);
+            if ($.fn.selecter) { try { $('#search_svcTypeCode').selecter('update'); } catch(e){} }
+        }
 
-        // DB 카테고리 동적 로드
+        // 카테고리 + 제공기관 동적 로드 후 검색 실행
         $.getJSON('/api/categoryList.do', function(cats) {
             var $sel = $('#search_clCdCode');
             $.each(cats, function(_, item) {
-                $sel.append('<option value="' + item.cat + '">' + item.cat + ' (' + item.cnt + ')</option>');
+                $sel.append('<option value="' + item.cat + '">' + item.cat + '</option>');
             });
-            if ($.fn.selecter) { try { $sel.selecter('update'); } catch(e){} }
             if (urlCat) {
                 $sel.val(urlCat);
-                if ($.fn.selecter) { try { $sel.selecter('update'); } catch(e){} }
-                searchList();
             }
-        });
+            if ($.fn.selecter) { try { $sel.selecter('update'); } catch(e){} }
 
-        // URL 카테고리 없으면 바로 조회
-        if (!urlCat) {
-            searchList();
-        }
+            $.getJSON('/api/providerList.do', function(data) {
+                var $psel = $('#search_provdInsttCode');
+                $.each(data.list || [], function(_, nm) {
+                    $psel.append('<option value="' + nm + '">' + nm + '</option>');
+                });
+                if (urlProvd) {
+                    $psel.val(urlProvd);
+                }
+                if ($.fn.selecter) { try { $psel.selecter('update'); } catch(e){} }
+                searchList();
+            });
+        });
 
     });
 
@@ -1380,7 +1394,7 @@
 
     //리스트개수
     $('#show_cnt').change(function (){
-        //searchList();
+        setDefault();
     });
 
     //페이징 변수셋팅
@@ -1633,7 +1647,7 @@
 		   document.baseForm.action="/api/openApiAplcInfo.do";
 	   } */
 
-        var url = "/detail/detail.html?svc_no=" + encodeURIComponent(svcNo) + "&svc_nm=" + encodeURIComponent(svcNm) + "&svc_type=" + encodeURIComponent(svcTypeCd);
+        var url = "/detail.html?svc_no=" + encodeURIComponent(svcNo) + "&svc_nm=" + encodeURIComponent(svcNm) + "&svc_type=" + encodeURIComponent(svcTypeCd);
         location.href = url;
 
     }
@@ -1643,185 +1657,7 @@
 		</main>
 	</div>
 
-	<!-- footer start -->
-	<footer id="footer">
-		
-	<div class="footer_link_wrap">
-        <div class="footer_link">
-          <ul class="link">
-				
-				<!-- <li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2933&menu_grp=MENU_NEW07">개인정보처리방침</a></li> -->
-				
-				<li><a href="https://www.foodinfo.or.kr/portal/bbs/selectBoardList.do?bbsId=10000000000000000460&catId=36&bbsView=HTML&goMenuNo=9000001115&topMenuNo=9000001110&upperMenuNo=9000001110" target="_blank" title="개인정보처리방침 사이트로 이동합니다.">개인정보처리방침</a></li>
-				<li><a href="http://www.mfds.go.kr/wpge/m_34/de010803l001.do" target="_blank">저작권정책</a></li>
-				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2922&menu_grp=MENU_NEW07" target="_blank">포털이용관련 질의응답</a></li>
-				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2938&menu_grp=MENU_NEW07" target="_blank">관련 누리집</a></li>
-				
-			  	
-				
-				<li><a href="https://www.foodsafetykorea.go.kr/portal/board/board.do?menu_no=2928&menu_grp=MENU_NEW07" target="_blank">정보오류 신고</a></li>
-
-				<li><a href="https://www.foodsafetykorea.go.kr/minwon/counsel/ePeople.do" target="_blank" >국민신문고</a></li>
-
-				<li><a href="http://113366.com/foodinfo" class="blue" target="_blank">원격 지원</a></li>
-			</ul>
-			
-			 <div class="site">
-	            <button type="button" class="select_btn">관련부처사이트</button>
-	            <div class="select_box">
-	              <ul>
-	                <li><a href="#" onclick="javascript:goSite_new('0');" title="관련 부처 사이트">관련 부처 사이트</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('1');" title="식품의약품안전처">식품의약품안전처</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('2');" title="교육부">교육부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('3');" title="법무부">법무부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('4');" title="국방부">국방부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('5');" title="행정안전부">행정안전부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('6');" title="농림축산식품부">농림축산식품부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('7');" title="산업통상자원부">산업통상자원부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('8');" title="보건복지부">보건복지부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('9');" title="환경부">환경부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('10');" title="해양수산부">해양수산부</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('11');" title="관세청">관세청</a></li>
-					<li><a href="#" onclick="javascript:goSite_new('12');"  title="방위사업청">방위사업청</a></li>
-	              </ul>
-	            </div>
-	          </div>
-			</div>
-		</div>
-		<div class="footer_info_wrap">
-          <div class="footer_info">
-            <div class="footer_logo" style="top: 14px;">
-            <img id="logo1" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo.jpg" alt="식품안전정보포털 식품의약품안전처">
-            <img id="logo2" src="https://www.foodsafetykorea.go.kr/images/api/common/footer_logo_02.png" alt="식품안전정보포털 식품안전정보원">
-            </div>
-            <address style="top: 17px;">
-             <p style="line-height: 22px;">
-               우)28159 충청북도 청주시 흥덕구 오송읍 오송생명2로 187 오송보건의료행정타운 식품의약품안전처<br>
-               Copyright ⓒ Ministry of Food and Drug Safety. All Rights Reserved.<br>
-				 통합망 고객지원센터(시스템문의) : 1899-5590(유료), 식약처 종합상담센터 : 1577-1255(유료)
-             </p>
-            </address>
-          </div>
-        </div>
-
-
-		<!-- 데이터활용서비스 한눈에 보기 start -->
-		
-
-
-
-	<div class="sitemap_op">&nbsp;</div>
-	<div class="sitemap">
-		<div class="title">데이터활용서비스 한눈에 보기<a href="#"><img src="https://www.foodsafetykorea.go.kr/img/share-data/common/sitemap_close.png" alt="닫기"/></a></div>
-		<div class="site_cnt">
-
-			<div class="fl w_317 m_r_6">
-				<div class="box1">
-					<h1 class="h05">서비스안내</h1>
-					<ul>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/aboutApi.do?menu_grp=MENU_GRP34&menu_no=686" class="dpt01">·  서비스 소개</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/howToUseApi.do?menu_grp=MENU_GRP34&menu_no=687" class="dpt01">·  서비스 사용방법</a></li>
-					</ul>
-				</div>
-			</div>
-
-
-			<div class="fl w_317 m_r_6">
-				<div class="box1">
-					<h1 class="h01">데이터공개</h1>
-					<ul>
-						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt01">·  분류별</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=843" class="dpt02">·  식품안전관리</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=845" class="dpt02">·  시험분석</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=846" class="dpt02">·  기준규격</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=847" class="dpt02">·  인허가정보</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=848" class="dpt02">·  자료실</a></li> -->
-
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt01">·  분류별</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT01&menu_grp=MENU_GRP31&menu_no=17879" class="dpt02">·  기준규격</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT02&menu_grp=MENU_GRP31&menu_no=17880" class="dpt02">·  코드정보</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT03&menu_grp=MENU_GRP31&menu_no=17881" class="dpt02">·  식품영양정보</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT04&menu_grp=MENU_GRP31&menu_no=17882" class="dpt02">·  수질환경정보</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT05&menu_grp=MENU_GRP31&menu_no=17883" class="dpt02">·  검사기관정보</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT06&menu_grp=MENU_GRP31&menu_no=17884" class="dpt02">·  식품위해관리</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT07&menu_grp=MENU_GRP31&menu_no=17885" class="dpt02">·  식품안전관리</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT08&menu_grp=MENU_GRP31&menu_no=17886" class="dpt02">·  이력추적관리</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT09&menu_grp=MENU_GRP31&menu_no=17887" class="dpt02">·  어린이식품안전관리</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT10&menu_grp=MENU_GRP31&menu_no=17888" class="dpt02">·  HACCP지정현황</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT11&menu_grp=MENU_GRP31&menu_no=17889" class="dpt02">·  업체인허가현황</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT12&menu_grp=MENU_GRP31&menu_no=17890" class="dpt02">·  위생용품</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT13&menu_grp=MENU_GRP31&menu_no=17891" class="dpt02">·  축산물</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT14&menu_grp=MENU_GRP31&menu_no=17892" class="dpt02">·  건강기능식품</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT15&menu_grp=MENU_GRP31&menu_no=17893" class="dpt02">·  수입식품 등</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT16&menu_grp=MENU_GRP31&menu_no=17894" class="dpt02">·  식품 등</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?cl_cd=API_SRT17&menu_grp=MENU_GRP31&menu_no=17895" class="dpt02">·  자료실</a></li>
-
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt01">·  제공기관별</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN01&menu_grp=MENU_GRP31&menu_no=849" class="dpt02">·  식품의약품안전처</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN10&menu_grp=MENU_GRP31&menu_no=858" class="dpt02">·  해양수산부</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN13&menu_grp=MENU_GRP31&menu_no=861" class="dpt02">·  산업통상자원부</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN09&menu_grp=MENU_GRP31&menu_no=857" class="dpt02">·  농촌진흥청</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN05&menu_grp=MENU_GRP31&menu_no=853" class="dpt02">·  농림축산검역본부</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN08&menu_grp=MENU_GRP31&menu_no=856" class="dpt02">·  국립농산물품질관리원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN15&menu_grp=MENU_GRP31&menu_no=863" class="dpt02">·  국립환경과학원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN12&menu_grp=MENU_GRP31&menu_no=860" class="dpt02">·  국립수산물품질관리원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN11&menu_grp=MENU_GRP31&menu_no=859" class="dpt02">·  국립수산과학원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN16&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  행정안전부</a></li>
-						<!-- li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN04&menu_grp=MENU_GRP31&menu_no=852" class="dpt02">·  시도, 시군구</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN03&menu_grp=MENU_GRP31&menu_no=851" class="dpt02">·  시군구</a></li-->
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN02&menu_grp=MENU_GRP31&menu_no=850" class="dpt02">·  한국식품안전관리인증원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN07&menu_grp=MENU_GRP31&menu_no=855" class="dpt02">·  축산물품질평가원</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN14&menu_grp=MENU_GRP31&menu_no=862" class="dpt02">·  한국환경공단</a></li>
-						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?provd_instt=ORGN06&menu_grp=MENU_GRP31&menu_no=854" class="dpt02">·  농림수산식품</a></li> -->
-
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?menu_grp=MENU_GRP31&menu_no=938" class="dpt01">·  유형별</a></li>
-						<!-- <li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE01&menu_grp=MENU_GRP31&menu_no=656" class="dpt02">·  SHEET</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE02&menu_grp=MENU_GRP31&menu_no=657" class="dpt02">·  CHART</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE05&menu_grp=MENU_GRP31&menu_no=660" class="dpt02">·  LINK</a></li> -->
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE06&menu_grp=MENU_GRP31&menu_no=661" class="dpt02">·  OPEN-API</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE03&menu_grp=MENU_GRP31&menu_no=658" class="dpt02">·  FILE</a></li>
-					</ul>
-				</div>
-			</div>
-
-			<div class="fl w_317 m_r_6">
-				<div class="box1">
-					<h1 class="h03">인증키 관리</h1>
-					<ul>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiAplcDtl.do?menu_grp=MENU_GRP32&menu_no=3995" class="dpt01">·  인증키 신청현황</a></li>
-<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/newUserApiKey.do?menu_grp=MENU_GRP32&menu_no=691" class="dpt01">·  인증키 신청</a></li> -->
-<!-- 						<li><a href="https://www.foodsafetykorea.go.kr/api/userApiKey.do?menu_grp=MENU_GRP32&menu_no=692" class="dpt01">·  인증키 발급 및 확인</a></li> -->
-					</ul>
-				</div>
-			</div>
-
-			<div class="fl w_317 m_r_6">
-				<div class="box1">
-					<h1 class="h03">정보공유</h1>
-					<ul>
-						<!--<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3898" class="dpt01">·  개발자 의견공유</a></li> -->
-						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP35&menu_no=3899" class="dpt01">·  데이터활용 갤러리</a></li>
-					</ul>
-				</div>
-			</div>
-
-
-			<div class="fl w_317 m_r_6">
-				<div class="box1">
-					<h1 class="h04">고객센터</h1>
-					<ul>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=688" class="dpt01">·  공지사항</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=689" class="dpt01">·  자주하는 질문</a></li>
-						<li><a href="https://www.foodsafetykorea.go.kr/api/board/board.do?menu_grp=MENU_GRP33&menu_no=690" class="dpt01">·  묻고답하기</a></li>
-					</ul>
-				</div>
-			</div>
-
-		</div>
-	</div>
-		<!-- 데이터활용서비스 한눈에 보기 end -->
-	</footer>
-	<!-- footer end -->
+	<!-- INCLUDE_FOOTER -->
 
 </form>
 <script>

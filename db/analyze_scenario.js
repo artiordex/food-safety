@@ -27,6 +27,7 @@ const DEFAULT_SAMPLES = path.join(__dirname, '../crawler/samples');
 const DEFAULT_CACHE   = path.join(__dirname, '../crawler/crawl_cache.json');
 const DEFAULT_JSON    = path.join(__dirname, 'foodsafety_scenarios.json');
 const DEFAULT_MD      = path.join(__dirname, 'foodsafety_scenarios.md');
+const DEFAULT_XLSX    = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
 
 // =============================================================================
 // 섹션 1. 유틸 및 상수
@@ -56,8 +57,10 @@ function parseArgs() {
         cache:   DEFAULT_CACHE,
         json:    DEFAULT_JSON,
         md:      DEFAULT_MD,
+        xlsx:    DEFAULT_XLSX,
         noJson:  false,
-        noMd:    false
+        noMd:    false,
+        noXlsx:  false,
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -70,8 +73,15 @@ function parseArgs() {
             opts.noJson = true;
         } else if (arg === '--no-md') {
             opts.noMd = true;
+        } else if (arg === '--no-xlsx') {
+            opts.noXlsx = true;
         } else if (arg.startsWith('--') && args[i + 1]) {
-            opts[arg.slice(2)] = args[++i];
+            const key = arg.slice(2);
+            if (!(key in opts)) {
+                logger.warn({ arg }, '알 수 없는 인자 무시');
+            } else {
+                opts[key] = args[++i];
+            }
         }
     }
 
@@ -93,6 +103,8 @@ Options:
   --md      <path>    Markdown 결과 파일 경로 기본값: ${DEFAULT_MD}
   --no-json           JSON 결과 생성 생략
   --no-md             Markdown 결과 생성 생략
+  --no-xlsx           Excel 시트 갱신 생략
+  --xlsx    <path>    갱신할 xlsx 경로          기본값: ${DEFAULT_XLSX}
   -h, --help          도움말 출력
 
 Examples:
@@ -129,15 +141,6 @@ function normalizeValue(value) {
     return normalized;
 }
 
-// 값 배열에서 비어 있는 값을 제거하고 Set으로 반환하는 함수
-function toValueSet(values) {
-    return new Set(
-        values
-            .map(normalizeValue)
-            .filter(Boolean)
-    );
-}
-
 // JSON 구조 안에서 실제 데이터 row 배열을 최대한 찾아내는 함수
 // depth 인자로 재귀 깊이를 제한해 순환 참조나 과도한 중첩에 의한 스택 오버플로우를 방지한다.
 function extractRowsFromSampleJson(json, depth = 0) {
@@ -166,14 +169,10 @@ function extractRowsFromSampleJson(json, depth = 0) {
         json?.result
     ];
 
-    // 후보 중 배열이 있으면 row 목록으로 사용
+    // 후보 중 배열이 있으면 row 목록으로 사용 (배열만 허용, 단순 객체는 건너뜀)
     for (const candidate of candidates) {
         if (Array.isArray(candidate)) {
             return candidate;
-        }
-
-        if (candidate && typeof candidate === 'object') {
-            return [candidate];
         }
     }
 
@@ -200,6 +199,9 @@ function normalizeColName(col) {
     return String(col || '').replace(/_/g, '').toUpperCase();
 }
 
+// KEY_SYNONYM_GROUPS의 정규화 결과를 미리 계산해 areSynonyms 호출마다 재생성하지 않는다.
+const NORMALIZED_SYNONYM_GROUPS = KEY_SYNONYM_GROUPS.map(group => group.map(normalizeColName));
+
 // 두 컬럼명이 같은 동의어 그룹에 속하는지 확인하는 함수
 function areSynonyms(colA, colB) {
     const normA = normalizeColName(colA);
@@ -209,8 +211,7 @@ function areSynonyms(colA, colB) {
         return true;
     }
 
-    for (const group of KEY_SYNONYM_GROUPS) {
-        const normGroup = group.map(normalizeColName);
+    for (const normGroup of NORMALIZED_SYNONYM_GROUPS) {
         if (normGroup.includes(normA) && normGroup.includes(normB)) {
             return true;
         }
@@ -224,10 +225,9 @@ function areSynonyms(colA, colB) {
 function canonicalKey(col) {
     const normCol = normalizeColName(col);
 
-    for (const group of KEY_SYNONYM_GROUPS) {
-        const normGroup = group.map(normalizeColName);
-        if (normGroup.includes(normCol)) {
-            return group[0];
+    for (let i = 0; i < NORMALIZED_SYNONYM_GROUPS.length; i++) {
+        if (NORMALIZED_SYNONYM_GROUPS[i].includes(normCol)) {
+            return KEY_SYNONYM_GROUPS[i][0];
         }
     }
 
@@ -766,12 +766,16 @@ function buildSqlHint(joinKey, rels) {
         }
     }
 
+    // 연결된 테이블이 시작 테이블 하나뿐이면 SQL 힌트를 생성하지 않는다.
+    if (joins.length === 0) return '';
+
     // 각 테이블의 실제 컬럼명으로 SELECT 절을 구성한다.
     const selects = joinedCols
         .slice(0, 3)
         .map((col, index) => `${aliases[index]}.${quoteIdent(col)}`);
 
-    lines.push(`SELECT ${selects.join(', ')}, A.*, B.*`);
+    const starSelects = joinedTables.map((_, i) => `${aliases[i]}.*`).join(', ');
+    lines.push(`SELECT ${selects.join(', ')}, ${starSelects}`);
     lines.push(`FROM ${quoteIdent(joinedTables[0])} A`);
 
     for (const joinLine of joins) {
@@ -803,7 +807,12 @@ function writeJson(scenarios, relations, outputPath) {
         relations: relations.slice(0, TOP_RELATIONS)
     };
 
-    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf-8');
+    try {
+        fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf-8');
+    } catch (err) {
+        logger.error({ outputPath, errorMessage: err.message }, 'JSON 결과 파일 저장 실패');
+        return;
+    }
 
     logger.info({
         outputPath
@@ -860,7 +869,12 @@ function writeMd(scenarios, relations, outputPath) {
         lines.push('');
     }
 
-    fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
+    try {
+        fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
+    } catch (err) {
+        logger.error({ outputPath, errorMessage: err.message }, 'Markdown 결과 파일 저장 실패');
+        return;
+    }
 
     logger.info({
         outputPath
@@ -879,14 +893,17 @@ async function main() {
     const cachePath  = opts.cache;
     const jsonOut    = opts.json;
     const mdOut      = opts.md;
+    const xlsxPath   = opts.xlsx;
     const noJson     = opts.noJson;
     const noMd       = opts.noMd;
+    const noXlsx     = opts.noXlsx;
 
     logger.info({
         samplesDir,
         cachePath,
         jsonOut: noJson ? '(생략)' : jsonOut,
-        mdOut:   noMd   ? '(생략)' : mdOut
+        mdOut:   noMd   ? '(생략)' : mdOut,
+        xlsxPath: noXlsx ? '(생략)' : xlsxPath,
     }, '데이터셋 사용 시나리오 분석을 시작합니다.');
 
     // 1. 데이터 로딩
@@ -908,6 +925,11 @@ async function main() {
     // 3. 쌍별 값 겹침 분석
     logger.info('데이터셋 쌍별 값 겹침 분석을 시작합니다.');
     const relations = buildPairRelations(allProfiles, meta);
+
+    // valueSet은 buildPairRelations 에서만 사용하므로 이후 GC 수거를 위해 참조를 끊는다.
+    for (const colProfiles of Object.values(allProfiles)) {
+        for (const p of Object.values(colProfiles)) delete p.valueSet;
+    }
 
     // 4. 시나리오 클러스터링
     logger.info('JOIN 키 기반 시나리오 클러스터링을 시작합니다.');
@@ -935,9 +957,24 @@ async function main() {
     if (!noJson) writeJson(scenarios, relations, jsonOut);
     if (!noMd)   writeMd(scenarios, relations, mdOut);
 
+    if (!noXlsx) {
+        const fs = require('fs');
+        if (!fs.existsSync(xlsxPath)) {
+            logger.warn({ xlsxPath }, 'xlsx 파일 없음 — Arquero 시트 갱신 생략');
+        } else {
+            try {
+                const { updateArqueroSheet } = require('../crawler/excel_reporter');
+                await updateArqueroSheet(scenarios, xlsxPath);
+            } catch (err) {
+                logger.warn({ errorMessage: err.message }, 'Arquero 시트 갱신 실패 (분석 결과는 정상 저장됨)');
+            }
+        }
+    }
+
     logger.info({
         jsonOut: noJson ? '(생략)' : jsonOut,
-        mdOut:   noMd   ? '(생략)' : mdOut
+        mdOut:   noMd   ? '(생략)' : mdOut,
+        xlsxPath: noXlsx ? '(생략)' : xlsxPath,
     }, '전체 분석이 완료되었습니다.');
 }
 

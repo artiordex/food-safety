@@ -1,19 +1,29 @@
-require('dotenv').config();
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const logger = require('./utils/logger');
+const pino = require('pino');
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'yyyy-mm-dd HH:MM:ss',
+      ignore: 'pid,hostname'
+    }
+  }
+});
 
-const REAL_API_KEY = process.env.FOOD_API_KEY;
-if (!REAL_API_KEY) {
-  logger.warn('FOOD_API_KEY 환경변수가 설정되지 않았습니다. 외부 OpenAPI 호출이 실패할 수 있습니다. (.env 파일을 확인하세요.)');
-}
+const REAL_API_KEY = '77183c01c07d44798948';
 
 // HTML 파일에 head/header/search include를 주입하는 공통 함수
 function applyIncludes(html, vars = {}) {
   const includesDir = path.join(__dirname, 'public/includes');
+  // 치환 전 플레이스홀더 존재 여부를 미리 기록
+  const hadFooter    = html.includes('<!-- INCLUDE_FOOTER -->');
+  const hadMenuModal = html.includes('<!-- INCLUDE_MENU_MODAL -->');
   const replacements = [
     { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
     { placeholder: '<!-- INCLUDE_HEAD_SEARCH -->', file: 'head_search.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
@@ -30,6 +40,22 @@ function applyIncludes(html, vars = {}) {
       if (fs.existsSync(filePath)) {
         html = html.replace(placeholder, transform(fs.readFileSync(filePath, 'utf8')));
       }
+    }
+  }
+  // INCLUDE_FOOTER 미선언 페이지에도 자동 주입 (</body> 직전, NO_FOOTER 마커 제외)
+  const noFooter = html.includes('<!-- NO_FOOTER -->');
+  html = html.replace('<!-- NO_FOOTER -->', '');
+  if (!hadFooter && !noFooter && html.includes('</body>')) {
+    const footerPath = path.join(includesDir, 'footer.html');
+    if (fs.existsSync(footerPath)) {
+      html = html.replace('</body>', fs.readFileSync(footerPath, 'utf8') + '\n</body>');
+    }
+  }
+  // INCLUDE_MENU_MODAL 미선언 페이지에도 자동 주입 (</body> 직전)
+  if (!hadMenuModal && html.includes('</body>')) {
+    const menuModalPath = path.join(includesDir, 'menu_modal.html');
+    if (fs.existsSync(menuModalPath)) {
+      html = html.replace('</body>', fs.readFileSync(menuModalPath, 'utf8') + '\n</body>');
     }
   }
   // 템플릿 변수 치환 (미지정 변수는 빈 문자열로)
@@ -54,16 +80,8 @@ const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   }
 });
 
-// 공통 Promise 래퍼 — async/await용 sqlite3 헬퍼
-const dbAll = (sql, params = []) => new Promise((resolve, reject) =>
-  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)))
-);
-const dbGet = (sql, params = []) => new Promise((resolve, reject) =>
-  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)))
-);
-
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
-app.get('/api/tables', async (req, res) => {
+app.get('/api/tables', (req, res) => {
   const query = `
     SELECT m.name, a.svc_nm AS logical_name
     FROM sqlite_master m
@@ -71,17 +89,20 @@ app.get('/api/tables', async (req, res) => {
     WHERE m.type = 'table' AND m.name NOT LIKE 'sqlite_%' AND m.name NOT LIKE 'v_%'
     ORDER BY m.name;
   `;
-  try {
-    const rows = await dbAll(query);
-    res.json(rows.map(row => ({ name: row.name, logicalName: row.logical_name || row.name })));
-  } catch (err) {
-    logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
-  }
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows.map(row => ({
+      name: row.name,
+      logicalName: row.logical_name || row.name
+    })));
+  });
 });
 
 // 2. 특정 테이블 스키마 조회 API
-app.get('/api/tables/:tableName/schema', async (req, res) => {
+app.get('/api/tables/:tableName/schema', (req, res) => {
   const { tableName } = req.params;
   // SQL Injection 방지를 위해 알파벳, 숫자, 언더바만 허용하도록 테이블명 검증
   if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
@@ -89,17 +110,17 @@ app.get('/api/tables/:tableName/schema', async (req, res) => {
   }
 
   const query = `PRAGMA table_info("${tableName}");`;
-  try {
-    const rows = await dbAll(query);
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
+      return res.status(500).json({ error: err.message });
+    }
     res.json(rows);
-  } catch (err) {
-    logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // 3. 특정 테이블 실시간 상위 데이터 조회 API
-app.get('/api/tables/:tableName/data', async (req, res) => {
+app.get('/api/tables/:tableName/data', (req, res) => {
   const { tableName } = req.params;
   const limit = req.query.limit;
 
@@ -117,13 +138,13 @@ app.get('/api/tables/:tableName/data', async (req, res) => {
     query += `;`;
   }
 
-  try {
-    const rows = await dbAll(query, params);
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
+      return res.status(500).json({ error: err.message });
+    }
     res.json(rows);
-  } catch (err) {
-    logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 app.get('/api/join-scenarios', (req, res) => {
@@ -206,7 +227,7 @@ app.get('/api/join-scenarios', (req, res) => {
 });
 
 // 4. 임의의 SQL 쿼리 실행 API
-app.post('/api/query', async (req, res) => {
+app.post('/api/query', (req, res) => {
   const { query } = req.body;
   if (!query || query.trim() === '') {
     return res.status(400).json({ error: '쿼리 내용이 비어 있습니다.' });
@@ -220,13 +241,13 @@ app.post('/api/query', async (req, res) => {
     return res.status(403).json({ error: '안전을 위해 조회(SELECT, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
   }
 
-  try {
-    const rows = await dbAll(query);
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
+      return res.status(400).json({ error: err.message });
+    }
     res.json(rows);
-  } catch (err) {
-    logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
-    res.status(400).json({ error: err.message });
-  }
+  });
 });
 
 // 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
@@ -243,96 +264,131 @@ app.get('/api/datasetAllSearch.do', (req, res) => {
 });
 
 // 4.2a 카테고리 목록 API
-app.get('/api/categoryList.do', async (req, res) => {
-  try {
-    const rows = await dbAll(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`);
+app.get('/api/categoryList.do', (req, res) => {
+  db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
     res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 
+// crawl_cache 맵 (svc_no → { provd_instt_nm, data_type_nm })
+let _cacheMap = null;
+function getCacheMap() {
+  if (_cacheMap) return _cacheMap;
+  _cacheMap = {};
+  try {
+    const cachePath = path.join(__dirname, 'crawler', 'crawl_cache.json');
+    if (fs.existsSync(cachePath)) {
+      JSON.parse(fs.readFileSync(cachePath, 'utf8')).forEach(item => {
+        if (item.svc_no) _cacheMap[String(item.svc_no)] = {
+          provd_instt_nm: item.provd_instt_nm || '식품의약품안전처',
+          data_type_nm: (item.data_type_nm || 'XML/JSON').toUpperCase()
+        };
+      });
+    }
+  } catch (e) {}
+  return _cacheMap;
+}
+
+// 제공기관 목록 API
+app.get('/api/providerList.do', (req, res) => {
+  const map = getCacheMap();
+  const providers = [...new Set(Object.values(map).map(v => v.provd_instt_nm))].sort();
+  res.json({ list: providers });
+});
+
 // 데이터구조 검색 API (/ajax/datasetSearch.do 로컬 대체)
-app.post('/api/search', async (req, res) => {
-  const svcTypeCode = (req.body.search_svcTypeCode || '').trim();
-  const clCdCode = (req.body.search_clCdCode || '').trim();
+app.post('/api/search', (req, res) => {
+  const svcTypeCode    = (req.body.search_svcTypeCode    || '').trim(); // API_TYPE05=Link, API_TYPE06=XML/JSON
+  const clCdCode       = (req.body.search_clCdCode       || '').trim();
   const provdInsttCode = (req.body.search_provdInsttCode || '').trim();
 
-  let query = 'SELECT svc_no, svc_nm, cat, type_cd FROM api_tables WHERE 1=1';
+  let query = 'SELECT svc_no, svc_nm, cat FROM api_tables WHERE 1=1';
   const params = [];
+  if (clCdCode) { query += ' AND cat = ?'; params.push(clCdCode); }
 
-  if (clCdCode) {
-    query += ' AND cat = ?';
-    params.push(clCdCode);
-  }
-  if (svcTypeCode) {
-    query += ' AND type_cd = ?';
-    params.push(svcTypeCode);
-  }
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
 
-  try {
-    const rows = await dbAll(query, params);
-    const filtered = rows.filter(row =>
-      row.svc_nm !== '품목제조보고번호유효성확인(대한상공회의소사용)' &&
-      row.svc_nm !== '불량식품 신고이력 조회(내부용)' &&
-      row.svc_nm !== '불량식품 신고정보 조회(내부용)'
-    );
-    const dataStrutList = filtered.map(row => ({
-      provd_instt_nm: '식품의약품안전처',
-      cl_cd_nm: row.cat || '',
-      svc_nm: row.svc_nm || '',
-      svc_no: row.svc_no || '',
-      svc_type_cd: row.type_cd || 'API_TYPE06'
-    }));
+    const HIDDEN = new Set(['품목제조보고번호유효성확인(대한상공회의소사용)', '불량식품 신고이력 조회(내부용)', '불량식품 신고정보 조회(내부용)']);
+    const cacheMap = getCacheMap();
+
+    const dataStrutList = rows
+      .filter(row => !HIDDEN.has(row.svc_nm))
+      .filter(row => {
+        const info = cacheMap[String(row.svc_no)] || {};
+        const typeNm = info.data_type_nm || 'XML/JSON';
+        if (svcTypeCode === 'API_TYPE05' && typeNm !== 'LINK') return false;
+        if (svcTypeCode === 'API_TYPE06' && typeNm !== 'XML/JSON') return false;
+        if (svcTypeCode === 'API_TYPE03') return false;
+        const provd = info.provd_instt_nm || '식품의약품안전처';
+        if (provdInsttCode && provd !== provdInsttCode) return false;
+        return true;
+      })
+      .map(row => {
+        const info = cacheMap[String(row.svc_no)] || {};
+        const typeNm = info.data_type_nm || 'XML/JSON';
+        return {
+          provd_instt_nm: info.provd_instt_nm || '식품의약품안전처',
+          cl_cd_nm: row.cat || '',
+          svc_nm: row.svc_nm || '',
+          svc_no: row.svc_no || '',
+          svc_type_cd: typeNm === 'LINK' ? 'API_TYPE05' : 'API_TYPE06'
+        };
+      });
+
     res.json({ dataStrutList });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // 4.2 통합 데이터 검색 결과 API (searchDatasetList.do)
-app.post('/api/searchDatasetList.do', async (req, res) => {
-  const keyword = (req.body.search_keyword || '').trim();
-  const catFilter = (req.body.search_clCdCode || '').trim();  // 카테고리 한글명
+app.post('/api/searchDatasetList.do', (req, res) => {
+  const keyword     = (req.body.search_keyword       || '').trim();
+  const catFilter   = (req.body.search_clCdCode      || '').trim();
+  const typeFilter  = (req.body.search_svcTypeCode   || '').trim();
+  const provdFilter = (req.body.search_provdInsttCode || '').trim();
 
-  try {
-    const rows = await dbAll(`SELECT svc_no, svc_nm, cat, description FROM api_tables`);
+  db.all('SELECT svc_no, svc_nm, cat, description FROM api_tables', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const cacheMap = getCacheMap();
     let list = [];
     let index = 1;
+
     rows.forEach(row => {
       const svc_no = row.svc_no || '';
       const svc_nm = row.svc_nm || '';
-      const cat = row.cat || '공공데이터';
-      const desc = row.description || '';
+      const cat    = row.cat   || '공공데이터';
+      const desc   = row.description || '';
+      const info   = cacheMap[String(svc_no)] || {};
+      const typeNm = info.data_type_nm || 'XML/JSON';
+      const provdNm = info.provd_instt_nm || '식품의약품안전처';
 
-      // 카테고리 필터
       if (catFilter && cat !== catFilter) return;
-
-      // 키워드 필터 (서비스번호, 서비스명, 카테고리, 설명)
+      if (typeFilter === 'API_TYPE05' && typeNm !== 'LINK') return;
+      if (typeFilter === 'API_TYPE06' && typeNm !== 'XML/JSON') return;
+      if (typeFilter === 'API_TYPE03') return;
+      if (provdFilter && provdNm !== provdFilter) return;
       if (keyword && !svc_nm.includes(keyword) && !svc_no.includes(keyword) && !cat.includes(keyword) && !desc.includes(keyword)) return;
-
-      const isLink = (svc_nm.includes('식품영양성분 DB정보')) ? 'Y' : 'N';
-      const isOpenApi = isLink === 'Y' ? 'N' : 'Y';
 
       list.push({
         no: index++,
         cl_cd_nm: cat,
         svc_no,
         svc_nm,
-        provd_instt_nm: '식품의약품안전처',
-        link_yn: isLink,
-        file_yn: 'N',
-        openapi_yn: isOpenApi
+        provd_instt_nm: provdNm,
+        link_yn:    typeNm === 'LINK'    ? 'Y' : 'N',
+        file_yn:    'N',
+        openapi_yn: typeNm === 'XML/JSON' ? 'Y' : 'N'
       });
     });
-    const start_idx = parseInt(req.body.start_idx) || 1;
-    const show_cnt = parseInt(req.body.show_cnt) || 10;
+
+    const start_idx  = parseInt(req.body.start_idx) || 1;
+    const show_cnt   = parseInt(req.body.show_cnt)  || 10;
     const startIndex = (start_idx - 1) * show_cnt;
     res.json({ total_cnt: list.length, list: list.slice(startIndex, startIndex + show_cnt) });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // 4.2.1 전체 데이터 세트 구조(트리) API
@@ -351,17 +407,15 @@ app.get('/api/dataset-tree', (req, res) => {
 });
 
 // 4.3 데이터셋 메타데이터 (컬럼 정의) API - detail.html 용
-app.get('/api/datasetMetadata.do', async (req, res) => {
+app.get('/api/datasetMetadata.do', (req, res) => {
   let svc_no = req.query.svc_no;
   if (!svc_no) return res.status(400).json({ error: 'svc_no is required' });
 
-  const query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
-  try {
-    const rows = await dbAll(query, [svc_no]);
+  let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
+  db.all(query, [svc_no], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  });
 });
 
 // 5. 실제 식약처 OpenAPI 규격 에뮬레이터 API (168종 전체 지원) -> 직접 식약처 실시간 호출로 전격 개조!
@@ -380,23 +434,33 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
     const limit = end - start + 1;
     const offset = start - 1;
 
-    try {
-      const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`);
+    const countQuery = `SELECT COUNT(*) AS total FROM "${serviceId}";`;
+    db.get(countQuery, [], (err, countRow) => {
+      if (err) {
+        logger.error({ err, serviceId }, '융합 뷰 총 건수 조회 중 오류가 발생했습니다.');
+        const errorResult = {};
+        errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
+        return res.status(500).json(errorResult);
+      }
       const totalCount = countRow ? countRow.total : 0;
-      const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]);
-      const openApiResult = {};
-      openApiResult[serviceId] = {
-        total_count: String(totalCount),
-        row: rows,
-        RESULT: { MSG: '정상처리되었습니다. (로컬 융합 뷰)', CODE: 'INFO-000' }
-      };
-      return res.json(openApiResult);
-    } catch (err) {
-      logger.error({ err, serviceId }, '융합 뷰 조회 중 오류가 발생했습니다.');
-      const errorResult = {};
-      errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
-      return res.status(500).json(errorResult);
-    }
+      const dataQuery = `SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`;
+      db.all(dataQuery, [limit, offset], (err, rows) => {
+        if (err) {
+          logger.error({ err, serviceId }, '융합 뷰 데이터 조회 중 오류가 발생했습니다.');
+          const errorResult = {};
+          errorResult[serviceId] = { total_count: "0", row: [], RESULT: { MSG: err.message, CODE: 'ERROR-500' } };
+          return res.status(500).json(errorResult);
+        }
+        const openApiResult = {};
+        openApiResult[serviceId] = {
+          total_count: String(totalCount),
+          row: rows,
+          RESULT: { MSG: '정상처리되었습니다. (로컬 융합 뷰)', CODE: 'INFO-000' }
+        };
+        return res.json(openApiResult);
+      });
+    });
+    return;
   }
 
   // 그 외 모든 표준 테이블은 식약처 공식 실시간 OpenAPI 서버를 직접 호출!
@@ -432,19 +496,21 @@ app.get('/api/:keyId/:serviceId/:dataType/:startIdx/:endIdx', async (req, res) =
     const limit = end - start + 1;
     const offset = start - 1;
 
-    const fallbackErrMsg = err.message;
-    const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`).catch(() => null);
-    const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]).catch(() => []);
-    const fallbackResult = {};
-    fallbackResult[serviceId] = {
-      total_count: String(countRow ? countRow.total : 0),
-      row: rows,
-      RESULT: {
-        MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${fallbackErrMsg})`,
-        CODE: 'WARN-200'
-      }
-    };
-    return res.json(fallbackResult);
+    db.get(`SELECT COUNT(*) AS total FROM "${serviceId}";`, [], (cErr, countRow) => {
+      const totalCount = countRow ? countRow.total : 0;
+      db.all(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset], (dErr, rows) => {
+        const fallbackResult = {};
+        fallbackResult[serviceId] = {
+          total_count: String(totalCount),
+          row: rows || [],
+          RESULT: {
+            MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${err.message})`,
+            CODE: 'WARN-200'
+          }
+        };
+        return res.json(fallbackResult);
+      });
+    });
   }
 });
 
@@ -477,19 +543,21 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
     const limit = end - start + 1;
     const offset = start - 1;
 
-    const fallbackErrMsg = err.message;
-    const countRow = await dbGet(`SELECT COUNT(*) AS total FROM "${serviceId}";`).catch(() => null);
-    const rows = await dbAll(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset]).catch(() => []);
-    const fallbackResult = {};
-    fallbackResult[serviceId] = {
-      total_count: String(countRow ? countRow.total : 0),
-      row: rows,
-      RESULT: {
-        MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${fallbackErrMsg})`,
-        CODE: 'WARN-200'
-      }
-    };
-    res.json(fallbackResult);
+    db.get(`SELECT COUNT(*) AS total FROM "${serviceId}";`, [], (cErr, countRow) => {
+      const totalCount = countRow ? countRow.total : 0;
+      db.all(`SELECT * FROM "${serviceId}" LIMIT ? OFFSET ?;`, [limit, offset], (dErr, rows) => {
+        const fallbackResult = {};
+        fallbackResult[serviceId] = {
+          total_count: String(totalCount),
+          row: rows || [],
+          RESULT: {
+            MSG: `[실시간 하이브리드 연동] 외부 API 서버 장애로 인해 로컬 SQLite 백업 데이터에서 자동 대체되었습니다. (${err.message})`,
+            CODE: 'WARN-200'
+          }
+        };
+        res.json(fallbackResult);
+      });
+    });
   }
 });
 
@@ -499,6 +567,10 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
 app.get('/api/column-search', async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   if (!keyword) return res.json({ tables: [], count: 0 });
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
 
   try {
     const matched = new Set();
@@ -544,152 +616,14 @@ app.get('/api/column-search', async (req, res) => {
   }
 });
 
-let cachedWordCloudData = {};
-let isBuildingWordCloud = {};
-
-// 7.5 워드 클라우드 데이터 생성 API (DB 실시간 분석 후 캐싱)
-app.get('/api/wordcloud', async (req, res) => {
-  const targetTable = req.query.tableName || 'ALL';
-  
-  if (cachedWordCloudData[targetTable]) {
-    return res.json(cachedWordCloudData[targetTable]);
-  }
-
-  if (isBuildingWordCloud[targetTable]) {
-    return res.status(202).json({ message: "데이터베이스 단어 분석이 진행 중입니다. 잠시 후 다시 시도해주세요." });
-  }
-
-  isBuildingWordCloud[targetTable] = true;
-  try {
-    let query = `
-      SELECT svc_no as tableName, field, kor_nm 
-      FROM api_columns 
-      WHERE (sql_type LIKE '%TEXT%' OR sql_type LIKE '%VARCHAR%')
-        AND field NOT LIKE '%_NO'
-        AND field NOT LIKE '%_CD'
-        AND field NOT LIKE '%_SEQ'
-        AND field NOT LIKE '%_DT'
-        AND field NOT LIKE '%_DATE'
-        AND field NOT LIKE '%_ID'
-        AND field NOT LIKE '%URL%'
-        AND field NOT LIKE '%TEL%'
-        AND field NOT LIKE '%ZIP%'
-    `;
-    
-    if (targetTable !== 'ALL') {
-      // Allow only alphanumeric and underscores for safety
-      if (!/^[a-zA-Z0-9_-]+$/.test(targetTable)) {
-        throw new Error("Invalid table name");
-      }
-      query += ` AND svc_no = '${targetTable}'`;
-    }
-
-    const columns = await dbAll(query);
-    const tablesInfo = await dbAll("SELECT name FROM sqlite_master WHERE type='table'");
-    const validTables = new Set(tablesInfo.map(t => t.name));
-
-    const wordCounts = {};
-    const stopWords = ['해당없음', '없음', 'null', 'undefined', '기타', '및', '등', '의', '에', '가', '이', '은', '는'];
-
-    // If targetTable is specified but no columns found in api_columns, let's just pick all TEXT columns from PRAGMA
-    let colsToProcess = columns;
-    if (targetTable !== 'ALL' && colsToProcess.length === 0 && validTables.has(targetTable)) {
-      const pragmaCols = await dbAll(`PRAGMA table_info("${targetTable}")`);
-      colsToProcess = pragmaCols
-        .filter(c => (c.type.includes('TEXT') || c.type.includes('VARCHAR')) && !c.name.includes('_NO') && !c.name.includes('_CD') && !c.name.includes('_DT'))
-        .map(c => ({ tableName: targetTable, field: c.name }));
-    }
-
-    for (const col of colsToProcess) {
-      const { tableName, field } = col;
-      if (!validTables.has(tableName)) continue;
-      
-      try {
-        const tableInfo = await dbAll(`PRAGMA table_info("${tableName}")`);
-        if (!tableInfo.find(c => c.name === field)) continue;
-        
-        const freqRows = await dbAll(`
-          SELECT "${field}" as val, COUNT(*) as cnt 
-          FROM "${tableName}" 
-          WHERE "${field}" IS NOT NULL AND "${field}" != ''
-          GROUP BY "${field}" 
-          ORDER BY cnt DESC 
-          LIMIT 50
-        `);
-        
-        for (const row of freqRows) {
-          if (!row.val) continue;
-          const text = String(row.val).trim();
-          const words = text.split(/[\\s,()\\[\\]<>+]+/).filter(w => w.length > 1);
-          
-          for (const word of words) {
-            if (stopWords.includes(word) || !isNaN(Number(word))) continue;
-            wordCounts[word] = (wordCounts[word] || 0) + row.cnt;
-          }
-        }
-      } catch (err) {
-        // 컬럼 검사 에러 등 무시
-      }
-    }
-
-    const sortedWords = Object.keys(wordCounts)
-      .map(word => ({ text: word, size: wordCounts[word] }))
-      .sort((a, b) => b.size - a.size)
-      .slice(0, 150);
-
-    if (sortedWords.length > 0) {
-      const maxCount = sortedWords[0].size;
-      const sizeRange = 75;
-      sortedWords.forEach(w => {
-        const logScale = maxCount > 1 ? (Math.log(w.size) / Math.log(maxCount)) : 1;
-        w.size = 15 + Math.floor(logScale * sizeRange);
-        w.actualCount = wordCounts[w.text];
-      });
-    }
-
-    cachedWordCloudData[targetTable] = sortedWords;
-    res.json(cachedWordCloudData[targetTable]);
-  } catch (err) {
-    logger.error({ err }, '[wordcloud] 단어 분석 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
-  } finally {
-    isBuildingWordCloud[targetTable] = false;
-  }
-});
-
-
-let cachedApiRelationships = null;
-
-app.get('/api/relationships', async (req, res) => {
-  if (cachedApiRelationships) {
-    return res.json(cachedApiRelationships);
-  }
-
+app.get('/api/relationships', (req, res) => {
   const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
   if (fs.existsSync(jsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-      
-      // 실제 데이터 교집합이 1건이라도 존재하는 관계만 1차 필터링
-      const candidates = (data.relationships || []).filter(r => r.inclusion_check && r.inclusion_check.matched_count > 0);
-      const verified = [];
-
-      // SQLite 실데이터 교차 검증 (JSON은 샘플 기반이므로 실제 DB에 없을 수 있음)
-      for (const r of candidates) {
-        try {
-          const row = await dbGet(`SELECT 1 FROM "${r.from_table}" A INNER JOIN "${r.to_table}" B ON A."${r.from_field}" = B."${r.to_field}" LIMIT 1`);
-          if (row) {
-            verified.push(r);
-          }
-        } catch (err) {
-          // 테이블이나 컬럼이 없거나 타입이 안맞아서 나는 에러는 무시
-        }
-      }
-
-      cachedApiRelationships = verified;
-      res.json(verified);
+      res.json(data.relationships || []);
     } catch (err) {
-      res.status(500).json({ error: '관계 데이터 파일을 읽거나 DB를 검증하는 중 오류가 발생했습니다.' });
+      res.status(500).json({ error: '관계 데이터 파일을 읽는 중 오류가 발생했습니다.' });
     }
   } else {
     res.status(404).json({ error: '관계 데이터 분석 결과가 존재하지 않습니다.' });
@@ -718,8 +652,12 @@ app.get('/api/live-join-stream', async (req, res) => {
 
       // 1471000 테이블은 외부 OpenAPI 규격이 다르므로 로컬 DB에서 조회
       if (tableName === '1471000') {
-        const row = await dbGet(`SELECT COUNT(*) AS total FROM "1471000"`);
-        return row ? row.total : 0;
+        return new Promise((resolve, reject) => {
+          db.get(`SELECT COUNT(*) AS total FROM "1471000"`, [], (err, row) => {
+            if (err) reject(err);
+            else resolve(row.total);
+          });
+        });
       }
 
       const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/1/1`;
@@ -742,7 +680,12 @@ app.get('/api/live-join-stream', async (req, res) => {
 
     const fetchAllData = async (tableName, totalCount) => {
       if (tableName === '1471000') {
-        return dbAll(`SELECT * FROM "1471000" LIMIT 1000`);
+        return new Promise((resolve, reject) => {
+          db.all(`SELECT * FROM "1471000" LIMIT 1000`, [], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          });
+        });
       }
 
       const allRows = [];
@@ -995,17 +938,18 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
     // 최대 10000건까지 조회 허용
     sqlQuery += ` LIMIT 10000;`;
 
-    try {
-      const rows = await dbAll(sqlQuery, params);
-      sendEvent({
-        type: 'complete',
-        result: rows,
-        message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${rows.length}건이 조회되었습니다.`
-      });
-    } catch (dbErr) {
-      sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
-    }
-    res.end();
+    db.all(sqlQuery, params, (dbErr, rows) => {
+      if (dbErr) {
+        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
+      } else {
+        sendEvent({
+          type: 'complete',
+          result: rows || [],
+          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 조회되었습니다.`
+        });
+      }
+      res.end();
+    });
   }
 });
 
@@ -1166,17 +1110,18 @@ app.get('/api/live-barcode-stream', async (req, res) => {
 
     sqlQuery += ` LIMIT 10000;`;
 
-    try {
-      const rows = await dbAll(sqlQuery, params);
-      sendEvent({
-        type: 'complete',
-        result: rows,
-        message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${rows.length}건이 5개 테이블 조인으로 조회되었습니다.`
-      });
-    } catch (dbErr) {
-      sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
-    }
-    res.end();
+    db.all(sqlQuery, params, (dbErr, rows) => {
+      if (dbErr) {
+        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
+      } else {
+        sendEvent({
+          type: 'complete',
+          result: rows || [],
+          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 5개 테이블 조인으로 조회되었습니다.`
+        });
+      }
+      res.end();
+    });
   }
 });
 
@@ -1194,6 +1139,17 @@ app.get('/api/super-converge-search', (req, res) => {
     nutrition: [],     // 1471000
     barcodes: []       // C005
   };
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err); else resolve(rows);
+    });
+  });
+  const dbGet = (sql, params) => new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err); else resolve(row);
+    });
+  });
 
   (async () => {
     try {
@@ -1245,6 +1201,12 @@ app.get('/api/super-converge-search', (req, res) => {
 
 // 12. 대규모(5000건) 초융합 생태계 그래프 분석 API
 app.get('/api/bulk-ecosystem', async (req, res) => {
+  const dbAll = (sql) => new Promise((resolve, reject) => {
+    db.all(sql, [], (err, rows) => {
+      if (err) reject(err); else resolve(rows);
+    });
+  });
+
   try {
     const limit = 5000;
     const tI2500 = await dbAll(`SELECT LCNS_NO, BSSH_NM FROM "I2500" WHERE LCNS_NO IS NOT NULL LIMIT ${limit}`);
@@ -1336,6 +1298,9 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
 app.get('/api/keyword-datamap', async (req, res) => {
   const keyword = req.query.keyword || '소스';
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
 
   try {
     // 1. Get all table names, excluding system and metadata tables
@@ -1487,6 +1452,137 @@ app.get('/api/keyword-datamap', async (req, res) => {
   }
 });
 
+// ── 워드 클라우드 API ──────────────────────────────────────────
+const _wcCache = {};  // tableName → { words, ts }
+const WC_TTL = 10 * 60 * 1000; // 10분 캐시
+const WC_STOPWORDS = new Set([
+  '있는','있어','있다','없는','없다','이다','입니다','합니다','하는','하여','하고','하며',
+  '되는','되어','되고','이며','이고','으로','에서','에는','에서의','에게','그리고','또한',
+  '및','등','중','내','외','전','후','상','하','좌','우','관련','해당','위한','대한',
+  '기준','정보','데이터','관리','현황','식품','안전','국내','국외','사항','여부','기타',
+  '해당없음','해당없','폐업','영업','영업소','소재지','대표자','업소명','업종','업태',
+  '허가','신고','등록','취소','정지','말소','만료','직권','폐쇄','처분','처리',
+  '미입력','미기재','미해당','정보없음','기타없음','해당사항없음',
+  '층','번지','번','호','동','구','시','군','읍','면','리','로','길',
+  '경기도','서울특별시','부산광역시','인천광역시','대구광역시','광주광역시','대전광역시',
+  '울산광역시','세종특별자치시','강원도','강원특별자치도','충청북도','충청남도',
+  '전라북도','전라남도','전북특별자치도','경상북도','경상남도','제주특별자치도',
+  '이하','이상','미만','초과','주식회사','유한회사','합자회사','합명회사','농업회사법인',
+  '자진','고시형','집단급식소','수입식품등','서울청','부산청','경인청',
+  'null','NULL','N/A','없음','미정','알수없음','불명','전문가와',
+  '최대','최소','이내','이상','경우','때문','따라','통해','위해','대해','관해',
+  '상담할','상담','문의','처리','처분','결과','내용','방법','기간','기준',
+  'mg','MG','ml','ML','kg','KG','mm','MM','cm','CM','No','NO',
+  '가지','하나','모두','각각','이외','외에','또는','혹은','그외','경우에'
+]);
+
+app.get('/api/wordcloud', (req, res) => {
+  const tableName = (req.query.tableName || 'ALL').trim();
+  const now = Date.now();
+
+  if (_wcCache[tableName] && (now - _wcCache[tableName].ts) < WC_TTL) {
+    return res.json(_wcCache[tableName].words);
+  }
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  const isTextCol = (name) => {
+    const u = name.toUpperCase();
+    // 주소·코드·번호·날짜 컬럼은 제외
+    if (u.endsWith('_ADDR') || u.endsWith('_CD') || u.endsWith('_CODE') ||
+        u.endsWith('_NO') || u.endsWith('_ID') || u.endsWith('_DT') ||
+        u.endsWith('_DATE') || u.endsWith('_YMD') || u.endsWith('_YN') ||
+        u.includes('_TELNO') || u.includes('_TEL_') || u.includes('_ZIP') ||
+        u.includes('_ADDR') || u.includes('_LOC') || u.includes('_ROAD') ||
+        u.includes('_JIBUN') || u.includes('_SIDO') || u.includes('_SIGUNGU') ||
+        u.includes('SIDO') || u.includes('SIGUNGU') || u.includes('EMDONG') ||
+        u.includes('BPLC') || u.includes('SITE_') || u.includes('_SITE')) return false;
+    return (u.endsWith('_NM') || u.endsWith('_NAME') || u.endsWith('_NM_KR') ||
+            u.endsWith('_NM_KO') || u.endsWith('_TITLE') || u.endsWith('_DESC') ||
+            u.endsWith('_DETAIL') || u.endsWith('_INFO') || u.endsWith('_CN') ||
+            u.endsWith('_CONT') || u.endsWith('_CONTENT') || u.endsWith('_TEXT') ||
+            u.endsWith('_NOTE') || u.endsWith('_REMARK') || u.endsWith('_ITEM') ||
+            u.includes('_NM_') || u.includes('_NAME_'));
+  };
+
+  const tokenize = (text) => {
+    if (!text || typeof text !== 'string') return [];
+    return text
+      .replace(/[^가-힣\s]/g, ' ')   // 한글만 추출
+      .split(/\s+/)
+      .map(w => w.trim())
+      .filter(w => w.length >= 3 && !WC_STOPWORDS.has(w));
+  };
+
+  (async () => {
+    try {
+      let tables;
+      if (tableName === 'ALL') {
+        tables = (await dbAll(
+          `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('api_tables','api_columns')`
+        )).map(r => r.name);
+      } else {
+        tables = [tableName];
+      }
+
+      const freq = {};
+      const SAMPLE_LIMIT = tableName === 'ALL' ? 200 : 2000;
+
+      for (const tbl of tables) {
+        let cols;
+        try {
+          cols = await dbAll(`PRAGMA table_info("${tbl}")`);
+        } catch { continue; }
+
+        const textCols = cols.filter(c => isTextCol(c.name)).map(c => c.name);
+        if (textCols.length === 0) continue;
+
+        const colList = textCols.map(c => `"${c}"`).join(',');
+        let rows;
+        try {
+          rows = await dbAll(`SELECT ${colList} FROM "${tbl}" LIMIT ${SAMPLE_LIMIT}`);
+        } catch { continue; }
+
+        for (const row of rows) {
+          for (const col of textCols) {
+            const val = row[col];
+            if (!val) continue;
+            for (const word of tokenize(String(val))) {
+              freq[word] = (freq[word] || 0) + 1;
+            }
+          }
+        }
+      }
+
+      const sorted = Object.entries(freq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 100);
+
+      if (sorted.length === 0) {
+        _wcCache[tableName] = { words: [], ts: now };
+        return res.json([]);
+      }
+
+      const maxCount = sorted[0][1];
+      const minCount = sorted[sorted.length - 1][1];
+      const maxSize = 80, minSize = 14;
+
+      const words = sorted.map(([text, count]) => {
+        const ratio = maxCount === minCount ? 1 : (Math.log(count) - Math.log(minCount)) / (Math.log(maxCount) - Math.log(minCount));
+        return { text, size: Math.round(minSize + ratio * (maxSize - minSize)), actualCount: count };
+      });
+
+      _wcCache[tableName] = { words, ts: now };
+      res.json(words);
+    } catch (e) {
+      console.error('wordcloud error:', e);
+      res.status(500).json({ error: e.message });
+    }
+  })();
+});
+
 // 프론트엔드 정적 리소스 서빙
 // pages/ 폴더 파일은 URL에 'pages' 없이 접근 가능 (예: /service/use.html)
 app.get(/^\/(.*\.html)?$/, (req, res, next) => {
@@ -1503,11 +1599,17 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
     filePath = path.join(__dirname, 'pages', requestPath);
   }
 
+  // 3) 없으면 public/includes/ 하위에서 탐색
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, 'public', 'includes', requestPath);
+  }
+
   if (!fs.existsSync(filePath)) {
     return next();
   }
 
-  let html = applyIncludes(fs.readFileSync(filePath, 'utf8'));
+  const keyword = req.query.search_keyword || '';
+  let html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
   res.send(html);
 });
 
@@ -1518,6 +1620,10 @@ app.use(express.static(__dirname));
 // 서버 구동
 // 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
 app.get('/api/nongshim-dataset', async (req, res) => {
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
   try {
     const query = `
       SELECT 
@@ -1562,6 +1668,10 @@ app.listen(PORT, () => {
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
 app.get('/api/db-schema', (req, res) => {
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
   (async () => {
     try {
       // 1) 모든 base 테이블 목록 (뷰, sqlite 내부 테이블 제외)
@@ -1612,69 +1722,130 @@ app.get('/api/db-schema', (req, res) => {
 // ── 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱) ─────────────────────────
 let cachedRelationships = null;
 
-app.get('/api/db-relationships', async (req, res) => {
+app.get('/api/db-relationships', (req, res) => {
+  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p || [], (e, r) => e ? ng(e) : ok(r)));
+
   if (cachedRelationships) {
     return res.json(cachedRelationships);
   }
 
-  try {
-    const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
-    if (!fs.existsSync(jsonPath)) {
-      return res.status(404).json({ error: '관계 데이터 분석 결과(foodsafety_key_candidates.json)가 존재하지 않습니다. 먼저 analyze_pk_fk.js를 실행하세요.' });
-    }
+  (async () => {
+    try {
+      // 1. 공통 컬럼 메타 데이터 조회
+      const colRows = await dbAll(
+        `SELECT replace(svc_no,'-','') as tbl, field, kor_nm FROM api_columns
+         WHERE field IS NOT NULL AND field != '' AND length(field) > 2`
+      );
+      // 2. 실제 SQLite에 적재된 전체 테이블 리스트 조회
+      const tables = await dbAll(
+        `SELECT name FROM sqlite_master WHERE type='table'
+         AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'v_%'
+         AND name NOT IN ('api_tables','api_columns')`
+      );
+      const validSet = new Set(tables.map(t => t.name));
 
-    const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    const verifiedEdgesMap = {};
+      // 약한 식별자(공통 키로 보기 어렵고 값이 무의미하게 같을 수 있는 날짜, 여부 등 필터링)
+      const isWeak = (f) =>
+        /_NM$/i.test(f) || /_NAME$/i.test(f) || /_CD_NM$/i.test(f) ||
+        /ADDR$/i.test(f) || /TEL/i.test(f) || /FAX/i.test(f) ||
+        /_DT$/i.test(f) || /DTM$/i.test(f) || /DATE$/i.test(f) ||
+        /_CN$/i.test(f) || /_DESC$/i.test(f) || /_MEMO$/i.test(f) ||
+        /^AMT_NUM\d+$/.test(f) || /^(SEQ|NUM|CNT|QTY|YN)$/.test(f);
 
-    // 1차 필터링: JSON에 기록된 샘플 매칭 기준
-    const candidates = data.relationships.filter(r => r.inclusion_check && r.inclusion_check.matched_count > 0);
+      const fieldMap = {};
+      colRows.forEach(r => {
+        if (!validSet.has(r.tbl) || isWeak(r.field)) return;
+        if (!fieldMap[r.field]) fieldMap[r.field] = { tables: [], kor: r.kor_nm || r.field };
+        if (!fieldMap[r.field].tables.includes(r.tbl)) fieldMap[r.field].tables.push(r.tbl);
+      });
 
-    // 2차 필터링: 실제 SQLite 라이브 데이터 교집합 검증
-    for (const r of candidates) {
-      try {
-        const row = await dbGet(`SELECT 1 FROM "${r.from_table}" A INNER JOIN "${r.to_table}" B ON A."${r.from_field}" = B."${r.to_field}" LIMIT 1`);
-        if (row) {
-          const key = r.from_field;
-          if (!verifiedEdgesMap[key]) {
-            verifiedEdgesMap[key] = {
-              key: key,
-              kor: r.from_kor_nm || r.to_kor_nm || key,
-              edges: [],
-              tablesSet: new Set()
-            };
+      // 3. 공통 필드별로 두 테이블 간의 실제 매치 여부를 검사할 태스크 생성
+      const checkTasks = [];
+      const rawRelationships = Object.entries(fieldMap)
+        .filter(([, v]) => v.tables.length >= 2)
+        .map(([key, v]) => ({ key, kor: v.kor, tables: v.tables }));
+
+      rawRelationships.forEach(rel => {
+        const tbls = rel.tables;
+        // 각 공통키 필드에 대해 모든 가능한 테이블 쌍(T1, T2) 생성
+        for (let i = 0; i < tbls.length; i++) {
+          for (let j = i + 1; j < tbls.length; j++) {
+            const tA = tbls[i];
+            const tB = tbls[j];
+            checkTasks.push({
+              key: rel.key,
+              kor: rel.kor,
+              tA,
+              tB,
+              fn: async () => {
+                try {
+                  // SQLite EXISTS 쿼리로 실제 교집합 데이터가 최소 1건 이상 존재하는지 체크
+                  // 빈 값이나 공백, 하이픈(-)은 조인 키 매칭에서 제외
+                  const query = `
+                    SELECT EXISTS(
+                      SELECT 1 FROM "${tA}" a
+                      INNER JOIN "${tB}" b ON a."${rel.key}" = b."${rel.key}"
+                      WHERE a."${rel.key}" IS NOT NULL 
+                        AND a."${rel.key}" != '' 
+                        AND a."${rel.key}" != '-'
+                    ) AS has_match
+                  `;
+                  const rows = await dbAll(query);
+                  const matched = rows[0]?.has_match === 1;
+                  return matched ? { tA, tB } : null;
+                } catch (e) {
+                  // 테이블이나 컬럼이 실제 DB에 불일치하거나 깨져 있는 경우 매칭 무시
+                  return null;
+                }
+              }
+            });
           }
-          verifiedEdgesMap[key].edges.push({ from: r.from_table, to: r.to_table });
-          verifiedEdgesMap[key].tablesSet.add(r.from_table);
-          verifiedEdgesMap[key].tablesSet.add(r.to_table);
         }
-      } catch(err) {
-        // 테이블이나 컬럼 누락 에러 무시
+      });
+
+      // 4. 동시 실행 부하 제어를 위한 청크 비동기 병렬 검증 (청크당 30개 실행)
+      const verifiedEdgesMap = {};
+      const chunkSize = 30;
+      for (let i = 0; i < checkTasks.length; i += chunkSize) {
+        const chunk = checkTasks.slice(i, i + chunkSize);
+        const chunkResults = await Promise.all(chunk.map(task => task.fn()));
+
+        chunk.forEach((task, idx) => {
+          const edge = chunkResults[idx];
+          if (edge) {
+            if (!verifiedEdgesMap[task.key]) {
+              verifiedEdgesMap[task.key] = {
+                key: task.key,
+                kor: task.kor,
+                edges: [],
+                tablesSet: new Set()
+              };
+            }
+            verifiedEdgesMap[task.key].edges.push({ from: edge.tA, to: edge.tB });
+            verifiedEdgesMap[task.key].tablesSet.add(edge.tA);
+            verifiedEdgesMap[task.key].tablesSet.add(edge.tB);
+          }
+        });
       }
+
+      // 5. 실제 데이터 매칭 엣지가 존재하는 공통키 연관관계 최종 데이터 구축
+      const result = Object.values(verifiedEdgesMap)
+        .map(item => ({
+          key: item.key,
+          kor: item.kor,
+          count: item.tablesSet.size,
+          tables: Array.from(item.tablesSet),
+          edges: item.edges
+        }))
+        .sort((a, b) => b.edges.length - a.edges.length); // 실제 매칭 연결선 수 기준으로 정렬
+
+      cachedRelationships = result;
+      res.json(result);
+    } catch (err) {
+      logger.error({ err }, '[db-relationships] 관계 분석 중 오류가 발생했습니다.');
+      res.status(500).json({ error: err.message });
     }
-
-    const result = Object.values(verifiedEdgesMap)
-      .map(item => ({
-        key: item.key,
-        kor: item.kor,
-        count: item.tablesSet.size,
-        tables: Array.from(item.tablesSet),
-        edges: item.edges
-      }))
-      .sort((a, b) => b.edges.length - a.edges.length);
-
-    cachedRelationships = result;
-    res.json(result);
-  } catch (err) {
-    logger.error({ err }, '[db-relationships] 관계 데이터 파싱 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 글로벌 Express 에러 핸들러 — async 라우터에서 next(err)로 전달된 에러를 최종 처리
-app.use((err, req, res, next) => {
-  logger.error({ err, path: req.path, method: req.method }, '처리되지 않은 서버 오류');
-  if (res.headersSent) return next(err);
-  res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+  })();
 });
 
 // 프로세스 종료 시 DB 연결 해제

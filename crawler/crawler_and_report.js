@@ -34,26 +34,26 @@ function run(label, scriptPath, args = '') {
 
 async function main() {
   // STEP 1: 식품안전나라 크롤링
-  try {
-    run('1/9 crawler_api', path.join(DIR, 'crawler_api.js'));
-  } catch (err) {
-    logger.error({ err }, 'crawler_api.js 실패 — 파이프라인을 중단합니다.');
-    process.exit(1);
-  }
+  // try {
+  //   run('1/9 crawler_api', path.join(DIR, 'crawler_api.js'));
+  // } catch (err) {
+  //   logger.error({ err }, 'crawler_api.js 실패 — 파이프라인을 중단합니다.');
+  //   process.exit(1);
+  // }
 
-  // STEP 2: 공공데이터포털 식품영양성분 API 수집 (crawler_link.js)
-  try {
-    run('2/9 crawler_link', path.join(DIR, 'crawler_link.js'));
-  } catch (err) {
-    logger.warn({ err }, 'crawler_link.js 실패 — 다음 단계를 계속 진행합니다.');
-  }
+  // // STEP 2: 공공데이터포털 식품영양성분 API 수집 (crawler_link.js)
+  // try {
+  //   run('2/9 crawler_link', path.join(DIR, 'crawler_link.js'));
+  // } catch (err) {
+  //   logger.warn({ err }, 'crawler_link.js 실패 — 다음 단계를 계속 진행합니다.');
+  // }
 
-  // STEP 3: 샘플 데이터 최신화 (충분한 데이터 확보 후 DB를 생성해야 하므로 DB 변환 전 실행)
-  try {
-    run('3/9 update_samples', path.join(DIR, 'update_samples.js'));
-  } catch (err) {
-    logger.warn({ err }, 'update_samples.js 실패 — 다음 단계를 계속 진행합니다.');
-  }
+  // // STEP 3: 샘플 데이터 최신화 (충분한 데이터 확보 후 DB를 생성해야 하므로 DB 변환 전 실행)
+  // try {
+  //   run('3/9 update_samples', path.join(DIR, 'update_samples.js'));
+  // } catch (err) {
+  //   logger.warn({ err }, 'update_samples.js 실패 — 다음 단계를 계속 진행합니다.');
+  // }
 
   // STEP 4: SQLite 변환 (import_to_sqlite.js)
   try {

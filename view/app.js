@@ -13,6 +13,7 @@ import { renderSauceDataMap } from './components/sauceDataMap.js';
 import { renderDbErdMap } from './components/dbErdMap.js';
 import { renderNongshimDataset } from './components/nongshimDataset.js';
 import { renderWordCloud } from './components/wordCloud.js';
+import { renderScenarioTabs } from './components/scenarioRecommend.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
@@ -80,6 +81,10 @@ const renderTabContent = () => {
     renderNongshimDataset(tabContent);
   } else if (activeTab === 'wordcloud') {
     renderWordCloud(tabContent, onSelectDataset);
+  } else if (activeTab === 'recommend-beginner') {
+    renderScenarioTabs(tabContent, 'beginner');
+  } else if (activeTab === 'recommend-developer') {
+    renderScenarioTabs(tabContent, 'developer');
   }
 };
 

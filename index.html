@@ -5,12 +5,12 @@
     <!-- INCLUDE_HEAD -->
 
 <style>
+/* === 데이터구조 검색 모달 === */
 .datastruct_op {
     display: none;
-    position: fixed;
-    top: 0; left: 0;
+    position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.45);
     z-index: 999999;
 }
 .datastruct {
@@ -18,59 +18,181 @@
     position: fixed;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 1200px;
+    width: 1100px;
     max-width: 96vw;
-    max-height: 85vh;
+    max-height: 88vh;
     background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid #b0b8c1;
     z-index: 1000000;
-    overflow: hidden;
-    display: none;
     flex-direction: column;
+    font-family: 'NanumGothic', sans-serif;
 }
-.datastruct .title {
-    background: #1e3a5f;
-    color: #fff;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
+/* 상단 타이틀 바 */
+.datastruct .ds-titlebar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    position: relative;
+    padding: 10px 16px;
+    border-bottom: 1px solid #d0d5db;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    background: #fff;
     flex-shrink: 0;
 }
-.datastruct .title .datastruct_close {
-    color: #fff;
+.datastruct .datastruct_close {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
     text-decoration: none;
-    font-size: 20px;
+    color: #555;
+    font-size: 18px;
     line-height: 1;
 }
-.datastruct .site_cnt {
+.datastruct .datastruct_close:hover { color: #111; }
+
+/* 본문 영역 */
+.datastruct .ds-body {
     display: flex;
     overflow: hidden;
-    height: calc(85vh - 50px);
+    height: calc(88vh - 46px);
 }
-.datastruct .fl { float: none; display: flex; flex-direction: column; }
-.datastruct .w_317 { width: 280px; min-width: 280px; border-right: 1px solid #e5e7eb; overflow-y: auto; }
-.datastruct .w_850 { flex: 1; overflow-y: auto; }
-.datastruct .box { padding: 16px; }
-.datastruct .h05 { font-size: 14px; font-weight: 700; color: #1e3a5f; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #1e3a5f; }
-.datastruct #layerTree ul { list-style: none; padding-left: 16px; margin: 0; }
-.datastruct #layerTree > ul { padding-left: 0; }
-.datastruct #layerTree li { padding: 4px 0; cursor: pointer; font-size: 13px; position: relative; }
-.datastruct #layerTree li a { color: #374151; text-decoration: none; display: flex; align-items: center; }
-.datastruct #layerTree li a::before { content: "📁"; margin-right: 6px; font-size: 14px; }
-.datastruct #layerTree li li li > a::before { content: "📄"; }
-.datastruct #layerTree li a:hover, .datastruct #layerTree li a.jstree-clicked { color: #2563eb; font-weight: 600; }
-.datastruct #layerTree li > a { font-weight: 600; color: #1e3a5f; cursor: default; }
+
+/* 왼쪽 트리 패널 */
+.datastruct .ds-left {
+    width: 260px;
+    min-width: 260px;
+    border-right: 1px solid #c8d0d8;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.datastruct .ds-left-header {
+    background: #29a8d8;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    text-align: center;
+}
+.datastruct .ds-tree-wrap {
+    overflow-y: auto;
+    flex: 1;
+    padding: 4px 0;
+    background: #fff;
+}
+
+/* ── 트리 연결선 ── */
+.datastruct #layerTree { user-select: none; }
+.datastruct #layerTree ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 20px;
+    position: relative;
+}
+.datastruct #layerTree > ul { padding-left: 6px; }
+/* 세로선 */
+.datastruct #layerTree ul::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 10px;
+    width: 1px;
+    background: #bbb;
+}
+/* 가로선 */
+.datastruct #layerTree li {
+    position: relative;
+    font-size: 13px;
+}
+.datastruct #layerTree ul li::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    width: 10px;
+    height: 1px;
+    background: #bbb;
+}
+
+/* 링크 스타일 */
+.datastruct #layerTree li > a {
+    display: flex;
+    align-items: center;
+    padding: 3px 6px 3px 2px;
+    color: #222;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border-radius: 2px;
+    margin: 1px 4px 1px 0;
+}
+.datastruct #layerTree li > a:hover {
+    background: #d6eefc;
+}
+.datastruct #layerTree li > a.ds-selected {
+    background: #29a8d8;
+    color: #fff;
+}
+.datastruct #layerTree li > a.ds-selected .ds-icon { filter: brightness(10); }
+
+/* 폴더 아이콘 */
+.datastruct #layerTree li > a .ds-icon {
+    display: inline-block;
+    width: 16px; height: 14px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Cpath fill='%23e8a000' d='M1 3h7l2 2h9v10H1z'/%3E%3Cpath fill='%23ffc340' d='M1 5h18v9H1z'/%3E%3C/svg%3E") no-repeat center/contain;
+}
+.datastruct #layerTree li.ds-leaf > a .ds-icon {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Cpath fill='%23e8a000' d='M1 3h7l2 2h9v10H1z'/%3E%3Cpath fill='%23ffc340' d='M1 5h18v9H1z'/%3E%3C/svg%3E") no-repeat center/contain;
+}
+
+/* 오른쪽 테이블 패널 */
+.datastruct .ds-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.datastruct .ds-right-header {
+    background: #29a8d8;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    flex-shrink: 0;
+    text-align: center;
+}
+.datastruct .ds-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
 .datastruct .struct_tb { width: 100%; border-collapse: collapse; font-size: 13px; }
-.datastruct .struct_tb th { background: #f1f5f9; padding: 10px 12px; text-align: center; border: 1px solid #e5e7eb; font-weight: 600; color: #374151; }
-.datastruct .struct_tb td { padding: 9px 12px; text-align: center; border: 1px solid #e5e7eb; color: #374151; }
+.datastruct .struct_tb th {
+    background: #f1f5f9;
+    padding: 9px 10px;
+    text-align: center;
+    border: 1px solid #d0d5db;
+    font-weight: 700;
+    color: #222;
+    position: sticky; top: 0; z-index: 1;
+}
+.datastruct .struct_tb td {
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #e0e4e8;
+    color: #333;
+    font-size: 13px;
+}
 .datastruct .struct_tb td.taL { text-align: left; }
-.datastruct .struct_tb td a { color: #2563eb; text-decoration: none; }
+.datastruct .struct_tb td a { color: #1a6fb8; text-decoration: none; }
 .datastruct .struct_tb td a:hover { text-decoration: underline; }
-.datastruct .struct_tb tbody tr:hover td { background: #f8faff; }
+.datastruct .struct_tb tbody tr:nth-child(even) td { background: #f9fbfd; }
+.datastruct .struct_tb tbody tr:hover td { background: #eaf4fb; }
 </style>
 </head>
 
@@ -130,64 +252,52 @@
             <!-- 데이터구조 검색 레이어 -->
             <div class="datastruct_op"></div>
             <div class="datastruct">
-                <div class="title">
+                <div class="ds-titlebar">
                     데이터구조 검색
                     <a href="#" class="datastruct_close" title="닫기">✕</a>
                 </div>
-                <div class="site_cnt">
-                    <div class="fl w_317 m_r_6">
-                        <div class="box">
-                            <h1 class="h05">데이터카테고리</h1>
+                <div class="ds-body">
+                    <!-- 왼쪽 트리 -->
+                    <div class="ds-left">
+                        <div class="ds-left-header">데이터카테고리</div>
+                        <div class="ds-tree-wrap">
                             <div id="layerTree">
                                 <ul>
-                                    <li class="jstree-open"><a href="#">전체</a>
+                                    <li class="ds-d1"><a href="#" onclick="fn_dataStrutList('전체','','',''); return false;"><span class="ds-icon"></span>전체</a>
                                         <ul>
-                                            <li class="jstree-open"><a href="#">분류별</a>
+                                            <li class="ds-d2"><a href="#" onclick="return false;"><span class="ds-icon"></span>분류별</a>
                                                 <ul>
-                                                    <li onclick="fn_dataStrutList('기준규격정보','','기준규격정보','')"><a href="#">기준규격정보</a></li>
-                                                    <li onclick="fn_dataStrutList('코드정보','','코드정보','')"><a href="#">코드정보</a></li>
-                                                    <li onclick="fn_dataStrutList('식품영양정보','','식품영양정보','')"><a href="#">식품영양정보</a></li>
-                                                    <li onclick="fn_dataStrutList('수질환경정보','','수질환경정보','')"><a href="#">수질환경정보</a></li>
-                                                    <li onclick="fn_dataStrutList('검사기관정보','','검사기관정보','')"><a href="#">검사기관정보</a></li>
-                                                    <li onclick="fn_dataStrutList('식품위해관리','','식품위해관리','')"><a href="#">식품위해관리</a></li>
-                                                    <li onclick="fn_dataStrutList('식품안전관리','','식품안전관리','')"><a href="#">식품안전관리</a></li>
-                                                    <li onclick="fn_dataStrutList('이력추적관리','','이력추적관리','')"><a href="#">이력추적관리</a></li>
-                                                    <li onclick="fn_dataStrutList('어린이식품안전관리','','어린이식품안전관리','')"><a href="#">어린이식품안전관리</a></li>
-                                                    <li onclick="fn_dataStrutList('HACCP지정현황','','HACCP지정현황','')"><a href="#">HACCP지정현황</a></li>
-                                                    <li onclick="fn_dataStrutList('업체인허가현황','','업체인허가현황','')"><a href="#">업체인허가현황</a></li>
-                                                    <li onclick="fn_dataStrutList('위생용품','','위생용품','')"><a href="#">위생용품</a></li>
-                                                    <li onclick="fn_dataStrutList('축산물','','축산물','')"><a href="#">축산물</a></li>
-                                                    <li onclick="fn_dataStrutList('건강기능식품','','건강기능식품','')"><a href="#">건강기능식품</a></li>
-                                                    <li onclick="fn_dataStrutList('수입식품 등','','수입식품 등','')"><a href="#">수입식품 등</a></li>
-                                                    <li onclick="fn_dataStrutList('식품 등','','식품 등','')"><a href="#">식품 등</a></li>
-                                                    <li onclick="fn_dataStrutList('자료실','','자료실','')"><a href="#">자료실</a></li>
-                                                    <li onclick="fn_dataStrutList('폐업정보','','폐업정보','')"><a href="#">폐업정보</a></li>
-                                                    <li onclick="fn_dataStrutList('용어사전','','용어사전','')"><a href="#">용어사전</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('기준규격정보','','기준규격정보',''); return false;"><span class="ds-icon"></span>기준규격정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('코드정보','','코드정보',''); return false;"><span class="ds-icon"></span>코드정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('식품영양정보','','식품영양정보',''); return false;"><span class="ds-icon"></span>식품영양정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('수질환경정보','','수질환경정보',''); return false;"><span class="ds-icon"></span>수질환경정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('검사기관정보','','검사기관정보',''); return false;"><span class="ds-icon"></span>검사기관정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('식품위해관리','','식품위해관리',''); return false;"><span class="ds-icon"></span>식품위해관리</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('식품안전관리','','식품안전관리',''); return false;"><span class="ds-icon"></span>식품안전관리</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('이력추적관리','','이력추적관리',''); return false;"><span class="ds-icon"></span>이력추적관리</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('어린이식품안전관리','','어린이식품안전관리',''); return false;"><span class="ds-icon"></span>어린이식품안전관리</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('HACCP지정현황','','HACCP지정현황',''); return false;"><span class="ds-icon"></span>HACCP지정현황</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('업체인허가현황','','업체인허가현황',''); return false;"><span class="ds-icon"></span>업체인허가현황</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('위생용품','','위생용품',''); return false;"><span class="ds-icon"></span>위생용품</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('축산물','','축산물',''); return false;"><span class="ds-icon"></span>축산물</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('건강기능식품','','건강기능식품',''); return false;"><span class="ds-icon"></span>건강기능식품</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('수입식품 등','','수입식품 등',''); return false;"><span class="ds-icon"></span>수입식품 등</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('식품 등','','식품 등',''); return false;"><span class="ds-icon"></span>식품 등</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('자료실','','자료실',''); return false;"><span class="ds-icon"></span>자료실</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('폐업정보','','폐업정보',''); return false;"><span class="ds-icon"></span>폐업정보</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('용어사전','','용어사전',''); return false;"><span class="ds-icon"></span>용어사전</a></li>
                                                 </ul>
                                             </li>
-                                            <li class="jstree-open"><a href="#">제공기관별</a>
-                                                <ul>
-                                                    <li onclick="fn_dataStrutList('식품의약품안전처','','','식품의약품안전처')"><a href="#">식품의약품안전처</a></li>
-                                                    <li onclick="fn_dataStrutList('해양수산부','','','해양수산부')"><a href="#">해양수산부</a></li>
-                                                    <li onclick="fn_dataStrutList('산업통상자원부','','','산업통상자원부')"><a href="#">산업통상자원부</a></li>
-                                                    <li onclick="fn_dataStrutList('농촌진흥청','','','농촌진흥청')"><a href="#">농촌진흥청</a></li>
-                                                    <li onclick="fn_dataStrutList('농림축산검역본부','','','농림축산검역본부')"><a href="#">농림축산검역본부</a></li>
-                                                    <li onclick="fn_dataStrutList('국립농산물품질관리원','','','국립농산물품질관리원')"><a href="#">국립농산물품질관리원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립환경과학원','','','국립환경과학원')"><a href="#">국립환경과학원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립수산물품질관리원','','','국립수산물품질관리원')"><a href="#">국립수산물품질관리원</a></li>
-                                                    <li onclick="fn_dataStrutList('국립수산과학원','','','국립수산과학원')"><a href="#">국립수산과학원</a></li>
-                                                    <li onclick="fn_dataStrutList('행정안전부','','','행정안전부')"><a href="#">행정안전부</a></li>
-                                                    <li onclick="fn_dataStrutList('한국식품안전관리인증원','','','한국식품안전관리인증원')"><a href="#">한국식품안전관리인증원</a></li>
-                                                    <li onclick="fn_dataStrutList('축산물품질평가원','','','축산물품질평가원')"><a href="#">축산물품질평가원</a></li>
-                                                    <li onclick="fn_dataStrutList('한국환경공단','','','한국환경공단')"><a href="#">한국환경공단</a></li>
-                                                    <li onclick="fn_dataStrutList('한국수자원공사','','','한국수자원공사')"><a href="#">한국수자원공사</a></li>
+                                            <li class="ds-d2"><a href="#" onclick="return false;"><span class="ds-icon"></span>제공기관별</a>
+                                                <ul id="ds-provider-tree">
+                                                    <!-- JS로 동적 로드 -->
                                                 </ul>
                                             </li>
-                                            <li class="jstree-open"><a href="#">유형별</a>
+                                            <li class="ds-d2"><a href="#" onclick="return false;"><span class="ds-icon"></span>유형별</a>
                                                 <ul>
-                                                    <li onclick="fn_dataStrutList('File','API_TYPE03','','')"><a href="#">File</a></li>
-                                                    <li onclick="fn_dataStrutList('Link','API_TYPE05','','')"><a href="#">Link</a></li>
-                                                    <li onclick="fn_dataStrutList('XML/JSON','API_TYPE06','','')"><a href="#">XML/JSON</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('File','API_TYPE03','',''); return false;"><span class="ds-icon"></span>File</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('Link','API_TYPE05','',''); return false;"><span class="ds-icon"></span>Link</a></li>
+                                                    <li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList('XML/JSON','API_TYPE06','',''); return false;"><span class="ds-icon"></span>XML/JSON</a></li>
                                                 </ul>
                                             </li>
                                         </ul>
@@ -196,41 +306,49 @@
                             </div>
                         </div>
                     </div>
-                    <div class="fl w_850 m_r_6">
-                        <div class="box">
-                            <h1 class="h05" id="datasetSjct">데이터카테고리</h1>
-                            <div id="struct_div">
-                                <table class="struct_tb">
-                                    <caption>데이터</caption>
-                                    <colgroup>
-                                        <col style="width:20%;">
-                                        <col style="width:15%;">
-                                        <col style="width:50%;">
-                                        <col style="width:15%;">
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">제공기관</th>
-                                            <th scope="col">분류</th>
-                                            <th scope="col">서비스명</th>
-                                            <th scope="col">유형</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tb_struct_list">
-                                        <tr><td colspan="4">카테고리를 선택하세요.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <!-- 오른쪽 테이블 -->
+                    <div class="ds-right">
+                        <div class="ds-right-header" id="datasetSjct">데이터카테고리</div>
+                        <div class="ds-table-wrap">
+                            <table class="struct_tb">
+                                <caption>데이터</caption>
+                                <colgroup>
+                                    <col style="width:18%;">
+                                    <col style="width:14%;">
+                                    <col style="width:55%;">
+                                    <col style="width:13%;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">제공기관</th>
+                                        <th scope="col">분류</th>
+                                        <th scope="col">서비스명</th>
+                                        <th scope="col">유형</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb_struct_list">
+                                    <tr><td colspan="4">카테고리를 선택하세요.</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
             <script>
-            // 데이터구조 검색 버튼 이벤트
             $(document).ready(function() {
+                // 제공기관 트리 동적 로드
+                $.getJSON('/api/providerList.do', function(data) {
+                    var html = '';
+                    $.each(data.list || [], function(_, nm) {
+                        html += '<li class="ds-d3 ds-leaf"><a href="#" onclick="fn_dataStrutList(\'' + nm.replace(/'/g,"\\'") + '\',\'\',\'\',\'' + nm.replace(/'/g,"\\'") + '\'); return false;"><span class="ds-icon"></span>' + nm + '</a></li>';
+                    });
+                    $('#ds-provider-tree').html(html);
+                });
+
                 $(".datastruct_view").on("click", function() {
-                    $(".datastruct_op, .datastruct").show();
+                    $(".datastruct_op").show();
+                    $(".datastruct").css("display", "flex");
                     fn_dataStrutList('기준규격정보', '', '기준규격정보', '');
                 });
                 $(".datastruct_close").on("click", function(e) {
@@ -242,11 +360,12 @@
                 });
             });
 
-            // 데이터구조 검색 조회 (로컬 API)
             function fn_dataStrutList(subjct, svcTypeCode, clCdCode, provdInsttCode) {
-                // 선택된 항목 표시
-                $('#layerTree li').removeClass('jstree-clicked');
-                event && $(event.currentTarget).find('a').first().addClass('jstree-clicked');
+                // 선택 하이라이트
+                $('#layerTree a').removeClass('ds-selected');
+                if (event && event.currentTarget) {
+                    $(event.currentTarget).find('> a').addClass('ds-selected');
+                }
 
                 $.ajax({
                     data: {
@@ -264,13 +383,11 @@
                             var strHtml = '';
                             for (var i = 0; i < list.length; i++) {
                                 var item = list[i];
-                                var typeLabel = '';
-                                if (item.svc_type_cd === 'API_TYPE03') typeLabel = 'F';
-                                else if (item.svc_type_cd === 'API_TYPE06') typeLabel = 'O';
+                                var typeLabel = item.svc_type_cd === 'API_TYPE03' ? 'F' : 'O';
                                 strHtml += '<tr>';
                                 strHtml += '<td>' + item.provd_instt_nm + '</td>';
                                 strHtml += '<td>' + item.cl_cd_nm + '</td>';
-                                strHtml += '<td class="taL"><a href="/api/datasetAllSearch.do?search_clCdCode=' + encodeURIComponent(item.cl_cd_nm) + '">' + item.svc_nm + '</a></td>';
+                                strHtml += '<td class="taL"><a href="/search.html?search_keyword=' + encodeURIComponent(item.svc_nm) + '">' + item.svc_nm + '</a></td>';
                                 strHtml += '<td>' + typeLabel + '</td>';
                                 strHtml += '</tr>';
                             }
