@@ -51,40 +51,81 @@ const onSelectDataset = (ds) => {
 };
 
 const renderTabContent = () => {
-  tabContent.innerHTML = ''; // clear
+  // 기존 동적 렌더링 방식과 정적 HTML 유지 방식을 혼용하기 위한 처리
+  // .static-view 클래스가 있는 요소는 숨기기만 하고, 나머지는 삭제합니다.
+  Array.from(tabContent.children).forEach(child => {
+    if (child.classList.contains('static-view')) {
+      child.style.display = 'none';
+    } else {
+      child.remove();
+    }
+  });
+
+  const getView = (tab) => {
+    const map = {
+      'explorer': 'dataset-explorer-view',
+      'api-explorer': 'api-explorer-view',
+      'datamap': 'datamap-view',
+      'keyword-datamap': 'keyword-datamap-view',
+      'erdmap': 'erdmap-view',
+      'erd-inquiry': 'erd-inquiry-view',
+      'super-erdmap': 'super-erdmap-view',
+      'sql-playground': 'sql-playground-view',
+      'api-live-join': 'api-live-join-view',
+      'api-hygiene': 'api-hygiene-view',
+      'api-barcode': 'api-barcode-view',
+      'db-erd': 'db-erd-view',
+      'nongshim-spec': 'nongshim-spec-view',
+      'wordcloud': 'wordcloud-view',
+      'recommend-beginner': 'scenario-view',
+      'recommend-developer': 'scenario-view'
+    };
+    const id = map[tab] || `${tab}-view`;
+    let view = document.getElementById(id);
+    if (!view) {
+      view = document.createElement('div');
+      view.id = id;
+      view.className = 'static-view w-full h-full relative';
+      tabContent.appendChild(view);
+    }
+    view.style.display = 'block';
+    return view;
+  };
+
+  const currentView = getView(activeTab);
 
   if (activeTab === 'explorer') {
-    renderDatasetExplorer(tabContent, onSelectDataset);
+    renderDatasetExplorer(currentView, onSelectDataset);
   } else if (activeTab === 'datamap') {
-    renderDataMap(tabContent, onSelectDataset);
+    renderDataMap(currentView, onSelectDataset);
   } else if (activeTab === 'erdmap') {
-    renderRelationDataMap(tabContent, onSelectDataset);
+    renderRelationDataMap(currentView, onSelectDataset);
   } else if (activeTab === 'erd-inquiry') {
-    renderErdMap(tabContent, onSelectDataset);
+    renderErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'super-erdmap') {
-    renderSuperErdMap(tabContent, onSelectDataset);
+    renderSuperErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'sql-playground') {
-    renderSqlPlayground(tabContent, onSelectDataset);
+    renderSqlPlayground(currentView, onSelectDataset);
   } else if (activeTab === 'api-explorer') {
-    renderApiExplorer(tabContent, onSelectDataset);
+    renderApiExplorer(currentView, onSelectDataset);
   } else if (activeTab === 'api-live-join') {
-    renderApiLiveJoin(tabContent, onSelectDataset);
+    renderApiLiveJoin(currentView, onSelectDataset);
   } else if (activeTab === 'api-hygiene') {
-    renderLocalHygiene(tabContent, onSelectDataset);
+    renderLocalHygiene(currentView, onSelectDataset);
   } else if (activeTab === 'api-barcode') {
-    renderBarcodeSearch(tabContent, onSelectDataset);
+    renderBarcodeSearch(currentView, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
-    renderSauceDataMap(tabContent, initialSearchKeyword, onSelectDataset);
+    renderSauceDataMap(currentView, initialSearchKeyword, onSelectDataset);
   } else if (activeTab === 'db-erd') {
-    renderDbErdMap(tabContent);
+    renderDbErdMap(currentView);
   } else if (activeTab === 'nongshim-spec') {
-    renderNongshimDataset(tabContent);
+    renderNongshimDataset(currentView);
   } else if (activeTab === 'wordcloud') {
-    renderWordCloud(tabContent, onSelectDataset);
+    renderWordCloud(currentView, onSelectDataset);
   } else if (activeTab === 'recommend-beginner') {
-    renderScenarioTabs(tabContent, 'beginner');
+    renderScenarioTabs(currentView, 'beginner');
   } else if (activeTab === 'recommend-developer') {
-    renderScenarioTabs(tabContent, 'developer');
+    renderScenarioTabs(currentView, 'developer');
   }
 };
 

@@ -39,7 +39,36 @@
 
     <!-- Tab Content -->
     <div class="bg-white flex-1" id="tab-content">
-      <!-- Dynamic content will be injected here by app.js -->
+      <!-- Scenario View -->
+      <div id="scenario-view" class="static-view" style="display: none;">
+        <div class="w-full bg-[#f9fafb] font-sans py-6 px-4">
+          <div class="max-w-7xl mx-auto flex min-h-[800px]">
+            <!-- Sidebar -->
+            <div class="w-72 bg-white border-r border-gray-200 overflow-y-auto">
+              <div class="p-6 pb-2 border-b border-gray-100">
+                <h3 id="scenario-sidebar-title" class="font-bold text-xl text-gray-800 tracking-tight"></h3>
+                <p id="scenario-sidebar-desc" class="text-sm text-gray-500 mt-1"></p>
+              </div>
+              <ul id="scenario-list" class="p-4 space-y-1">
+                <li class="px-4 py-3 text-sm text-gray-500">로딩 중...</li>
+              </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 bg-white overflow-y-auto" id="scenario-content-wrapper">
+              <div class="max-w-4xl mx-auto p-10" id="scenario-content">
+                <div class="flex flex-col items-center justify-center h-full mt-32 text-gray-400">
+                  <svg class="animate-spin h-10 w-10 mb-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p>시나리오 데이터를 불러오고 있습니다...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Detail Panel Container -->

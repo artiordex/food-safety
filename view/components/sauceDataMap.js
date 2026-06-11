@@ -673,7 +673,8 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 let _root = null;
 export function renderSauceDataMap(container, initialKeyword, onSelectDataset) {
   container.style.height = '100%';
-  if (_root) _root.unmount();
-  _root = ReactDOM.createRoot(container);
-  _root.render(h(KeywordDataMap, { initialKeyword, onSelectDataset }));
+  if (!_root) {
+    _root = ReactDOM.createRoot(container);
+    _root.render(h(KeywordDataMap, { initialKeyword, onSelectDataset }));
+  }
 }

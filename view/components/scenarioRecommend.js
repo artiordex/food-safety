@@ -1,43 +1,20 @@
 export const renderScenarioTabs = async (container, mode) => {
-  container.innerHTML = `
-    <div class="w-full bg-[#f9fafb] font-sans py-6 px-4">
-    <div class="max-w-7xl mx-auto flex min-h-[800px]">
-      <!-- Sidebar -->
-      <div class="w-72 bg-white border-r border-gray-200 overflow-y-auto">
-        <div class="p-6 pb-2 border-b border-gray-100">
-          <h3 class="font-bold text-xl text-gray-800 tracking-tight">
-            ${mode === 'developer' ? '개발자 데이터 시나리오' : '일반인 데이터 시나리오'}
-          </h3>
-          <p class="text-sm text-gray-500 mt-1">
-            ${mode === 'developer' ? 'API 연동 및 SQL 쿼리 가이드' : '데이터 활용 비즈니스 아이디어'}
-          </p>
-        </div>
-        <ul id="scenario-list" class="p-4 space-y-1">
-          <li class="px-4 py-3 text-sm text-gray-500">로딩 중...</li>
-        </ul>
-      </div>
-
-      <!-- Main Content -->
-      <div class="flex-1 bg-white overflow-y-auto" id="scenario-content-wrapper">
-        <div class="max-w-4xl mx-auto p-10" id="scenario-content">
-          <div class="flex flex-col items-center justify-center h-full mt-32 text-gray-400">
-            <svg class="animate-spin h-10 w-10 mb-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p>시나리오 데이터를 불러오고 있습니다...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-  `;
+  const view = document.getElementById('scenario-view');
+  if (!view) return;
+  
+  view.style.display = 'block';
+  
+  const titleEl = view.querySelector('#scenario-sidebar-title');
+  if (titleEl) titleEl.textContent = mode === 'developer' ? '개발자 데이터 시나리오' : '일반인 데이터 시나리오';
+  
+  const descEl = view.querySelector('#scenario-sidebar-desc');
+  if (descEl) descEl.textContent = mode === 'developer' ? 'API 연동 및 SQL 쿼리 가이드' : '데이터 활용 비즈니스 아이디어';
 
   try {
     const res = await fetch('/api/join-scenarios');
     const scenarios = await res.json();
     
-    const listEl = document.getElementById('scenario-list');
+    const listEl = view.querySelector('#scenario-list');
     listEl.innerHTML = '';
     
     let activeIndex = 0;
@@ -56,7 +33,7 @@ export const renderScenarioTabs = async (container, mode) => {
         }
       });
 
-      const contentEl = document.getElementById('scenario-content');
+      const contentEl = view.querySelector('#scenario-content');
       
       const badgeColor = scenario.grade === 'SUPER' ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' : 
                          scenario.grade === 'HIGH' ? 'bg-emerald-500 text-white' : 
@@ -144,12 +121,14 @@ export const renderScenarioTabs = async (container, mode) => {
     if (scenarios.length > 0) {
       renderDetail(0);
     } else {
-      document.getElementById('scenario-content').innerHTML = '<div class="text-center text-gray-500 mt-20">시나리오가 없습니다.</div>';
+      const contentEl = view.querySelector('#scenario-content');
+      if (contentEl) contentEl.innerHTML = '<div class="text-center text-gray-500 mt-20">시나리오가 없습니다.</div>';
     }
 
   } catch (err) {
     console.error(err);
-    container.innerHTML = `<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다: ${err.message}</div>`;
+    const contentEl = view.querySelector('#scenario-content');
+    if (contentEl) contentEl.innerHTML = `<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다: ${err.message}</div>`;
   }
 };
 

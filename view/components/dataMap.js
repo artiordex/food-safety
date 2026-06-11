@@ -45,62 +45,13 @@ export function renderDataMap(container, onSelectDataset) {
   };
 
   const renderUI = (subjectArray, totalCount) => {
-    container.innerHTML = `
-      <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
-        <!-- Header -->
-        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <i class="ri-pie-chart-2-fill text-gov-600"></i> 분야별 데이터맵 (비율 분포)
-            </h2>
-          </div>
-          
-          <!-- 키워드 검색기 (키워드 데이터맵으로 전환) -->
-          <div class="flex items-center gap-2 w-full md:w-auto max-w-md">
-            <div class="relative flex-1 md:w-64">
-              <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input type="text" id="datamap-keyword-search" 
-                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-1 focus:ring-gov-500" 
-                style="padding-left: 2.5rem !important;"
-                placeholder="키워드 검색 (예: 초콜릿, 우유...)">
-            </div>
-            <button id="btn-datamap-keyword-search" 
-              class="px-4 py-2 bg-gov-600 text-white rounded-lg text-sm font-medium hover:bg-gov-700 transition-colors whitespace-nowrap">
-              키워드 맵 조회
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- 좌측: D3 Treemap -->
-          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[500px]">
-             <h3 class="text-lg font-bold text-slate-800 mb-6">데이터 분포 트리맵 (Treemap)</h3>
-             <div id="treemap-container" class="flex-1 w-full rounded-xl overflow-hidden relative bg-slate-50 border border-slate-100 min-h-[400px]">
-             </div>
-          </div>
-
-          <!-- 우측: 카테고리 비율 현황 -->
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full min-h-[500px]">
-             <h3 class="text-lg font-bold text-slate-800 mb-6 flex justify-between items-end">
-               <span>카테고리 비율 현황</span>
-               <span class="text-xs font-normal text-slate-500">총 ${totalCount}종</span>
-             </h3>
-             <div class="flex-1 overflow-y-auto pr-2 space-y-4" id="category-list-container">
-             </div>
-          </div>
-        </div>
-        
-        <!-- 하단: 선택된 카테고리의 데이터세트 목록 -->
-        <div id="selected-category-datasets" class="mt-8 hidden animate-fade-in">
-          <h3 class="text-xl font-bold text-slate-800 mb-4 border-b border-slate-200 pb-3 flex items-center justify-between">
-            <span id="selected-category-title">선택된 카테고리</span>
-            <button id="close-category-panel" class="text-slate-400 hover:text-slate-600"><i class="ri-close-line text-2xl"></i></button>
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="dataset-cards-container">
-          </div>
-        </div>
-      </section>
-    `;
+    const view = document.getElementById('datamap-view');
+    if (!view) return;
+    
+    view.style.display = 'block';
+    
+    const countEl = view.querySelector('#category-total-count');
+    if (countEl) countEl.textContent = `총 ${totalCount}종`;
 
     renderCategoryList(subjectArray);
 
@@ -110,16 +61,16 @@ export function renderDataMap(container, onSelectDataset) {
     }, 100);
 
     // 하단 패널 닫기 버튼
-    const closeBtn = container.querySelector('#close-category-panel');
+    const closeBtn = view.querySelector('#close-category-panel');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
-        container.querySelector('#selected-category-datasets').classList.add('hidden');
+        view.querySelector('#selected-category-datasets').classList.add('hidden');
       });
     }
 
     // 키워드 데이터맵 검색 버튼 연동
-    const searchInput = container.querySelector('#datamap-keyword-search');
-    const searchBtn = container.querySelector('#btn-datamap-keyword-search');
+    const searchInput = view.querySelector('#datamap-keyword-search');
+    const searchBtn = view.querySelector('#btn-datamap-keyword-search');
     if (searchBtn && searchInput) {
       const doSearch = () => {
         const kw = searchInput.value.trim();
@@ -132,8 +83,15 @@ export function renderDataMap(container, onSelectDataset) {
           searchInput.focus();
         }
       };
-      searchBtn.addEventListener('click', doSearch);
-      searchInput.addEventListener('keydown', (e) => {
+      
+      // Remove old event listeners if they exist
+      const newSearchBtn = searchBtn.cloneNode(true);
+      searchBtn.parentNode.replaceChild(newSearchBtn, searchBtn);
+      const newSearchInput = searchInput.cloneNode(true);
+      searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+      
+      newSearchBtn.addEventListener('click', doSearch);
+      newSearchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           doSearch();
         }
@@ -148,7 +106,9 @@ export function renderDataMap(container, onSelectDataset) {
   ];
 
   const renderCategoryList = (subjectArray) => {
-    const listContainer = container.querySelector('#category-list-container');
+    const view = document.getElementById('datamap-view');
+    if (!view) return;
+    const listContainer = view.querySelector('#category-list-container');
     if (!listContainer) return;
 
     listContainer.innerHTML = subjectArray.map((item, idx) => {
@@ -278,9 +238,11 @@ export function renderDataMap(container, onSelectDataset) {
   };
 
   const showCategoryDatasets = (categoryData) => {
-    const panel = container.querySelector('#selected-category-datasets');
-    const title = container.querySelector('#selected-category-title');
-    const cardsContainer = container.querySelector('#dataset-cards-container');
+    const view = document.getElementById('datamap-view');
+    if (!view) return;
+    const panel = view.querySelector('#selected-category-datasets');
+    const title = view.querySelector('#selected-category-title');
+    const cardsContainer = view.querySelector('#dataset-cards-container');
 
     if (!panel || !title || !cardsContainer) return;
 
