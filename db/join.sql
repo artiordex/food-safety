@@ -1,7 +1,7 @@
 -- =============================================================================
 --   데이터 연동 검증 보고서: 실제 SQL INNER JOIN 성공 케이스 쿼리 목록
---   총 검증된 조인 성공 관계: 23개
---   생성일시: 2026-06-11T06:25:06.776Z
+--   총 검증된 조인 성공 관계: 25개
+--   생성일시: 2026-06-11T13:25:05.016Z
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -199,8 +199,8 @@ LIMIT 10;
 
 -- -----------------------------------------------------------------------------
 -- 6. [HIGH] I2712.LCNS_NO <-> I2713.LCNS_NO
---   - 값 일치율: 71.4% (115개 / Unique 161개)
---   - 실제 JOIN 레코드 수: 802건
+--   - 값 일치율: 70.8% (114개 / Unique 161개)
+--   - 실제 JOIN 레코드 수: 800건
 --   - 매칭된 샘플 데이터: ["11111111123","19879415001","19909614003"]
 -- -----------------------------------------------------------------------------
 SELECT
@@ -368,7 +368,49 @@ WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 9. [HIGH] I0940.TESTITM_CD <-> I2530.TESTITM_CD
+-- 9. [HIGH] I0960.TESTITM_CD <-> I2530.TESTITM_CD
+--   - 값 일치율: 60.9% (103개 / Unique 169개)
+--   - 실제 JOIN 레코드 수: 567건
+--   - 매칭된 샘플 데이터: ["A10018","A10019","A10020"]
+-- -----------------------------------------------------------------------------
+SELECT
+    A."PRDLST_CD" AS "A_품목코드",
+    A."PC_KOR_NM" AS "A_품목한글명",
+    A."TESTITM_CD" AS "A_시험항목코드",
+    A."T_KOR_NM" AS "A_시험항목 한글명",
+    A."FNPRT_ITM_NM" AS "A_세부항목명",
+    A."SPEC_VAL" AS "A_기준규격값",
+    A."SPEC_VAL_SUMUP" AS "A_기준규격값 요약",
+    A."VALD_BEGN_DT" AS "A_유효개시일자",
+    A."VALD_END_DT" AS "A_유효종료일자",
+    A."SORC" AS "A_출처",
+    A."MXMM_VAL" AS "A_최대값",
+    A."MIMM_VAL" AS "A_최소값",
+    A."INJRY_YN" AS "A_위해여부",
+    A."UNIT_NM" AS "A_단위명",
+    B."TESTITM_CD" AS "B_시험항목코드",
+    B."KOR_NM" AS "B_한글명",
+    B."ENG_NM" AS "B_영문명",
+    B."ABRV" AS "B_약어",
+    B."NCKNM" AS "B_이명",
+    B."TESTITM_NM" AS "B_시험항목명",
+    B."TESTITM_LCLAS_CD" AS "B_시험항목대분류시퀀스",
+    B."L_ATTRB_CD" AS "B_시험항목대분류코드",
+    B."L_KOR_NM" AS "B_대분류한글명",
+    B."TESTITM_MLSFC_CD" AS "B_시험항목중분류시퀀스",
+    B."M_ATTRB_CD" AS "B_시험항목중분류코드",
+    B."M_KOR_NM" AS "B_중분류한글명",
+    B."REMN_MTTR_DFN" AS "B_잔류물질정의",
+    B."USE_YN" AS "B_사용여부",
+    B."LAST_UPDT_DTM" AS "B_최종수정일시"
+FROM "I0960" A
+INNER JOIN "I2530" B
+  ON A."TESTITM_CD" = B."TESTITM_CD"
+WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
+LIMIT 10;
+
+-- -----------------------------------------------------------------------------
+-- 10. [HIGH] I0940.TESTITM_CD <-> I2530.TESTITM_CD
 --   - 값 일치율: 16.9% (12개 / Unique 71개)
 --   - 실제 JOIN 레코드 수: 230건
 --   - 매칭된 샘플 데이터: ["A20024","A20025","A30009"]
@@ -410,7 +452,7 @@ WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 10. [HIGH] I1310.LCNS_NO <-> I2500.LCNS_NO
+-- 11. [HIGH] I1310.LCNS_NO <-> I2500.LCNS_NO
 --   - 값 일치율: 30.0% (3개 / Unique 10개)
 --   - 실제 JOIN 레코드 수: 212건
 --   - 매칭된 샘플 데이터: ["19640448001","19670230001","19690086016"]
@@ -442,7 +484,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 11. [HIGH] I2600.TESTITM_CD <-> I2530.TESTITM_CD
+-- 12. [HIGH] I2600.TESTITM_CD <-> I2530.TESTITM_CD
 --   - 값 일치율: 5.4% (16개 / Unique 299개)
 --   - 실제 JOIN 레코드 수: 171건
 --   - 매칭된 샘플 데이터: ["A10029","A30023","B10001"]
@@ -512,7 +554,49 @@ WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 12. [HIGH] I2550.HRNK_DSPS_STDR_CD <-> I1670.DSPS_STDR_CD
+-- 13. [HIGH] I0950.TESTITM_CD <-> I2530.TESTITM_CD
+--   - 값 일치율: 50.0% (17개 / Unique 34개)
+--   - 실제 JOIN 레코드 수: 94건
+--   - 매칭된 샘플 데이터: ["A10008","A10029","A10098"]
+-- -----------------------------------------------------------------------------
+SELECT
+    A."PRDLST_CD" AS "A_품목코드",
+    A."PC_KOR_NM" AS "A_품목한글명",
+    A."TESTITM_CD" AS "A_시험항목코드",
+    A."T_KOR_NM" AS "A_시험항목 한글명",
+    A."FNPRT_ITM_NM" AS "A_세부항목명",
+    A."SPEC_VAL" AS "A_기준규격값",
+    A."SPEC_VAL_SUMUP" AS "A_기준규격값 요약",
+    A."VALD_BEGN_DT" AS "A_유효개시일자",
+    A."VALD_END_DT" AS "A_유효종료일자",
+    A."SORC" AS "A_출처",
+    A."MXMM_VAL" AS "A_최대값",
+    A."MIMM_VAL" AS "A_최소값",
+    A."INJRY_YN" AS "A_위해여부",
+    A."UNIT_NM" AS "A_단위명",
+    B."TESTITM_CD" AS "B_시험항목코드",
+    B."KOR_NM" AS "B_한글명",
+    B."ENG_NM" AS "B_영문명",
+    B."ABRV" AS "B_약어",
+    B."NCKNM" AS "B_이명",
+    B."TESTITM_NM" AS "B_시험항목명",
+    B."TESTITM_LCLAS_CD" AS "B_시험항목대분류시퀀스",
+    B."L_ATTRB_CD" AS "B_시험항목대분류코드",
+    B."L_KOR_NM" AS "B_대분류한글명",
+    B."TESTITM_MLSFC_CD" AS "B_시험항목중분류시퀀스",
+    B."M_ATTRB_CD" AS "B_시험항목중분류코드",
+    B."M_KOR_NM" AS "B_중분류한글명",
+    B."REMN_MTTR_DFN" AS "B_잔류물질정의",
+    B."USE_YN" AS "B_사용여부",
+    B."LAST_UPDT_DTM" AS "B_최종수정일시"
+FROM "I0950" A
+INNER JOIN "I2530" B
+  ON A."TESTITM_CD" = B."TESTITM_CD"
+WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
+LIMIT 10;
+
+-- -----------------------------------------------------------------------------
+-- 14. [HIGH] I2550.HRNK_DSPS_STDR_CD <-> I1670.DSPS_STDR_CD
 --   - 값 일치율: 7.0% (12개 / Unique 172개)
 --   - 실제 JOIN 레코드 수: 88건
 --   - 매칭된 샘플 데이터: ["00409702000000","00409702000015","00409702000018"]
@@ -543,8 +627,8 @@ WHERE A."HRNK_DSPS_STDR_CD" IS NOT NULL AND A."HRNK_DSPS_STDR_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 13. [HIGH] C002.LCNS_NO <-> I1220.LCNS_NO
---   - 값 일치율: 6.4% (17개 / Unique 265개)
+-- 15. [HIGH] C002.LCNS_NO <-> I1220.LCNS_NO
+--   - 값 일치율: 6.4% (17개 / Unique 266개)
 --   - 실제 JOIN 레코드 수: 73건
 --   - 매칭된 샘플 데이터: ["19940506240","19950433026","19990461386"]
 -- -----------------------------------------------------------------------------
@@ -574,7 +658,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 14. [HIGH] I1670.DSPS_STDR_CD <-> I2550.DSPS_STDR_CD
+-- 16. [HIGH] I1670.DSPS_STDR_CD <-> I2550.DSPS_STDR_CD
 --   - 값 일치율: 13.4% (66개 / Unique 493개)
 --   - 실제 JOIN 레코드 수: 66건
 --   - 매칭된 샘플 데이터: ["00180502745000","00180527000000","00409702000000"]
@@ -605,7 +689,7 @@ WHERE A."DSPS_STDR_CD" IS NOT NULL AND A."DSPS_STDR_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 15. [HIGH] I2712.PRDLST_REPORT_NO <-> I2711.PRDLST_REPORT_NO
+-- 17. [HIGH] I2712.PRDLST_REPORT_NO <-> I2711.PRDLST_REPORT_NO
 --   - 값 일치율: 4.9% (49개 / Unique 1000개)
 --   - 실제 JOIN 레코드 수: 49건
 --   - 매칭된 샘플 데이터: ["19879415001133","19879415001134","19879415001135"]
@@ -635,7 +719,7 @@ WHERE A."PRDLST_REPORT_NO" IS NOT NULL AND A."PRDLST_REPORT_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 16. [HIGH] C006.LCNS_NO <-> I1300.LCNS_NO
+-- 18. [HIGH] C006.LCNS_NO <-> I1300.LCNS_NO
 --   - 값 일치율: 9.6% (11개 / Unique 115개)
 --   - 실제 JOIN 레코드 수: 25건
 --   - 매칭된 샘플 데이터: ["19930405001","19960262002","20030262013"]
@@ -665,37 +749,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 17. [HIGH] I2852.LCNS_NO <-> I1300.LCNS_NO
---   - 값 일치율: 2.8% (5개 / Unique 180개)
---   - 실제 JOIN 레코드 수: 17건
---   - 매칭된 샘플 데이터: ["20060405043","20230049770","20240261015"]
--- -----------------------------------------------------------------------------
-SELECT
-    A."PRDLST_REPORT_NO" AS "A_품목제조보고번호",
-    A."PRMS_DT" AS "A_품목보고일자",
-    A."PRDLST_NM" AS "A_제품명",
-    A."END_DT" AS "A_생산중단일자",
-    A."PRDLST_DCNM" AS "A_품목유형명",
-    A."LCNS_NO" AS "A_인허가번호",
-    A."BSSH_NM" AS "A_업소명",
-    A."FOOD_HF_LS_CL_CD_NM" AS "A_구분",
-    A."ARTCL_END_WHY" AS "A_생산중단사유",
-    B."LCNS_NO" AS "B_인허가번호",
-    B."BSSH_NM" AS "B_업소명",
-    B."PRSDNT_NM" AS "B_대표자명",
-    B."INDUTY_NM" AS "B_업종",
-    B."PRMS_DT" AS "B_허가일자",
-    B."LOCP_ADDR" AS "B_주소",
-    B."INSTT_NM" AS "B_기관명",
-    B."TELNO" AS "B_전화번호"
-FROM "I2852" A
-INNER JOIN "I1300" B
-  ON A."LCNS_NO" = B."LCNS_NO"
-WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
-LIMIT 10;
-
--- -----------------------------------------------------------------------------
--- 18. [HIGH] I2610.TESTITM_CD <-> I2530.TESTITM_CD
+-- 19. [HIGH] I2610.TESTITM_CD <-> I2530.TESTITM_CD
 --   - 값 일치율: 57.1% (4개 / Unique 7개)
 --   - 실제 JOIN 레코드 수: 16건
 --   - 매칭된 샘플 데이터: ["B10002","B10004","B10006"]
@@ -729,7 +783,37 @@ WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 19. [HIGH] I1230.LCNS_NO <-> I2500.LCNS_NO
+-- 20. [HIGH] I2852.LCNS_NO <-> I1300.LCNS_NO
+--   - 값 일치율: 3.7% (5개 / Unique 134개)
+--   - 실제 JOIN 레코드 수: 16건
+--   - 매칭된 샘플 데이터: ["20060405043","20230049770","20240261015"]
+-- -----------------------------------------------------------------------------
+SELECT
+    A."PRDLST_REPORT_NO" AS "A_품목제조보고번호",
+    A."PRMS_DT" AS "A_품목보고일자",
+    A."PRDLST_NM" AS "A_제품명",
+    A."END_DT" AS "A_생산중단일자",
+    A."PRDLST_DCNM" AS "A_품목유형명",
+    A."LCNS_NO" AS "A_인허가번호",
+    A."BSSH_NM" AS "A_업소명",
+    A."FOOD_HF_LS_CL_CD_NM" AS "A_구분",
+    A."ARTCL_END_WHY" AS "A_생산중단사유",
+    B."LCNS_NO" AS "B_인허가번호",
+    B."BSSH_NM" AS "B_업소명",
+    B."PRSDNT_NM" AS "B_대표자명",
+    B."INDUTY_NM" AS "B_업종",
+    B."PRMS_DT" AS "B_허가일자",
+    B."LOCP_ADDR" AS "B_주소",
+    B."INSTT_NM" AS "B_기관명",
+    B."TELNO" AS "B_전화번호"
+FROM "I2852" A
+INNER JOIN "I1300" B
+  ON A."LCNS_NO" = B."LCNS_NO"
+WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
+LIMIT 10;
+
+-- -----------------------------------------------------------------------------
+-- 21. [HIGH] I1230.LCNS_NO <-> I2500.LCNS_NO
 --   - 값 일치율: 1.2% (12개 / Unique 1000개)
 --   - 실제 JOIN 레코드 수: 12건
 --   - 매칭된 샘플 데이터: ["19630255002","19630355001","19630364001"]
@@ -757,7 +841,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 20. [HIGH] I2832.LCNS_NO <-> I2500.LCNS_NO
+-- 22. [HIGH] I2832.LCNS_NO <-> I2500.LCNS_NO
 --   - 값 일치율: 0.6% (6개 / Unique 1000개)
 --   - 실제 JOIN 레코드 수: 6건
 --   - 매칭된 샘플 데이터: ["18820308001","19680134001","19700129010"]
@@ -784,49 +868,8 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 21. [HIGH] I2560.LCNS_NO <-> I2500.LCNS_NO
---   - 값 일치율: 100.0% (5개 / Unique 5개)
---   - 실제 JOIN 레코드 수: 5건
---   - 매칭된 샘플 데이터: ["18820308001","18830478001","18890592003"]
--- -----------------------------------------------------------------------------
-SELECT
-    A."LCNS_NO" AS "A_인허가번호",
-    A."BSSH_NM" AS "A_업소명",
-    A."LOCPLC" AS "A_소재지",
-    A."SAN" AS "A_산",
-    A."LNBR" AS "A_번지",
-    A."ISSNO" AS "A_호",
-    A."TONG" AS "A_통",
-    A."BAN" AS "A_반",
-    A."SPCLADDR" AS "A_특수주소",
-    A."SPCPPDONG" AS "A_특수지동",
-    A."SPCPPISSNO" AS "A_특수지호",
-    A."ROADNMSIGNGUCD" AS "A_도로명시군구코드",
-    A."ROADNMADDREMDDVS" AS "A_도로명주소읍면동구분",
-    A."ROADNMADDREMDCD" AS "A_도로명주소읍면동코드",
-    A."ROADNMADDRBDFLRDVS" AS "A_도로명주소건물층구분",
-    A."ROADNMADDRBDORIGNO" AS "A_도로명주소건물본번호",
-    A."ROADNMADDRBDSUBNO" AS "A_도로명주소건물부번호",
-    A."ROADNMADDRSPCLADDR" AS "A_도로명주소특수주소",
-    A."PNU_CD" AS "A_PNU코드",
-    A."BDMERGEMANAGENO" AS "A_건물통합관리번호",
-    A."UFID_CD" AS "A_UFID코드",
-    B."LCNS_NO" AS "B_영업고유구분번호(인허가번호)",
-    B."INDUTY_CD_NM" AS "B_업종",
-    B."BSSH_NM" AS "B_업소명",
-    B."PRSDNT_NM" AS "B_대표자명",
-    B."TELNO" AS "B_전화번호",
-    B."PRMS_DT" AS "B_허가일자",
-    B."ADDR" AS "B_주소"
-FROM "I2560" A
-INNER JOIN "I2500" B
-  ON A."LCNS_NO" = B."LCNS_NO"
-WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
-LIMIT 10;
-
--- -----------------------------------------------------------------------------
--- 22. [HIGH] C002.LCNS_NO <-> I2500.LCNS_NO
---   - 값 일치율: 1.1% (3개 / Unique 265개)
+-- 23. [HIGH] C002.LCNS_NO <-> I2500.LCNS_NO
+--   - 값 일치율: 1.1% (3개 / Unique 266개)
 --   - 실제 JOIN 레코드 수: 5건
 --   - 매칭된 샘플 데이터: ["19550509001","19660202002","19690086003"]
 -- -----------------------------------------------------------------------------
@@ -855,7 +898,49 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 10;
 
 -- -----------------------------------------------------------------------------
--- 23. [HIGH] I2610.PRDLST_CD <-> I2510.PRDLST_CD
+-- 24. [HIGH] I2560.LCNS_NO <-> I1300.LCNS_NO
+--   - 값 일치율: 0.3% (3개 / Unique 1000개)
+--   - 실제 JOIN 레코드 수: 3건
+--   - 매칭된 샘플 데이터: ["19640448001","19670230001","19690086016"]
+-- -----------------------------------------------------------------------------
+SELECT
+    A."LCNS_NO" AS "A_인허가번호",
+    A."BSSH_NM" AS "A_업소명",
+    A."LOCPLC" AS "A_소재지",
+    A."SAN" AS "A_산",
+    A."LNBR" AS "A_번지",
+    A."ISSNO" AS "A_호",
+    A."TONG" AS "A_통",
+    A."BAN" AS "A_반",
+    A."SPCLADDR" AS "A_특수주소",
+    A."SPCPPDONG" AS "A_특수지동",
+    A."SPCPPISSNO" AS "A_특수지호",
+    A."ROADNMSIGNGUCD" AS "A_도로명시군구코드",
+    A."ROADNMADDREMDDVS" AS "A_도로명주소읍면동구분",
+    A."ROADNMADDREMDCD" AS "A_도로명주소읍면동코드",
+    A."ROADNMADDRBDFLRDVS" AS "A_도로명주소건물층구분",
+    A."ROADNMADDRBDORIGNO" AS "A_도로명주소건물본번호",
+    A."ROADNMADDRBDSUBNO" AS "A_도로명주소건물부번호",
+    A."ROADNMADDRSPCLADDR" AS "A_도로명주소특수주소",
+    A."PNU_CD" AS "A_PNU코드",
+    A."BDMERGEMANAGENO" AS "A_건물통합관리번호",
+    A."UFID_CD" AS "A_UFID코드",
+    B."LCNS_NO" AS "B_인허가번호",
+    B."BSSH_NM" AS "B_업소명",
+    B."PRSDNT_NM" AS "B_대표자명",
+    B."INDUTY_NM" AS "B_업종",
+    B."PRMS_DT" AS "B_허가일자",
+    B."LOCP_ADDR" AS "B_주소",
+    B."INSTT_NM" AS "B_기관명",
+    B."TELNO" AS "B_전화번호"
+FROM "I2560" A
+INNER JOIN "I1300" B
+  ON A."LCNS_NO" = B."LCNS_NO"
+WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
+LIMIT 10;
+
+-- -----------------------------------------------------------------------------
+-- 25. [HIGH] I2610.PRDLST_CD <-> I2510.PRDLST_CD
 --   - 값 일치율: 12.5% (1개 / Unique 8개)
 --   - 실제 JOIN 레코드 수: 1건
 --   - 매칭된 샘플 데이터: ["A0000000000000"]

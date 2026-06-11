@@ -709,19 +709,25 @@ function getUniquenessStats(records, fields) {
 
 /**
  * 자식 테이블(fromRecords)의 값이 부모 테이블(toRecords)에 얼마나 포함되는지(포함률)를 계산합니다.
+ * valuesCache를 활용해 Set 객체 생성을 최소화(Memoization)합니다.
  */
-function getInclusionStats(fromRecords, toRecords, fromField, toField) {
-    const fromValues = new Set(
-        (fromRecords || [])
-            .map(r => normalizeValue(r ? r[fromField] : ''))
-            .filter(v => v !== '')
-    );
+function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField, toField, valuesCache = new Map()) {
+    const getCached = (svcNo, records, field) => {
+        const key = `${svcNo}|${field}`;
+        let set = valuesCache.get(key);
+        if (!set) {
+            set = new Set(
+                (records || [])
+                    .map(r => normalizeValue(r ? r[field] : ''))
+                    .filter(v => v !== '')
+            );
+            valuesCache.set(key, set);
+        }
+        return set;
+    };
 
-    const toValues = new Set(
-        (toRecords || [])
-            .map(r => normalizeValue(r ? r[toField] : ''))
-            .filter(v => v !== '')
-    );
+    const fromValues = getCached(fromSvcNo, fromRecords, fromField);
+    const toValues = getCached(toSvcNo, toRecords, toField);
 
     if (fromValues.size === 0 || toValues.size === 0) {
         return {
@@ -787,26 +793,36 @@ function calculateIdentifierScore(field, records) {
 
     const stats = getUniquenessStats(records, [fname]);
 
+    // 샘플이 적을수록 통계 신뢰도가 낮으므로 기여도를 비례 축소한다.
+    // 20건 미만이면 선형으로 줄어들며, 5건이면 25% 신뢰도만 반영한다.
+    const RELIABLE_SAMPLE_MIN = 20;
+    const sampleConfidence = Math.min(records.length / RELIABLE_SAMPLE_MIN, 1.0);
+
     if (records.length > 0) {
         const entropy = computeFieldEntropy(records, fname);
-        // 엔트로피 0~1 → 스코어 기여 -30~+60 (연속값으로 반영)
-        const entropyContrib = Math.round(entropy * 90) - 30;
+        // 엔트로피 0~1 → 스코어 기여 -30~+60, 샘플 신뢰도 비례 축소
+        const rawEntropyContrib = entropy * 90 - 30;
+        const entropyContrib = Math.round(rawEntropyContrib * sampleConfidence);
         score += entropyContrib;
 
+        const confPct = Math.round(sampleConfidence * 100);
         if (entropy >= 0.90) {
-            reasons.push(`엔트로피 높음 ${(entropy * 100).toFixed(0)}% — 식별자 성격 강함`);
+            reasons.push(`엔트로피 높음 ${(entropy * 100).toFixed(0)}% (샘플신뢰도 ${confPct}% → 기여 ${entropyContrib > 0 ? '+' : ''}${entropyContrib})`);
         } else if (entropy >= 0.55) {
-            reasons.push(`엔트로피 중간 ${(entropy * 100).toFixed(0)}% — 코드/범주형 가능성`);
+            reasons.push(`엔트로피 중간 ${(entropy * 100).toFixed(0)}% (샘플신뢰도 ${confPct}% → 기여 ${entropyContrib > 0 ? '+' : ''}${entropyContrib})`);
         } else {
             reasons.push(`엔트로피 낮음 ${(entropy * 100).toFixed(0)}% — 반복값 많음, PK 부적합`);
         }
 
+        // uniqueness 보너스/패널티도 신뢰도 비례 축소
         if (stats.is_unique) {
-            score += 20;
-            reasons.push(`샘플 ${records.length}건 전체 unique 확인`);
+            const bonus = Math.round(20 * sampleConfidence);
+            score += bonus;
+            reasons.push(`샘플 ${records.length}건 전체 unique (신뢰도 ${confPct}% → +${bonus})`);
         } else if (stats.uniqueness_ratio < 0.5) {
-            score -= 20;
-            reasons.push(`unique 비율 낮음 ${stats.unique_count}/${stats.record_count}`);
+            const penalty = Math.round(20 * sampleConfidence);
+            score -= penalty;
+            reasons.push(`unique 비율 낮음 ${stats.unique_count}/${stats.record_count} (-${penalty})`);
         }
         if (stats.has_empty) { score -= 20; reasons.push('샘플에 빈값 존재'); }
     } else {
@@ -845,6 +861,21 @@ function makeCombinations(arr, size) {
 function analyzePkCandidatesForTable(ds, records) {
     const fields = Array.isArray(ds.fields) ? ds.fields : [];
     const validFields = fields.filter(f => getFieldName(f));
+
+    // 모든 필드가 집계/통계 성격이면 이 테이블은 PK 없는 집계 테이블로 분류한다.
+    // 단, 필드가 전혀 없는 경우(데이터 수집 실패)는 집계 판정하지 않는다.
+    if (validFields.length > 0 && validFields.every(f => isBadPkField(f))) {
+        return [{
+            fields: [],
+            kor_names: [],
+            score: 0,
+            type: 'aggregate_table',
+            confidence: 'NONE',
+            unique_check: { record_count: records.length },
+            reason: `모든 필드(${validFields.map(getFieldName).join(', ')})가 집계/통계/설명 성격 — PK 없는 집계 테이블`
+        }];
+    }
+
     const singleCandidates = [];
 
     for (const field of validFields) {
@@ -953,13 +984,16 @@ function profileColumnsWithArquero(records, fieldNames) {
 
 /**
  * 복합키(여러 필드 조합)의 포함률을 계산한다.
- * NULL 이 하나라도 있는 행은 제외한다.
+ * NULL 이 하나라도 있는 행은 제외한다. 순수 JS Set 캐싱으로 성능 최적화.
  *
+ * @param {string} fromSvcNo
+ * @param {string} toSvcNo
  * @param {object[]} fromRecords
  * @param {object[]} toRecords
  * @param {string[]} fields
+ * @param {Map} valuesCache
  */
-function getCompositeInclusionStats(fromRecords, toRecords, fields) {
+function getCompositeInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fields, valuesCache = new Map()) {
     if (!fromRecords.length || !toRecords.length) {
         return { from_count: 0, to_count: 0, matched: 0, inclusion_ratio: 0, checked: false };
     }
@@ -969,27 +1003,30 @@ function getCompositeInclusionStats(fromRecords, toRecords, fields) {
     const makeKey = (rec) => fields.map(f => String(rec[f] ?? '')).join(SEP);
     const isValidKey = (k) => !k.split(SEP).some(isEmpty);
 
-    // arquero로 복합키 컬럼 생성 및 dedup
-    const fromTable = aq.from(fromRecords)
-        .derive({ _aq_key: aq.escape(d => makeKey(d)) })
-        .filter(aq.escape(d => isValidKey(d._aq_key)))
-        .dedupe(['_aq_key']);
+    const getCached = (svcNo, records) => {
+        const key = `${svcNo}|COMPOSITE|${fields.join(',')}`;
+        let set = valuesCache.get(key);
+        if (!set) {
+            set = new Set(records.map(makeKey).filter(isValidKey));
+            valuesCache.set(key, set);
+        }
+        return set;
+    };
 
-    const toTable = aq.from(toRecords)
-        .derive({ _aq_key: aq.escape(d => makeKey(d)) })
-        .filter(aq.escape(d => isValidKey(d._aq_key)))
-        .dedupe(['_aq_key']);
+    const fromValues = getCached(fromSvcNo, fromRecords);
+    const toValues = getCached(toSvcNo, toRecords);
 
-    const fromCount = fromTable.numRows();
-    const toCount = toTable.numRows();
+    const fromCount = fromValues.size;
+    const toCount = toValues.size;
 
     if (fromCount === 0 || toCount === 0) {
         return { from_count: fromCount, to_count: toCount, matched: 0, inclusion_ratio: 0, checked: false };
     }
 
-    // 내부 조인으로 교집합 계산
-    const joined = fromTable.select(['_aq_key']).join(toTable.select(['_aq_key']), '_aq_key');
-    const matched = joined.numRows();
+    let matched = 0;
+    for (const val of fromValues) {
+        if (toValues.has(val)) matched++;
+    }
 
     return {
         from_count: fromCount,
@@ -1044,7 +1081,7 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap) {
                 if (seenKeys.has(dedupeKey)) continue;
                 seenKeys.add(dedupeKey);
 
-                const stats = getCompositeInclusionStats(fromRecords, toRecords, pkFields);
+                const stats = getCompositeInclusionStats(fromSvcNo, targetTable.svc_no, fromRecords, toRecords, pkFields, recordsMap._valuesCache || new Map());
                 if (!stats.checked || stats.inclusion_ratio <= 0) continue;
 
                 const score = Math.min(
@@ -1092,12 +1129,12 @@ function buildPkFieldIndex(tableAnalyses) {
         const bestSinglePk = table.pk_candidates.find(pk => pk.type === 'single');
         if (!bestSinglePk) continue;
 
-        // ── 변경 2/3 ──────────────────────────────────────────────────────────
-        // 기존: PK 신뢰도 LOW인 테이블은 부모 후보에서 완전 제외
-        // 변경: MEDIUM 이상 허용 → LOW만 제외, MEDIUM/HIGH는 모두 부모 후보에 포함
-        // 이유: LOW 제외로 인해 실제 관계가 있는 테이블이 부모 후보 풀에서 빠지는 문제 완화
+        // 집계 테이블(aggregate_table)은 부모 FK 후보에서 제외한다.
+        // 이런 테이블의 "PK"는 실제 식별자가 아니므로 FK 부모로 사용하면 안 된다.
+        if (bestSinglePk.type === 'aggregate_table') continue;
+
+        // MEDIUM 이상만 부모 후보로 허용 (LOW 신뢰도는 제외)
         if (bestSinglePk.confidence === 'LOW') continue;
-        // ─────────────────────────────────────────────────────────────────────
 
         const pkField = bestSinglePk.fields[0].toUpperCase();
         if (!pkFieldIndex.has(pkField)) pkFieldIndex.set(pkField, []);
@@ -1134,7 +1171,7 @@ function shouldSkipByMasterRule(fromSvcNo, fieldName, existingSvcNoSet) {
     return isMasterTableForKey(fromSvcNo, upperField, existingSvcNoSet);
 }
 
-function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fieldName, fuseIndex = null, thresholds = null }) {
+function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, toRecords, fieldName, fuseIndex = null, thresholds = null, valuesCache = new Map() }) {
     const fieldSimilarity = target.fieldSimilarity ?? 1.0;
     const exactFieldMatch = target.exactFieldMatch ?? true;
     const minRatio = thresholds?.min ?? FK_MIN_INCLUSION_RATIO;
@@ -1167,7 +1204,7 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
         reasons.push(`데이터셋명 도메인 유사성 +${domainScore}`);
     }
 
-    const inclusion = getInclusionStats(fromRecords, toRecords, fieldName, target.pk.fields[0]);
+    const inclusion = getInclusionStats(fromSvcNo, target.svc_no, fromRecords, toRecords, fieldName, target.pk.fields[0], valuesCache);
 
     // ==== 데이터 샘플 크기 한계로 인해 교집합이 없어도 
     // FK_ALLOW_UNCHECKED가 true라면 강제 스킵하지 않고 이후 점수로 평가하도록 변경 ====
@@ -1237,6 +1274,21 @@ function scoreFkCandidate({ field, target, fromSvcNm, fromRecords, toRecords, fi
         }
     }
 
+    // ── Substantive evidence gate ─────────────────────────────────────────────
+    // 도메인 규칙 확인 OR 샘플 포함률 > 0 중 하나라도 있어야 CONFIRMED를 유지한다.
+    // 두 근거가 모두 없으면 기계적 점수만으로 CONFIRMED가 되는 것을 막고 SUGGESTED로 강등한다.
+    // 이로써 기본 점수(45 + PK기여 25 + 관계키 18 + 마스터규칙 15)만으로
+    // 아무 근거 없이 CONFIRMED가 되는 케이스를 제거한다.
+    if (relationType === 'CONFIRMED') {
+        const inclusionPositive = inclusion.checked && inclusion.inclusion_ratio > 0;
+        if (!domainConfirmed && !inclusionPositive) {
+            relationType = 'SUGGESTED';
+            score -= 15;
+            reasons.push('도메인 규칙·포함률 근거 없음 → SUGGESTED 강등 (-15)');
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const finalScore = Math.min(Math.max(Math.round(score), 0), 100);
 
     if (relationType === 'SUGGESTED' && finalScore < FK_SUGGESTED_MIN_SCORE) {
@@ -1271,6 +1323,8 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
     const rejectedRelationships = [];
     // 순환 참조 탐지용 Set: "toTable|toField|fromTable|fromField" 형태로 기존 관계를 기록
     const reverseRelSet = new Set();
+    const valuesCache = new Map();
+    recordsMap._valuesCache = valuesCache;
 
     for (const ds of datasets) {
         const fromSvcNo = String(ds.svc_no || '').trim();
@@ -1327,12 +1381,14 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                 const scored = scoreFkCandidate({
                     field,
                     target,
+                    fromSvcNo,
                     fromSvcNm,
                     fromRecords,
                     toRecords,
                     fieldName,
                     fuseIndex,
-                    thresholds
+                    thresholds,
+                    valuesCache
                 });
 
                 if (scored.skip) {
@@ -2079,7 +2135,7 @@ async function run(options) {
             const fieldsB = new Set(recB.length > 0 ? Object.keys(recB[0]) : []);
             for (const f of fieldsA) {
                 if (fieldsB.has(f)) {
-                    const stats = getInclusionStats(recA, recB, f, f);
+                    const stats = getInclusionStats(svcNoA, svcNoB, recA, recB, f, f);
                     if (stats.checked) allInclusionRatios.push(stats.inclusion_ratio);
                 }
             }
