@@ -1,6 +1,7 @@
-import { datasets } from '../datasetData.js';
+import { getDatasets } from '../datasetStore.js';
 
-export function renderApiLiveJoin(container, onSelectDataset) {
+export async function renderApiLiveJoin(container, onSelectDataset) {
+  const datasets = await getDatasets();
   // 융합뷰 제외 순수 OpenAPI 테이블만 추출
   const apiTables = datasets.filter(ds => !ds.id.startsWith('v_') && ds.id !== 'api_tables' && ds.id !== 'api_columns');
   // 이름순 정렬

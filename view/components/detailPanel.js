@@ -1,6 +1,13 @@
-import {
-  subjectColorMap,
-} from '../datasetData.js';
+const subjectColorMap = {
+  '융합 데이터 세트': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  '식품·제품': 'bg-teal-50 text-teal-700 border-teal-200',
+  '업체·영업자': 'bg-gov-50 text-gov-700 border-gov-200',
+  '원재료·첨가물': 'bg-rose-50 text-rose-700 border-rose-200',
+  '영양·건강': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  '수입식품': 'bg-amber-50 text-amber-700 border-amber-200',
+  '농·축·수산물': 'bg-violet-50 text-violet-700 border-violet-200',
+  '기타': 'bg-slate-50 text-slate-700 border-slate-200'
+};
 
 export function renderDetailPanel(dataset, onClose) {
   const container = document.getElementById('detail-panel-container');

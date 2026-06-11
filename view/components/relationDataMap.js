@@ -1,9 +1,15 @@
-import {
-  datasets,
-  subjectColorMap,
-  dataMapNodes,
-  dataMapEdges
-} from '../datasetData.js';
+import { getDatasets } from '../datasetStore.js';
+
+const subjectColorMap = {
+  '융합 데이터 세트': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  '식품·제품': 'bg-teal-50 text-teal-700 border-teal-200',
+  '업체·영업자': 'bg-gov-50 text-gov-700 border-gov-200',
+  '원재료·첨가물': 'bg-rose-50 text-rose-700 border-rose-200',
+  '영양·건강': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  '수입식품': 'bg-amber-50 text-amber-700 border-amber-200',
+  '농·축·수산물': 'bg-violet-50 text-violet-700 border-violet-200',
+  '기타': 'bg-slate-50 text-slate-700 border-slate-200'
+};
 
 // 8대 주제 도메인별 참여 테이블 정의
 const domainTables = {
@@ -19,7 +25,7 @@ const domainTables = {
 };
 
 // 모든 미분류 데이터셋을 해당 도메인에 동적으로 분류
-function dynamicallyCategorizeDatasets() {
+function dynamicallyCategorizeDatasets(datasets) {
   const allCategorized = new Set(Object.values(domainTables).flat());
 
   datasets.forEach(ds => {
@@ -138,8 +144,6 @@ function dynamicallyCategorizeDatasets() {
   });
 }
 
-// 초기화 가동
-dynamicallyCategorizeDatasets();
 
 // 도메인 한글 칭 명칭 매핑
 const domainNames = {
@@ -200,7 +204,15 @@ const subjectColors = {
   }
 };
 
-export function renderRelationDataMap(container, onSelectDataset) {
+export async function renderRelationDataMap(container, onSelectDataset) {
+  const datasets = await getDatasets();
+  const allNodes = datasets.map(ds => ({
+    id: ds.id,
+    label: ds.name ? ds.name.split(' (')[0] : ds.id,
+    type: 'data',
+    datasets: [ds.id]
+  }));
+  dynamicallyCategorizeDatasets(datasets);
   let activeDomainId = 'all';
   let maxNodesLimit = 30;
   let activePhysics = true;
@@ -462,7 +474,7 @@ export function renderRelationDataMap(container, onSelectDataset) {
           <div class="flex-1 flex flex-col gap-6 min-w-0 w-full relative">
             
             <!-- 메인 가동 캔버스 카드 -->
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[580px] relative">
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[290px] relative">
               
               <!-- 캔버스 컨트롤 헤더 -->
               <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
@@ -498,7 +510,7 @@ export function renderRelationDataMap(container, onSelectDataset) {
               </div>
 
               <!-- 관계도 그리기 캔버스 및 우측 슬라이드인 사이드바 영역 -->
-              <div class="flex-1 bg-slate-50/20 relative flex overflow-hidden" style="height: clamp(520px, 60vw, 750px); width: 100%;">
+              <div class="flex-1 bg-slate-50/20 relative flex overflow-hidden" style="height: clamp(260px, 30vw, 375px); width: 100%;">
                 
                 <!-- 캔버스 자체 -->
                 <div class="flex-1 h-full" id="network-graph-canvas"></div>
@@ -547,7 +559,7 @@ export function renderRelationDataMap(container, onSelectDataset) {
     });
 
     // 키워드 필터 적용 (테이블명·설명 + 컬럼명·한글명 통합 매칭)
-    let visibleNodes = dataMapNodes.filter(node => {
+    let visibleNodes = allNodes.filter(node => {
       if (!filteredNodeIds.has(node.id)) return false;
       if (!activeKeyword) return true;
       const kw = activeKeyword.toLowerCase();
@@ -569,12 +581,12 @@ export function renderRelationDataMap(container, onSelectDataset) {
       const matchedIds = new Set(visibleNodes.map(n => n.id));
       const edgesToUseEarly = relationships.length > 0
         ? relationships.map(r => ({ from: r.from_table, to: r.to_table }))
-        : dataMapEdges;
+        : [];
       edgesToUseEarly.forEach(edge => {
         if (matchedIds.has(edge.from) && filteredNodeIds.has(edge.to)) matchedIds.add(edge.to);
         if (matchedIds.has(edge.to) && filteredNodeIds.has(edge.from)) matchedIds.add(edge.from);
       });
-      visibleNodes = dataMapNodes.filter(n => matchedIds.has(n.id));
+      visibleNodes = allNodes.filter(n => matchedIds.has(n.id));
     }
 
     // 노드 개수 리밋 적용
@@ -585,7 +597,7 @@ export function renderRelationDataMap(container, onSelectDataset) {
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
 
     // 2단계: 핵심 조인키 기준 연계선 필터링
-    let edgesToUse = [...dataMapEdges];
+    let edgesToUse = [...[]];
     if (relationships && relationships.length > 0) {
       edgesToUse = relationships.map(rel => {
         let labelKey = rel.from_field;

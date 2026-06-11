@@ -1,4 +1,4 @@
-import { datasets } from '../datasetData.js';
+import { getDatasetsSync } from '../datasetStore.js';
 
 export function renderDataMap(container, onSelectDataset) {
   // DB에서 데이터 가져오기
@@ -155,7 +155,7 @@ export function renderDataMap(container, onSelectDataset) {
     if (!containerEl) return;
 
     const width = containerEl.clientWidth || 800;
-    const height = containerEl.clientHeight || 500;
+    const height = containerEl.clientHeight || 250;
 
     // Remove old svg
     containerEl.innerHTML = '';
@@ -271,7 +271,7 @@ export function renderDataMap(container, onSelectDataset) {
     cardsContainer.querySelectorAll('.dataset-card').forEach(card => {
       card.addEventListener('click', () => {
         const dsId = card.dataset.id;
-        let ds = datasets.find(i => i.id === dsId);
+        let ds = getDatasetsSync().find(i => i.id === dsId);
         if (!ds) {
           const rawDs = categoryData.items.find(i => i.id === dsId);
           if (rawDs) {

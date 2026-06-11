@@ -64,6 +64,12 @@ export function renderDatasetExplorer(container, onSelectDataset) {
 
   // ── 메인 렌더 ─────────────────────────────────────────────────────────────
   const render = () => {
+    const view = document.getElementById('dataset-explorer-view');
+    if (!view) return;
+    
+    // 로딩 스피너 제거 (정적 HTML에서는 기본 숨김 처리되어 있거나 표시됨)
+    view.style.display = 'block';
+    
     const filtered  = getFiltered();
     const total     = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -76,12 +82,89 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     const orgs  = [...new Set(allData.map(d => d.provd_instt_nm).filter(Boolean))].sort();
     const types = [...new Set(allData.map(d => d.data_type_nm).filter(Boolean))].sort();
 
-    // 분류 셀렉트 라벨 (선택된 경우 건수 표시)
-    const catLabel = selectedCat
-      ? `${selectedCat} (${filtered.length})`
-      : '분류별';
+    // 동적 요소 업데이트
+    const selCat = view.querySelector('#sel-cat');
+    if (selCat) {
+      selCat.innerHTML = `<option value="">분류별</option>` + cats.map(c => `<option value="${c}" ${c === selectedCat ? 'selected' : ''}>${c}</option>`).join('');
+    }
 
-    // 페이지네이션 버튼
+    const selOrg = view.querySelector('#sel-org');
+    if (selOrg) {
+      selOrg.innerHTML = `<option value="">제공기관별</option>` + orgs.map(o => `<option value="${o}" ${o === selectedOrg ? 'selected' : ''}>${o}</option>`).join('');
+    }
+
+    const selType = view.querySelector('#sel-type');
+    if (selType) {
+      selType.innerHTML = `<option value="">유형별</option>` + types.map(t => `<option value="${t}" ${t === selectedType ? 'selected' : ''}>${t}</option>`).join('');
+    }
+
+    const inpKeyword = view.querySelector('#inp-keyword');
+    if (inpKeyword && document.activeElement !== inpKeyword) {
+      inpKeyword.value = appliedKeyword;
+    }
+
+    const resetContainer = view.querySelector('#reset-container');
+    if (resetContainer) {
+      if (selectedCat || selectedOrg || selectedType || appliedKeyword) {
+        resetContainer.innerHTML = `<button id="btn-reset" class="h-9 px-4 border border-slate-300 text-slate-600 text-sm rounded hover:bg-slate-100 transition-colors">초기화</button>`;
+        const btnReset = resetContainer.querySelector('#btn-reset');
+        if (btnReset) {
+          btnReset.addEventListener('click', () => {
+            selectedCat = ''; selectedOrg = ''; selectedType = '';
+            keyword = ''; appliedKeyword = '';
+            currentPage = 1;
+            render();
+          });
+        }
+      } else {
+        resetContainer.innerHTML = '';
+      }
+    }
+
+    const totalCount = view.querySelector('#total-count');
+    if (totalCount) {
+      totalCount.innerHTML = `Total: <strong class="text-slate-900">${total}</strong>` + 
+        (total !== allData.length ? `<span class="text-blue-600 ml-1">(전체 ${allData.length}건 중 필터)</span>` : '');
+    }
+
+    const selPageSize = view.querySelector('#sel-pagesize');
+    if (selPageSize) {
+      selPageSize.value = pageSize;
+    }
+
+    // 카드 그리드 업데이트
+    const cardsGrid = view.querySelector('#cards-grid');
+    if (cardsGrid) {
+      cardsGrid.innerHTML = paged.length === 0
+        ? `<div class="col-span-full py-20 text-center text-slate-400">
+            <i class="ri-search-line text-4xl block mb-3 opacity-40"></i>
+            검색 결과가 없습니다.
+           </div>`
+        : paged.map(cardHTML).join('');
+        
+      // 이벤트 재바인딩
+      cardsGrid.querySelectorAll('.dataset-card').forEach(card => {
+        card.addEventListener('click', e => {
+          const svc_no = e.currentTarget.getAttribute('data-id');
+          const ds = allData.find(d => d.svc_no === svc_no);
+          if (ds && onSelectDataset) {
+            onSelectDataset({
+              id:          ds.svc_no,
+              name:        ds.svc_nm,
+              subject:     ds.cat,
+              process:     ds.cat,
+              issue:       '해당없음',
+              theme:       ds.cat,
+              description: ds.desc || '',
+              includedData: ds.fields ? ds.fields.map(f => f.kor_nm || f.field) : [],
+              dataCount:   ds.sample_data_length || 0
+            });
+          }
+        });
+      });
+    }
+
+    // 페이지네이션 업데이트
     const pageButtons = (() => {
       if (totalPages <= 1) return '';
       const btns = [];
@@ -99,221 +182,86 @@ export function renderDatasetExplorer(container, onSelectDataset) {
       return btns.join('');
     })();
 
-    container.innerHTML = `
-      <div class="max-w-[1400px] mx-auto px-4 py-8">
-
-        <!-- 헤더 -->
-        <div class="flex items-end justify-between mb-6">
-          <div>
-            <h2 class="text-2xl font-bold text-slate-900">전체 데이터세트 탐색</h2>
-            <p class="text-slate-500 text-sm mt-1">
-              식품의약품안전처에서 제공하는 공공데이터를 검색·필터링하세요.
-            </p>
-          </div>
-          <a href="#" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-700 transition-colors">
-            OpenAPI 이용신청
-          </a>
-        </div>
-
-        <!-- 검색 필터 영역 -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-4 mb-4 flex flex-wrap items-center gap-3">
-
-          <!-- 분류별 -->
-          <select id="sel-cat" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-            <option value="">분류별</option>
-            ${cats.map(c => `<option value="${c}" ${c === selectedCat ? 'selected' : ''}>${c}</option>`).join('')}
-          </select>
-
-          <!-- 제공기관별 -->
-          <select id="sel-org" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-            <option value="">제공기관별</option>
-            ${orgs.map(o => `<option value="${o}" ${o === selectedOrg ? 'selected' : ''}>${o}</option>`).join('')}
-          </select>
-
-          <!-- 유형별 -->
-          <select id="sel-type" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-            <option value="">유형별</option>
-            ${types.map(t => `<option value="${t}" ${t === selectedType ? 'selected' : ''}>${t}</option>`).join('')}
-          </select>
-
-          <!-- 키워드 검색 -->
-          <input id="inp-keyword" type="text" value="${appliedKeyword}"
-            placeholder="서비스명·코드·설명 검색"
-            class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300" />
-
-          <!-- 검색 버튼 -->
-          <button id="btn-search"
-            class="h-9 px-5 bg-slate-700 text-white text-sm font-bold rounded hover:bg-slate-800 transition-colors">
-            검색
-          </button>
-
-          <!-- 초기화 버튼 -->
-          ${(selectedCat || selectedOrg || selectedType || appliedKeyword) ? `
-          <button id="btn-reset"
-            class="h-9 px-4 border border-slate-300 text-slate-600 text-sm rounded hover:bg-slate-100 transition-colors">
-            초기화
-          </button>` : ''}
-        </div>
-
-        <!-- Total + 페이지당 건수 -->
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm text-slate-600">
-            Total: <strong class="text-slate-900">${total}</strong>
-            ${total !== allData.length ? `<span class="text-blue-600 ml-1">(전체 ${allData.length}건 중 필터)</span>` : ''}
-          </span>
-          <div class="flex items-center gap-2">
-            <select id="sel-pagesize" class="h-8 px-2 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none">
-              ${[10, 20, 30, 40, 50].map(n =>
-                `<option value="${n}" ${n === pageSize ? 'selected' : ''}>${n}개씩</option>`
-              ).join('')}
-            </select>
-            <button id="btn-view"
-              class="h-8 px-4 border border-slate-300 text-slate-700 text-sm rounded hover:bg-slate-100 transition-colors">
-              보기
-            </button>
-          </div>
-        </div>
-
-        <!-- 카드 그리드 -->
-        <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-6">
-          ${paged.length === 0
-            ? `<div class="col-span-full py-20 text-center text-slate-400">
-                <i class="ri-search-line text-4xl block mb-3 opacity-40"></i>
-                검색 결과가 없습니다.
-               </div>`
-            : paged.map(cardHTML).join('')
-          }
-        </div>
-
-        <!-- 페이지네이션 -->
-        ${totalPages > 1 ? `
-        <div class="flex items-center justify-center gap-1 mt-2">
+    const paginationContainer = view.querySelector('#pagination-container');
+    if (paginationContainer) {
+      if (totalPages > 1) {
+        paginationContainer.innerHTML = `
           <button class="page-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-600 hover:bg-slate-50"
             data-page="${Math.max(1, currentPage - 1)}">‹</button>
           ${pageButtons}
           <button class="page-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white text-slate-600 hover:bg-slate-50"
             data-page="${Math.min(totalPages, currentPage + 1)}">›</button>
-        </div>` : ''}
-
-      </div>
-    `;
-
-    bindEvents();
+        `;
+        // 이벤트 바인딩
+        paginationContainer.querySelectorAll('.page-btn').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const p = parseInt(e.currentTarget.dataset.page, 10);
+            if (!isNaN(p)) { currentPage = p; render(); }
+            view.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+      } else {
+        paginationContainer.innerHTML = '';
+      }
+    }
   };
 
-  // ── 이벤트 바인딩 ─────────────────────────────────────────────────────────
+  // ── 이벤트 바인딩 (최초 1회) ────────────────────────────────────────────────
   const bindEvents = () => {
-    // 분류별 셀렉트 — 즉시 필터 적용
-    const selCat = container.querySelector('#sel-cat');
-    if (selCat) selCat.addEventListener('change', e => {
-      selectedCat = e.target.value;
-      currentPage = 1;
-      render();
-    });
+    const view = document.getElementById('dataset-explorer-view');
+    if (!view) return;
 
-    // 제공기관별 셀렉트 — 즉시 필터 적용
-    const selOrg = container.querySelector('#sel-org');
-    if (selOrg) selOrg.addEventListener('change', e => {
-      selectedOrg = e.target.value;
-      currentPage = 1;
-      render();
-    });
+    const selCat = view.querySelector('#sel-cat');
+    if (selCat) selCat.addEventListener('change', e => { selectedCat = e.target.value; currentPage = 1; render(); });
 
-    // 유형별 셀렉트 — 즉시 필터 적용
-    const selType = container.querySelector('#sel-type');
-    if (selType) selType.addEventListener('change', e => {
-      selectedType = e.target.value;
-      currentPage = 1;
-      render();
-    });
+    const selOrg = view.querySelector('#sel-org');
+    if (selOrg) selOrg.addEventListener('change', e => { selectedOrg = e.target.value; currentPage = 1; render(); });
 
-    // 키워드 input — 임시 저장 (검색 버튼으로 확정)
-    const inp = container.querySelector('#inp-keyword');
+    const selType = view.querySelector('#sel-type');
+    if (selType) selType.addEventListener('change', e => { selectedType = e.target.value; currentPage = 1; render(); });
+
+    const inp = view.querySelector('#inp-keyword');
     if (inp) {
       inp.addEventListener('input', e => { keyword = e.target.value; });
-      // Enter 키도 검색 실행
       inp.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
-          appliedKeyword = keyword;
-          currentPage = 1;
-          render();
-          container.querySelector('#inp-keyword')?.focus();
+          appliedKeyword = keyword; currentPage = 1; render();
         }
       });
     }
 
-    // 검색 버튼
-    const btnSearch = container.querySelector('#btn-search');
-    if (btnSearch) btnSearch.addEventListener('click', () => {
-      appliedKeyword = keyword;
-      currentPage = 1;
-      render();
-    });
+    const btnSearch = view.querySelector('#btn-search');
+    if (btnSearch) btnSearch.addEventListener('click', () => { appliedKeyword = keyword; currentPage = 1; render(); });
 
-    // 초기화 버튼
-    const btnReset = container.querySelector('#btn-reset');
-    if (btnReset) btnReset.addEventListener('click', () => {
-      selectedCat = ''; selectedOrg = ''; selectedType = '';
-      keyword = ''; appliedKeyword = '';
-      currentPage = 1;
-      render();
-    });
+    const selPageSize = view.querySelector('#sel-pagesize');
+    if (selPageSize) selPageSize.addEventListener('change', e => { pageSize = parseInt(e.target.value, 10) || 10; });
 
-    // 페이지당 건수 셀렉트
-    const selPageSize = container.querySelector('#sel-pagesize');
-    if (selPageSize) selPageSize.addEventListener('change', e => {
-      pageSize = parseInt(e.target.value, 10) || 10;
-    });
-
-    // 보기 버튼 — pageSize 확정 후 렌더
-    const btnView = container.querySelector('#btn-view');
+    const btnView = view.querySelector('#btn-view');
     if (btnView) btnView.addEventListener('click', () => {
-      const sel = container.querySelector('#sel-pagesize');
-      if (sel) pageSize = parseInt(sel.value, 10) || 10;
-      currentPage = 1;
-      render();
-    });
-
-    // 페이지 버튼
-    container.querySelectorAll('.page-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        const p = parseInt(e.currentTarget.dataset.page, 10);
-        if (!isNaN(p)) { currentPage = p; render(); }
-        // 렌더 후 스크롤 상단으로
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    });
-
-    // 카드 클릭
-    container.querySelectorAll('.dataset-card').forEach(card => {
-      card.addEventListener('click', e => {
-        const svc_no = e.currentTarget.getAttribute('data-id');
-        const ds = allData.find(d => d.svc_no === svc_no);
-        if (ds && onSelectDataset) {
-          onSelectDataset({
-            id:          ds.svc_no,
-            name:        ds.svc_nm,
-            subject:     ds.cat,
-            process:     ds.cat,
-            issue:       '해당없음',
-            theme:       ds.cat,
-            description: ds.desc || '',
-            includedData: ds.fields ? ds.fields.map(f => f.kor_nm || f.field) : [],
-            dataCount:   ds.sample_data_length || 0
-          });
-        }
-      });
+      if (selPageSize) pageSize = parseInt(selPageSize.value, 10) || 10;
+      currentPage = 1; render();
     });
   };
 
   // ── 초기 로딩 ─────────────────────────────────────────────────────────────
-  // 로딩 스피너 표시
-  container.innerHTML = `
-    <div class="py-32 text-center text-slate-400">
-      <i class="ri-loader-4-line text-3xl block mb-3 animate-spin opacity-60"></i>
-      데이터를 불러오는 중입니다...
-    </div>
-  `;
+  const view = document.getElementById('dataset-explorer-view');
+  if (view) {
+    const cardsGrid = view.querySelector('#cards-grid');
+    if (cardsGrid) {
+      cardsGrid.innerHTML = `
+        <div class="col-span-full py-32 text-center text-slate-400">
+          <i class="ri-loader-4-line text-3xl block mb-3 animate-spin opacity-60"></i>
+          데이터를 불러오는 중입니다...
+        </div>
+      `;
+    }
+  }
+
+  // 아직 바인딩되지 않았다면 이벤트 리스너를 한 번만 등록합니다.
+  if (!container._explorerEventsBound) {
+    bindEvents();
+    container._explorerEventsBound = true;
+  }
 
   Promise.all([
     fetch('/crawler/crawl_cache.json').then(r => r.json()),
@@ -326,11 +274,16 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     })
     .catch(err => {
       console.error(err);
-      container.innerHTML = `
-        <div class="py-20 text-center text-red-500">
-          <i class="ri-error-warning-line text-3xl block mb-3"></i>
-          데이터를 불러오는 중 오류가 발생했습니다.
-        </div>
-      `;
+      if (view) {
+        const cardsGrid = view.querySelector('#cards-grid');
+        if (cardsGrid) {
+          cardsGrid.innerHTML = `
+            <div class="col-span-full py-20 text-center text-red-500">
+              <i class="ri-error-warning-line text-3xl block mb-3"></i>
+              데이터를 불러오는 중 오류가 발생했습니다.
+            </div>
+          `;
+        }
+      }
     });
 }

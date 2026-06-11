@@ -520,3 +520,99 @@ body {
   color: #3b82f6;
   font-weight: bold;
 }
+
+/* 공공데이터활용 이용방법 (기존안) 스타일 */
+.h3_guide {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    margin-top: 40px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e5e7eb;
+}
+.h3_guide span {
+    color: #2563eb;
+    margin-right: 8px;
+}
+.guide_inner {
+    padding: 0 20px;
+}
+.useApi {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+.useApi span {
+    font-size: 14px;
+    color: #ef4444;
+    font-weight: normal;
+}
+.guide_img {
+    margin: 20px 0;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9fafb;
+}
+.guide_img img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+.guide_txt {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 30px 0;
+}
+.guide_txt li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 8px;
+    font-size: 15px;
+    color: #4b5563;
+    line-height: 1.6;
+}
+.guide_txt li span {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    background-color: #3b82f6;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+}
+.guide_txt3 {
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1f2937;
+    text-align: center;
+}
+.api_btn_area2 {
+    text-align: right;
+    margin-bottom: 20px;
+}
+.api_btn1 {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #2563eb;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+.api_btn1:hover {
+    background-color: #1d4ed8;
+}

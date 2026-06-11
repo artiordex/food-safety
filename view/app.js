@@ -37,7 +37,7 @@ if (path.includes('/data/dataset.html')) {
   activeTab = urlParams.get('tab') || 'explorer';
 }
 
-let initialSearchKeyword = '소스';
+let initialSearchKeyword = '건강';
 let selectedDataset = null;
 
 const tabContent = document.getElementById('tab-content');
@@ -134,13 +134,13 @@ const updateActiveTabUI = () => {
   const datamapTabs = document.getElementById('datamap-tabs');
   const scenarioTabs = document.getElementById('scenario-tabs');
   const analysisTabs = document.getElementById('analysis-tabs');
-  
+
   if (datamapTabBar) {
     // 쪼개진 정적 페이지에 속한 서브 탭들의 보임/숨김 제어
     const isDatamapPage = window.location.pathname.includes('/data/datamap.html');
     const isScenarioPage = window.location.pathname.includes('/data/scenario.html');
     const isAnalysisPage = window.location.pathname.includes('/data/analysis.html');
-    
+
     datamapTabBar.style.display = (isDatamapPage || isScenarioPage || isAnalysisPage) ? 'block' : 'none';
     if (datamapTabs) datamapTabs.style.display = isDatamapPage ? 'flex' : 'none';
     if (scenarioTabs) scenarioTabs.style.display = isScenarioPage ? 'flex' : 'none';
@@ -299,11 +299,11 @@ const changeTab = (tabId) => {
   } else {
     // 같은 페이지 내에서 서브 탭 전환인 경우 (SPA)
     activeTab = tabId;
-    
+
     // URL 쿼리스트링만 조용히 갱신
     const newUrl = `${window.location.pathname}?tab=${tabId}`;
     window.history.pushState({ tab: tabId }, '', newUrl);
-    
+
     updateActiveTabUI();
     renderTabContent();
   }

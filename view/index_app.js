@@ -1,38 +1,36 @@
-/* =====================================================
- * anyidAdaptor - 정부 통합인증 SDK 연계 어댑터
- * (head.html에서 이동)
- * ===================================================== */
+// anyidAdaptor - 정부 통합인증(Any-ID) SDK 연계 어댑터
+// index.html 홈페이지 전용 스크립트 (head.html에서 이동)
 var anyidAdaptor = anyidAdaptor || {};
 
-/*이용기관 수정 영역 Start*/
-anyidAdaptor.orgLogin = function(data){
-    if (data.ssob){
+// SSO 여부에 따라 Any-ID 로그인 또는 일반 로그인으로 분기
+anyidAdaptor.orgLogin = function (data) {
+    if (data.ssob) {
         anyidAdaptor.goAnyIdLogin(data);
-    }else{
+    } else {
         anyidAdaptor.goLogin();
     }
 }
-/*이용기관 수정 영역 End*/
 
-/*이용기관 문구수정 영역 Start*/
-anyidAdaptor.JoinConfirm = function(portalJoinUri, memberData){
-    if(!confirm('Any-ID 사용자등록 하시겠습니까?')) {
+// Any-ID 가입 확인 팝업 후 가입 또는 로그인 처리
+anyidAdaptor.JoinConfirm = function (portalJoinUri, memberData) {
+    if (!confirm('Any-ID 사용자등록 하시겠습니까?')) {
         anyidAdaptor.orgLogin(anyidAdaptor.certData);
         return;
-    }else{
+    } else {
         anyidAdaptor.receiveAnyIdJoin(portalJoinUri, memberData);
     }
 }
-/*이용기관 문구수정 영역 End*/
 
+// Any-ID SDK 설정 초기값
 anyidAdaptor.portalJoinUri = "null";
 anyidAdaptor.certData = null;
 anyidAdaptor.ssoByPass = "0";
 anyidAdaptor.niRegYn = "null";
 anyidAdaptor.agencyContextPath = "";
 
-anyidAdaptor.success = function(data){
-    if(anyidAdaptor.ssoByPass != 0 || !data.useSso) {
+// Any-ID 인증 성공 콜백: SSO 우회 여부에 따라 처리 분기
+anyidAdaptor.success = function (data) {
+    if (anyidAdaptor.ssoByPass != 0 || !data.useSso) {
         anyidAdaptor.orgLogin(data);
     } else {
         anyidAdaptor.certData = data;
@@ -40,24 +38,26 @@ anyidAdaptor.success = function(data){
     }
 }
 
-anyidAdaptor.userCheck = function(){
+// 서버에 사용자 존재 여부 확인 후 SSO 로그인 또는 가입 처리
+anyidAdaptor.userCheck = function () {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", anyidAdaptor.agencyContextPath + "/oidc/userCheck", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 anyidAdaptor.ssoLogin();
             } else {
-                setTimeout(function() {
+                setTimeout(function () {
                     anyidAdaptor.receiveAnyIdJoin(response.uri, response.data);
                 }, 100);
             }
         }
     };
 
+    // 인증 데이터를 Base64로 인코딩해서 전송
     let jsonObject = new Object();
     jsonObject.txId = anyidAdaptor.certData.txId;
     jsonObject.ssob = anyidAdaptor.certData.ssob;
@@ -70,12 +70,12 @@ anyidAdaptor.userCheck = function(){
     xhr.send(data);
 }
 
-// anyid 가입
-anyidAdaptor.receiveAnyIdJoin = function(portalJoinUri, memberData){
+// anyid 가입 팝업 열기 및 결과 메시지 수신 처리
+anyidAdaptor.receiveAnyIdJoin = function (portalJoinUri, memberData) {
     var url = portalJoinUri + encodeURIComponent(memberData);
     anyidAdaptor.popup(url, "openAnyIdRegistUserIdv", 700, 740);
 
-    window.addEventListener("message", function(event) {
+    window.addEventListener("message", function (event) {
         var result;
         try {
             result = JSON.parse(event.data);
@@ -84,32 +84,34 @@ anyidAdaptor.receiveAnyIdJoin = function(portalJoinUri, memberData){
             return;
         }
 
-        if(!result.funcName || (result.funcName !== "trmsAgreComplete" && result.funcName !== "registUserComplete")) {
+        // 약관 동의 완료 또는 사용자 등록 완료 메시지만 처리
+        if (!result.funcName || (result.funcName !== "trmsAgreComplete" && result.funcName !== "registUserComplete")) {
             return;
         }
-        if(result.status === "success") {
-            if(result.trmsAgreYn == "Y"){
+        if (result.status === "success") {
+            if (result.trmsAgreYn == "Y") {
                 anyidAdaptor.ssoLogin();
-            }else{
+            } else {
                 anyidAdaptor.orgLogin(anyidAdaptor.certData);
             }
-        }else{
+        } else {
             anyidAdaptor.orgLogin(anyidAdaptor.certData);
         }
     }, false);
 }
 
-// 팝업 호출
-anyidAdaptor.popup = function(url, name, width, height){
+// 화면 중앙에 팝업창 열기
+anyidAdaptor.popup = function (url, name, width, height) {
     let left = (screen.width) ? (screen.width - width) / 2 : 0;
     let top = (screen.height) ? (screen.height - height) / 2 : 0;
     let popup = window.open(url, name, "resizable=yes,toolbar=no,scrollbars=yes,location=no,top=" + top + "px,left=" + left + "px,width=" + width + "px,height=" + height + "px");
-    if(popup){
+    if (popup) {
         popup.focus();
     }
 }
 
-anyidAdaptor.ssoLogin = function(){
+// SSO 로그인: 인증 데이터를 인코딩해서 ssoLogin 엔드포인트로 이동
+anyidAdaptor.ssoLogin = function () {
     let jsonObject = new Object();
     jsonObject.txId = anyidAdaptor.certData.txId;
     jsonObject.ssob = anyidAdaptor.certData.ssob;
@@ -122,7 +124,8 @@ anyidAdaptor.ssoLogin = function(){
     window.location.href = urlWithParams;
 }
 
-anyidAdaptor.ssoLoginPageSub = function(baseUrl, endPoint, acrValues){
+// 인증 수준(acrValues)과 엔드포인트를 조합해서 SSO 로그인 페이지 URL 구성
+anyidAdaptor.ssoLoginPageSub = function (baseUrl, endPoint, acrValues) {
     var subUrl = "";
     if (endPoint && endPoint.trim() !== "") {
         subUrl = "?endPoint=" + encodeURIComponent(endPoint);
@@ -131,9 +134,9 @@ anyidAdaptor.ssoLoginPageSub = function(baseUrl, endPoint, acrValues){
         acrValues = "3";
     }
     if (acrValues && acrValues.trim() !== "") {
-        if(subUrl == ""){
+        if (subUrl == "") {
             subUrl = "?";
-        }else{
+        } else {
             subUrl = subUrl + "&";
         }
         subUrl = subUrl + "acrValues=" + acrValues;
@@ -141,31 +144,36 @@ anyidAdaptor.ssoLoginPageSub = function(baseUrl, endPoint, acrValues){
     window.location.replace(baseUrl + subUrl);
 }
 
-anyidAdaptor.ssoLogout = function(endPoint) {
+// SSO 로그아웃 후 지정된 엔드포인트로 이동
+anyidAdaptor.ssoLogout = function (endPoint) {
     endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
     var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/ssoLogout";
     baseUrl = baseUrl + "?endPoint=" + encodeURIComponent(endPoint);
     window.location.replace(baseUrl);
 }
 
-anyidAdaptor.reAuthLevel = function(endPoint, acrValues){
+// 재인증 수준 상향 요청
+anyidAdaptor.reAuthLevel = function (endPoint, acrValues) {
     endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
     var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/reAuthLevel";
     anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
 }
 
-anyidAdaptor.ssoLoginPage = function(endPoint, acrValues){
+// SSO 로그인 페이지로 이동
+anyidAdaptor.ssoLoginPage = function (endPoint, acrValues) {
     endPoint = typeof endPoint !== 'undefined' ? endPoint : "/";
     var baseUrl = window.location.origin + anyidAdaptor.agencyContextPath + "/oidc/auth";
     anyidAdaptor.ssoLoginPageSub(baseUrl, endPoint, acrValues);
 }
 
-anyidAdaptor.ssoSvcToSvc = function(url, endPoint){
+// 서비스 간 SSO 전환 (새 탭으로 열기)
+anyidAdaptor.ssoSvcToSvc = function (url, endPoint) {
     var baseUrl = url + "/oidc/svcToSvc?endPoint=" + encodeURIComponent(endPoint);
     window.open(baseUrl, "_blank");
 }
 
-anyidAdaptor.goAnyIdLogin = function(data) {
+// Any-ID 로그인: 서버에 ssob 검증 후 메인 화면으로 이동
+anyidAdaptor.goAnyIdLogin = function (data) {
     const params = new URLSearchParams(location.search);
     var obj = {
         ssob: data.ssob,
@@ -176,58 +184,58 @@ anyidAdaptor.goAnyIdLogin = function(data) {
         type: "POST",
         dataType: "json",
         data: obj,
-        beforeSend: function() { _cfn_loading.show(); },
-        complete: function() { _cfn_loading.hide(); },
-        success: function(response) {
+        beforeSend: function () { _cfn_loading.show(); },
+        complete: function () { _cfn_loading.hide(); },
+        success: function (response) {
             if (response.status === "success") {
                 console.log("success");
                 location.href = "/minwonMainNew.do";
-            }else{
+            } else {
                 console.log("fail");
                 anyidAdaptor.goLogin();
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('API Error (No Local Backend)');
         }
     });
 }
 
-// 이용기관 로그인 함수
-anyidAdaptor.goLogin = function() {
+// 이용기관 로그인 페이지로 이동
+anyidAdaptor.goLogin = function () {
     var nowUrl = window.location.protocol;
     var urlSplit = nowUrl.split(":");
     var firstUrl = urlSplit[0];
     var fullUrl;
-    if(firstUrl == "https" || firstUrl == "http"){
+    if (firstUrl == "https" || firstUrl == "http") {
         fullUrl = "/portal/loginNew.do?menu_no=3817&menu_grp=MENU_NEW07";
     }
     console.log("fullUrl : " + fullUrl);
     location.href = fullUrl;
 }
 
-/* =====================================================
- * 팝업 / 쿠키 유틸리티 함수
- * (head.html에서 이동)
- * ===================================================== */
+// 팝업 / 쿠키 유틸리티 함수
 
 // 로그아웃 후 뒤로가기로 캐시 복원 시 강제 새로고침
-window.addEventListener('pageshow', function(event) {
+window.addEventListener('pageshow', function (event) {
     if (event.persisted ||
         (window.performance && window.performance.navigation.type === 2)) {
         window.location.reload();
     }
 });
 
+// 팝업 오늘 하루 안 보기: 쿠키 설정 후 숨김
 function closeWinAt(winName, expiredays) {
     setCookieAt00(winName, "done", expiredays);
     $("#" + winName).hide();
 }
 
+// 팝업 즉시 닫기
 function popclose(id) {
     $("#" + id).hide();
 }
 
+// 자정 00시 기준으로 만료되는 쿠키 설정
 function setCookieAt00(name, value, expiredays) {
     var todayDate = new Date();
     todayDate = new Date(parseInt(todayDate.getTime() / 86400000) * 86400000 + 54000000);
@@ -238,6 +246,7 @@ function setCookieAt00(name, value, expiredays) {
     document.cookie = name + "=" + escape(value) + "; path=/; expires=" + todayDate.toGMTString() + ";"
 }
 
+// 쿠키 값 읽기
 function getCookie(name) {
     var nameOfCookie = name + "=";
     var x = 0;
@@ -259,6 +268,7 @@ function getCookie(name) {
 window.onload = main_init;
 
 function main_init() {
+    // 현재 날짜/시간 (팝업 노출 기간 검증용)
     var nowDateObj = new Date();
     var year = nowDateObj.getFullYear();
     var month = (nowDateObj.getMonth() + 1).toString().padStart(2, '0');
@@ -267,10 +277,13 @@ function main_init() {
     var mm = nowDateObj.getMinutes().toString().padStart(2, '0');
     var nowDate = year + month + day + hh + mm;
     var chk = true;
+
+    // 드래그 가능한 팝업 목록을 순회하며 쿠키/기간 조건에 맞게 표시/숨김
     list = $(".draggable-popup");
     for (i = 0, len = list.length; i < len; i++) {
         obj = list[i];
         chk = true;
+        // 쿠키에 "done"이 없으면 팝업 표시
         if (getCookie(obj.getAttribute("id")) != "done") {
             $("#" + obj.getAttribute("id")).show();
         } else {
@@ -278,6 +291,7 @@ function main_init() {
         }
         var start_time = obj.getAttribute("start_to");
         var end_time = obj.getAttribute("end_to");
+        // 노출 종료 시간이 지났으면 숨김, 시작 시간도 있으면 기간 내에만 표시
         if (start_time == null || start_time == "") {
             if (parseInt(nowDate) > parseInt(end_time)) {
                 $(obj).hide();
@@ -294,19 +308,22 @@ function main_init() {
             }
         }
     }
+    // 팝업 이미지 클릭 시 식품접객업정보 상세 페이지로 이동
     let imgTag = document.getElementById('popuptableImg');
     if (imgTag) {
-        imgTag.onclick = function(){
+        imgTag.onclick = function () {
             window.open('https://www.foodsafetykorea.go.kr/api/newDatasetDetail.do?menu_no=661&menu_grp=MENU_GRP31&start_idx=1&svc_no=I1200&p_svcTypeCd=API_TYPE06&svc_type_cd=&cl_cd=&provd_instt=&svcChkArr=&svc_nm=%EC%8B%9D%ED%92%88%EC%A0%91%EA%B0%9D%EC%97%85%EC%A0%95%EB%B3%B4&search_clCdCode=&search_provdInsttCode=&search_svcTypeCode=&search_keyword=%EC%8B%9D%ED%92%88%EC%A0%91%EA%B0%9D%EC%97%85&show_cnt=10');
         };
     }
 }
 
+// 오늘 하루 닫기 (closeWinAt의 별칭)
 function closeWinToday(winName, expiredays) {
     setCookieAt00(winName, "done", expiredays);
     $("#" + winName).hide();
 }
 
+// 일반 만료일 기준 쿠키 설정
 function setCookie(cookieName, value, exdays) {
     var exdate = new Date();
     exdate.setDate(exdate.getDate() + exdays);
@@ -314,17 +331,20 @@ function setCookie(cookieName, value, exdays) {
     document.cookie = cookieName + "=" + cookieValue;
 }
 
+// 쿠키 즉시 만료 (삭제)
 function deleteCookie(cookieName) {
     var expireDate = new Date();
     expireDate.setDate(expireDate.getDate() - 1);
     document.cookie = cookieName + "= ;expires=" + expireDate.toGMTString();
 }
 
+// 자정 기준 오늘 하루 닫기
 function closeWinAt00(winName, expiredays) {
     setCookieAt00(winName, "done", expiredays);
     $('#' + winName).hide();
 }
 
+// 쿠키가 없을 때만 팝업 열기
 function openWin(winName) {
     var blnCookie = getCookie(winName);
     if (!blnCookie) {
@@ -332,11 +352,9 @@ function openWin(winName) {
     }
 }
 
-/* =====================================================
- * index.html 전용 로직
- * ===================================================== */
+// index.html 전용 초기화 로직
 $(document).ready(function () {
-    // jsTree 초기화
+    // jsTree 초기화 (레이어 트리가 있을 때만)
     if ($('#layerTree').length) {
         $('#layerTree').jstree({
             "temes": {
@@ -348,27 +366,15 @@ $(document).ready(function () {
         });
     }
 
-    // init 데이터구조 조회
+    // 초기 데이터구조 목록 조회 (기준규격정보 카테고리)
     fn_dataStrutList('기준규격정보', '', '기준규격정보', '');
 
-    /* 팝업 open 날짜 검증 (로컬 서버 구동 시 팝업 차단)
-    $.each($('.popups'), function () {
-        var openDtEl = $(this).attr("data-open");
-        var openCheckDt = new Date(openDtEl);
-        var ElementID = $(this).attr("id");
-
-        if (nowDate.getTime() < openCheckDt.getTime()) {
-            openWin(ElementID);
-        }
-    })
-    */
-
-    /* 임시 팝업 닫기*/
+    // 팝업 닫기 버튼 이벤트
     $(".closePopLay").on('click', function () {
         $(this).parents('.popups').eq(0).hide();
     });
 
-    /* 팝업위치 지정*/
+    // 팝업 위치 지정 (가로 누적 배치)
     $.each($(".popups"), function () {
         var elementLeft = 0;
         $(this).css("left", elementLeft);
@@ -377,10 +383,11 @@ $(document).ready(function () {
         }
     });
 
-    /* 팝업 드레그 */
-    //	$(".popups").draggable();
+    /* 팝업 드래그 기능 (비활성화)
+    $(".popups").draggable();
+    */
 
-    // 한눈에 보기
+    // 한눈에 보기 버튼 클릭 시 baseForm으로 이동
     $(".tm_view").click(function () {
         $("#menu_no").val(menu_no);
         $("#menu_grp").val(menu_grp);
@@ -390,17 +397,15 @@ $(document).ready(function () {
         document.baseForm.submit();
     });
 
-    // 카테고리 클릭 시 로컬 검색 페이지로 이동하도록 가로채기
+    // 카테고리 링크 클릭 시 로컬 검색 페이지로 가로채기
     $("a[href*='datasetList.do']").click(function (e) {
         e.preventDefault();
 
-        // a 태그 내부의 텍스트 추출 (예: '·  기준규격정보' -> '기준규격정보')
+        // a 태그 내부 텍스트 추출 (예: '·  기준규격정보' -> '기준규격정보')
         let text = $(this).text().replace(/·/g, '').trim();
 
-        // 로컬 검색 매칭률을 높이기 위해 접미어 제거 (예: '기준규격정보' -> '기준규격')
+        // 검색 매칭률을 높이기 위해 접미어 제거 (예: '기준규격정보' -> '기준규격')
         let keyword = text.replace(/정보|관리|현황/g, '').trim();
-
-        // 텍스트가 없으면 그냥 /search/search.html 로 이동
         if (!keyword) {
             location.href = "/search/search.html";
         } else {
@@ -409,8 +414,7 @@ $(document).ready(function () {
     });
 });
 
-
-// 서비스유형 상세 화면
+// 서비스유형 상세 화면으로 이동 (baseForm 폼 제출)
 function fn_listMoveDetail(svcNo, types, svcNm) {
     $("#svc_no").val(svcNo);
     $("#p_svcTypeCd").val(types);
@@ -422,7 +426,7 @@ function fn_listMoveDetail(svcNo, types, svcNm) {
     document.baseForm.submit();
 }
 
-// 분류별데이터 서비스 이동
+// 분류별 데이터 서비스 목록으로 이동
 function moveToDatasetClcdList(cl_cd, menu_no, menu_grp) {
     $("#cl_cd").val(cl_cd);
     $("#menu_no").val(menu_no);
@@ -433,7 +437,7 @@ function moveToDatasetClcdList(cl_cd, menu_no, menu_grp) {
     document.baseForm.submit();
 }
 
-// 데이터통합검색
+// 키워드 통합검색 페이지로 이동 (검색어 미입력 시 알림)
 function datasetAllSearch(menu_no, menu_grp) {
     var input = document.getElementById("search_keyword");
     var keyword = input ? input.value.trim() : "";
@@ -445,12 +449,12 @@ function datasetAllSearch(menu_no, menu_grp) {
     location.href = "/api/datasetAllSearch.do?search_keyword=" + encodeURIComponent(keyword);
 }
 
-//게시글페이지(공지사항)
+// 공지사항 게시글 상세 페이지로 이동
 function fn_moveDetail(bbs_no, ntctxt_no) {
     $("#bbs_no").val(bbs_no);
     $("#ntctxt_no").val(ntctxt_no);
-    $("#menu_no").val("688");      		   //공지사항메뉴번호
-    $("#menu_grp").val("MENU_GRP33");      //공지사항메뉴그룹번호
+    $("#menu_no").val("688");
+    $("#menu_grp").val("MENU_GRP33");
 
     document.baseForm.action = "/api/board/boardDetail.do";
     document.baseForm.target = "_self";
@@ -458,11 +462,11 @@ function fn_moveDetail(bbs_no, ntctxt_no) {
     document.baseForm.submit();
 }
 
-//해당 서비스의 API 상세페이지로 이동
+// 해당 서비스의 API 상세 페이지로 이동
 function fn_moveApiInfo(cl_cd, svc_no) {
     $("#cl_cd").val(cl_cd);
     $("#svc_no").val(svc_no);
-    $("#menu_no").val("661");				// /api/datasetList.do?svc_type_cd=API_TYPE06
+    $("#menu_no").val("661");
     $("#menu_grp").val("MENU_GRP31");
 
     document.baseForm.action = "/api/newDatasetDetail.do";
@@ -471,7 +475,7 @@ function fn_moveApiInfo(cl_cd, svc_no) {
     document.baseForm.submit();
 }
 
-//페이지이동
+// 지정한 URL 페이지로 이동 (메뉴 번호 포함)
 function fn_movePage(url, menu_no, menu_grp) {
     $("#menu_no").val(menu_no);
     $("#menu_grp").val(menu_grp);
@@ -481,7 +485,7 @@ function fn_movePage(url, menu_no, menu_grp) {
     document.baseForm.submit();
 }
 
-// 파일 다운로드
+// OpenAPI 가이드북 PDF 다운로드
 function downloadFile(sVal) {
     $('#filePath').val("/upload/openApi");
     $('#fileName').val("2025_OpenAPI_Guidebook.pdf");
@@ -492,7 +496,7 @@ function downloadFile(sVal) {
     document.baseForm.submit();
 }
 
-// 파일 다운로드 2
+// 공공데이터 개방 목록 ZIP 다운로드
 function downloadFile2(sVal) {
     $('#filePath').val("/upload/openApi");
     $('#fileName').val("openApiList.zip");
@@ -503,36 +507,7 @@ function downloadFile2(sVal) {
     document.baseForm.submit();
 }
 
-// 동영상 이동
+// 동영상 게시글 상세 페이지로 이동
 function goVideoUrl(no, grp, mno, bno) {
     location.href = "/portal/board/boardDetail.do?ntctxt_no=" + no + "&menu_grp=" + grp + "&menu_no=" + mno + "&bbs_no=" + bno;
 }
-
-/* 인기데이터 MERGE 관련 (기존 주석처리된 부분 보존)
-window.onload = function() {
-    // 매달 01, 30, 31 일에는 공공데이터 최초 한번 머지문 실행
-    var nowYear = '2026';
-    var nowMonth = '05';
-    var nowMonth2 = '06';
-    var nowDay = '03';
-    var nowDate = '20260603';
-    var uselogCnt = '1';
-
-    if(nowDay == "01" || nowDay == "30" || nowDay == "31"){
-        if(uselogCnt == "0"){
-            $.ajax({
-                data: {nowYear: nowYear, nowMonth : nowMonth, nowMonth2 : nowMonth2, nowDay : nowDay, nowDate : nowDate, uselogCnt : uselogCnt},
-                dataType:'json',
-                type:'POST',
-                url:"/ajax/popularListMerge.do",
-                async : true,
-                success:function(arg){
-                    console.log("인기데이터 MERGE : " + arg);
-                },
-                error:function(request,status,error){
-                }
-            });
-        }
-    }
-};
-*/

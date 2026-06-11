@@ -1334,9 +1334,9 @@ $(document).ready(function(){
 			var $target = $('.ul_paging_1 li');
 			$except = $target.not('.li_prev10, .li_prev, .li_next, .li_next10');
 			$except_left = $target.filter('.li_prev10, .li_prev');
-			$size_1 = $target.filter('.li_prev10, .li_prev, .li_next, .li_next10').size();
-			$size_left = $except_left.size();
-			$size_2 = $target.size() - $size_1,
+			$size_1 = $target.filter('.li_prev10, .li_prev, .li_next, .li_next10').length;
+			$size_left = $except_left.length;
+			$size_2 = $target.length - $size_1,
 				$append = $('.box_board_1_1'),
 				$on = $target.filter('.on').index() - $size_left + 1;
 			if(size <= 960){
@@ -1376,7 +1376,7 @@ $(document).ready(function(){
 			$lowLevel = $target.children().children().find("a");
 
 			//하위 레벨이 존재할 경우만 실행
-			if($lowLevel.size() != 0){
+			if($lowLevel.length != 0){
 				viewMobile($target, 500,'only2');
 				return false;
 			}

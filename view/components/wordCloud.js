@@ -1,6 +1,7 @@
-import { datasets } from '../datasetData.js';
+import { getDatasets } from '../datasetStore.js';
 
-export function renderWordCloud(container, onSelectDataset) {
+export async function renderWordCloud(container, onSelectDataset) {
+  const datasets = await getDatasets();
   // Sort datasets by name for the dropdown
   const sortedDatasets = [...datasets].sort((a, b) => a.name.localeCompare(b.name));
   

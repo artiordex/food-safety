@@ -1,7 +1,8 @@
 // view/components/apiExplorer.js
-import { datasets } from '../datasetData.js';
+import { getDatasets } from '../datasetStore.js';
 
-export function renderApiExplorer(container, onSelectDataset) {
+export async function renderApiExplorer(container, onSelectDataset) {
+  const datasets = await getDatasets();
   let searchQuery = "";
 
   // 타 컴포넌트(예: 데이터맵)로부터 연계된 API 코드 자동 필터 및 포커싱 연동

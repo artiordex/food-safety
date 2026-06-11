@@ -1,313 +1,699 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <!-- INCLUDE_HEAD -->
     <!-- Tailwind (Ebook 전용) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body, .ebook-container { font-family: 'Noto Sans KR', sans-serif !important; }
-        .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: bold; }
-        
+        /* common.css의 html,body{height:100%} 덮어쓰기 — 페이지 레벨 스크롤 */
+        html {
+            height: auto !important;
+            overflow-y: auto !important;
+        }
+
+        body {
+            height: auto !important;
+            overflow: visible !important;
+        }
+
+        #wrap {
+            height: auto !important;
+        }
+
+        body,
+        .ebook-container {
+            font-family: 'Noto Sans KR', sans-serif !important;
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
         /* 2안 Kakao Style */
-        .sidebar::-webkit-scrollbar { width: 6px; }
-        .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        
-        pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
-        code { color: #ec4899; }
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+
+        code {
+            color: #ec4899;
+        }
     </style>
 </head>
-<body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
-    <div id="wrap" class="flex flex-col h-screen overflow-hidden">
+
+<body class="bg-gray-50 flex flex-col">
+    <div id="wrap" class="flex flex-col min-h-screen">
         <!-- INCLUDE_HEADER -->
 
-        <div id="container" class="flex-1 overflow-hidden relative flex flex-col">
+        <div id="container" class="flex-1 relative flex flex-col">
             <!-- Ebook Tabs (Sub-Navigation) -->
             <div class="bg-white border-b border-gray-200 shrink-0 px-6 flex justify-center space-x-8">
-                <button onclick="switchTab('tab0')" id="btn-tab0" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">기존안 (공식 원본)</button>
-                <button onclick="switchTab('tab1')" id="btn-tab1" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">1안: 카카오 디벨로퍼스형 (일반인용)</button>
-                <button onclick="switchTab('tab2')" id="btn-tab2" class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none active">2안: 카카오 디벨로퍼스형 (개발자용)</button>
+                <button onclick="switchTab('tab0')" id="btn-tab0"
+                    class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">식품안전나라
+                    원안</button>
+                <button onclick="switchTab('tab1')" id="btn-tab1"
+                    class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">1안: 카카오
+                    디벨로퍼스형 (일반인용)</button>
+                <button onclick="switchTab('tab2')" id="btn-tab2"
+                    class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none active">2안:
+                    카카오 디벨로퍼스형 (개발자용)</button>
             </div>
 
             <!-- Main Content Area -->
-            <div class="flex-1 overflow-hidden relative">
-        
-        <!-- 기존안 -->
-        <div id="tab0" class="hidden absolute inset-0 overflow-y-auto bg-white">
-            <div class="max-w-4xl mx-auto py-12 px-6">
-                <h1 class="text-3xl font-bold mb-8 border-b pb-4">공공데이터활용 이용방법 (기존안)</h1>
-                <div class="space-y-6 text-gray-800 leading-relaxed">
-                    <p class="font-bold text-lg text-blue-700">1. 데이터공개 (분류별, 제공기관별, 유형별) 버튼 클릭</p>
-                    <p class="font-bold text-lg text-blue-700 mt-6">2. 원하는 Open-API &lt;서비스&gt;의 선택박스 체크 후 우측 상단의 Open-API 이용신청 버튼 클릭</p>
-                    <ul class="list-disc pl-6 text-gray-600 mt-2">
-                        <li>원하는 서비스의 선택박스 체크 (중복 선택 가능)</li>
-                        <li>체크항목 Open-API 이용신청 버튼 클릭</li>
-                    </ul>
-                    <p class="text-sm text-red-500">※ Open-API 서비스 이용을 위해서는 반드시 회원가입 및 로그인이 완료된 상태여야 합니다.</p>
-                    
-                    <p class="font-bold text-lg text-blue-700 mt-6">3. Open-API 이용신청 시 공공데이터활용 이용약관 동의</p>
-                    <ul class="list-disc pl-6 text-gray-600 mt-2">
-                        <li>이용약관 동의 체크</li>
-                    </ul>
+            <div class="flex-1 relative">
 
-                    <p class="font-bold text-lg text-blue-700 mt-6">4. 선택한 OPENAPI 서비스의 세부항목 입력 후 신청 버튼 클릭</p>
-                    <ul class="list-disc pl-6 text-gray-600 mt-2">
-                        <li>활용용도 선택 (어플리케이션 개발 / 웹사이트 연동 및 운영 / 기타 중 택 1)</li>
-                        <li>활용구분 선택 (개인 / 기업 중 택 1)</li>
-                        <li>활용목적 작성 (상세 입력 요망)</li>
-                        <li>신청 버튼 클릭</li>
-                    </ul>
+                <!-- 기존안 -->
+                <div id="tab0" class="hidden bg-white">
+                    <div class="max-w-5xl mx-auto py-12 px-6 lg:px-8">
+                        <div class="space-y-16">
+                            <!-- 파트 1 -->
+                            <section>
+                                <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-8">
+                                    <span
+                                        class="flex items-center justify-center w-8 h-8 rounded bg-blue-600 text-white text-sm mr-3 shadow-sm">Ⅰ</span>
+                                    OPENAPI 서비스 신청 안내
+                                </h2>
 
-                    <p class="font-bold text-lg text-blue-700 mt-6">5. 인증키 발급 정보 및 서비스신청 목록 확인</p>
-                    <ul class="list-disc pl-6 text-gray-600 mt-2">
-                        <li>자신이 신청한 인증키 발급정보 확인</li>
-                        <li>자신이 신청한 Open-API 신청 목록 확인</li>
-                    </ul>
-                    <p class="text-sm text-gray-500">※ 인증키는 신청후 자동으로 승인되어 발급이 완료됩니다.</p>
-                </div>
-            </div>
-        </div>
+                                <div class="space-y-12 pl-4 border-l-2 border-gray-100 ml-4">
 
-        <!-- 1안 (일반인용) -->
-        <div id="tab1" class="hidden absolute inset-0 bg-gray-50 flex justify-center">
-            <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
-            <!-- Sidebar -->
-            <aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
-                <nav class="p-4 space-y-1">
-                    <div class="mb-6">
-                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">누구나 쉽게 시작하기</h3>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">식품안전 공공데이터란?</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">회원가입 및 권한 신청</a>
-                    </div>
-                    <div class="mb-6">
-                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">활용 안내</h3>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">데이터 찾기</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">활용 우수 사례</a>
-                    </div>
-                </nav>
-            </aside>
+                                    <!-- 스텝 1 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">1. 데이터공개 ( 분류별, 제공기관별, 유형별 ) 버튼
+                                            클릭</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_01.jpg"
+                                                alt="데이터공개 버튼 클릭 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                    </div>
 
-            <!-- Content -->
-            <main class="flex-1 overflow-y-auto bg-white">
-                <div class="max-w-4xl mx-auto py-10 px-8 xl:px-12">
-                    <div class="text-sm text-gray-500 mb-4">누구나 쉽게 시작하기 &gt; 식품안전 공공데이터란?</div>
-                    
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight">식품안전 공공데이터 알아보기</h1>
-                    
-                    <p class="text-lg text-gray-600 mb-10 leading-relaxed">
-                        복잡한 코딩이나 전문 지식이 없어도 괜찮습니다. 식품안전나라에서 제공하는 공공데이터를 통해 누구나 쉽게 건강하고 안전한 식생활 정보를 활용할 수 있습니다.
-                    </p>
+                                    <!-- 스텝 2 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-2">2. 원하는 Open-API &lt;서비스&gt;의
+                                            선택박스 체크 후 우측 상단의 Open-API 이용신청 버튼 클릭</h3>
+                                        <p class="text-sm text-red-500 mb-4 font-medium">(※ Open-API 서비스 이용을 위해서는 반드시
+                                            회원가입 및 로그인이 완료된 상태여야 합니다.)</p>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_02.jpg"
+                                                alt="서비스 선택 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                원하는 서비스의 선택박스 체크(중복 선택 가능)</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                체크항목 Open-API 이용신청 버튼 클릭</li>
+                                        </ul>
+                                    </div>
 
-                    <div class="space-y-12">
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">어떤 정보를 얻을 수 있나요?</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div class="p-5 border border-gray-200 rounded-lg bg-gray-50">
-                                    <h3 class="font-bold text-lg text-gray-800 mb-2">🍎 식품 영양 정보</h3>
-                                    <p class="text-gray-600">다양한 가공식품 and 농축수산물의 칼로리, 나트륨, 단백질 등 상세한 영양 성분을 확인할 수 있습니다.</p>
+                                    <!-- 스텝 3 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">3. Open-API 이용신청 시 공공데이터활용 이용약관
+                                            동의</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_03.jpg"
+                                                alt="약관 동의 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                이용약관 동의 체크</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 스텝 4 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">4. 선택한 OPENAPI 서비스의 세부항목 입력 후
+                                            신청 버튼 클릭</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_04.jpg"
+                                                alt="세부항목 입력 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-3 text-gray-600 ml-2">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                활용용도 선택 (어플리케이션 개발/웹사이트 연동 및 운영/기타 중 택 1)</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                활용구분 선택 (개인/기업 중 택 1, 기업 선택 시 기업명 입력)</li>
+                                            <li class="flex items-start">
+                                                <span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">3</span>
+                                                <div>
+                                                    활용목적 작성 (상세 입력 요망)
+                                                    <div
+                                                        class="bg-gray-100 text-sm p-3 rounded-lg mt-2 text-gray-700 font-mono">
+                                                        예시1) 영양성분DB 정보를 활용한 다이어트 어플리케이션 개발<br>
+                                                        예시2) 협회 회원사 간 학술활동 자료로 활용
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">4</span>
+                                                신청 버튼 클릭</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">5</span>
+                                                목록 화면 호출 시 목록 버튼 클릭</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 스텝 5 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">5. 인증키 발급 정보 및 서비스신청 목록 확인</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_05.jpg"
+                                                alt="목록 확인 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2 mb-3">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                자신이 신청한 인증키 발급정보 확인</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                자신이 신청한 Open-API 신청 목록 확인</li>
+                                        </ul>
+                                        <div
+                                            class="bg-blue-50 border-l-4 border-blue-500 p-4 text-sm text-blue-800 rounded-r-lg">
+                                            ※ 인증키는 신청 후 자동으로 승인되어 발급이 완료됩니다. (인증키 발급 및 서비스 신청 종료)
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="p-5 border border-gray-200 rounded-lg bg-gray-50">
-                                    <h3 class="font-bold text-lg text-gray-800 mb-2">⚠️ 회수 및 위해 식품</h3>
-                                    <p class="text-gray-600">안전 기준을 위반하여 판매가 중단되거나 회수 조치된 식품의 최신 정보를 실시간으로 확인합니다.</p>
+                            </section>
+
+                            <!-- 파트 2 -->
+                            <section>
+                                <h2 class="text-2xl font-bold text-gray-900 flex items-center mb-8">
+                                    <span
+                                        class="flex items-center justify-center w-8 h-8 rounded bg-blue-600 text-white text-sm mr-3 shadow-sm">Ⅱ</span>
+                                    OPENAPI 서비스 확인 및 활용 안내
+                                </h2>
+
+                                <div class="space-y-12 pl-4 border-l-2 border-gray-100 ml-4">
+
+                                    <!-- 스텝 1 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">1. 인증키 신청 현황 버튼 클릭</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_06.jpg"
+                                                alt="인증키 현황 버튼 클릭" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                    </div>
+
+                                    <!-- 스텝 2 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">2. 인증키 발급 정보 및 서비스 신청 목록 확인
+                                        </h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_07.jpg"
+                                                alt="발급 정보 확인" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                자신이 신청한 인증키 발급정보 확인(인증키 발급은 1회만 가능 함)</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                자신이 신청한 Open-API 신청 목록 확인(동일한 서비스는 1회만 신청하면 이용 가능)</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 스텝 3 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">3. 원하는 정보 찾기</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_08.jpg"
+                                                alt="정보 찾기 1" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2 mb-6">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                메인화면 상단의 데이터 공개 클릭(분류별, 제공기관별, 유형별 중 택 1)</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                서비스 명에 자신이 찾고자 하는 공공데이터 정보를 검색</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">3</span>
+                                                다양한 검색 조건을 통해 원하는 공공데이터 서비스 조회 가능(서비스명 클릭 시 상세화면으로 이동)</li>
+                                        </ul>
+
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_09.jpg"
+                                                alt="정보 찾기 2" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2 mb-6">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">4</span>
+                                                메타 정보 확인</li>
+                                        </ul>
+
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_10.jpg"
+                                                alt="정보 찾기 3" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2 mb-6">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">5</span>
+                                                SAMPLE 정보 확인</li>
+                                        </ul>
+
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_11.jpg"
+                                                alt="정보 찾기 4" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2 mb-6">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">6</span>
+                                                Open-API 정보 확인</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 스텝 4 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">4. 발급된 인증키를 이용하여 Open-API 사용
+                                        </h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-sm overflow-hidden mb-4 inline-block">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_12.jpg"
+                                                alt="API 사용 안내" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-2 text-gray-600 ml-2">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                요청주소(URL, 샘플) 확인</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 스텝 5 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">5. 요청주소 입력 상세설명</h3>
+                                        <div
+                                            class="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm overflow-hidden mb-6 flex justify-center">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_13.jpg"
+                                                alt="요청주소 상세" class="rounded-lg max-w-full h-auto">
+                                        </div>
+                                        <ul class="space-y-3 text-gray-600 ml-2 mb-6">
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">1</span>
+                                                keyID : 자신의 인증키 발급정보 입력</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">2</span>
+                                                serviceID : 미리보기 주소에 있는 serviceID 입력</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">3</span>
+                                                datatype : XML, JSON 중 택1 하여 입력</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">4</span>
+                                                startIdx : 받고자 하는 정보의 시작 행 순번 입력 (1번부터 받으실 거라면 ‘1’ 입력)</li>
+                                            <li class="flex items-start"><span
+                                                    class="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mr-2 mt-0.5">5</span>
+                                                endIdx : 받고자 하는 정보의 마지막 행 순번 입력(5번까지 받으실 거라면 ‘5’ 입력)</li>
+                                        </ul>
+
+                                        <div
+                                            class="bg-gray-800 text-gray-300 p-5 rounded-xl font-mono text-sm leading-relaxed overflow-x-auto shadow-inner">
+                                            <span class="text-gray-400 block mb-2 text-xs uppercase tracking-wider">요청
+                                                주소 입력 예시</span>
+                                            <span
+                                                class="text-pink-400">http://openapi.foodsafetykorea.go.kr/api/</span><span
+                                                class="text-yellow-300">본인인증키</span><span
+                                                class="text-green-400">/I0960/xml/1/5</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 스텝 6 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[25px] top-1 w-3 h-3 rounded-full bg-blue-500 border-4 border-white shadow-sm">
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800 mb-4">6. 획득한 데이터를 활용</h3>
+                                        <div
+                                            class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100 shadow-sm text-center">
+                                            <img src="https://www.foodsafetykorea.go.kr/img/howToUseApi/guide_img_14.jpg"
+                                                alt="데이터 활용"
+                                                class="rounded-lg max-w-full h-auto mx-auto mb-6 shadow-sm border border-white">
+                                            <p class="text-lg font-bold text-blue-900">
+                                                요청 주소를 활용하여<br>공공데이터를 자유롭게 활용하실 수 있습니다.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1안 (일반인용) -->
+                <div id="tab1" class="hidden bg-gray-50 flex justify-center">
+                    <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
+                        <!-- Sidebar -->
+                        <aside
+                            class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
+                            <nav class="p-4 space-y-1">
+                                <div class="mb-6">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                        누구나 쉽게 시작하기</h3>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">식품안전
+                                        공공데이터란?</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">회원가입
+                                        및 권한 신청</a>
+                                </div>
+                                <div class="mb-6">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                        활용 안내</h3>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">데이터
+                                        찾기</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">활용
+                                        우수 사례</a>
+                                </div>
+                            </nav>
+                        </aside>
+
+                        <!-- Content -->
+                        <main class="flex-1 overflow-y-auto bg-white">
+                            <div class="max-w-4xl mx-auto py-10 px-8 xl:px-12">
+                                <div class="text-sm text-gray-500 mb-4">누구나 쉽게 시작하기 &gt; 식품안전 공공데이터란?</div>
+
+                                <h1 class="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight">식품안전 공공데이터 알아보기
+                                </h1>
+
+                                <p class="text-lg text-gray-600 mb-10 leading-relaxed">
+                                    복잡한 코딩이나 전문 지식이 없어도 괜찮습니다. 식품안전나라에서 제공하는 공공데이터를 통해 누구나 쉽게 건강하고 안전한 식생활 정보를 활용할 수
+                                    있습니다.
+                                </p>
+
+                                <div class="space-y-12">
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">어떤 정보를 얻을 수 있나요?
+                                        </h2>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                            <div class="p-5 border border-gray-200 rounded-lg bg-gray-50">
+                                                <h3 class="font-bold text-lg text-gray-800 mb-2">🍎 식품 영양 정보</h3>
+                                                <p class="text-gray-600">다양한 가공식품 and 농축수산물의 칼로리, 나트륨, 단백질 등 상세한 영양 성분을
+                                                    확인할 수 있습니다.</p>
+                                            </div>
+                                            <div class="p-5 border border-gray-200 rounded-lg bg-gray-50">
+                                                <h3 class="font-bold text-lg text-gray-800 mb-2">⚠️ 회수 및 위해 식품</h3>
+                                                <p class="text-gray-600">안전 기준을 위반하여 판매가 중단되거나 회수 조치된 식품의 최신 정보를 실시간으로
+                                                    확인합니다.</p>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">이용 절차 (3단계)</h2>
+                                        <ul class="space-y-6 text-gray-700">
+                                            <li class="flex items-start">
+                                                <div
+                                                    class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">
+                                                    1</div>
+                                                <div>
+                                                    <strong class="block text-gray-900 text-lg">회원가입 및 로그인</strong>
+                                                    식품안전나라 포털에 접속하여 회원가입을 진행합니다.
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div
+                                                    class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">
+                                                    2</div>
+                                                <div>
+                                                    <strong class="block text-gray-900 text-lg">이용 신청 (인증키 발급)</strong>
+                                                    원하는 데이터를 선택한 뒤, '이용 신청' 버튼을 눌러 승인을 받습니다.
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <div
+                                                    class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">
+                                                    3</div>
+                                                <div>
+                                                    <strong class="block text-gray-900 text-lg">데이터 다운로드 및 활용</strong>
+                                                    승인된 데이터는 엑셀(CSV) 형식으로 다운로드 받거나, 스마트폰 앱 등에 활용할 수 있습니다.
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </section>
                                 </div>
                             </div>
-                        </section>
-
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">이용 절차 (3단계)</h2>
-                            <ul class="space-y-6 text-gray-700">
-                                <li class="flex items-start">
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">1</div>
-                                    <div>
-                                        <strong class="block text-gray-900 text-lg">회원가입 및 로그인</strong>
-                                        식품안전나라 포털에 접속하여 회원가입을 진행합니다.
-                                    </div>
-                                </li>
-                                <li class="flex items-start">
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">2</div>
-                                    <div>
-                                        <strong class="block text-gray-900 text-lg">이용 신청 (인증키 발급)</strong>
-                                        원하는 데이터를 선택한 뒤, '이용 신청' 버튼을 눌러 승인을 받습니다.
-                                    </div>
-                                </li>
-                                <li class="flex items-start">
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">3</div>
-                                    <div>
-                                        <strong class="block text-gray-900 text-lg">데이터 다운로드 및 활용</strong>
-                                        승인된 데이터는 엑셀(CSV) 형식으로 다운로드 받거나, 스마트폰 앱 등에 활용할 수 있습니다.
-                                    </div>
-                                </li>
-                            </ul>
-                        </section>
+                        </main>
                     </div>
                 </div>
-            </main>
-            </div>
-        </div>
 
-        <!-- 2안 (카카오 디벨로퍼스 스타일) -->
-        <div id="tab2" class="absolute inset-0 bg-gray-50 flex justify-center">
-            <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
-            <!-- Sidebar -->
-            <aside class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
-                <nav class="p-4 space-y-1">
-                    <div class="mb-6">
-                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">시작하기</h3>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">이해하기</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">애플리케이션 등록</a>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">식품안전 공공데이터</h3>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">REST API 가이드</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">데이터 포맷 안내</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">오류 코드</a>
-                    </div>
+                <!-- 2안 (카카오 디벨로퍼스 스타일) -->
+                <div id="tab2" class="bg-gray-50 flex justify-center">
+                    <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
+                        <!-- Sidebar -->
+                        <aside
+                            class="w-64 bg-white border-r border-gray-200 overflow-y-auto sidebar shrink-0 hidden md:block">
+                            <nav class="p-4 space-y-1">
+                                <div class="mb-6">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                        시작하기</h3>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">이해하기</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">애플리케이션
+                                        등록</a>
+                                </div>
 
-                    <div class="mb-6">
-                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">활용 사례</h3>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">웹 애플리케이션</a>
-                        <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">모바일 앱</a>
-                    </div>
-                </nav>
-            </aside>
+                                <div class="mb-6">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                        식품안전 공공데이터</h3>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">REST
+                                        API 가이드</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">데이터
+                                        포맷 안내</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">오류
+                                        코드</a>
+                                </div>
 
-            <!-- Content -->
-            <main class="flex-1 overflow-y-auto bg-white">
-                <div class="max-w-4xl mx-auto py-10 px-8 xl:px-12">
-                    <div class="text-sm text-gray-500 mb-4">시작하기 &gt; 이해하기</div>
-                    
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight">이해하기</h1>
-                    
-                    <p class="text-lg text-gray-600 mb-10 leading-relaxed">
-                        이 문서는 식품안전나라에서 제공하는 공공데이터(Open API)를 활용하기 위한 기본 개념과 사용 방법을 안내합니다. 오픈 API를 통해 식약처의 식품안전정보를 여러분의 서비스에 손쉽게 통합할 수 있습니다.
-                    </p>
+                                <div class="mb-6">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                        활용 사례</h3>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">웹
+                                        애플리케이션</a>
+                                    <a href="#"
+                                        class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md">모바일
+                                        앱</a>
+                                </div>
+                            </nav>
+                        </aside>
 
-                    <div class="space-y-12">
-                        <!-- 섹션 1 -->
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">특징</h2>
-                            <ul class="space-y-4 text-gray-700">
-                                <li class="flex items-start">
-                                    <i class="fa-solid fa-check text-blue-500 mt-1 mr-3"></i>
-                                    <div>
-                                        <strong class="block text-gray-900">다양한 데이터 포맷 지원</strong>
-                                        XML, JSON 두 가지 형태의 응답 포맷을 지원하여 개발 환경에 맞춰 유연하게 사용할 수 있습니다.
-                                    </div>
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fa-solid fa-check text-blue-500 mt-1 mr-3"></i>
-                                    <div>
-                                        <strong class="block text-gray-900">RESTful 아키텍처 기반</strong>
-                                        직관적이고 표준화된 HTTP URL 방식을 사용하여 접근성이 뛰어납니다.
-                                    </div>
-                                </li>
-                            </ul>
-                        </section>
+                        <!-- Content -->
+                        <main class="flex-1 overflow-y-auto bg-white">
+                            <div class="max-w-4xl mx-auto py-10 px-8 xl:px-12">
+                                <div class="text-sm text-gray-500 mb-4">시작하기 &gt; 이해하기</div>
 
-                        <!-- 섹션 2 -->
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">기본 정보</h2>
-                            <p class="text-gray-700 mb-4">REST API를 호출하기 위한 기본 도메인과 방식은 다음과 같습니다.</p>
-                            
-                            <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                                <div class="flex items-center gap-4 mb-2">
-                                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">GET</span>
-                                    <span class="text-gray-800 font-mono text-sm break-all">http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}</span>
+                                <h1 class="text-4xl font-extrabold text-gray-900 mb-6 tracking-tight">이해하기</h1>
+
+                                <p class="text-lg text-gray-600 mb-10 leading-relaxed">
+                                    이 문서는 식품안전나라에서 제공하는 공공데이터(Open API)를 활용하기 위한 기본 개념과 사용 방법을 안내합니다. 오픈 API를 통해 식약처의
+                                    식품안전정보를 여러분의 서비스에 손쉽게 통합할 수 있습니다.
+                                </p>
+
+                                <div class="space-y-12">
+                                    <!-- 섹션 1 -->
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">특징</h2>
+                                        <ul class="space-y-4 text-gray-700">
+                                            <li class="flex items-start">
+                                                <i class="fa-solid fa-check text-blue-500 mt-1 mr-3"></i>
+                                                <div>
+                                                    <strong class="block text-gray-900">다양한 데이터 포맷 지원</strong>
+                                                    XML, JSON 두 가지 형태의 응답 포맷을 지원하여 개발 환경에 맞춰 유연하게 사용할 수 있습니다.
+                                                </div>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fa-solid fa-check text-blue-500 mt-1 mr-3"></i>
+                                                <div>
+                                                    <strong class="block text-gray-900">RESTful 아키텍처 기반</strong>
+                                                    직관적이고 표준화된 HTTP URL 방식을 사용하여 접근성이 뛰어납니다.
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </section>
+
+                                    <!-- 섹션 2 -->
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">기본 정보</h2>
+                                        <p class="text-gray-700 mb-4">REST API를 호출하기 위한 기본 도메인과 방식은 다음과 같습니다.</p>
+
+                                        <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                                            <div class="flex items-center gap-4 mb-2">
+                                                <span
+                                                    class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">GET</span>
+                                                <span
+                                                    class="text-gray-800 font-mono text-sm break-all">http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}</span>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <!-- 섹션 3 -->
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">요청 파라미터</h2>
+
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full text-left text-sm text-gray-700 border-collapse">
+                                                <thead class="bg-gray-50 text-gray-600 border-b">
+                                                    <tr>
+                                                        <th class="py-3 px-4 font-semibold">이름</th>
+                                                        <th class="py-3 px-4 font-semibold">타입</th>
+                                                        <th class="py-3 px-4 font-semibold">필수 여부</th>
+                                                        <th class="py-3 px-4 font-semibold">설명</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-100">
+                                                    <tr>
+                                                        <td class="py-3 px-4 font-mono font-medium">keyId</td>
+                                                        <td class="py-3 px-4">String</td>
+                                                        <td class="py-3 px-4"><span
+                                                                class="text-red-500 font-bold">O</span></td>
+                                                        <td class="py-3 px-4">발급받은 인증키</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-3 px-4 font-mono font-medium">serviceId</td>
+                                                        <td class="py-3 px-4">String</td>
+                                                        <td class="py-3 px-4"><span
+                                                                class="text-red-500 font-bold">O</span></td>
+                                                        <td class="py-3 px-4">서비스명 (예: I1250)</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="py-3 px-4 font-mono font-medium">dataType</td>
+                                                        <td class="py-3 px-4">String</td>
+                                                        <td class="py-3 px-4"><span
+                                                                class="text-red-500 font-bold">O</span></td>
+                                                        <td class="py-3 px-4">응답형식 (XML / JSON)</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </section>
+
+                                    <!-- 섹션 4 -->
+                                    <section>
+                                        <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">요청 예시</h2>
+                                        <p class="text-gray-700 mb-4">JSON 포맷으로 1번부터 5번까지의 데이터를 요청하는 예시입니다.</p>
+                                        <pre><code>curl -v -X GET "http://openapi.foodsafetykorea.go.kr/api/sample/I2500/json/1/5"</code></pre>
+                                    </section>
+                                </div>
+
+                                <!-- Footer nav -->
+                                <div class="mt-16 pt-8 border-t flex justify-between items-center">
+                                    <div></div>
+                                    <a href="#" class="text-blue-600 font-medium hover:underline flex items-center">
+                                        애플리케이션 등록 <i class="fa-solid fa-arrow-right ml-2"></i>
+                                    </a>
                                 </div>
                             </div>
-                        </section>
+                        </main>
 
-                        <!-- 섹션 3 -->
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">요청 파라미터</h2>
-                            
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full text-left text-sm text-gray-700 border-collapse">
-                                    <thead class="bg-gray-50 text-gray-600 border-b">
-                                        <tr>
-                                            <th class="py-3 px-4 font-semibold">이름</th>
-                                            <th class="py-3 px-4 font-semibold">타입</th>
-                                            <th class="py-3 px-4 font-semibold">필수 여부</th>
-                                            <th class="py-3 px-4 font-semibold">설명</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr>
-                                            <td class="py-3 px-4 font-mono font-medium">keyId</td>
-                                            <td class="py-3 px-4">String</td>
-                                            <td class="py-3 px-4"><span class="text-red-500 font-bold">O</span></td>
-                                            <td class="py-3 px-4">발급받은 인증키</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-3 px-4 font-mono font-medium">serviceId</td>
-                                            <td class="py-3 px-4">String</td>
-                                            <td class="py-3 px-4"><span class="text-red-500 font-bold">O</span></td>
-                                            <td class="py-3 px-4">서비스명 (예: I1250)</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-3 px-4 font-mono font-medium">dataType</td>
-                                            <td class="py-3 px-4">String</td>
-                                            <td class="py-3 px-4"><span class="text-red-500 font-bold">O</span></td>
-                                            <td class="py-3 px-4">응답형식 (XML / JSON)</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-
-                        <!-- 섹션 4 -->
-                        <section>
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">요청 예시</h2>
-                            <p class="text-gray-700 mb-4">JSON 포맷으로 1번부터 5번까지의 데이터를 요청하는 예시입니다.</p>
-                            <pre><code>curl -v -X GET "http://openapi.foodsafetykorea.go.kr/api/sample/I2500/json/1/5"</code></pre>
-                        </section>
-                    </div>
-                    
-                    <!-- Footer nav -->
-                    <div class="mt-16 pt-8 border-t flex justify-between items-center">
-                        <div></div>
-                        <a href="#" class="text-blue-600 font-medium hover:underline flex items-center">
-                            애플리케이션 등록 <i class="fa-solid fa-arrow-right ml-2"></i>
-                        </a>
+                        <!-- Right TOC (Table of Contents) -->
+                        <aside class="w-64 hidden xl:block px-6 py-10 overflow-y-auto">
+                            <h4 class="font-bold text-sm text-gray-900 mb-4 uppercase">이 문서의 내용</h4>
+                            <nav class="space-y-2 text-sm text-gray-600">
+                                <a href="#"
+                                    class="block hover:text-blue-600 text-blue-600 font-medium border-l-2 border-blue-600 pl-3 -ml-px">특징</a>
+                                <a href="#"
+                                    class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">기본
+                                    정보</a>
+                                <a href="#"
+                                    class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">요청
+                                    파라미터</a>
+                                <a href="#"
+                                    class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">요청
+                                    예시</a>
+                            </nav>
+                        </aside>
                     </div>
                 </div>
-            </main>
-            
-            <!-- Right TOC (Table of Contents) -->
-            <aside class="w-64 hidden xl:block px-6 py-10 overflow-y-auto">
-                <h4 class="font-bold text-sm text-gray-900 mb-4 uppercase">이 문서의 내용</h4>
-                <nav class="space-y-2 text-sm text-gray-600">
-                    <a href="#" class="block hover:text-blue-600 text-blue-600 font-medium border-l-2 border-blue-600 pl-3 -ml-px">특징</a>
-                    <a href="#" class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">기본 정보</a>
-                    <a href="#" class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">요청 파라미터</a>
-                    <a href="#" class="block hover:text-blue-600 border-l-2 border-transparent pl-3 -ml-px">요청 예시</a>
-                </nav>
-            </aside>
             </div>
-        </div>
-        </div>
-        
-        <!-- INCLUDE_FOOTER -->
-    </div>
 
-    <script>
-        function switchTab(tabId) {
-            // Hide all tabs
-            document.getElementById('tab0').classList.add('hidden');
-            document.getElementById('tab1').classList.add('hidden');
-            document.getElementById('tab2').classList.add('hidden');
-            
-            // Remove active styles from buttons
-            document.getElementById('btn-tab0').classList.remove('active');
-            document.getElementById('btn-tab1').classList.remove('active');
-            document.getElementById('btn-tab2').classList.remove('active');
-            
-            // Show selected tab
-            document.getElementById(tabId).classList.remove('hidden');
-            document.getElementById('btn-' + tabId).classList.add('active');
-        }
-    </script>
+            <!-- INCLUDE_FOOTER -->
+        </div>
+
+        <script>
+            function switchTab(tabId) {
+                // Hide all tabs
+                document.getElementById('tab0').classList.add('hidden');
+                document.getElementById('tab1').classList.add('hidden');
+                document.getElementById('tab2').classList.add('hidden');
+
+                // Remove active styles from buttons
+                document.getElementById('btn-tab0').classList.remove('active');
+                document.getElementById('btn-tab1').classList.remove('active');
+                document.getElementById('btn-tab2').classList.remove('active');
+
+                // Show selected tab
+                document.getElementById(tabId).classList.remove('hidden');
+                document.getElementById('btn-' + tabId).classList.add('active');
+            }
+        </script>
 </body>
+
 </html>

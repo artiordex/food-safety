@@ -22,7 +22,7 @@ const REAL_API_KEY = '77183c01c07d44798948';
 function applyIncludes(html, vars = {}) {
   const includesDir = path.join(__dirname, 'public/includes');
   // 치환 전 플레이스홀더 존재 여부를 미리 기록
-  const hadFooter    = html.includes('<!-- INCLUDE_FOOTER -->');
+  const hadFooter = html.includes('<!-- INCLUDE_FOOTER -->');
   const hadMenuModal = html.includes('<!-- INCLUDE_MENU_MODAL -->');
   const replacements = [
     { placeholder: '<!-- INCLUDE_HEAD -->', file: 'head.html', transform: c => c.replace(/<head>/i, '').replace(/<\/head>/i, '') },
@@ -287,7 +287,7 @@ function getCacheMap() {
         };
       });
     }
-  } catch (e) {}
+  } catch (e) { }
   return _cacheMap;
 }
 
@@ -300,8 +300,8 @@ app.get('/api/providerList.do', (req, res) => {
 
 // 데이터구조 검색 API (/ajax/datasetSearch.do 로컬 대체)
 app.post('/api/search', (req, res) => {
-  const svcTypeCode    = (req.body.search_svcTypeCode    || '').trim(); // API_TYPE05=Link, API_TYPE06=XML/JSON
-  const clCdCode       = (req.body.search_clCdCode       || '').trim();
+  const svcTypeCode = (req.body.search_svcTypeCode || '').trim(); // API_TYPE05=Link, API_TYPE06=XML/JSON
+  const clCdCode = (req.body.search_clCdCode || '').trim();
   const provdInsttCode = (req.body.search_provdInsttCode || '').trim();
 
   let query = 'SELECT svc_no, svc_nm, cat FROM api_tables WHERE 1=1';
@@ -344,9 +344,9 @@ app.post('/api/search', (req, res) => {
 
 // 4.2 통합 데이터 검색 결과 API (searchDatasetList.do)
 app.post('/api/searchDatasetList.do', (req, res) => {
-  const keyword     = (req.body.search_keyword       || '').trim();
-  const catFilter   = (req.body.search_clCdCode      || '').trim();
-  const typeFilter  = (req.body.search_svcTypeCode   || '').trim();
+  const keyword = (req.body.search_keyword || '').trim();
+  const catFilter = (req.body.search_clCdCode || '').trim();
+  const typeFilter = (req.body.search_svcTypeCode || '').trim();
   const provdFilter = (req.body.search_provdInsttCode || '').trim();
 
   db.all('SELECT svc_no, svc_nm, cat, description FROM api_tables', [], (err, rows) => {
@@ -359,9 +359,9 @@ app.post('/api/searchDatasetList.do', (req, res) => {
     rows.forEach(row => {
       const svc_no = row.svc_no || '';
       const svc_nm = row.svc_nm || '';
-      const cat    = row.cat   || '공공데이터';
-      const desc   = row.description || '';
-      const info   = cacheMap[String(svc_no)] || {};
+      const cat = row.cat || '공공데이터';
+      const desc = row.description || '';
+      const info = cacheMap[String(svc_no)] || {};
       const typeNm = info.data_type_nm || 'XML/JSON';
       const provdNm = info.provd_instt_nm || '식품의약품안전처';
 
@@ -378,14 +378,14 @@ app.post('/api/searchDatasetList.do', (req, res) => {
         svc_no,
         svc_nm,
         provd_instt_nm: provdNm,
-        link_yn:    typeNm === 'LINK'    ? 'Y' : 'N',
-        file_yn:    'N',
+        link_yn: typeNm === 'LINK' ? 'Y' : 'N',
+        file_yn: 'N',
         openapi_yn: typeNm === 'XML/JSON' ? 'Y' : 'N'
       });
     });
 
-    const start_idx  = parseInt(req.body.start_idx) || 1;
-    const show_cnt   = parseInt(req.body.show_cnt)  || 10;
+    const start_idx = parseInt(req.body.start_idx) || 1;
+    const show_cnt = parseInt(req.body.show_cnt) || 10;
     const startIndex = (start_idx - 1) * show_cnt;
     res.json({ total_cnt: list.length, list: list.slice(startIndex, startIndex + show_cnt) });
   });
@@ -1456,24 +1456,24 @@ app.get('/api/keyword-datamap', async (req, res) => {
 const _wcCache = {};  // tableName → { words, ts }
 const WC_TTL = 10 * 60 * 1000; // 10분 캐시
 const WC_STOPWORDS = new Set([
-  '있는','있어','있다','없는','없다','이다','입니다','합니다','하는','하여','하고','하며',
-  '되는','되어','되고','이며','이고','으로','에서','에는','에서의','에게','그리고','또한',
-  '및','등','중','내','외','전','후','상','하','좌','우','관련','해당','위한','대한',
-  '기준','정보','데이터','관리','현황','식품','안전','국내','국외','사항','여부','기타',
-  '해당없음','해당없','폐업','영업','영업소','소재지','대표자','업소명','업종','업태',
-  '허가','신고','등록','취소','정지','말소','만료','직권','폐쇄','처분','처리',
-  '미입력','미기재','미해당','정보없음','기타없음','해당사항없음',
-  '층','번지','번','호','동','구','시','군','읍','면','리','로','길',
-  '경기도','서울특별시','부산광역시','인천광역시','대구광역시','광주광역시','대전광역시',
-  '울산광역시','세종특별자치시','강원도','강원특별자치도','충청북도','충청남도',
-  '전라북도','전라남도','전북특별자치도','경상북도','경상남도','제주특별자치도',
-  '이하','이상','미만','초과','주식회사','유한회사','합자회사','합명회사','농업회사법인',
-  '자진','고시형','집단급식소','수입식품등','서울청','부산청','경인청',
-  'null','NULL','N/A','없음','미정','알수없음','불명','전문가와',
-  '최대','최소','이내','이상','경우','때문','따라','통해','위해','대해','관해',
-  '상담할','상담','문의','처리','처분','결과','내용','방법','기간','기준',
-  'mg','MG','ml','ML','kg','KG','mm','MM','cm','CM','No','NO',
-  '가지','하나','모두','각각','이외','외에','또는','혹은','그외','경우에'
+  '있는', '있어', '있다', '없는', '없다', '이다', '입니다', '합니다', '하는', '하여', '하고', '하며',
+  '되는', '되어', '되고', '이며', '이고', '으로', '에서', '에는', '에서의', '에게', '그리고', '또한',
+  '및', '등', '중', '내', '외', '전', '후', '상', '하', '좌', '우', '관련', '해당', '위한', '대한',
+  '기준', '정보', '데이터', '관리', '현황', '식품', '안전', '국내', '국외', '사항', '여부', '기타',
+  '해당없음', '해당없', '폐업', '영업', '영업소', '소재지', '대표자', '업소명', '업종', '업태',
+  '허가', '신고', '등록', '취소', '정지', '말소', '만료', '직권', '폐쇄', '처분', '처리',
+  '미입력', '미기재', '미해당', '정보없음', '기타없음', '해당사항없음',
+  '층', '번지', '번', '호', '동', '구', '시', '군', '읍', '면', '리', '로', '길',
+  '경기도', '서울특별시', '부산광역시', '인천광역시', '대구광역시', '광주광역시', '대전광역시',
+  '울산광역시', '세종특별자치시', '강원도', '강원특별자치도', '충청북도', '충청남도',
+  '전라북도', '전라남도', '전북특별자치도', '경상북도', '경상남도', '제주특별자치도',
+  '이하', '이상', '미만', '초과', '주식회사', '유한회사', '합자회사', '합명회사', '농업회사법인',
+  '자진', '고시형', '집단급식소', '수입식품등', '서울청', '부산청', '경인청',
+  'null', 'NULL', 'N/A', '없음', '미정', '알수없음', '불명', '전문가와',
+  '최대', '최소', '이내', '이상', '경우', '때문', '따라', '통해', '위해', '대해', '관해',
+  '상담할', '상담', '문의', '처리', '처분', '결과', '내용', '방법', '기간', '기준',
+  'mg', 'MG', 'ml', 'ML', 'kg', 'KG', 'mm', 'MM', 'cm', 'CM', 'No', 'NO',
+  '가지', '하나', '모두', '각각', '이외', '외에', '또는', '혹은', '그외', '경우에'
 ]);
 
 app.get('/api/wordcloud', (req, res) => {
@@ -1492,19 +1492,19 @@ app.get('/api/wordcloud', (req, res) => {
     const u = name.toUpperCase();
     // 주소·코드·번호·날짜 컬럼은 제외
     if (u.endsWith('_ADDR') || u.endsWith('_CD') || u.endsWith('_CODE') ||
-        u.endsWith('_NO') || u.endsWith('_ID') || u.endsWith('_DT') ||
-        u.endsWith('_DATE') || u.endsWith('_YMD') || u.endsWith('_YN') ||
-        u.includes('_TELNO') || u.includes('_TEL_') || u.includes('_ZIP') ||
-        u.includes('_ADDR') || u.includes('_LOC') || u.includes('_ROAD') ||
-        u.includes('_JIBUN') || u.includes('_SIDO') || u.includes('_SIGUNGU') ||
-        u.includes('SIDO') || u.includes('SIGUNGU') || u.includes('EMDONG') ||
-        u.includes('BPLC') || u.includes('SITE_') || u.includes('_SITE')) return false;
+      u.endsWith('_NO') || u.endsWith('_ID') || u.endsWith('_DT') ||
+      u.endsWith('_DATE') || u.endsWith('_YMD') || u.endsWith('_YN') ||
+      u.includes('_TELNO') || u.includes('_TEL_') || u.includes('_ZIP') ||
+      u.includes('_ADDR') || u.includes('_LOC') || u.includes('_ROAD') ||
+      u.includes('_JIBUN') || u.includes('_SIDO') || u.includes('_SIGUNGU') ||
+      u.includes('SIDO') || u.includes('SIGUNGU') || u.includes('EMDONG') ||
+      u.includes('BPLC') || u.includes('SITE_') || u.includes('_SITE')) return false;
     return (u.endsWith('_NM') || u.endsWith('_NAME') || u.endsWith('_NM_KR') ||
-            u.endsWith('_NM_KO') || u.endsWith('_TITLE') || u.endsWith('_DESC') ||
-            u.endsWith('_DETAIL') || u.endsWith('_INFO') || u.endsWith('_CN') ||
-            u.endsWith('_CONT') || u.endsWith('_CONTENT') || u.endsWith('_TEXT') ||
-            u.endsWith('_NOTE') || u.endsWith('_REMARK') || u.endsWith('_ITEM') ||
-            u.includes('_NM_') || u.includes('_NAME_'));
+      u.endsWith('_NM_KO') || u.endsWith('_TITLE') || u.endsWith('_DESC') ||
+      u.endsWith('_DETAIL') || u.endsWith('_INFO') || u.endsWith('_CN') ||
+      u.endsWith('_CONT') || u.endsWith('_CONTENT') || u.endsWith('_TEXT') ||
+      u.endsWith('_NOTE') || u.endsWith('_REMARK') || u.endsWith('_ITEM') ||
+      u.includes('_NM_') || u.includes('_NAME_'));
   };
 
   const tokenize = (text) => {
@@ -1662,6 +1662,101 @@ app.get('/api/nongshim-dataset', async (req, res) => {
   }
 });
 
+const CAT_TO_SUBJECT = {
+  '식품영양정보': '영양·건강',
+  '건강기능식품': '영양·건강',
+  '식품 등': '식품·제품',
+  '기준규격정보': '식품·제품',
+  '이력추적관리': '식품·제품',
+  '수입식품 등': '수입식품',
+  '업체인허가현황': '업체·영업자',
+  '폐업정보': '업체·영업자',
+  'HACCP지정현황': '업체·영업자',
+  '위생용품': '업체·영업자',
+  '축산물': '농·축·수산물',
+  '식품위해관리': '식품·제품',
+  '식품안전관리': '식품·제품',
+  '수질환경정보': '기타',
+  '어린이식품안전관리': '식품·제품',
+  '검사기관정보': '기타',
+  '코드정보': '기타',
+  '용어사전': '기타',
+};
+
+function buildDatasetEntry(row, cacheItem, fieldNames) {
+  const svcNo = row.svc_no || '';
+  const svcNm = cacheItem?.svc_nm || row.svc_nm || svcNo;
+  const cat = cacheItem?.cat || row.cat || '기타';
+  const desc = cacheItem?.desc || row.description || '';
+  const provd = cacheItem?.provd_instt_nm || '식품의약품안전처';
+  const subject = CAT_TO_SUBJECT[cat] || '기타';
+  const fields = cacheItem?.fields || [];
+  const pkFields = fields.filter(f =>
+    /NO$|_SN$|_ID$|_SEQ$/i.test(f.field || '') &&
+    !/TELNO|PHONE|ADDR/i.test(f.field || '')
+  ).map(f => f.field);
+  const keys = pkFields.length > 0 ? pkFields : (fieldNames.length > 0 ? [fieldNames[0]] : []);
+  const includedData = fieldNames.slice(0, 8);
+  const dataCount = Math.max(row.sample_data_length ? Math.floor(row.sample_data_length / 80) : 0, 0);
+
+  const isView = svcNo.startsWith('v_');
+  const difficulty = isView ? 'easy'
+    : fieldNames.length > 30 ? 'hard'
+      : fieldNames.length > 12 ? 'medium' : 'easy';
+
+  return {
+    id: svcNo,
+    name: `${svcNm} (${svcNo})`,
+    description: desc || `${svcNm} 데이터를 제공하는 API입니다.`,
+    users: ['개발자', '연구원', '일반사용자'],
+    dataCount,
+    formats: isView ? ['SQLite View', 'JSON API'] : ['SQLite', 'JSON API'],
+    difficulty,
+    subject,
+    process: cat,
+    issue: '해당없음',
+    theme: '일반 조회용',
+    includedData,
+    keys,
+    usageExample: `SELECT * FROM "${svcNo}" LIMIT 10;`,
+    provd_instt_nm: provd,
+    detail: {
+      overview: desc || `${svcNm}(${svcNo}) 데이터셋입니다.`,
+      includedList: fields.slice(0, 10).map(f => `${f.field} (${f.kor_nm || f.field})`),
+      joinKeys: keys.map(k => `PK: ${k}`),
+      scenarios: [`${svcNm} 데이터 조회`, `${svcNm} 분석`],
+      recommendedUsers: ['데이터 분석가', '서비스 개발자'],
+      guideLinks: [{ label: 'Open API 포털 안내', url: 'https://www.foodsafetykorea.go.kr' }],
+      examples: [`SELECT * FROM "${svcNo}" LIMIT 10;`]
+    }
+  };
+}
+
+app.get('/api/datasets', (req, res) => {
+  const cacheMap = getCacheMap();
+
+  db.all(
+    `SELECT t.svc_no, t.svc_nm, t.cat, t.description, t.sample_data_length,
+            GROUP_CONCAT(c.field, '||') AS fields_concat
+     FROM api_tables t
+     LEFT JOIN api_columns c ON t.svc_no = c.svc_no
+     GROUP BY t.svc_no
+     ORDER BY t.svc_no`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const datasets = rows.map(row => {
+        const fieldNames = row.fields_concat ? row.fields_concat.split('||') : [];
+        const cacheItem = cacheMap[String(row.svc_no)];
+        return buildDatasetEntry(row, cacheItem, fieldNames);
+      });
+
+      res.json(datasets);
+    }
+  );
+});
+
 app.listen(PORT, () => {
   logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);
 });
@@ -1721,6 +1816,13 @@ app.get('/api/db-schema', (req, res) => {
 
 // ── 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱) ─────────────────────────
 let cachedRelationships = null;
+
+
+// =============================================================================
+// /api/datasets — crawl_cache + DB를 합쳐서 동적으로 데이터셋 목록 반환
+// datasetData.js 정적 파일을 대체한다.
+// =============================================================================
+
 
 app.get('/api/db-relationships', (req, res) => {
   const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p || [], (e, r) => e ? ng(e) : ok(r)));

@@ -1,4 +1,4 @@
-import { datasets } from '../datasetData.js';
+import { getDatasetsSync } from '../datasetStore.js';
 const { useState, useEffect, useRef, useCallback, createElement: h } = React;
 
 const CATEGORY_COLORS = {
@@ -453,7 +453,7 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 
     if (tName) {
       const cleanTName = tName.replace(/-/g, '').toLowerCase();
-      datasetObj = datasets.find(d => d.id?.replace(/-/g, '').toLowerCase() === cleanTName);
+      datasetObj = getDatasetsSync().find(d => d.id?.replace(/-/g, '').toLowerCase() === cleanTName);
     }
 
     const metadataSection = () => {
