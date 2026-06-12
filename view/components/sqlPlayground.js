@@ -267,7 +267,16 @@ export function renderSqlPlayground(container, onSelectDataset) {
           </div>
         `;
       } else {
-        const keys = Object.keys(queryResult[0]);
+        const originalKeys = Object.keys(queryResult[0]);
+        const keys = originalKeys.filter(k => {
+          return queryResult.some(row => row[k] !== null && row[k] !== '');
+        });
+        
+        const hiddenCount = originalKeys.length - keys.length;
+        const hiddenMessage = hiddenCount > 0 
+          ? `<span class="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded border border-amber-200 font-sans">빈 컬럼 ${hiddenCount}개 숨김 처리됨</span>`
+          : '';
+
         queryResultHTML = `
           <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-md">
             <div class="px-5 py-4 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between flex-wrap gap-3">
@@ -276,8 +285,8 @@ export function renderSqlPlayground(container, onSelectDataset) {
                   <i class="ri-checkbox-circle-fill text-lg"></i>
                 </div>
                 <div>
-                  <h4 class="text-sm font-bold text-slate-900">쿼리 실행 완료</h4>
-                  <p class="text-[10px] text-slate-400 font-mono">수행 시간: ${queryExecutionTime}ms | 총 레코드: ${queryResult.length}건</p>
+                  <h4 class="text-sm font-bold text-slate-900 flex items-center">쿼리 실행 완료 ${hiddenMessage}</h4>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">수행 시간: ${queryExecutionTime}ms | 총 레코드: ${queryResult.length}건 | 표시 컬럼: ${keys.length}개</p>
                 </div>
               </div>
               <button id="download-csv-btn" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-gov-300 hover:text-gov-700 bg-white text-slate-600 text-xs font-semibold flex items-center gap-1.5 transition-colors">

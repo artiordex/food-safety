@@ -500,11 +500,87 @@ SELECT
 FROM "I2580";
 
 -- -----------------------------------------------------------------------------
+-- I2610 / 공통기준제외
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2610" (
+  "CMMN_SPEC_CD" VARCHAR(30), -- CMMN_SPEC_CD / 공통기준규격코드
+  "SPEC_NM" VARCHAR(200), -- SPEC_NM / 기준규격명
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / FK 후보: I2510.PRDLST_CD(HIGH)
+  "KOR_NM" VARCHAR(200), -- KOR_NM / 한글명
+  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
+  FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD"),
+  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
+);
+
+CREATE VIEW "v_I2610_LOGICAL" AS
+SELECT
+  "CMMN_SPEC_CD" AS "CMMN_SPEC_CD -- 공통기준규격코드",
+  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
+  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
+  "KOR_NM" AS "KOR_NM -- 한글명",
+  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
+FROM "I2610";
+
+-- -----------------------------------------------------------------------------
+-- I2590 / 공통기준종류
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2590" (
+  "CMMN_SPEC_CD" VARCHAR(30), -- CMMN_SPEC_CD / 공통기준규격코드 / PK 후보(HIGH)
+  "SPEC_NM" VARCHAR(200), -- SPEC_NM / 기준규격명
+  "HRNK_CMMN_SPEC_CD" VARCHAR(30), -- HRNK_CMMN_SPEC_CD / 상위공통기준규격코드
+  "LV" NUMERIC(18,0), -- LV / 레벨
+  "DFN" VARCHAR(2000), -- DFN / 정의
+  "USE_YN" VARCHAR(1), -- USE_YN / 사용여부
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
+  PRIMARY KEY ("CMMN_SPEC_CD")
+);
+
+CREATE VIEW "v_I2590_LOGICAL" AS
+SELECT
+  "CMMN_SPEC_CD" AS "CMMN_SPEC_CD -- 공통기준규격코드",
+  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
+  "HRNK_CMMN_SPEC_CD" AS "HRNK_CMMN_SPEC_CD -- 상위공통기준규격코드",
+  "LV" AS "LV -- 레벨",
+  "DFN" AS "DFN -- 정의",
+  "USE_YN" AS "USE_YN -- 사용여부",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
+FROM "I2590";
+
+-- -----------------------------------------------------------------------------
+-- I1660 / 과징금부과기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1660" (
+  "DSPS_STDR_CD_NM" VARCHAR(300), -- DSPS_STDR_CD_NM / 처분기준명
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 식품법령
+  "BASIS_LAWORD" VARCHAR(100), -- BASIS_LAWORD / 근거법령
+  "VILT_TYPE_NM" VARCHAR(30), -- VILT_TYPE_NM / 위반유형
+  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
+  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
+  "VALD_END_DT" DATE -- VALD_END_DT / 유효종료일자
+);
+
+CREATE VIEW "v_I1660_LOGICAL" AS
+SELECT
+  "DSPS_STDR_CD_NM" AS "DSPS_STDR_CD_NM -- 처분기준명",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 식품법령",
+  "BASIS_LAWORD" AS "BASIS_LAWORD -- 근거법령",
+  "VILT_TYPE_NM" AS "VILT_TYPE_NM -- 위반유형",
+  "LV_NO" AS "LV_NO -- 레벨",
+  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자"
+FROM "I1660";
+
+-- -----------------------------------------------------------------------------
 -- I0960 / 건강기능식품공전
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I0960" (
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / PK 후보(HIGH)
   "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
   "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
   "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
@@ -518,6 +594,7 @@ CREATE TABLE "I0960" (
   "MIMM_VAL" NUMERIC(18,4), -- MIMM_VAL / 최소값
   "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
   "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
+  PRIMARY KEY ("PRDLST_CD"),
   FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
 );
 
@@ -538,6 +615,112 @@ SELECT
   "INJRY_YN" AS "INJRY_YN -- 위해여부",
   "UNIT_NM" AS "UNIT_NM -- 단위명"
 FROM "I0960";
+
+-- -----------------------------------------------------------------------------
+-- I1670 / 과태료부과기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1670" (
+  "DSPS_STDR_CD" VARCHAR(30), -- DSPS_STDR_CD / 처분기준코드 / PK 후보(HIGH) / FK 후보: I2550.DSPS_STDR_CD(HIGH)
+  "DSPS_STDR_CD_NM" VARCHAR(500), -- DSPS_STDR_CD_NM / 처분기준명
+  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
+  "BASIS_LAWORD" VARCHAR(100), -- BASIS_LAWORD / 근거법령
+  "VILT_TYPE_NM" VARCHAR(30), -- VILT_TYPE_NM / 위반유형
+  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  PRIMARY KEY ("DSPS_STDR_CD"),
+  FOREIGN KEY ("DSPS_STDR_CD") REFERENCES "I2550" ("DSPS_STDR_CD")
+);
+
+CREATE VIEW "v_I1670_LOGICAL" AS
+SELECT
+  "DSPS_STDR_CD" AS "DSPS_STDR_CD -- 처분기준코드",
+  "DSPS_STDR_CD_NM" AS "DSPS_STDR_CD_NM -- 처분기준명",
+  "LV_NO" AS "LV_NO -- 레벨",
+  "BASIS_LAWORD" AS "BASIS_LAWORD -- 근거법령",
+  "VILT_TYPE_NM" AS "VILT_TYPE_NM -- 위반유형",
+  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자"
+FROM "I1670";
+
+-- -----------------------------------------------------------------------------
+-- I0990 / 기구 및 용기.포장의 한시적 기준 및 규격 인정 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0990" (
+  "LIMIT_STDR_STND_RCOGN_NO" VARCHAR(50), -- LIMIT_STDR_STND_RCOGN_NO / 인정번호 / PK 후보(HIGH)
+  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "MC_NM" VARCHAR(200), -- MC_NM / 제조회사
+  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
+  "MC_NATN_CD_NM" VARCHAR(200), -- MC_NATN_CD_NM / 제조회사 국가
+  PRIMARY KEY ("LIMIT_STDR_STND_RCOGN_NO")
+);
+
+CREATE VIEW "v_I0990_LOGICAL" AS
+SELECT
+  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 인정번호",
+  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "TELNO" AS "TELNO -- 전화번호",
+  "MC_NM" AS "MC_NM -- 제조회사",
+  "PRDT_NM" AS "PRDT_NM -- 제품명",
+  "MC_NATN_CD_NM" AS "MC_NATN_CD_NM -- 제조회사 국가"
+FROM "I0990";
+
+-- -----------------------------------------------------------------------------
+-- I1010 / 기구등의 살균소독제 한시적 기준 및 규격 인정 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1010" (
+  "LIMIT_STDR_STND_RCOGN_NO" NUMERIC(18,0), -- LIMIT_STDR_STND_RCOGN_NO / 인정번호 / PK 후보(HIGH)
+  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "MC_NM" VARCHAR(200), -- MC_NM / 제조회사
+  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
+  "MC_NATN_CD_NM" VARCHAR(200), -- MC_NATN_CD_NM / 제조회사 국가
+  PRIMARY KEY ("LIMIT_STDR_STND_RCOGN_NO")
+);
+
+CREATE VIEW "v_I1010_LOGICAL" AS
+SELECT
+  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 인정번호",
+  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "TELNO" AS "TELNO -- 전화번호",
+  "MC_NM" AS "MC_NM -- 제조회사",
+  "PRDT_NM" AS "PRDT_NM -- 제품명",
+  "MC_NATN_CD_NM" AS "MC_NATN_CD_NM -- 제조회사 국가"
+FROM "I1010";
+
+-- -----------------------------------------------------------------------------
+-- I1040 / 농약잔류허용기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1040" (
+  "AGCHM_KOR_NM" VARCHAR(200), -- AGCHM_KOR_NM / 농약명
+  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품명
+  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행 시점
+  "STEP" NUMERIC(18,0), -- STEP / 단계
+  "MRL_VAL" VARCHAR(50), -- MRL_VAL / MRL 값
+  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
+);
+
+CREATE VIEW "v_I1040_LOGICAL" AS
+SELECT
+  "AGCHM_KOR_NM" AS "AGCHM_KOR_NM -- 농약명",
+  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품명",
+  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행 시점",
+  "STEP" AS "STEP -- 단계",
+  "MRL_VAL" AS "MRL_VAL -- MRL 값",
+  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
+FROM "I1040";
 
 -- -----------------------------------------------------------------------------
 -- I2600 / 공통기준규격
@@ -639,135 +822,138 @@ SELECT
 FROM "I2600";
 
 -- -----------------------------------------------------------------------------
--- I2610 / 공통기준제외
+-- I1070 / 동물용의약품 현황
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2610" (
-  "CMMN_SPEC_CD" VARCHAR(30), -- CMMN_SPEC_CD / 공통기준규격코드
+CREATE TABLE "I1070" (
+  "ANIMAL_ONLY_MDCIN_NM_KOR" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_KOR / 의약품 한글명
+  "ANIMAL_ONLY_MDCIN_NM_ENG" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_ENG / 의약품 영문명
+  "APPLC_OBJ_ANIMAL" VARCHAR(100), -- APPLC_OBJ_ANIMAL / 적용 대상 동물
+  "MCFRL" VARCHAR(200), -- MCFRL / 분자식
+  "MCWGH" VARCHAR(100), -- MCWGH / 분자량
+  "SYSTM_NM" VARCHAR(200), -- SYSTM_NM / 계통명
+  "IUPAC_NM" VARCHAR(1000), -- IUPAC_NM / IUPAC 명
+  "CAS_NM" VARCHAR(300), -- CAS_NM / CAS 명
+  "SHAP_NM" VARCHAR(200), -- SHAP_NM / 형태
+  "POIOF" VARCHAR(100), -- POIOF / 녹는점
+  "BOILPNT" VARCHAR(500), -- BOILPNT / 끓는점
+  "STEPR" VARCHAR(100), -- STEPR / 증기압
+  "LOGPOW" VARCHAR(100), -- LOGPOW / LOGPOW
+  "DENS_UNIT" VARCHAR(500), -- DENS_UNIT / 밀도단위
+  "PKA" VARCHAR(100), -- PKA / PKA
+  "SOLUB" VARCHAR(300), -- SOLUB / 용해도
+  "STBLY" VARCHAR(100) -- STBLY / 안정성
+);
+
+CREATE VIEW "v_I1070_LOGICAL" AS
+SELECT
+  "ANIMAL_ONLY_MDCIN_NM_KOR" AS "ANIMAL_ONLY_MDCIN_NM_KOR -- 의약품 한글명",
+  "ANIMAL_ONLY_MDCIN_NM_ENG" AS "ANIMAL_ONLY_MDCIN_NM_ENG -- 의약품 영문명",
+  "APPLC_OBJ_ANIMAL" AS "APPLC_OBJ_ANIMAL -- 적용 대상 동물",
+  "MCFRL" AS "MCFRL -- 분자식",
+  "MCWGH" AS "MCWGH -- 분자량",
+  "SYSTM_NM" AS "SYSTM_NM -- 계통명",
+  "IUPAC_NM" AS "IUPAC_NM -- IUPAC 명",
+  "CAS_NM" AS "CAS_NM -- CAS 명",
+  "SHAP_NM" AS "SHAP_NM -- 형태",
+  "POIOF" AS "POIOF -- 녹는점",
+  "BOILPNT" AS "BOILPNT -- 끓는점",
+  "STEPR" AS "STEPR -- 증기압",
+  "LOGPOW" AS "LOGPOW -- LOGPOW",
+  "DENS_UNIT" AS "DENS_UNIT -- 밀도단위",
+  "PKA" AS "PKA -- PKA",
+  "SOLUB" AS "SOLUB -- 용해도",
+  "STBLY" AS "STBLY -- 안정성"
+FROM "I1070";
+
+-- -----------------------------------------------------------------------------
+-- I1080 / 동물의약품별 잔류허용 기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1080" (
+  "CDX_KOREA_DVS_CD" VARCHAR(30), -- CDX_KOREA_DVS_CD / 구분
+  "ANIMAL_ONLY_MDCIN_NM_KOR" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_KOR / 동물 전용 의약품 한글명
+  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행 시점
+  "STEP" NUMERIC(18,0), -- STEP / 단계
+  "MRL" VARCHAR(100), -- MRL / MRL
+  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품 한글명
+  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품 영문명
+  "ETC_YN" VARCHAR(1), -- ETC_YN / 기타 여부
+  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 임시기준적용여부
+  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
+);
+
+CREATE VIEW "v_I1080_LOGICAL" AS
+SELECT
+  "CDX_KOREA_DVS_CD" AS "CDX_KOREA_DVS_CD -- 구분",
+  "ANIMAL_ONLY_MDCIN_NM_KOR" AS "ANIMAL_ONLY_MDCIN_NM_KOR -- 동물 전용 의약품 한글명",
+  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행 시점",
+  "STEP" AS "STEP -- 단계",
+  "MRL" AS "MRL -- MRL",
+  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품 한글명",
+  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품 영문명",
+  "ETC_YN" AS "ETC_YN -- 기타 여부",
+  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 임시기준적용여부",
+  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
+FROM "I1080";
+
+-- -----------------------------------------------------------------------------
+-- I1030 / 방사선조사식품 품목 인정 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1030" (
   "SPEC_NM" VARCHAR(200), -- SPEC_NM / 기준규격명
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / FK 후보: I2510.PRDLST_CD(HIGH)
-  "KOR_NM" VARCHAR(200), -- KOR_NM / 한글명
-  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
-  FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD"),
-  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
-);
-
-CREATE VIEW "v_I2610_LOGICAL" AS
-SELECT
-  "CMMN_SPEC_CD" AS "CMMN_SPEC_CD -- 공통기준규격코드",
-  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
-  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
-  "KOR_NM" AS "KOR_NM -- 한글명",
-  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
-FROM "I2610";
-
--- -----------------------------------------------------------------------------
--- I2590 / 공통기준종류
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2590" (
-  "CMMN_SPEC_CD" VARCHAR(30), -- CMMN_SPEC_CD / 공통기준규격코드 / PK 후보(HIGH)
-  "SPEC_NM" VARCHAR(200), -- SPEC_NM / 기준규격명
-  "HRNK_CMMN_SPEC_CD" VARCHAR(30), -- HRNK_CMMN_SPEC_CD / 상위공통기준규격코드
-  "LV" NUMERIC(18,0), -- LV / 레벨
-  "DFN" VARCHAR(2000), -- DFN / 정의
-  "USE_YN" VARCHAR(1), -- USE_YN / 사용여부
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
-  PRIMARY KEY ("CMMN_SPEC_CD")
-);
-
-CREATE VIEW "v_I2590_LOGICAL" AS
-SELECT
-  "CMMN_SPEC_CD" AS "CMMN_SPEC_CD -- 공통기준규격코드",
-  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
-  "HRNK_CMMN_SPEC_CD" AS "HRNK_CMMN_SPEC_CD -- 상위공통기준규격코드",
-  "LV" AS "LV -- 레벨",
-  "DFN" AS "DFN -- 정의",
-  "USE_YN" AS "USE_YN -- 사용여부",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
-FROM "I2590";
-
--- -----------------------------------------------------------------------------
--- I1660 / 과징금부과기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1660" (
-  "DSPS_STDR_CD_NM" VARCHAR(300), -- DSPS_STDR_CD_NM / 처분기준명
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 식품법령
-  "BASIS_LAWORD" VARCHAR(100), -- BASIS_LAWORD / 근거법령
-  "VILT_TYPE_NM" VARCHAR(30), -- VILT_TYPE_NM / 위반유형
-  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
-  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
-  "VALD_END_DT" DATE -- VALD_END_DT / 유효종료일자
-);
-
-CREATE VIEW "v_I1660_LOGICAL" AS
-SELECT
-  "DSPS_STDR_CD_NM" AS "DSPS_STDR_CD_NM -- 처분기준명",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 식품법령",
-  "BASIS_LAWORD" AS "BASIS_LAWORD -- 근거법령",
-  "VILT_TYPE_NM" AS "VILT_TYPE_NM -- 위반유형",
-  "LV_NO" AS "LV_NO -- 레벨",
-  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자"
-FROM "I1660";
-
--- -----------------------------------------------------------------------------
--- I1670 / 과태료부과기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1670" (
-  "DSPS_STDR_CD" VARCHAR(30), -- DSPS_STDR_CD / 처분기준코드 / PK 후보(HIGH) / FK 후보: I2550.DSPS_STDR_CD(HIGH)
-  "DSPS_STDR_CD_NM" VARCHAR(500), -- DSPS_STDR_CD_NM / 처분기준명
-  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
-  "BASIS_LAWORD" VARCHAR(100), -- BASIS_LAWORD / 근거법령
-  "VILT_TYPE_NM" VARCHAR(30), -- VILT_TYPE_NM / 위반유형
-  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
+  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
+  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
+  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성 한글명
+  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
+  "SPEC_VAL_SUMUP" VARCHAR(100), -- SPEC_VAL_SUMUP / 기준규격값 요약
+  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
   "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  PRIMARY KEY ("DSPS_STDR_CD"),
-  FOREIGN KEY ("DSPS_STDR_CD") REFERENCES "I2550" ("DSPS_STDR_CD")
+  "SORC" VARCHAR(1000), -- SORC / 출처
+  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
+  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
+  "UNIT_NM" VARCHAR(200) -- UNIT_NM / 단위명
 );
 
-CREATE VIEW "v_I1670_LOGICAL" AS
+CREATE VIEW "v_I1030_LOGICAL" AS
 SELECT
-  "DSPS_STDR_CD" AS "DSPS_STDR_CD -- 처분기준코드",
-  "DSPS_STDR_CD_NM" AS "DSPS_STDR_CD_NM -- 처분기준명",
-  "LV_NO" AS "LV_NO -- 레벨",
-  "BASIS_LAWORD" AS "BASIS_LAWORD -- 근거법령",
-  "VILT_TYPE_NM" AS "VILT_TYPE_NM -- 위반유형",
-  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자"
-FROM "I1670";
+  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
+  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
+  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
+  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성 한글명",
+  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
+  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
+  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "SORC" AS "SORC -- 출처",
+  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
+  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
+  "UNIT_NM" AS "UNIT_NM -- 단위명"
+FROM "I1030";
 
 -- -----------------------------------------------------------------------------
--- I0990 / 기구 및 용기.포장의 한시적 기준 및 규격 인정 현황
+-- I1060 / 시약정보
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I0990" (
-  "LIMIT_STDR_STND_RCOGN_NO" VARCHAR(50), -- LIMIT_STDR_STND_RCOGN_NO / 인정번호 / PK 후보(HIGH)
-  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "MC_NM" VARCHAR(200), -- MC_NM / 제조회사
-  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
-  "MC_NATN_CD_NM" VARCHAR(200), -- MC_NATN_CD_NM / 제조회사 국가
-  PRIMARY KEY ("LIMIT_STDR_STND_RCOGN_NO")
+CREATE TABLE "I1060" (
+  "CITYMEDI_NM_CD" VARCHAR(50), -- CITYMEDI_NM_CD / 시약 명
+  "CMPNY_NO" VARCHAR(50), -- CMPNY_NO / 회사 명
+  "CTPRVNACCTO_INTD_NO" VARCHAR(50), -- CTPRVNACCTO_INTD_NO / 시도별 지방청
+  "STATS_NO" VARCHAR(30), -- STATS_NO / 상태
+  "PUREDO" VARCHAR(100), -- PUREDO / 순도
+  "VALD_TERM" NUMERIC(18,0) -- VALD_TERM / 유효기간
 );
 
-CREATE VIEW "v_I0990_LOGICAL" AS
+CREATE VIEW "v_I1060_LOGICAL" AS
 SELECT
-  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 인정번호",
-  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "TELNO" AS "TELNO -- 전화번호",
-  "MC_NM" AS "MC_NM -- 제조회사",
-  "PRDT_NM" AS "PRDT_NM -- 제품명",
-  "MC_NATN_CD_NM" AS "MC_NATN_CD_NM -- 제조회사 국가"
-FROM "I0990";
+  "CITYMEDI_NM_CD" AS "CITYMEDI_NM_CD -- 시약 명",
+  "CMPNY_NO" AS "CMPNY_NO -- 회사 명",
+  "CTPRVNACCTO_INTD_NO" AS "CTPRVNACCTO_INTD_NO -- 시도별 지방청",
+  "STATS_NO" AS "STATS_NO -- 상태",
+  "PUREDO" AS "PUREDO -- 순도",
+  "VALD_TERM" AS "VALD_TERM -- 유효기간"
+FROM "I1060";
 
 -- -----------------------------------------------------------------------------
 -- I1100 / 기구등의 살균소독제 기준규격
@@ -811,10 +997,233 @@ SELECT
 FROM "I1100";
 
 -- -----------------------------------------------------------------------------
--- I1010 / 기구등의 살균소독제 한시적 기준 및 규격 인정 현황
+-- I0940 / 식품용 기구 및 용기.포장 공전
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I1010" (
+CREATE TABLE "I0940" (
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드
+  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
+  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
+  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
+  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
+  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
+  "SPEC_VAL_SUMUP" VARCHAR(200), -- SPEC_VAL_SUMUP / 기준규격값 요약
+  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  "SORC" VARCHAR(1000), -- SORC / 출처
+  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
+  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
+  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
+  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
+  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
+);
+
+CREATE VIEW "v_I0940_LOGICAL" AS
+SELECT
+  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
+  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
+  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
+  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
+  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
+  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
+  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
+  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "SORC" AS "SORC -- 출처",
+  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
+  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
+  "INJRY_YN" AS "INJRY_YN -- 위해여부",
+  "UNIT_NM" AS "UNIT_NM -- 단위명"
+FROM "I0940";
+
+-- -----------------------------------------------------------------------------
+-- I1050 / 식품별 농약잔류허용기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1050" (
+  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품한글명
+  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품영문명
+  "AGCHM_KOR_NM" VARCHAR(200), -- AGCHM_KOR_NM / 농약명
+  "DEDE_NTK_QTY" NUMERIC(18,4), -- DEDE_NTK_QTY / 일일섭취량
+  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 잠정기준적용여부
+  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
+  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
+  "SCLAS_NM" VARCHAR(50), -- SCLAS_NM / 소분류
+  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행시점
+  "STEP" NUMERIC(18,0), -- STEP / 단계
+  "MRL_VAL" VARCHAR(50), -- MRL_VAL / MRL 값
+  "ETC_YN" VARCHAR(1), -- ETC_YN / 기타여부
+  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
+);
+
+CREATE VIEW "v_I1050_LOGICAL" AS
+SELECT
+  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품한글명",
+  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품영문명",
+  "AGCHM_KOR_NM" AS "AGCHM_KOR_NM -- 농약명",
+  "DEDE_NTK_QTY" AS "DEDE_NTK_QTY -- 일일섭취량",
+  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 잠정기준적용여부",
+  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
+  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
+  "SCLAS_NM" AS "SCLAS_NM -- 소분류",
+  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행시점",
+  "STEP" AS "STEP -- 단계",
+  "MRL_VAL" AS "MRL_VAL -- MRL 값",
+  "ETC_YN" AS "ETC_YN -- 기타여부",
+  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
+FROM "I1050";
+
+-- -----------------------------------------------------------------------------
+-- I0980 / 식품원료의 한시적 기준 및 규격 인정 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0980" (
+  "LIMIT_STDR_STND_RCOGN_NO" NUMERIC(18,0), -- LIMIT_STDR_STND_RCOGN_NO / 한시적 기준 규격 인정 번호
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "BSSH_ADDR" VARCHAR(500), -- BSSH_ADDR / 주소
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
+  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
+  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
+  "RAWMTRL_NM" VARCHAR(200), -- RAWMTRL_NM / 원재료명
+  "PRPOS" VARCHAR(100), -- PRPOS / 용도
+  "USED" NUMERIC(18,0), -- USED / 사용량
+  "USING_UNIT" VARCHAR(100) -- USING_UNIT / 사용량단위
+);
+
+CREATE VIEW "v_I0980_LOGICAL" AS
+SELECT
+  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 한시적 기준 규격 인정 번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "BSSH_ADDR" AS "BSSH_ADDR -- 주소",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
+  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
+  "PRDT_NM" AS "PRDT_NM -- 제품명",
+  "RAWMTRL_NM" AS "RAWMTRL_NM -- 원재료명",
+  "PRPOS" AS "PRPOS -- 용도",
+  "USED" AS "USED -- 사용량",
+  "USING_UNIT" AS "USING_UNIT -- 사용량단위"
+FROM "I0980";
+
+-- -----------------------------------------------------------------------------
+-- I0950 / 식품첨가물공전
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0950" (
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / PK 후보(HIGH)
+  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
+  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
+  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
+  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
+  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
+  "SPEC_VAL_SUMUP" VARCHAR(2000), -- SPEC_VAL_SUMUP / 기준규격값 요약
+  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  "SORC" VARCHAR(1000), -- SORC / 출처
+  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
+  "MIMM_VAL" NUMERIC(18,4), -- MIMM_VAL / 최소값
+  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
+  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
+  PRIMARY KEY ("PRDLST_CD"),
+  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
+);
+
+CREATE VIEW "v_I0950_LOGICAL" AS
+SELECT
+  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
+  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
+  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
+  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
+  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
+  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
+  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
+  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "SORC" AS "SORC -- 출처",
+  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
+  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
+  "INJRY_YN" AS "INJRY_YN -- 위해여부",
+  "UNIT_NM" AS "UNIT_NM -- 단위명"
+FROM "I0950";
+
+-- -----------------------------------------------------------------------------
+-- I1020 / 식품원재료(식물,동물,미생물,수산물) 정보
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1020" (
+  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
+  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
+  "RPRSNT_RAWMTRL_NM" VARCHAR(200), -- RPRSNT_RAWMTRL_NM / 원재료명
+  "RAWMTRL_NCKNM" VARCHAR(200), -- RAWMTRL_NCKNM / 이명
+  "ENG_NM" VARCHAR(300), -- ENG_NM / 영문명
+  "SCNM" VARCHAR(200), -- SCNM / 학명
+  "REGN_CD_NM" VARCHAR(200), -- REGN_CD_NM / 부위명
+  "RAWMTRL_STATS_CD_NM" VARCHAR(200), -- RAWMTRL_STATS_CD_NM / 상태명
+  "USE_CND_NM" VARCHAR(200), -- USE_CND_NM / 사용조건
+  "USE_CND_STDR_CN" VARCHAR(1000) -- USE_CND_STDR_CN / 사용조건기준내용
+);
+
+CREATE VIEW "v_I1020_LOGICAL" AS
+SELECT
+  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
+  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
+  "RPRSNT_RAWMTRL_NM" AS "RPRSNT_RAWMTRL_NM -- 원재료명",
+  "RAWMTRL_NCKNM" AS "RAWMTRL_NCKNM -- 이명",
+  "ENG_NM" AS "ENG_NM -- 영문명",
+  "SCNM" AS "SCNM -- 학명",
+  "REGN_CD_NM" AS "REGN_CD_NM -- 부위명",
+  "RAWMTRL_STATS_CD_NM" AS "RAWMTRL_STATS_CD_NM -- 상태명",
+  "USE_CND_NM" AS "USE_CND_NM -- 사용조건",
+  "USE_CND_STDR_CN" AS "USE_CND_STDR_CN -- 사용조건기준내용"
+FROM "I1020";
+
+-- -----------------------------------------------------------------------------
+-- I1101 / 식품첨가물의 기준 및 규격 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1101" (
+  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목분류코드
+  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
+  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
+  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성 한글명
+  "SPEC_VAL" NUMERIC(18,0), -- SPEC_VAL / 기준규격값
+  "SPEC_VAL_SUMUP" VARCHAR(500), -- SPEC_VAL_SUMUP / 기준규격값 요약
+  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  "SORC" VARCHAR(1000), -- SORC / 출처
+  "MXMM_VAL" NUMERIC(18,0), -- MXMM_VAL / 최대값
+  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
+  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
+  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
+  "UPDT_PRVNS" VARCHAR(1000), -- UPDT_PRVNS / 수정사유
+  "LAST_UPDT_DTM" DATE -- LAST_UPDT_DTM / 수정일자
+);
+
+CREATE VIEW "v_I1101_LOGICAL" AS
+SELECT
+  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
+  "PRDLST_CD" AS "PRDLST_CD -- 품목분류코드",
+  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
+  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
+  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성 한글명",
+  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
+  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
+  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "SORC" AS "SORC -- 출처",
+  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
+  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
+  "INJRY_YN" AS "INJRY_YN -- 위해여부",
+  "UNIT_NM" AS "UNIT_NM -- 단위명",
+  "UPDT_PRVNS" AS "UPDT_PRVNS -- 수정사유",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 수정일자"
+FROM "I1101";
+
+-- -----------------------------------------------------------------------------
+-- I1000 / 식품첨가물의 한시적 기준 및 규격 인정 현황
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1000" (
   "LIMIT_STDR_STND_RCOGN_NO" NUMERIC(18,0), -- LIMIT_STDR_STND_RCOGN_NO / 인정번호 / PK 후보(HIGH)
   "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
@@ -822,11 +1231,10 @@ CREATE TABLE "I1010" (
   "TELNO" VARCHAR(30), -- TELNO / 전화번호
   "MC_NM" VARCHAR(200), -- MC_NM / 제조회사
   "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
-  "MC_NATN_CD_NM" VARCHAR(200), -- MC_NATN_CD_NM / 제조회사 국가
   PRIMARY KEY ("LIMIT_STDR_STND_RCOGN_NO")
 );
 
-CREATE VIEW "v_I1010_LOGICAL" AS
+CREATE VIEW "v_I1000_LOGICAL" AS
 SELECT
   "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 인정번호",
   "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
@@ -834,9 +1242,52 @@ SELECT
   "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
   "TELNO" AS "TELNO -- 전화번호",
   "MC_NM" AS "MC_NM -- 제조회사",
-  "PRDT_NM" AS "PRDT_NM -- 제품명",
-  "MC_NATN_CD_NM" AS "MC_NATN_CD_NM -- 제조회사 국가"
-FROM "I1010";
+  "PRDT_NM" AS "PRDT_NM -- 제품명"
+FROM "I1000";
+
+-- -----------------------------------------------------------------------------
+-- I1650 / 신고대상분류기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1650" (
+  "CMMN_CD_NM" VARCHAR(30), -- CMMN_CD_NM / 분류
+  "FNPRT_CD_NM" VARCHAR(100), -- FNPRT_CD_NM / 신고분류
+  "USER_DFN_CLMN_1" VARCHAR(100), -- USER_DFN_CLMN_1 / 분류1
+  "USER_DFN_CLMN_2" VARCHAR(100) -- USER_DFN_CLMN_2 / 분류2
+);
+
+CREATE VIEW "v_I1650_LOGICAL" AS
+SELECT
+  "CMMN_CD_NM" AS "CMMN_CD_NM -- 분류",
+  "FNPRT_CD_NM" AS "FNPRT_CD_NM -- 신고분류",
+  "USER_DFN_CLMN_1" AS "USER_DFN_CLMN_1 -- 분류1",
+  "USER_DFN_CLMN_2" AS "USER_DFN_CLMN_2 -- 분류2"
+FROM "I1650";
+
+-- -----------------------------------------------------------------------------
+-- I1090 / 잔류동물의약품 식품별 잔류허용 기준
+-- 카테고리: 기준규격정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1090" (
+  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품한글명
+  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품영문명
+  "DEDE_NTK_QTY" NUMERIC(18,0), -- DEDE_NTK_QTY / 일일섭취량
+  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 잠정기준적용여부
+  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
+  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
+  "SCLAS_NM" VARCHAR(30) -- SCLAS_NM / 소분류
+);
+
+CREATE VIEW "v_I1090_LOGICAL" AS
+SELECT
+  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품한글명",
+  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품영문명",
+  "DEDE_NTK_QTY" AS "DEDE_NTK_QTY -- 일일섭취량",
+  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 잠정기준적용여부",
+  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
+  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
+  "SCLAS_NM" AS "SCLAS_NM -- 소분류"
+FROM "I1090";
 
 -- -----------------------------------------------------------------------------
 -- C005 / 바코드연계제품정보
@@ -873,38 +1324,6 @@ SELECT
   "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
   "BAR_CD" AS "BAR_CD -- 유통바코드"
 FROM "C005";
-
--- -----------------------------------------------------------------------------
--- I2540 / 법령코드
--- 카테고리: 코드정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2540" (
-  "FOOD_LAWORD_CD" VARCHAR(30), -- FOOD_LAWORD_CD / 법령코드 / PK 후보(HIGH)
-  "HRNK_LAWORD_CD" VARCHAR(30), -- HRNK_LAWORD_CD / 상위법령코드
-  "WORK_REALM_CD_NM" VARCHAR(200), -- WORK_REALM_CD_NM / 업무분야
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 법령명
-  "ALL_LAWORD_CD_NM" VARCHAR(200), -- ALL_LAWORD_CD_NM / 전체법령명
-  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
-  "USE_YN" VARCHAR(1), -- USE_YN / 사용여부
-  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
-  PRIMARY KEY ("FOOD_LAWORD_CD")
-);
-
-CREATE VIEW "v_I2540_LOGICAL" AS
-SELECT
-  "FOOD_LAWORD_CD" AS "FOOD_LAWORD_CD -- 법령코드",
-  "HRNK_LAWORD_CD" AS "HRNK_LAWORD_CD -- 상위법령코드",
-  "WORK_REALM_CD_NM" AS "WORK_REALM_CD_NM -- 업무분야",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 법령명",
-  "ALL_LAWORD_CD_NM" AS "ALL_LAWORD_CD_NM -- 전체법령명",
-  "LV_NO" AS "LV_NO -- 레벨",
-  "USE_YN" AS "USE_YN -- 사용여부",
-  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
-FROM "I2540";
 
 -- -----------------------------------------------------------------------------
 -- I2530 / 시험항목코드
@@ -947,6 +1366,38 @@ SELECT
   "USE_YN" AS "USE_YN -- 사용여부",
   "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
 FROM "I2530";
+
+-- -----------------------------------------------------------------------------
+-- I2540 / 법령코드
+-- 카테고리: 코드정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2540" (
+  "FOOD_LAWORD_CD" VARCHAR(30), -- FOOD_LAWORD_CD / 법령코드 / PK 후보(HIGH)
+  "HRNK_LAWORD_CD" VARCHAR(30), -- HRNK_LAWORD_CD / 상위법령코드
+  "WORK_REALM_CD_NM" VARCHAR(200), -- WORK_REALM_CD_NM / 업무분야
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 법령명
+  "ALL_LAWORD_CD_NM" VARCHAR(200), -- ALL_LAWORD_CD_NM / 전체법령명
+  "LV_NO" NUMERIC(18,0), -- LV_NO / 레벨
+  "USE_YN" VARCHAR(1), -- USE_YN / 사용여부
+  "VALD_BGN_DT" DATE, -- VALD_BGN_DT / 유효시작일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
+  PRIMARY KEY ("FOOD_LAWORD_CD")
+);
+
+CREATE VIEW "v_I2540_LOGICAL" AS
+SELECT
+  "FOOD_LAWORD_CD" AS "FOOD_LAWORD_CD -- 법령코드",
+  "HRNK_LAWORD_CD" AS "HRNK_LAWORD_CD -- 상위법령코드",
+  "WORK_REALM_CD_NM" AS "WORK_REALM_CD_NM -- 업무분야",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 법령명",
+  "ALL_LAWORD_CD_NM" AS "ALL_LAWORD_CD_NM -- 전체법령명",
+  "LV_NO" AS "LV_NO -- 레벨",
+  "USE_YN" AS "USE_YN -- 사용여부",
+  "VALD_BGN_DT" AS "VALD_BGN_DT -- 유효시작일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일시"
+FROM "I2540";
 
 -- -----------------------------------------------------------------------------
 -- I2520 / 식품원재료코드
@@ -995,60 +1446,49 @@ SELECT
 FROM "I2520";
 
 -- -----------------------------------------------------------------------------
--- I2560 / 영업소재지 GIS 코드
--- 카테고리: 코드정보
+-- I0930 / 식품공전
+-- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2560" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "LOCPLC" VARCHAR(500), -- LOCPLC / 소재지
-  "SAN" NUMERIC(18,0), -- SAN / 산
-  "LNBR" VARCHAR(100), -- LNBR / 번지
-  "ISSNO" NUMERIC(18,0), -- ISSNO / 호
-  "TONG" VARCHAR(100), -- TONG / 통
-  "BAN" VARCHAR(100), -- BAN / 반
-  "SPCLADDR" VARCHAR(500), -- SPCLADDR / 특수주소
-  "SPCPPDONG" VARCHAR(100), -- SPCPPDONG / 특수지동
-  "SPCPPISSNO" VARCHAR(50), -- SPCPPISSNO / 특수지호
-  "ROADNMSIGNGUCD" VARCHAR(30), -- ROADNMSIGNGUCD / 도로명시군구코드
-  "ROADNMADDREMDDVS" VARCHAR(30), -- ROADNMADDREMDDVS / 도로명주소읍면동구분
-  "ROADNMADDREMDCD" VARCHAR(30), -- ROADNMADDREMDCD / 도로명주소읍면동코드
-  "ROADNMADDRBDFLRDVS" VARCHAR(30), -- ROADNMADDRBDFLRDVS / 도로명주소건물층구분
-  "ROADNMADDRBDORIGNO" NUMERIC(18,0), -- ROADNMADDRBDORIGNO / 도로명주소건물본번호
-  "ROADNMADDRBDSUBNO" NUMERIC(18,0), -- ROADNMADDRBDSUBNO / 도로명주소건물부번호
-  "ROADNMADDRSPCLADDR" VARCHAR(500), -- ROADNMADDRSPCLADDR / 도로명주소특수주소
-  "PNU_CD" VARCHAR(30), -- PNU_CD / PNU코드
-  "BDMERGEMANAGENO" NUMERIC(18,0), -- BDMERGEMANAGENO / 건물통합관리번호
-  "UFID_CD" VARCHAR(30), -- UFID_CD / UFID코드
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+CREATE TABLE "I0930" (
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
+  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목
+  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목
+  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성
+  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
+  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
+  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
+  "SPEC_VAL_SUMUP" VARCHAR(200), -- SPEC_VAL_SUMUP / 규격값요약
+  "JDGMNT_FNPRT_CD_NM" VARCHAR(200), -- JDGMNT_FNPRT_CD_NM / 판정형식
+  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
+  "MXMM_VAL_FNPRT_CD_NM" VARCHAR(200), -- MXMM_VAL_FNPRT_CD_NM / 이하/미만
+  "MIMM_VAL" NUMERIC(18,4), -- MIMM_VAL / 최소값
+  "MIMM_VAL_FNPRT_CD_NM" VARCHAR(200), -- MIMM_VAL_FNPRT_CD_NM / 이상/초과
+  "CHOIC_FIT_FNPRT_CD_NM" VARCHAR(200), -- CHOIC_FIT_FNPRT_CD_NM / 세부적합
+  "CHOIC_IMPROPT_FNPRT_CD_NM" VARCHAR(200), -- CHOIC_IMPROPT_FNPRT_CD_NM / 부적합
+  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
+  "UNIT_NM" VARCHAR(200) -- UNIT_NM / 단위명
 );
 
-CREATE VIEW "v_I2560_LOGICAL" AS
+CREATE VIEW "v_I0930_LOGICAL" AS
 SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "LOCPLC" AS "LOCPLC -- 소재지",
-  "SAN" AS "SAN -- 산",
-  "LNBR" AS "LNBR -- 번지",
-  "ISSNO" AS "ISSNO -- 호",
-  "TONG" AS "TONG -- 통",
-  "BAN" AS "BAN -- 반",
-  "SPCLADDR" AS "SPCLADDR -- 특수주소",
-  "SPCPPDONG" AS "SPCPPDONG -- 특수지동",
-  "SPCPPISSNO" AS "SPCPPISSNO -- 특수지호",
-  "ROADNMSIGNGUCD" AS "ROADNMSIGNGUCD -- 도로명시군구코드",
-  "ROADNMADDREMDDVS" AS "ROADNMADDREMDDVS -- 도로명주소읍면동구분",
-  "ROADNMADDREMDCD" AS "ROADNMADDREMDCD -- 도로명주소읍면동코드",
-  "ROADNMADDRBDFLRDVS" AS "ROADNMADDRBDFLRDVS -- 도로명주소건물층구분",
-  "ROADNMADDRBDORIGNO" AS "ROADNMADDRBDORIGNO -- 도로명주소건물본번호",
-  "ROADNMADDRBDSUBNO" AS "ROADNMADDRBDSUBNO -- 도로명주소건물부번호",
-  "ROADNMADDRSPCLADDR" AS "ROADNMADDRSPCLADDR -- 도로명주소특수주소",
-  "PNU_CD" AS "PNU_CD -- PNU코드",
-  "BDMERGEMANAGENO" AS "BDMERGEMANAGENO -- 건물통합관리번호",
-  "UFID_CD" AS "UFID_CD -- UFID코드"
-FROM "I2560";
+  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
+  "T_KOR_NM" AS "T_KOR_NM -- 시험항목",
+  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목",
+  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성",
+  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
+  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
+  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
+  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 규격값요약",
+  "JDGMNT_FNPRT_CD_NM" AS "JDGMNT_FNPRT_CD_NM -- 판정형식",
+  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
+  "MXMM_VAL_FNPRT_CD_NM" AS "MXMM_VAL_FNPRT_CD_NM -- 이하/미만",
+  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
+  "MIMM_VAL_FNPRT_CD_NM" AS "MIMM_VAL_FNPRT_CD_NM -- 이상/초과",
+  "CHOIC_FIT_FNPRT_CD_NM" AS "CHOIC_FIT_FNPRT_CD_NM -- 세부적합",
+  "CHOIC_IMPROPT_FNPRT_CD_NM" AS "CHOIC_IMPROPT_FNPRT_CD_NM -- 부적합",
+  "INJRY_YN" AS "INJRY_YN -- 위해여부",
+  "UNIT_NM" AS "UNIT_NM -- 단위명"
+FROM "I0930";
 
 -- -----------------------------------------------------------------------------
 -- I2570 / 유통바코드
@@ -1077,6 +1517,62 @@ SELECT
   "HRNK_PRDLST_NM" AS "HRNK_PRDLST_NM -- 품목분류_중분류",
   "HTRK_PRDLST_NM" AS "HTRK_PRDLST_NM -- 품목분류_대분류"
 FROM "I2570";
+
+-- -----------------------------------------------------------------------------
+-- I2560 / 영업소재지 GIS 코드
+-- 카테고리: 코드정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2560" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "LOCPLC" VARCHAR(500), -- LOCPLC / 소재지
+  "SAN" NUMERIC(18,0), -- SAN / 산
+  "LNBR" VARCHAR(100), -- LNBR / 번지
+  "ISSNO" NUMERIC(18,0), -- ISSNO / 호
+  "TONG" VARCHAR(100), -- TONG / 통
+  "BAN" VARCHAR(100), -- BAN / 반
+  "SPCLADDR" VARCHAR(500), -- SPCLADDR / 특수주소
+  "SPCPPDONG" VARCHAR(100), -- SPCPPDONG / 특수지동
+  "SPCPPISSNO" VARCHAR(50), -- SPCPPISSNO / 특수지호
+  "ROADNMSIGNGUCD" VARCHAR(30), -- ROADNMSIGNGUCD / 도로명시군구코드
+  "ROADNMADDREMDDVS" VARCHAR(30), -- ROADNMADDREMDDVS / 도로명주소읍면동구분
+  "ROADNMADDREMDCD" VARCHAR(30), -- ROADNMADDREMDCD / 도로명주소읍면동코드
+  "ROADNMADDRBDFLRDVS" VARCHAR(30), -- ROADNMADDRBDFLRDVS / 도로명주소건물층구분
+  "ROADNMADDRBDORIGNO" NUMERIC(18,0), -- ROADNMADDRBDORIGNO / 도로명주소건물본번호
+  "ROADNMADDRBDSUBNO" NUMERIC(18,0), -- ROADNMADDRBDSUBNO / 도로명주소건물부번호
+  "ROADNMADDRSPCLADDR" VARCHAR(500), -- ROADNMADDRSPCLADDR / 도로명주소특수주소
+  "PNU_CD" VARCHAR(30), -- PNU_CD / PNU코드
+  "BDMERGEMANAGENO" NUMERIC(18,0), -- BDMERGEMANAGENO / 건물통합관리번호
+  "UFID_CD" VARCHAR(30), -- UFID_CD / UFID코드
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2560_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "LOCPLC" AS "LOCPLC -- 소재지",
+  "SAN" AS "SAN -- 산",
+  "LNBR" AS "LNBR -- 번지",
+  "ISSNO" AS "ISSNO -- 호",
+  "TONG" AS "TONG -- 통",
+  "BAN" AS "BAN -- 반",
+  "SPCLADDR" AS "SPCLADDR -- 특수주소",
+  "SPCPPDONG" AS "SPCPPDONG -- 특수지동",
+  "SPCPPISSNO" AS "SPCPPISSNO -- 특수지호",
+  "ROADNMSIGNGUCD" AS "ROADNMSIGNGUCD -- 도로명시군구코드",
+  "ROADNMADDREMDDVS" AS "ROADNMADDREMDDVS -- 도로명주소읍면동구분",
+  "ROADNMADDREMDCD" AS "ROADNMADDREMDCD -- 도로명주소읍면동코드",
+  "ROADNMADDRBDFLRDVS" AS "ROADNMADDRBDFLRDVS -- 도로명주소건물층구분",
+  "ROADNMADDRBDORIGNO" AS "ROADNMADDRBDORIGNO -- 도로명주소건물본번호",
+  "ROADNMADDRBDSUBNO" AS "ROADNMADDRBDSUBNO -- 도로명주소건물부번호",
+  "ROADNMADDRSPCLADDR" AS "ROADNMADDRSPCLADDR -- 도로명주소특수주소",
+  "PNU_CD" AS "PNU_CD -- PNU코드",
+  "BDMERGEMANAGENO" AS "BDMERGEMANAGENO -- 건물통합관리번호",
+  "UFID_CD" AS "UFID_CD -- UFID코드"
+FROM "I2560";
 
 -- -----------------------------------------------------------------------------
 -- I2550 / 처분기준코드
@@ -1536,6 +2032,32 @@ SELECT
 FROM "I2380";
 
 -- -----------------------------------------------------------------------------
+-- I1870 / 농산물 안전성검사기관 정보
+-- 카테고리: 검사기관정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1870" (
+  "APPN_NO" NUMERIC(18,0), -- APPN_NO / 지정번호 / PK 후보(HIGH)
+  "APPN_DT" DATE, -- APPN_DT / 지정일자
+  "APPN_INSTT_NM" VARCHAR(200), -- APPN_INSTT_NM / 지정기관
+  "PRSEC_INSTT_LOCPLC" VARCHAR(500), -- PRSEC_INSTT_LOCPLC / 검사기관소재지
+  "PRSEC_WORK_SCOPE" VARCHAR(100), -- PRSEC_WORK_SCOPE / 검사업무범위
+  "HRMF_MTTR_ITM" VARCHAR(100), -- HRMF_MTTR_ITM / 유해물질항목
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  PRIMARY KEY ("APPN_NO")
+);
+
+CREATE VIEW "v_I1870_LOGICAL" AS
+SELECT
+  "APPN_NO" AS "APPN_NO -- 지정번호",
+  "APPN_DT" AS "APPN_DT -- 지정일자",
+  "APPN_INSTT_NM" AS "APPN_INSTT_NM -- 지정기관",
+  "PRSEC_INSTT_LOCPLC" AS "PRSEC_INSTT_LOCPLC -- 검사기관소재지",
+  "PRSEC_WORK_SCOPE" AS "PRSEC_WORK_SCOPE -- 검사업무범위",
+  "HRMF_MTTR_ITM" AS "HRMF_MTTR_ITM -- 유해물질항목",
+  "TELNO" AS "TELNO -- 전화번호"
+FROM "I1870";
+
+-- -----------------------------------------------------------------------------
 -- I0910 / 국외검사기관 인정 현황
 -- 카테고리: 검사기관정보
 -- -----------------------------------------------------------------------------
@@ -1561,32 +2083,6 @@ SELECT
   "TELNO" AS "TELNO -- 전화번호",
   "BSSH_ADDR" AS "BSSH_ADDR -- 주소"
 FROM "I0910";
-
--- -----------------------------------------------------------------------------
--- I1870 / 농산물 안전성검사기관 정보
--- 카테고리: 검사기관정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1870" (
-  "APPN_NO" NUMERIC(18,0), -- APPN_NO / 지정번호 / PK 후보(HIGH)
-  "APPN_DT" DATE, -- APPN_DT / 지정일자
-  "APPN_INSTT_NM" VARCHAR(200), -- APPN_INSTT_NM / 지정기관
-  "PRSEC_INSTT_LOCPLC" VARCHAR(500), -- PRSEC_INSTT_LOCPLC / 검사기관소재지
-  "PRSEC_WORK_SCOPE" VARCHAR(100), -- PRSEC_WORK_SCOPE / 검사업무범위
-  "HRMF_MTTR_ITM" VARCHAR(100), -- HRMF_MTTR_ITM / 유해물질항목
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  PRIMARY KEY ("APPN_NO")
-);
-
-CREATE VIEW "v_I1870_LOGICAL" AS
-SELECT
-  "APPN_NO" AS "APPN_NO -- 지정번호",
-  "APPN_DT" AS "APPN_DT -- 지정일자",
-  "APPN_INSTT_NM" AS "APPN_INSTT_NM -- 지정기관",
-  "PRSEC_INSTT_LOCPLC" AS "PRSEC_INSTT_LOCPLC -- 검사기관소재지",
-  "PRSEC_WORK_SCOPE" AS "PRSEC_WORK_SCOPE -- 검사업무범위",
-  "HRMF_MTTR_ITM" AS "HRMF_MTTR_ITM -- 유해물질항목",
-  "TELNO" AS "TELNO -- 전화번호"
-FROM "I1870";
 
 -- -----------------------------------------------------------------------------
 -- I0920 / 식품검사기관별 시험항목정보조회
@@ -1685,13 +2181,13 @@ CREATE TABLE "I2640" (
   "TESTANALS_RSLT" VARCHAR(100), -- TESTANALS_RSLT / 검사결과
   "CRET_DTM" DATE, -- CRET_DTM / 등록일
   "RTRVLDSUSE_SEQ" NUMERIC(18,0), -- RTRVLDSUSE_SEQ / 회수폐기일련번호
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "REPORTR_TELNO" VARCHAR(30), -- REPORTR_TELNO / 보고자전화번호
   PRIMARY KEY ("BRCDNO"),
   FOREIGN KEY ("BRCDNO") REFERENCES "I2620" ("BRCDNO"),
   FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2640_LOGICAL" AS
@@ -1734,15 +2230,15 @@ CREATE TABLE "I2620" (
   "CRET_DTM" DATE, -- CRET_DTM / 등록일
   "RTRVLDSUSE_SEQ" NUMERIC(18,0), -- RTRVLDSUSE_SEQ / 회수폐기일련번호
   "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "REPORTR_TELNO" VARCHAR(30), -- REPORTR_TELNO / 보고자전화번호
   "PRDLST_CD_NM" VARCHAR(30), -- PRDLST_CD_NM / 식품유형
   PRIMARY KEY ("BRCDNO"),
   FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO"),
   FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
   FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2620_LOGICAL" AS
@@ -1818,37 +2314,6 @@ SELECT
   "DSPS_CN" AS "DSPS_CN -- 처분내용",
   "PRDLST_NM" AS "PRDLST_NM -- 품목명"
 FROM "I1860";
-
--- -----------------------------------------------------------------------------
--- I2020 / 수산물 표시단속정보
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2020" (
-  "ENTRPS_NM" VARCHAR(200), -- ENTRPS_NM / 업체명
-  "BIZCND_DVS_NM" VARCHAR(200), -- BIZCND_DVS_NM / 업태
-  "CTPRVN_NM" VARCHAR(200), -- CTPRVN_NM / 주소
-  "VILT_ENTRPS_RELS_YN" VARCHAR(1), -- VILT_ENTRPS_RELS_YN / 위반업체해제여부
-  "VILT_ENTRPS_RELS_DT" DATE, -- VILT_ENTRPS_RELS_DT / 위반업체해제일자
-  "DISCL_DTM" DATE, -- DISCL_DTM / 단속일자
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 단속기관명
-  "ORGNP_DVS_NM" VARCHAR(30), -- ORGNP_DVS_NM / 원산지구분
-  "VILT_MATR_DVS_NM" VARCHAR(30), -- VILT_MATR_DVS_NM / 위반사항구분
-  "MPRC_DVS_NM" VARCHAR(30) -- MPRC_DVS_NM / 수산물구분
-);
-
-CREATE VIEW "v_I2020_LOGICAL" AS
-SELECT
-  "ENTRPS_NM" AS "ENTRPS_NM -- 업체명",
-  "BIZCND_DVS_NM" AS "BIZCND_DVS_NM -- 업태",
-  "CTPRVN_NM" AS "CTPRVN_NM -- 주소",
-  "VILT_ENTRPS_RELS_YN" AS "VILT_ENTRPS_RELS_YN -- 위반업체해제여부",
-  "VILT_ENTRPS_RELS_DT" AS "VILT_ENTRPS_RELS_DT -- 위반업체해제일자",
-  "DISCL_DTM" AS "DISCL_DTM -- 단속일자",
-  "INSTT_NM" AS "INSTT_NM -- 단속기관명",
-  "ORGNP_DVS_NM" AS "ORGNP_DVS_NM -- 원산지구분",
-  "VILT_MATR_DVS_NM" AS "VILT_MATR_DVS_NM -- 위반사항구분",
-  "MPRC_DVS_NM" AS "MPRC_DVS_NM -- 수산물구분"
-FROM "I2020";
 
 -- -----------------------------------------------------------------------------
 -- I2850 / 식중독 원인물질별 현황
@@ -1973,6 +2438,40 @@ SELECT
 FROM "I2854";
 
 -- -----------------------------------------------------------------------------
+-- I2715 / 해외직구 위해식품 차단정보
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2715" (
+  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
+  "MUFC_NM" VARCHAR(200), -- MUFC_NM / 제조사명
+  "MUFC_CNTRY_NM" VARCHAR(200), -- MUFC_CNTRY_NM / 제조국가명
+  "INGR_NM_LST" VARCHAR(200), -- INGR_NM_LST / 위해성분명
+  "STT_YMD" DATE, -- STT_YMD / 적용시작일
+  "END_YMD" DATE, -- END_YMD / 적용종료일
+  "CRET_DTM" DATE, -- CRET_DTM / 등록일
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "IMAGE_URL" VARCHAR(1000), -- IMAGE_URL / 이미지URL
+  "SELF_IMPORT_SEQ" DATE, -- SELF_IMPORT_SEQ / 일련번호(고유키값) / PK 후보(HIGH)
+  "BARCD_CTN" VARCHAR(50), -- BARCD_CTN / 바코드번호
+  PRIMARY KEY ("SELF_IMPORT_SEQ")
+);
+
+CREATE VIEW "v_I2715_LOGICAL" AS
+SELECT
+  "PRDT_NM" AS "PRDT_NM -- 제품명",
+  "MUFC_NM" AS "MUFC_NM -- 제조사명",
+  "MUFC_CNTRY_NM" AS "MUFC_CNTRY_NM -- 제조국가명",
+  "INGR_NM_LST" AS "INGR_NM_LST -- 위해성분명",
+  "STT_YMD" AS "STT_YMD -- 적용시작일",
+  "END_YMD" AS "END_YMD -- 적용종료일",
+  "CRET_DTM" AS "CRET_DTM -- 등록일",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "IMAGE_URL" AS "IMAGE_URL -- 이미지URL",
+  "SELF_IMPORT_SEQ" AS "SELF_IMPORT_SEQ -- 일련번호(고유키값)",
+  "BARCD_CTN" AS "BARCD_CTN -- 바코드번호"
+FROM "I2715";
+
+-- -----------------------------------------------------------------------------
 -- I2810 / 해외 위해식품 회수정보
 -- 카테고리: 식품위해관리
 -- -----------------------------------------------------------------------------
@@ -1995,6 +2494,332 @@ SELECT
   "DOWNLOAD_URL" AS "DOWNLOAD_URL -- 이미지 다운로드 URL",
   "NTCTXT_NO" AS "NTCTXT_NO -- 게시글번호"
 FROM "I2810";
+
+-- -----------------------------------------------------------------------------
+-- I0470 / 행정처분결과
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0470" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
+  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
+  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0470_LOGICAL" AS
+SELECT
+  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
+  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
+  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
+  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
+  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
+  "ADDR" AS "ADDR -- 주소",
+  "TELNO" AS "TELNO -- 전화번호",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "DSPSCN" AS "DSPSCN -- 처분내용",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
+  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명",
+  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키"
+FROM "I0470";
+
+-- -----------------------------------------------------------------------------
+-- I2020 / 수산물 표시단속정보
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2020" (
+  "ENTRPS_NM" VARCHAR(200), -- ENTRPS_NM / 업체명
+  "BIZCND_DVS_NM" VARCHAR(200), -- BIZCND_DVS_NM / 업태
+  "CTPRVN_NM" VARCHAR(200), -- CTPRVN_NM / 주소
+  "VILT_ENTRPS_RELS_YN" VARCHAR(1), -- VILT_ENTRPS_RELS_YN / 위반업체해제여부
+  "VILT_ENTRPS_RELS_DT" DATE, -- VILT_ENTRPS_RELS_DT / 위반업체해제일자
+  "DISCL_DTM" DATE, -- DISCL_DTM / 단속일자
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 단속기관명
+  "ORGNP_DVS_NM" VARCHAR(30), -- ORGNP_DVS_NM / 원산지구분
+  "VILT_MATR_DVS_NM" VARCHAR(30), -- VILT_MATR_DVS_NM / 위반사항구분
+  "MPRC_DVS_NM" VARCHAR(30) -- MPRC_DVS_NM / 수산물구분
+);
+
+CREATE VIEW "v_I2020_LOGICAL" AS
+SELECT
+  "ENTRPS_NM" AS "ENTRPS_NM -- 업체명",
+  "BIZCND_DVS_NM" AS "BIZCND_DVS_NM -- 업태",
+  "CTPRVN_NM" AS "CTPRVN_NM -- 주소",
+  "VILT_ENTRPS_RELS_YN" AS "VILT_ENTRPS_RELS_YN -- 위반업체해제여부",
+  "VILT_ENTRPS_RELS_DT" AS "VILT_ENTRPS_RELS_DT -- 위반업체해제일자",
+  "DISCL_DTM" AS "DISCL_DTM -- 단속일자",
+  "INSTT_NM" AS "INSTT_NM -- 단속기관명",
+  "ORGNP_DVS_NM" AS "ORGNP_DVS_NM -- 원산지구분",
+  "VILT_MATR_DVS_NM" AS "VILT_MATR_DVS_NM -- 위반사항구분",
+  "MPRC_DVS_NM" AS "MPRC_DVS_NM -- 수산물구분"
+FROM "I2020";
+
+-- -----------------------------------------------------------------------------
+-- I2630 / 행정처분결과(식품접객업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2630" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1200.LCNS_NO(HIGH)
+  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TEL_NO" VARCHAR(30), -- TEL_NO / 전화번호
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
+  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
+  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2630_LOGICAL" AS
+SELECT
+  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
+  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
+  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
+  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
+  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
+  "ADDR" AS "ADDR -- 주소",
+  "TEL_NO" AS "TEL_NO -- 전화번호",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "DSPSCN" AS "DSPSCN -- 처분내용",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
+  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명",
+  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키"
+FROM "I2630";
+
+-- -----------------------------------------------------------------------------
+-- I0482 / 행정처분결과(수입식품업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0482" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
+  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" TEXT, -- VILTCN / 위반일자 및 위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
+  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
+  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
+  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0482_LOGICAL" AS
+SELECT
+  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
+  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
+  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
+  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
+  "VILTCN" AS "VILTCN -- 위반일자 및 위반내용",
+  "ADDR" AS "ADDR -- 주소",
+  "TELNO" AS "TELNO -- 전화번호",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
+  "DSPSCN" AS "DSPSCN -- 처분내용",
+  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
+  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
+FROM "I0482";
+
+-- -----------------------------------------------------------------------------
+-- I0480 / 행정처분결과(식품제조가공업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0480" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1220.LCNS_NO(HIGH)
+  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
+  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
+  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
+  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0480_LOGICAL" AS
+SELECT
+  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
+  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
+  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
+  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
+  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
+  "ADDR" AS "ADDR -- 주소",
+  "TELNO" AS "TELNO -- 전화번호",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
+  "DSPSCN" AS "DSPSCN -- 처분내용",
+  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
+  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
+FROM "I0480";
+
+-- -----------------------------------------------------------------------------
+-- I0481 / 행정처분결과(식품판매업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0481" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자 및 위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
+  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
+  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
+  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
+  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0481_LOGICAL" AS
+SELECT
+  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
+  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
+  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
+  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
+  "VILTCN" AS "VILTCN -- 위반일자 및 위반내용",
+  "ADDR" AS "ADDR -- 주소",
+  "TELNO" AS "TELNO -- 전화번호",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
+  "DSPSCN" AS "DSPSCN -- 처분내용",
+  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
+  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
+  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
+FROM "I0481";
+
+-- -----------------------------------------------------------------------------
+-- I0490 / 회수.판매중지 정보
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0490" (
+  "PRDTNM" VARCHAR(200), -- PRDTNM / 제품명
+  "RTRVLPRVNS" VARCHAR(1000), -- RTRVLPRVNS / 회수사유
+  "BSSHNM" VARCHAR(200), -- BSSHNM / 제조업체명
+  "ADDR" VARCHAR(500), -- ADDR / 업체주소
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "BRCDNO" VARCHAR(50), -- BRCDNO / 바코드번호 / PK 후보(HIGH)
+  "FRMLCUNIT" VARCHAR(100), -- FRMLCUNIT / 포장단위
+  "MNFDT" DATE, -- MNFDT / 제조일자
+  "RTRVLPLANDOC_RTRVLMTHD" VARCHAR(1000), -- RTRVLPLANDOC_RTRVLMTHD / 회수방법
+  "DISTBTMLMT" VARCHAR(200), -- DISTBTMLMT / 유통/소비기한
+  "PRDLST_TYPE" VARCHAR(30), -- PRDLST_TYPE / 식품분류
+  "IMG_FILE_PATH" VARCHAR(1000), -- IMG_FILE_PATH / 제품사진 URL
+  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / FK 후보: I2510.PRDLST_CD(HIGH)
+  "CRET_DTM" DATE, -- CRET_DTM / 등록일
+  "RTRVLDSUSE_SEQ" NUMERIC(18,0), -- RTRVLDSUSE_SEQ / 회수.판매중지 일련번호
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "RTRVL_GRDCD_NM" VARCHAR(200), -- RTRVL_GRDCD_NM / 회수등급
+  "PRDLST_CD_NM" VARCHAR(200), -- PRDLST_CD_NM / 품목유형(품목코드명)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  PRIMARY KEY ("BRCDNO"),
+  FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0490_LOGICAL" AS
+SELECT
+  "PRDTNM" AS "PRDTNM -- 제품명",
+  "RTRVLPRVNS" AS "RTRVLPRVNS -- 회수사유",
+  "BSSHNM" AS "BSSHNM -- 제조업체명",
+  "ADDR" AS "ADDR -- 업체주소",
+  "TELNO" AS "TELNO -- 전화번호",
+  "BRCDNO" AS "BRCDNO -- 바코드번호",
+  "FRMLCUNIT" AS "FRMLCUNIT -- 포장단위",
+  "MNFDT" AS "MNFDT -- 제조일자",
+  "RTRVLPLANDOC_RTRVLMTHD" AS "RTRVLPLANDOC_RTRVLMTHD -- 회수방법",
+  "DISTBTMLMT" AS "DISTBTMLMT -- 유통/소비기한",
+  "PRDLST_TYPE" AS "PRDLST_TYPE -- 식품분류",
+  "IMG_FILE_PATH" AS "IMG_FILE_PATH -- 제품사진 URL",
+  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
+  "CRET_DTM" AS "CRET_DTM -- 등록일",
+  "RTRVLDSUSE_SEQ" AS "RTRVLDSUSE_SEQ -- 회수.판매중지 일련번호",
+  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
+  "RTRVL_GRDCD_NM" AS "RTRVL_GRDCD_NM -- 회수등급",
+  "PRDLST_CD_NM" AS "PRDLST_CD_NM -- 품목유형(품목코드명)",
+  "LCNS_NO" AS "LCNS_NO -- 업체인허가번호"
+FROM "I0490";
 
 -- -----------------------------------------------------------------------------
 -- I2839 / 건강기능식품제조업, 건강기능식품판매업 지도단속계획 및 실적현황
@@ -2235,42 +3060,6 @@ SELECT
 FROM "I0140";
 
 -- -----------------------------------------------------------------------------
--- I1960 / 패류독소정보
--- 카테고리: 식품안전관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1960" (
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
-  "EXAM_SPOT_NM" VARCHAR(200), -- EXAM_SPOT_NM / 조사지점명
-  "EXAM_SEAR_NM" VARCHAR(200), -- EXAM_SEAR_NM / 조사해역명
-  "SPLORE_NO" NUMERIC(18,0), -- SPLORE_NO / 시료번호 / PK 후보(HIGH)
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  "PICK_DT" DATE, -- PICK_DT / 채취일자
-  "WTNESSMAN_NM" VARCHAR(200), -- WTNESSMAN_NM / 입회자명
-  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지명
-  "SALT" VARCHAR(500), -- SALT / 염분
-  "TEMOD" VARCHAR(500), -- TEMOD / 수온
-  "SPLORE_DSUSE_DT" DATE, -- SPLORE_DSUSE_DT / 시료폐기일자
-  "FIT_YN" VARCHAR(1), -- FIT_YN / 적합여부
-  PRIMARY KEY ("SPLORE_NO")
-);
-
-CREATE VIEW "v_I1960_LOGICAL" AS
-SELECT
-  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
-  "EXAM_SPOT_NM" AS "EXAM_SPOT_NM -- 조사지점명",
-  "EXAM_SEAR_NM" AS "EXAM_SEAR_NM -- 조사해역명",
-  "SPLORE_NO" AS "SPLORE_NO -- 시료번호",
-  "INSTT_NM" AS "INSTT_NM -- 기관명",
-  "PICK_DT" AS "PICK_DT -- 채취일자",
-  "WTNESSMAN_NM" AS "WTNESSMAN_NM -- 입회자명",
-  "ORGNP_NM" AS "ORGNP_NM -- 원산지명",
-  "SALT" AS "SALT -- 염분",
-  "TEMOD" AS "TEMOD -- 수온",
-  "SPLORE_DSUSE_DT" AS "SPLORE_DSUSE_DT -- 시료폐기일자",
-  "FIT_YN" AS "FIT_YN -- 적합여부"
-FROM "I1960";
-
--- -----------------------------------------------------------------------------
 -- I0150 / 후대교배종의 안전성 평가 신청 및 검토 정보
 -- 카테고리: 식품안전관리
 -- -----------------------------------------------------------------------------
@@ -2325,6 +3114,42 @@ SELECT
   "VALD_PRICE_BGN_DT" AS "VALD_PRICE_BGN_DT -- 유효기간시작일자",
   "VALD_PRICE_END_DT" AS "VALD_PRICE_END_DT -- 유효기간종료일자"
 FROM "I1790";
+
+-- -----------------------------------------------------------------------------
+-- I1960 / 패류독소정보
+-- 카테고리: 식품안전관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1960" (
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
+  "EXAM_SPOT_NM" VARCHAR(200), -- EXAM_SPOT_NM / 조사지점명
+  "EXAM_SEAR_NM" VARCHAR(200), -- EXAM_SEAR_NM / 조사해역명
+  "SPLORE_NO" NUMERIC(18,0), -- SPLORE_NO / 시료번호 / PK 후보(HIGH)
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  "PICK_DT" DATE, -- PICK_DT / 채취일자
+  "WTNESSMAN_NM" VARCHAR(200), -- WTNESSMAN_NM / 입회자명
+  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지명
+  "SALT" VARCHAR(500), -- SALT / 염분
+  "TEMOD" VARCHAR(500), -- TEMOD / 수온
+  "SPLORE_DSUSE_DT" DATE, -- SPLORE_DSUSE_DT / 시료폐기일자
+  "FIT_YN" VARCHAR(1), -- FIT_YN / 적합여부
+  PRIMARY KEY ("SPLORE_NO")
+);
+
+CREATE VIEW "v_I1960_LOGICAL" AS
+SELECT
+  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
+  "EXAM_SPOT_NM" AS "EXAM_SPOT_NM -- 조사지점명",
+  "EXAM_SEAR_NM" AS "EXAM_SEAR_NM -- 조사해역명",
+  "SPLORE_NO" AS "SPLORE_NO -- 시료번호",
+  "INSTT_NM" AS "INSTT_NM -- 기관명",
+  "PICK_DT" AS "PICK_DT -- 채취일자",
+  "WTNESSMAN_NM" AS "WTNESSMAN_NM -- 입회자명",
+  "ORGNP_NM" AS "ORGNP_NM -- 원산지명",
+  "SALT" AS "SALT -- 염분",
+  "TEMOD" AS "TEMOD -- 수온",
+  "SPLORE_DSUSE_DT" AS "SPLORE_DSUSE_DT -- 시료폐기일자",
+  "FIT_YN" AS "FIT_YN -- 적합여부"
+FROM "I1960";
 
 -- -----------------------------------------------------------------------------
 -- I1800 / 농산물이력추적 유통정보
@@ -2393,48 +3218,6 @@ SELECT
   "VACIN_LAST_INOCL_DT" AS "VACIN_LAST_INOCL_DT -- 백신최종접종일자",
   "VACIN_LAST_INOCL_OPNO" AS "VACIN_LAST_INOCL_OPNO -- 백신최종접종차수"
 FROM "I1810";
-
--- -----------------------------------------------------------------------------
--- I1820 / 쇠고기(국내)이력추적 정보
--- 카테고리: 이력추적관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1820" (
-  "ENTTY_IDNTFC_NO" NUMERIC(18,0), -- ENTTY_IDNTFC_NO / 개체식별번호 / PK 후보(HIGH)
-  "SLAU_PLC_NM" VARCHAR(200), -- SLAU_PLC_NM / 도축장소
-  "SNTT_PRSEC_NM" VARCHAR(200), -- SNTT_PRSEC_NM / 위생검사
-  "SLAU_YMD" DATE, -- SLAU_YMD / 도축년월일
-  "ADDR" VARCHAR(500), -- ADDR / 도축장소주소
-  "SNTT_PRSEC_PASS_ENNC" VARCHAR(1), -- SNTT_PRSEC_PASS_ENNC / 위생검사합격유무
-  "PRCSS_DT" DATE, -- PRCSS_DT / 가공일자
-  "PRCSS_PLC_NM" VARCHAR(200), -- PRCSS_PLC_NM / 가공장소명
-  "BRTH_DT" DATE, -- BRTH_DT / 출생일자
-  "ENTTY_STATS_NM" VARCHAR(200), -- ENTTY_STATS_NM / 개체상태명
-  "COW_KND_NM" VARCHAR(200), -- COW_KND_NM / 소종류명
-  "GND_NM" VARCHAR(200), -- GND_NM / 성별
-  "FMH_NM" VARCHAR(200), -- FMH_NM / 농가명
-  "VACIN_LAST_INOCL_DT" DATE, -- VACIN_LAST_INOCL_DT / 백신최종접종일자
-  "VACIN_LAST_INOCL_OPNO" NUMERIC(18,0), -- VACIN_LAST_INOCL_OPNO / 백신최종접종차수
-  PRIMARY KEY ("ENTTY_IDNTFC_NO")
-);
-
-CREATE VIEW "v_I1820_LOGICAL" AS
-SELECT
-  "ENTTY_IDNTFC_NO" AS "ENTTY_IDNTFC_NO -- 개체식별번호",
-  "SLAU_PLC_NM" AS "SLAU_PLC_NM -- 도축장소",
-  "SNTT_PRSEC_NM" AS "SNTT_PRSEC_NM -- 위생검사",
-  "SLAU_YMD" AS "SLAU_YMD -- 도축년월일",
-  "ADDR" AS "ADDR -- 도축장소주소",
-  "SNTT_PRSEC_PASS_ENNC" AS "SNTT_PRSEC_PASS_ENNC -- 위생검사합격유무",
-  "PRCSS_DT" AS "PRCSS_DT -- 가공일자",
-  "PRCSS_PLC_NM" AS "PRCSS_PLC_NM -- 가공장소명",
-  "BRTH_DT" AS "BRTH_DT -- 출생일자",
-  "ENTTY_STATS_NM" AS "ENTTY_STATS_NM -- 개체상태명",
-  "COW_KND_NM" AS "COW_KND_NM -- 소종류명",
-  "GND_NM" AS "GND_NM -- 성별",
-  "FMH_NM" AS "FMH_NM -- 농가명",
-  "VACIN_LAST_INOCL_DT" AS "VACIN_LAST_INOCL_DT -- 백신최종접종일자",
-  "VACIN_LAST_INOCL_OPNO" AS "VACIN_LAST_INOCL_OPNO -- 백신최종접종차수"
-FROM "I1820";
 
 -- -----------------------------------------------------------------------------
 -- I1920 / 수산물이력정보-기본정보
@@ -2635,7 +3418,7 @@ FROM "I2846";
 CREATE TABLE "I0080" (
   "CHILD_FFQ_CRTFC_NO" DATE, -- CHILD_FFQ_CRTFC_NO / 인증번호 / PK 후보(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "PRDLST_CD_NM" VARCHAR(30), -- PRDLST_CD_NM / 식품유형
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 제품명
   "CN_WT" VARCHAR(100), -- CN_WT / 제품용량
@@ -2644,8 +3427,8 @@ CREATE TABLE "I0080" (
   "CHILD_FAVOR_FOOD_TYPE_NM" VARCHAR(200), -- CHILD_FAVOR_FOOD_TYPE_NM / 제품형태
   "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목보고번호 / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
   PRIMARY KEY ("CHILD_FFQ_CRTFC_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
   FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
   FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
 );
@@ -2663,6 +3446,28 @@ SELECT
   "CHILD_FAVOR_FOOD_TYPE_NM" AS "CHILD_FAVOR_FOOD_TYPE_NM -- 제품형태",
   "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목보고번호"
 FROM "I0080";
+
+-- -----------------------------------------------------------------------------
+-- I0600 / HACCP 교육훈련기관 지정 현황
+-- 카테고리: HACCP지정현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0600" (
+  "EDC_INSTT_APPN_NO" NUMERIC(18,0), -- EDC_INSTT_APPN_NO / 지정번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 교육훈련기관명
+  "BSSH_ADDR" VARCHAR(500), -- BSSH_ADDR / 주소
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  PRIMARY KEY ("EDC_INSTT_APPN_NO")
+);
+
+CREATE VIEW "v_I0600_LOGICAL" AS
+SELECT
+  "EDC_INSTT_APPN_NO" AS "EDC_INSTT_APPN_NO -- 지정번호",
+  "BSSH_NM" AS "BSSH_NM -- 교육훈련기관명",
+  "BSSH_ADDR" AS "BSSH_ADDR -- 주소",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자"
+FROM "I0600";
 
 -- -----------------------------------------------------------------------------
 -- I0340 / 어린이 식품안전보호구역 관리 현황
@@ -2716,33 +3521,11 @@ SELECT
 FROM "I2840";
 
 -- -----------------------------------------------------------------------------
--- I0600 / HACCP 교육훈련기관 지정 현황
--- 카테고리: HACCP지정현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0600" (
-  "EDC_INSTT_APPN_NO" NUMERIC(18,0), -- EDC_INSTT_APPN_NO / 지정번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 교육훈련기관명
-  "BSSH_ADDR" VARCHAR(500), -- BSSH_ADDR / 주소
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  PRIMARY KEY ("EDC_INSTT_APPN_NO")
-);
-
-CREATE VIEW "v_I0600_LOGICAL" AS
-SELECT
-  "EDC_INSTT_APPN_NO" AS "EDC_INSTT_APPN_NO -- 지정번호",
-  "BSSH_NM" AS "BSSH_NM -- 교육훈련기관명",
-  "BSSH_ADDR" AS "BSSH_ADDR -- 주소",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자"
-FROM "I0600";
-
--- -----------------------------------------------------------------------------
 -- I0580 / HACCP 적용업소 지정 현황
 -- 카테고리: HACCP지정현황
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I0580" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
@@ -2756,8 +3539,8 @@ CREATE TABLE "I0580" (
   "CRTFC_ENDDT" DATE, -- CRTFC_ENDDT / 인증종료일자
   "CRTFC_RETN_DT" DATE, -- CRTFC_RETN_DT / 인증반납일자
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I0580_LOGICAL" AS
@@ -2782,7 +3565,7 @@ FROM "I0580";
 -- 카테고리: HACCP지정현황
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I0610" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
@@ -2795,7 +3578,7 @@ CREATE TABLE "I0610" (
   "CRTFC_ENDDT" DATE, -- CRTFC_ENDDT / 인증종료일자
   "CRTFC_RETN_DT" DATE, -- CRTFC_RETN_DT / 인증반납일자
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -2872,38 +3655,31 @@ SELECT
 FROM "I2858";
 
 -- -----------------------------------------------------------------------------
--- I2852 / 생산중단제품정보
+-- I2835 / 식육즉석판매가공업 인허가 대장
 -- 카테고리: 업체인허가현황
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2852" (
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
-  "PRMS_DT" DATE, -- PRMS_DT / 품목보고일자
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 제품명
-  "END_DT" DATE, -- END_DT / 생산중단일자
-  "PRDLST_DCNM" VARCHAR(200), -- PRDLST_DCNM / 품목유형명
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+CREATE TABLE "I2835" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "FOOD_HF_LS_CL_CD_NM" VARCHAR(30), -- FOOD_HF_LS_CL_CD_NM / 구분
-  "ARTCL_END_WHY" VARCHAR(1000), -- ARTCL_END_WHY / 생산중단사유
-  PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 );
 
-CREATE VIEW "v_I2852_LOGICAL" AS
+CREATE VIEW "v_I2835_LOGICAL" AS
 SELECT
-  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
-  "PRMS_DT" AS "PRMS_DT -- 품목보고일자",
-  "PRDLST_NM" AS "PRDLST_NM -- 제품명",
-  "END_DT" AS "END_DT -- 생산중단일자",
-  "PRDLST_DCNM" AS "PRDLST_DCNM -- 품목유형명",
   "LCNS_NO" AS "LCNS_NO -- 인허가번호",
   "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "FOOD_HF_LS_CL_CD_NM" AS "FOOD_HF_LS_CL_CD_NM -- 구분",
-  "ARTCL_END_WHY" AS "ARTCL_END_WHY -- 생산중단사유"
-FROM "I2852";
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2835";
 
 -- -----------------------------------------------------------------------------
 -- I2836 / 식용란선별포장업 인허가 대장
@@ -2931,33 +3707,6 @@ SELECT
   "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
   "INSTT_NM" AS "INSTT_NM -- 기관명"
 FROM "I2836";
-
--- -----------------------------------------------------------------------------
--- I2835 / 식육즉석판매가공업 인허가 대장
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2835" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2835_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2835";
 
 -- -----------------------------------------------------------------------------
 -- I2833 / 식품냉동.냉장업 인허가 대장
@@ -3012,6 +3761,40 @@ SELECT
   "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
   "INSTT_NM" AS "INSTT_NM -- 기관명"
 FROM "I2831";
+
+-- -----------------------------------------------------------------------------
+-- I2852 / 생산중단제품정보
+-- 카테고리: 업체인허가현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2852" (
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRMS_DT" DATE, -- PRMS_DT / 품목보고일자
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 제품명
+  "END_DT" DATE, -- END_DT / 생산중단일자
+  "PRDLST_DCNM" VARCHAR(200), -- PRDLST_DCNM / 품목유형명
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "FOOD_HF_LS_CL_CD_NM" VARCHAR(30), -- FOOD_HF_LS_CL_CD_NM / 구분
+  "ARTCL_END_WHY" VARCHAR(1000), -- ARTCL_END_WHY / 생산중단사유
+  PRIMARY KEY ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2852_LOGICAL" AS
+SELECT
+  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
+  "PRMS_DT" AS "PRMS_DT -- 품목보고일자",
+  "PRDLST_NM" AS "PRDLST_NM -- 제품명",
+  "END_DT" AS "END_DT -- 생산중단일자",
+  "PRDLST_DCNM" AS "PRDLST_DCNM -- 품목유형명",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "FOOD_HF_LS_CL_CD_NM" AS "FOOD_HF_LS_CL_CD_NM -- 구분",
+  "ARTCL_END_WHY" AS "ARTCL_END_WHY -- 생산중단사유"
+FROM "I2852";
 
 -- -----------------------------------------------------------------------------
 -- I2830 / 식품운반업 인허가 대장
@@ -3096,6 +3879,116 @@ SELECT
 FROM "I2832";
 
 -- -----------------------------------------------------------------------------
+-- I2500 / 인허가 업소 정보
+-- 카테고리: 업체인허가현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2500" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 영업고유구분번호(인허가번호) / PK 후보(HIGH)
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  PRIMARY KEY ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2500_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 영업고유구분번호(인허가번호)",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "TELNO" AS "TELNO -- 전화번호",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "ADDR" AS "ADDR -- 주소"
+FROM "I2500";
+
+-- -----------------------------------------------------------------------------
+-- I2829 / 즉석판매제조가공업 인허가 대장
+-- 카테고리: 업체인허가현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2829" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2829_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2829";
+
+-- -----------------------------------------------------------------------------
+-- I2834 / 집단급식소 인허가 대장
+-- 카테고리: 업체인허가현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2834" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2834_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2834";
+
+-- -----------------------------------------------------------------------------
+-- I2856 / 푸드트럭지정현황조회
+-- 카테고리: 업체인허가현황
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2856" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
+  "PRMS_DT" DATE, -- PRMS_DT / 인허가일자
+  "INSTT_CDNM" VARCHAR(200), -- INSTT_CDNM / 인허가기관명
+  "INDUTY_CDNM" VARCHAR(200), -- INDUTY_CDNM / 업종명
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 업소주소
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 업소대표자명
+  "TELNO" VARCHAR(30), -- TELNO / 업소전화번호
+  "CHNG_DT" DATE, -- CHNG_DT / 변경일자(YYYYMMDD)
+  PRIMARY KEY ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2856_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "PRMS_DT" AS "PRMS_DT -- 인허가일자",
+  "INSTT_CDNM" AS "INSTT_CDNM -- 인허가기관명",
+  "INDUTY_CDNM" AS "INDUTY_CDNM -- 업종명",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 업소주소",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 업소대표자명",
+  "TELNO" AS "TELNO -- 업소전화번호",
+  "CHNG_DT" AS "CHNG_DT -- 변경일자(YYYYMMDD)"
+FROM "I2856";
+
+-- -----------------------------------------------------------------------------
 -- I2714 / 위생용품수입업영업신고대장
 -- 카테고리: 위생용품
 -- -----------------------------------------------------------------------------
@@ -3124,38 +4017,6 @@ SELECT
   "INSTT_NM" AS "INSTT_NM -- 기관명",
   "TELNO" AS "TELNO -- 전화번호"
 FROM "I2714";
-
--- -----------------------------------------------------------------------------
--- I2851 / 위생용품영업 생산실적보고
--- 카테고리: 위생용품
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2851" (
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
-  "GUBUN" VARCHAR(30), -- GUBUN / 품목구분
-  "H_ITEM_NM" VARCHAR(30), -- H_ITEM_NM / 품목유형
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "EVL_YR" NUMERIC(18,0), -- EVL_YR / 보고년도
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
-  "PRDCTN_QY" NUMERIC(18,4), -- PRDCTN_QY / 생산량(KG/위생물수건:매)
-  PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
-);
-
-CREATE VIEW "v_I2851_LOGICAL" AS
-SELECT
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
-  "GUBUN" AS "GUBUN -- 품목구분",
-  "H_ITEM_NM" AS "H_ITEM_NM -- 품목유형",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "EVL_YR" AS "EVL_YR -- 보고년도",
-  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
-  "PRDCTN_QY" AS "PRDCTN_QY -- 생산량(KG/위생물수건:매)"
-FROM "I2851";
 
 -- -----------------------------------------------------------------------------
 -- I2713 / 위생용품영업정보
@@ -3219,35 +4080,6 @@ SELECT
 FROM "I2711";
 
 -- -----------------------------------------------------------------------------
--- I2712 / 위생용품품목제조보고(원재료)
--- 카테고리: 위생용품
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2712" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
-  "PRMS_DT" DATE, -- PRMS_DT / 보고일자
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
-  "PRDLST_DCNM" VARCHAR(30), -- PRDLST_DCNM / 유형
-  "RAWMTRL_NM" VARCHAR(300), -- RAWMTRL_NM / 원재료
-  PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
-);
-
-CREATE VIEW "v_I2712_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조번호",
-  "PRMS_DT" AS "PRMS_DT -- 보고일자",
-  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
-  "PRDLST_DCNM" AS "PRDLST_DCNM -- 유형",
-  "RAWMTRL_NM" AS "RAWMTRL_NM -- 원재료"
-FROM "I2712";
-
--- -----------------------------------------------------------------------------
 -- I1300 / 축산물 가공업허가정보
 -- 카테고리: 축산물
 -- -----------------------------------------------------------------------------
@@ -3274,6 +4106,37 @@ SELECT
   "INSTT_NM" AS "INSTT_NM -- 기관명",
   "TELNO" AS "TELNO -- 전화번호"
 FROM "I1300";
+
+-- -----------------------------------------------------------------------------
+-- I2851 / 위생용품영업 생산실적보고
+-- 카테고리: 위생용품
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2851" (
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
+  "GUBUN" VARCHAR(30), -- GUBUN / 품목구분
+  "H_ITEM_NM" VARCHAR(30), -- H_ITEM_NM / 품목유형
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH)
+  "EVL_YR" NUMERIC(18,0), -- EVL_YR / 보고년도
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
+  "PRDCTN_QY" NUMERIC(18,4), -- PRDCTN_QY / 생산량(KG/위생물수건:매)
+  PRIMARY KEY ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
+);
+
+CREATE VIEW "v_I2851_LOGICAL" AS
+SELECT
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
+  "GUBUN" AS "GUBUN -- 품목구분",
+  "H_ITEM_NM" AS "H_ITEM_NM -- 품목유형",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "EVL_YR" AS "EVL_YR -- 보고년도",
+  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
+  "PRDCTN_QY" AS "PRDCTN_QY -- 생산량(KG/위생물수건:매)"
+FROM "I2851";
 
 -- -----------------------------------------------------------------------------
 -- I1330 / 축산물 보관업영업허가대장
@@ -3311,16 +4174,15 @@ CREATE TABLE "I1420" (
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
   "GUBUN" VARCHAR(30), -- GUBUN / 품목구분
   "H_ITEM_NM" VARCHAR(30), -- H_ITEM_NM / 품목유형
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I1300.LCNS_NO(HIGH)
   "EVL_YR" NUMERIC(18,0), -- EVL_YR / 보고년도
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I1310.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
   "FYER_PRDCTN_ABRT_QY" NUMERIC(18,4), -- FYER_PRDCTN_ABRT_QY / 연간생산능력(KG)
   "PRDCTN_QY" NUMERIC(18,4), -- PRDCTN_QY / 생산량(KG)
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
 );
 
 CREATE VIEW "v_I1420_LOGICAL" AS
@@ -3459,7 +4321,7 @@ FROM "I1350";
 -- 카테고리: 축산물
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I1310" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I1300.LCNS_NO(HIGH), I2500.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
   "PRMS_DT" DATE, -- PRMS_DT / 보고일자
@@ -3472,8 +4334,8 @@ CREATE TABLE "I1310" (
   "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
   "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일자
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I1310_LOGICAL" AS
@@ -3498,7 +4360,7 @@ FROM "I1310";
 -- -----------------------------------------------------------------------------
 CREATE TABLE "C006" (
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I1310.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
   "PRMS_DT" DATE, -- PRMS_DT / 보고일자
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
   "PRDLST_DCNM" VARCHAR(30), -- PRDLST_DCNM / 유형
@@ -3507,8 +4369,8 @@ CREATE TABLE "C006" (
   "CHNG_DT" DATE, -- CHNG_DT / 변경일자
   "RAWMTRL_ORDNO" NUMERIC(18,0), -- RAWMTRL_ORDNO / 원재료표시순서
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
   FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -3591,16 +4453,14 @@ CREATE TABLE "I0310" (
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
   "GUBUN" VARCHAR(30), -- GUBUN / 품목구분
   "H_ITEM_NM" VARCHAR(50), -- H_ITEM_NM / 품목유형
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호
   "EVL_YR" NUMERIC(18,0), -- EVL_YR / 보고년도
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I0030.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
   "FYER_PRDCTN_ABRT_QY" NUMERIC(18,4), -- FYER_PRDCTN_ABRT_QY / 연간생산능력(KG)
   "PRDCTN_QY" NUMERIC(18,4), -- PRDCTN_QY / 생산량(KG)
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I0030" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
 );
 
 CREATE VIEW "v_I0310_LOGICAL" AS
@@ -3615,6 +4475,35 @@ SELECT
   "FYER_PRDCTN_ABRT_QY" AS "FYER_PRDCTN_ABRT_QY -- 연간생산능력(KG)",
   "PRDCTN_QY" AS "PRDCTN_QY -- 생산량(KG)"
 FROM "I0310";
+
+-- -----------------------------------------------------------------------------
+-- I2712 / 위생용품품목제조보고(원재료)
+-- 카테고리: 위생용품
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2712" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
+  "PRMS_DT" DATE, -- PRMS_DT / 보고일자
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
+  "PRDLST_DCNM" VARCHAR(30), -- PRDLST_DCNM / 유형
+  "RAWMTRL_NM" VARCHAR(300), -- RAWMTRL_NM / 원재료
+  PRIMARY KEY ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
+);
+
+CREATE VIEW "v_I2712_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조번호",
+  "PRMS_DT" AS "PRMS_DT -- 보고일자",
+  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
+  "PRDLST_DCNM" AS "PRDLST_DCNM -- 유형",
+  "RAWMTRL_NM" AS "RAWMTRL_NM -- 원재료"
+FROM "I2712";
 
 -- -----------------------------------------------------------------------------
 -- I-0020 / 건강기능식품 전문.벤처제조업인허가 현황
@@ -3738,13 +4627,71 @@ SELECT
 FROM "I0030";
 
 -- -----------------------------------------------------------------------------
+-- I0630 / 건강기능식품GMP 지정 현황
+-- 카테고리: 건강기능식품
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0630" (
+  "GMP_APPN_NO" DATE, -- GMP_APPN_NO / GMP지정번호 / PK 후보(HIGH)
+  "APPN_DT" DATE, -- APPN_DT / 지정일자
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업고고유번호 / FK 후보: I2500.LCNS_NO(HIGH)
+  "APPN_CANCL_DT" DATE, -- APPN_CANCL_DT / GMP취소일자
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  PRIMARY KEY ("GMP_APPN_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0630_LOGICAL" AS
+SELECT
+  "GMP_APPN_NO" AS "GMP_APPN_NO -- GMP지정번호",
+  "APPN_DT" AS "APPN_DT -- 지정일자",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "LCNS_NO" AS "LCNS_NO -- 업고고유번호",
+  "APPN_CANCL_DT" AS "APPN_CANCL_DT -- GMP취소일자",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명"
+FROM "I0630";
+
+-- -----------------------------------------------------------------------------
+-- I2860 / 건강기능식품업소 인허가 변경 정보
+-- 카테고리: 건강기능식품
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2860" (
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
+  "CHNG_DT" DATE, -- CHNG_DT / 변경일자
+  "CHNG_BF_CN" VARCHAR(1000), -- CHNG_BF_CN / 변경전내용
+  "CHNG_AF_CN" VARCHAR(1000), -- CHNG_AF_CN / 변경후내용
+  "CHNG_PRVNS" VARCHAR(1000), -- CHNG_PRVNS / 변경사유
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2860_LOGICAL" AS
+SELECT
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종명",
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "TELNO" AS "TELNO -- 전화번호",
+  "SITE_ADDR" AS "SITE_ADDR -- 주소",
+  "CHNG_DT" AS "CHNG_DT -- 변경일자",
+  "CHNG_BF_CN" AS "CHNG_BF_CN -- 변경전내용",
+  "CHNG_AF_CN" AS "CHNG_AF_CN -- 변경후내용",
+  "CHNG_PRVNS" AS "CHNG_PRVNS -- 변경사유"
+FROM "I2860";
+
+-- -----------------------------------------------------------------------------
 -- C003 / 건강기능식품 품목제조신고(원재료)
 -- 카테고리: 건강기능식품
 -- -----------------------------------------------------------------------------
 CREATE TABLE "C003" (
   "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH) / FK 후보: I0030.PRDLST_REPORT_NO(HIGH), I1250.PRDLST_REPORT_NO(HIGH)
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
   "PRMS_DT" DATE, -- PRMS_DT / 보고일자
   "POG_DAYCNT" VARCHAR(100), -- POG_DAYCNT / 소비기한
@@ -3760,8 +4707,8 @@ CREATE TABLE "C003" (
   "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일시
   "PRDT_SHAP_CD_NM" VARCHAR(200), -- PRDT_SHAP_CD_NM / 제품형태
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I0030" ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
 );
 
 CREATE VIEW "v_C003_LOGICAL" AS
@@ -3786,92 +4733,46 @@ SELECT
 FROM "C003";
 
 -- -----------------------------------------------------------------------------
--- I0630 / 건강기능식품GMP 지정 현황
--- 카테고리: 건강기능식품
+-- I1820 / 쇠고기(국내)이력추적 정보
+-- 카테고리: 이력추적관리
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I0630" (
-  "GMP_APPN_NO" DATE, -- GMP_APPN_NO / GMP지정번호 / PK 후보(HIGH)
-  "APPN_DT" DATE, -- APPN_DT / 지정일자
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업고고유번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "APPN_CANCL_DT" DATE, -- APPN_CANCL_DT / GMP취소일자
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  PRIMARY KEY ("GMP_APPN_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+CREATE TABLE "I1820" (
+  "ENTTY_IDNTFC_NO" NUMERIC(18,0), -- ENTTY_IDNTFC_NO / 개체식별번호 / PK 후보(HIGH)
+  "SLAU_PLC_NM" VARCHAR(200), -- SLAU_PLC_NM / 도축장소
+  "SNTT_PRSEC_NM" VARCHAR(200), -- SNTT_PRSEC_NM / 위생검사
+  "SLAU_YMD" DATE, -- SLAU_YMD / 도축년월일
+  "ADDR" VARCHAR(500), -- ADDR / 도축장소주소
+  "SNTT_PRSEC_PASS_ENNC" VARCHAR(1), -- SNTT_PRSEC_PASS_ENNC / 위생검사합격유무
+  "PRCSS_DT" DATE, -- PRCSS_DT / 가공일자
+  "PRCSS_PLC_NM" VARCHAR(200), -- PRCSS_PLC_NM / 가공장소명
+  "BRTH_DT" DATE, -- BRTH_DT / 출생일자
+  "ENTTY_STATS_NM" VARCHAR(200), -- ENTTY_STATS_NM / 개체상태명
+  "COW_KND_NM" VARCHAR(200), -- COW_KND_NM / 소종류명
+  "GND_NM" VARCHAR(200), -- GND_NM / 성별
+  "FMH_NM" VARCHAR(200), -- FMH_NM / 농가명
+  "VACIN_LAST_INOCL_DT" DATE, -- VACIN_LAST_INOCL_DT / 백신최종접종일자
+  "VACIN_LAST_INOCL_OPNO" NUMERIC(18,0), -- VACIN_LAST_INOCL_OPNO / 백신최종접종차수
+  PRIMARY KEY ("ENTTY_IDNTFC_NO")
 );
 
-CREATE VIEW "v_I0630_LOGICAL" AS
+CREATE VIEW "v_I1820_LOGICAL" AS
 SELECT
-  "GMP_APPN_NO" AS "GMP_APPN_NO -- GMP지정번호",
-  "APPN_DT" AS "APPN_DT -- 지정일자",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "LCNS_NO" AS "LCNS_NO -- 업고고유번호",
-  "APPN_CANCL_DT" AS "APPN_CANCL_DT -- GMP취소일자",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명"
-FROM "I0630";
-
--- -----------------------------------------------------------------------------
--- I2860 / 건강기능식품업소 인허가 변경 정보
--- 카테고리: 건강기능식품
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2860" (
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
-  "CHNG_DT" DATE, -- CHNG_DT / 변경일자
-  "CHNG_BF_CN" VARCHAR(1000), -- CHNG_BF_CN / 변경전내용
-  "CHNG_AF_CN" VARCHAR(1000), -- CHNG_AF_CN / 변경후내용
-  "CHNG_PRVNS" VARCHAR(1000), -- CHNG_PRVNS / 변경사유
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2860_LOGICAL" AS
-SELECT
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종명",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "TELNO" AS "TELNO -- 전화번호",
-  "SITE_ADDR" AS "SITE_ADDR -- 주소",
-  "CHNG_DT" AS "CHNG_DT -- 변경일자",
-  "CHNG_BF_CN" AS "CHNG_BF_CN -- 변경전내용",
-  "CHNG_AF_CN" AS "CHNG_AF_CN -- 변경후내용",
-  "CHNG_PRVNS" AS "CHNG_PRVNS -- 변경사유"
-FROM "I2860";
-
--- -----------------------------------------------------------------------------
--- I1290 / 건강기능식품판매업
--- 카테고리: 건강기능식품
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1290" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO")
-);
-
-CREATE VIEW "v_I1290_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "TELNO" AS "TELNO -- 전화번호",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I1290";
+  "ENTTY_IDNTFC_NO" AS "ENTTY_IDNTFC_NO -- 개체식별번호",
+  "SLAU_PLC_NM" AS "SLAU_PLC_NM -- 도축장소",
+  "SNTT_PRSEC_NM" AS "SNTT_PRSEC_NM -- 위생검사",
+  "SLAU_YMD" AS "SLAU_YMD -- 도축년월일",
+  "ADDR" AS "ADDR -- 도축장소주소",
+  "SNTT_PRSEC_PASS_ENNC" AS "SNTT_PRSEC_PASS_ENNC -- 위생검사합격유무",
+  "PRCSS_DT" AS "PRCSS_DT -- 가공일자",
+  "PRCSS_PLC_NM" AS "PRCSS_PLC_NM -- 가공장소명",
+  "BRTH_DT" AS "BRTH_DT -- 출생일자",
+  "ENTTY_STATS_NM" AS "ENTTY_STATS_NM -- 개체상태명",
+  "COW_KND_NM" AS "COW_KND_NM -- 소종류명",
+  "GND_NM" AS "GND_NM -- 성별",
+  "FMH_NM" AS "FMH_NM -- 농가명",
+  "VACIN_LAST_INOCL_DT" AS "VACIN_LAST_INOCL_DT -- 백신최종접종일자",
+  "VACIN_LAST_INOCL_OPNO" AS "VACIN_LAST_INOCL_OPNO -- 백신최종접종차수"
+FROM "I1820";
 
 -- -----------------------------------------------------------------------------
 -- I0130 / LMO 수입 승인 현황
@@ -3902,6 +4803,34 @@ SELECT
   "PRPOS" AS "PRPOS -- 용도",
   "NATN_CD_NM" AS "NATN_CD_NM -- 수입국"
 FROM "I0130";
+
+-- -----------------------------------------------------------------------------
+-- I1290 / 건강기능식품판매업
+-- 카테고리: 건강기능식품
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1290" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO")
+);
+
+CREATE VIEW "v_I1290_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "TELNO" AS "TELNO -- 전화번호",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I1290";
 
 -- -----------------------------------------------------------------------------
 -- I2050 / 수산물 해외등록시설정보
@@ -3942,116 +4871,6 @@ SELECT
 FROM "I2050";
 
 -- -----------------------------------------------------------------------------
--- I2780 / 수입쇠고기 냉동전환 정보
--- 카테고리: 수입식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2780" (
-  "MEATWATCH_NO" NUMERIC(18,0), -- MEATWATCH_NO / 이력번호 / PK 후보(HIGH)
-  "HIST_NO" NUMERIC(18,0), -- HIST_NO / 수입신고확인증번호
-  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 수입업체명
-  "APLC_DTM" DATE, -- APLC_DTM / 신고일
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품명(한글)
-  "FREEZING_CNVRS_QTY" NUMERIC(18,0), -- FREEZING_CNVRS_QTY / 전환수량(BOX)
-  "FREEZING_CNVRS_WT" NUMERIC(18,4), -- FREEZING_CNVRS_WT / 전환중량(KG)
-  "FRESH_DISTB_TMLMT_BGN_DT" DATE, -- FRESH_DISTB_TMLMT_BGN_DT / 냉장유통/소비기한 시작일자
-  "FRESH_DISTB_TMLMT_DT" DATE, -- FRESH_DISTB_TMLMT_DT / 냉장유통/소비기한 만료일자
-  "FREEZING_CNVRS_OPRTN_DT" DATE, -- FREEZING_CNVRS_OPRTN_DT / 냉동전환 실시일
-  "FREEZING_CNVRS_PREARNGE_DT" DATE, -- FREEZING_CNVRS_PREARNGE_DT / 냉동전환 완료일
-  "FREEZING_DISTB_TMLMT_DT" DATE, -- FREEZING_DISTB_TMLMT_DT / 냉동전환 후 유통/소비기한
-  "ACCEPT_NO" VARCHAR(50), -- ACCEPT_NO / 축산물수입신고필증번호
-  PRIMARY KEY ("MEATWATCH_NO")
-);
-
-CREATE VIEW "v_I2780_LOGICAL" AS
-SELECT
-  "MEATWATCH_NO" AS "MEATWATCH_NO -- 이력번호",
-  "HIST_NO" AS "HIST_NO -- 수입신고확인증번호",
-  "ORGNP_NM" AS "ORGNP_NM -- 원산지",
-  "BSSH_NM" AS "BSSH_NM -- 수입업체명",
-  "APLC_DTM" AS "APLC_DTM -- 신고일",
-  "PRDLST_NM" AS "PRDLST_NM -- 품명(한글)",
-  "FREEZING_CNVRS_QTY" AS "FREEZING_CNVRS_QTY -- 전환수량(BOX)",
-  "FREEZING_CNVRS_WT" AS "FREEZING_CNVRS_WT -- 전환중량(KG)",
-  "FRESH_DISTB_TMLMT_BGN_DT" AS "FRESH_DISTB_TMLMT_BGN_DT -- 냉장유통/소비기한 시작일자",
-  "FRESH_DISTB_TMLMT_DT" AS "FRESH_DISTB_TMLMT_DT -- 냉장유통/소비기한 만료일자",
-  "FREEZING_CNVRS_OPRTN_DT" AS "FREEZING_CNVRS_OPRTN_DT -- 냉동전환 실시일",
-  "FREEZING_CNVRS_PREARNGE_DT" AS "FREEZING_CNVRS_PREARNGE_DT -- 냉동전환 완료일",
-  "FREEZING_DISTB_TMLMT_DT" AS "FREEZING_DISTB_TMLMT_DT -- 냉동전환 후 유통/소비기한",
-  "ACCEPT_NO" AS "ACCEPT_NO -- 축산물수입신고필증번호"
-FROM "I2780";
-
--- -----------------------------------------------------------------------------
--- C001 / 수입식품등영업신고대장
--- 카테고리: 수입식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE "C001" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
-);
-
-CREATE VIEW "v_C001_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명",
-  "TELNO" AS "TELNO -- 전화번호"
-FROM "C001";
-
--- -----------------------------------------------------------------------------
--- I2781 / 수입축산물 냉동전환 정보
--- 카테고리: 수입식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2781" (
-  "MEATWATCH_NO" NUMERIC(18,0), -- MEATWATCH_NO / 이력번호
-  "ACCEPT_NO" VARCHAR(50), -- ACCEPT_NO / 축산물수입신고필증번호 / PK 후보(HIGH)
-  "HIST_NO" VARCHAR(50), -- HIST_NO / 수입신고확인증번호
-  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 수입업체명
-  "APLC_DTM" DATE, -- APLC_DTM / 신고일
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품명(한글)
-  "FREEZING_CNVRS_QTY" NUMERIC(18,0), -- FREEZING_CNVRS_QTY / 전환수량(BOX)
-  "FREEZING_CNVRS_WT" NUMERIC(18,4), -- FREEZING_CNVRS_WT / 전환중량(KG)
-  "FRESH_DISTB_TMLMT_BGN_DT" DATE, -- FRESH_DISTB_TMLMT_BGN_DT / 냉장유통/소비기한 시작일자
-  "FRESH_DISTB_TMLMT_DT" DATE, -- FRESH_DISTB_TMLMT_DT / 냉장유통/소비기한 만료일자
-  "FREEZING_CNVRS_OPRTN_DT" DATE, -- FREEZING_CNVRS_OPRTN_DT / 냉동전환 실시일
-  "FREEZING_CNVRS_PREARNGE_DT" DATE, -- FREEZING_CNVRS_PREARNGE_DT / 냉동전환 완료일
-  "FREEZING_DISTB_TMLMT_DT" DATE, -- FREEZING_DISTB_TMLMT_DT / 냉동전환 후 유통/소비기한
-  PRIMARY KEY ("ACCEPT_NO")
-);
-
-CREATE VIEW "v_I2781_LOGICAL" AS
-SELECT
-  "MEATWATCH_NO" AS "MEATWATCH_NO -- 이력번호",
-  "ACCEPT_NO" AS "ACCEPT_NO -- 축산물수입신고필증번호",
-  "HIST_NO" AS "HIST_NO -- 수입신고확인증번호",
-  "ORGNP_NM" AS "ORGNP_NM -- 원산지",
-  "BSSH_NM" AS "BSSH_NM -- 수입업체명",
-  "APLC_DTM" AS "APLC_DTM -- 신고일",
-  "PRDLST_NM" AS "PRDLST_NM -- 품명(한글)",
-  "FREEZING_CNVRS_QTY" AS "FREEZING_CNVRS_QTY -- 전환수량(BOX)",
-  "FREEZING_CNVRS_WT" AS "FREEZING_CNVRS_WT -- 전환중량(KG)",
-  "FRESH_DISTB_TMLMT_BGN_DT" AS "FRESH_DISTB_TMLMT_BGN_DT -- 냉장유통/소비기한 시작일자",
-  "FRESH_DISTB_TMLMT_DT" AS "FRESH_DISTB_TMLMT_DT -- 냉장유통/소비기한 만료일자",
-  "FREEZING_CNVRS_OPRTN_DT" AS "FREEZING_CNVRS_OPRTN_DT -- 냉동전환 실시일",
-  "FREEZING_CNVRS_PREARNGE_DT" AS "FREEZING_CNVRS_PREARNGE_DT -- 냉동전환 완료일",
-  "FREEZING_DISTB_TMLMT_DT" AS "FREEZING_DISTB_TMLMT_DT -- 냉동전환 후 유통/소비기한"
-FROM "I2781";
-
--- -----------------------------------------------------------------------------
 -- I1260 / 식품등수입판매업정보
 -- 카테고리: 수입식품 등
 -- -----------------------------------------------------------------------------
@@ -4078,6 +4897,63 @@ SELECT
   "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
   "INSTT_NM" AS "INSTT_NM -- 기관명"
 FROM "I1260";
+
+-- -----------------------------------------------------------------------------
+-- C001 / 수입식품등영업신고대장
+-- 카테고리: 수입식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE "C001" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I1260.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+);
+
+CREATE VIEW "v_C001_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명",
+  "TELNO" AS "TELNO -- 전화번호"
+FROM "C001";
+
+-- -----------------------------------------------------------------------------
+-- I1240 / 기구.용기포장제조업
+-- 카테고리: 식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I1240" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO")
+);
+
+CREATE VIEW "v_I1240_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "TELNO" AS "TELNO -- 전화번호",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I1240";
 
 -- -----------------------------------------------------------------------------
 -- I0250 / 우수수입업소 등록 현황
@@ -4109,34 +4985,6 @@ SELECT
   "PRDLST_NM" AS "PRDLST_NM -- 품목명",
   "LCNS_NO" AS "LCNS_NO -- 인허가번호"
 FROM "I0250";
-
--- -----------------------------------------------------------------------------
--- I1240 / 기구.용기포장제조업
--- 카테고리: 식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1240" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO")
-);
-
-CREATE VIEW "v_I1240_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "TELNO" AS "TELNO -- 전화번호",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I1240";
 
 -- -----------------------------------------------------------------------------
 -- I2847 / 나트륨 줄이기 실천음식점 지정업체 대장
@@ -4186,6 +5034,46 @@ SELECT
   "RM" AS "RM -- 비고",
   "PRSDNT_KOR_NM" AS "PRSDNT_KOR_NM -- 대표자명"
 FROM "I1380";
+
+-- -----------------------------------------------------------------------------
+-- I2781 / 수입축산물 냉동전환 정보
+-- 카테고리: 수입식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2781" (
+  "MEATWATCH_NO" NUMERIC(18,0), -- MEATWATCH_NO / 이력번호
+  "ACCEPT_NO" VARCHAR(50), -- ACCEPT_NO / 축산물수입신고필증번호 / PK 후보(HIGH)
+  "HIST_NO" VARCHAR(50), -- HIST_NO / 수입신고확인증번호
+  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 수입업체명
+  "APLC_DTM" DATE, -- APLC_DTM / 신고일
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품명(한글)
+  "FREEZING_CNVRS_QTY" NUMERIC(18,0), -- FREEZING_CNVRS_QTY / 전환수량(BOX)
+  "FREEZING_CNVRS_WT" NUMERIC(18,4), -- FREEZING_CNVRS_WT / 전환중량(KG)
+  "FRESH_DISTB_TMLMT_BGN_DT" DATE, -- FRESH_DISTB_TMLMT_BGN_DT / 냉장유통/소비기한 시작일자
+  "FRESH_DISTB_TMLMT_DT" DATE, -- FRESH_DISTB_TMLMT_DT / 냉장유통/소비기한 만료일자
+  "FREEZING_CNVRS_OPRTN_DT" DATE, -- FREEZING_CNVRS_OPRTN_DT / 냉동전환 실시일
+  "FREEZING_CNVRS_PREARNGE_DT" DATE, -- FREEZING_CNVRS_PREARNGE_DT / 냉동전환 완료일
+  "FREEZING_DISTB_TMLMT_DT" DATE, -- FREEZING_DISTB_TMLMT_DT / 냉동전환 후 유통/소비기한
+  PRIMARY KEY ("ACCEPT_NO")
+);
+
+CREATE VIEW "v_I2781_LOGICAL" AS
+SELECT
+  "MEATWATCH_NO" AS "MEATWATCH_NO -- 이력번호",
+  "ACCEPT_NO" AS "ACCEPT_NO -- 축산물수입신고필증번호",
+  "HIST_NO" AS "HIST_NO -- 수입신고확인증번호",
+  "ORGNP_NM" AS "ORGNP_NM -- 원산지",
+  "BSSH_NM" AS "BSSH_NM -- 수입업체명",
+  "APLC_DTM" AS "APLC_DTM -- 신고일",
+  "PRDLST_NM" AS "PRDLST_NM -- 품명(한글)",
+  "FREEZING_CNVRS_QTY" AS "FREEZING_CNVRS_QTY -- 전환수량(BOX)",
+  "FREEZING_CNVRS_WT" AS "FREEZING_CNVRS_WT -- 전환중량(KG)",
+  "FRESH_DISTB_TMLMT_BGN_DT" AS "FRESH_DISTB_TMLMT_BGN_DT -- 냉장유통/소비기한 시작일자",
+  "FRESH_DISTB_TMLMT_DT" AS "FRESH_DISTB_TMLMT_DT -- 냉장유통/소비기한 만료일자",
+  "FREEZING_CNVRS_OPRTN_DT" AS "FREEZING_CNVRS_OPRTN_DT -- 냉동전환 실시일",
+  "FREEZING_CNVRS_PREARNGE_DT" AS "FREEZING_CNVRS_PREARNGE_DT -- 냉동전환 완료일",
+  "FREEZING_DISTB_TMLMT_DT" AS "FREEZING_DISTB_TMLMT_DT -- 냉동전환 후 유통/소비기한"
+FROM "I2781";
 
 -- -----------------------------------------------------------------------------
 -- I1250 / 식품(첨가물)품목제조보고
@@ -4277,20 +5165,18 @@ FROM "C002";
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I0300" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I1220.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
   "EVL_YR" NUMERIC(18,0), -- EVL_YR / 보고년도
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
+  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / PK 후보(HIGH) / FK 후보: I1250.PRDLST_REPORT_NO(HIGH)
   "H_ITEM_NM" VARCHAR(30), -- H_ITEM_NM / 품목유형
   "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
   "FYER_PRDCTN_ABRT_QY" NUMERIC(18,4), -- FYER_PRDCTN_ABRT_QY / 연간생산능력(KG/옹기류:개)
   "PRDCTN_QY" NUMERIC(18,4), -- PRDCTN_QY / 생산량(KG/옹기류:개)
   PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO"),
+  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
 );
 
 CREATE VIEW "v_I0300_LOGICAL" AS
@@ -4311,7 +5197,7 @@ FROM "I0300";
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I1590" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I1200.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1200.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "SIGNGU_NM" VARCHAR(200), -- SIGNGU_NM / 시군구
   "YEAR" VARCHAR(100), -- YEAR / 인허가연도
@@ -4320,6 +5206,7 @@ CREATE TABLE "I1590" (
   "APPN_DT" DATE, -- APPN_DT / 지정일자
   "OPERT_DT" DATE, -- OPERT_DT / 작업일
   PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
 );
 
@@ -4342,7 +5229,7 @@ FROM "I1590";
 CREATE TABLE "I2859" (
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "TELNO" VARCHAR(30), -- TELNO / 전화번호
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
   "CHNG_DT" DATE, -- CHNG_DT / 변경일자
@@ -4350,8 +5237,8 @@ CREATE TABLE "I2859" (
   "CHNG_AF_CN" VARCHAR(1000), -- CHNG_AF_CN / 변경후내용
   "CHNG_PRVNS" VARCHAR(1000), -- CHNG_PRVNS / 변경사유
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2859_LOGICAL" AS
@@ -4450,1330 +5337,32 @@ SELECT
 FROM "I1540";
 
 -- -----------------------------------------------------------------------------
--- I2822 / 건강기능식품 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2822" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2822_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2822";
-
--- -----------------------------------------------------------------------------
--- I2821 / 수입식품업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2821" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2821_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2821";
-
--- -----------------------------------------------------------------------------
--- I2827 / 식육즉석판매가공업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2827" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2827_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2827";
-
--- -----------------------------------------------------------------------------
--- I2817 / 식품보존업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2817" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2817_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2817";
-
--- -----------------------------------------------------------------------------
--- I2815 / 식품소분업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2815" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2815_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2815";
-
--- -----------------------------------------------------------------------------
--- I2814 / 식품운반업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2814" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2814_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2814";
-
--- -----------------------------------------------------------------------------
--- I2819 / 식품접객업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2819" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2819_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2819";
-
--- -----------------------------------------------------------------------------
--- I2811 / 식품제조가공업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2811" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2811_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2811";
-
--- -----------------------------------------------------------------------------
--- I2813 / 식품첨가물제조업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2813" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2813_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2813";
-
--- -----------------------------------------------------------------------------
--- I2816 / 식품판매업 폐업정보
--- 카테고리: 폐업정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2816" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2816_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2816";
-
--- -----------------------------------------------------------------------------
--- I2837 / 용어사전(기구용기포장∙식의약품용어집)
--- 카테고리: 용어사전
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2837" (
-  "WORD" VARCHAR(100), -- WORD / 단어
-  "FRNTNFISH" VARCHAR(100), -- FRNTNFISH / 외국어
-  "DTL_DESC" VARCHAR(1000), -- DTL_DESC / 설명
-  "KEYWORD" VARCHAR(100), -- KEYWORD / 연관어
-  "SAUS" VARCHAR(1000), -- SAUS / 출처
-  "LAST_UPDT_DTM" DATE -- LAST_UPDT_DTM / 최종수정일
-);
-
-CREATE VIEW "v_I2837_LOGICAL" AS
-SELECT
-  "WORD" AS "WORD -- 단어",
-  "FRNTNFISH" AS "FRNTNFISH -- 외국어",
-  "DTL_DESC" AS "DTL_DESC -- 설명",
-  "KEYWORD" AS "KEYWORD -- 연관어",
-  "SAUS" AS "SAUS -- 출처",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일"
-FROM "I2837";
-
--- -----------------------------------------------------------------------------
--- I1040 / 농약잔류허용기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1040" (
-  "AGCHM_KOR_NM" VARCHAR(200), -- AGCHM_KOR_NM / 농약명
-  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품명
-  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행 시점
-  "STEP" NUMERIC(18,0), -- STEP / 단계
-  "MRL_VAL" VARCHAR(50), -- MRL_VAL / MRL 값
-  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
-);
-
-CREATE VIEW "v_I1040_LOGICAL" AS
-SELECT
-  "AGCHM_KOR_NM" AS "AGCHM_KOR_NM -- 농약명",
-  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품명",
-  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행 시점",
-  "STEP" AS "STEP -- 단계",
-  "MRL_VAL" AS "MRL_VAL -- MRL 값",
-  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
-FROM "I1040";
-
--- -----------------------------------------------------------------------------
--- I1070 / 동물용의약품 현황
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1070" (
-  "ANIMAL_ONLY_MDCIN_NM_KOR" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_KOR / 의약품 한글명
-  "ANIMAL_ONLY_MDCIN_NM_ENG" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_ENG / 의약품 영문명
-  "APPLC_OBJ_ANIMAL" VARCHAR(100), -- APPLC_OBJ_ANIMAL / 적용 대상 동물
-  "MCFRL" VARCHAR(200), -- MCFRL / 분자식
-  "MCWGH" VARCHAR(100), -- MCWGH / 분자량
-  "SYSTM_NM" VARCHAR(200), -- SYSTM_NM / 계통명
-  "IUPAC_NM" VARCHAR(1000), -- IUPAC_NM / IUPAC 명
-  "CAS_NM" VARCHAR(300), -- CAS_NM / CAS 명
-  "SHAP_NM" VARCHAR(200), -- SHAP_NM / 형태
-  "POIOF" VARCHAR(100), -- POIOF / 녹는점
-  "BOILPNT" VARCHAR(500), -- BOILPNT / 끓는점
-  "STEPR" VARCHAR(100), -- STEPR / 증기압
-  "LOGPOW" VARCHAR(100), -- LOGPOW / LOGPOW
-  "DENS_UNIT" VARCHAR(500), -- DENS_UNIT / 밀도단위
-  "PKA" VARCHAR(100), -- PKA / PKA
-  "SOLUB" VARCHAR(300), -- SOLUB / 용해도
-  "STBLY" VARCHAR(100) -- STBLY / 안정성
-);
-
-CREATE VIEW "v_I1070_LOGICAL" AS
-SELECT
-  "ANIMAL_ONLY_MDCIN_NM_KOR" AS "ANIMAL_ONLY_MDCIN_NM_KOR -- 의약품 한글명",
-  "ANIMAL_ONLY_MDCIN_NM_ENG" AS "ANIMAL_ONLY_MDCIN_NM_ENG -- 의약품 영문명",
-  "APPLC_OBJ_ANIMAL" AS "APPLC_OBJ_ANIMAL -- 적용 대상 동물",
-  "MCFRL" AS "MCFRL -- 분자식",
-  "MCWGH" AS "MCWGH -- 분자량",
-  "SYSTM_NM" AS "SYSTM_NM -- 계통명",
-  "IUPAC_NM" AS "IUPAC_NM -- IUPAC 명",
-  "CAS_NM" AS "CAS_NM -- CAS 명",
-  "SHAP_NM" AS "SHAP_NM -- 형태",
-  "POIOF" AS "POIOF -- 녹는점",
-  "BOILPNT" AS "BOILPNT -- 끓는점",
-  "STEPR" AS "STEPR -- 증기압",
-  "LOGPOW" AS "LOGPOW -- LOGPOW",
-  "DENS_UNIT" AS "DENS_UNIT -- 밀도단위",
-  "PKA" AS "PKA -- PKA",
-  "SOLUB" AS "SOLUB -- 용해도",
-  "STBLY" AS "STBLY -- 안정성"
-FROM "I1070";
-
--- -----------------------------------------------------------------------------
--- I1080 / 동물의약품별 잔류허용 기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1080" (
-  "CDX_KOREA_DVS_CD" VARCHAR(30), -- CDX_KOREA_DVS_CD / 구분
-  "ANIMAL_ONLY_MDCIN_NM_KOR" VARCHAR(200), -- ANIMAL_ONLY_MDCIN_NM_KOR / 동물 전용 의약품 한글명
-  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행 시점
-  "STEP" NUMERIC(18,0), -- STEP / 단계
-  "MRL" VARCHAR(100), -- MRL / MRL
-  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품 한글명
-  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품 영문명
-  "ETC_YN" VARCHAR(1), -- ETC_YN / 기타 여부
-  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 임시기준적용여부
-  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
-);
-
-CREATE VIEW "v_I1080_LOGICAL" AS
-SELECT
-  "CDX_KOREA_DVS_CD" AS "CDX_KOREA_DVS_CD -- 구분",
-  "ANIMAL_ONLY_MDCIN_NM_KOR" AS "ANIMAL_ONLY_MDCIN_NM_KOR -- 동물 전용 의약품 한글명",
-  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행 시점",
-  "STEP" AS "STEP -- 단계",
-  "MRL" AS "MRL -- MRL",
-  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품 한글명",
-  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품 영문명",
-  "ETC_YN" AS "ETC_YN -- 기타 여부",
-  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 임시기준적용여부",
-  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
-FROM "I1080";
-
--- -----------------------------------------------------------------------------
--- I1030 / 방사선조사식품 품목 인정 현황
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1030" (
-  "SPEC_NM" VARCHAR(200), -- SPEC_NM / 기준규격명
-  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
-  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
-  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성 한글명
-  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
-  "SPEC_VAL_SUMUP" VARCHAR(100), -- SPEC_VAL_SUMUP / 기준규격값 요약
-  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "SORC" VARCHAR(1000), -- SORC / 출처
-  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
-  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
-  "UNIT_NM" VARCHAR(200) -- UNIT_NM / 단위명
-);
-
-CREATE VIEW "v_I1030_LOGICAL" AS
-SELECT
-  "SPEC_NM" AS "SPEC_NM -- 기준규격명",
-  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
-  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
-  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성 한글명",
-  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
-  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
-  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "SORC" AS "SORC -- 출처",
-  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
-  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
-  "UNIT_NM" AS "UNIT_NM -- 단위명"
-FROM "I1030";
-
--- -----------------------------------------------------------------------------
--- I1060 / 시약정보
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1060" (
-  "CITYMEDI_NM_CD" VARCHAR(50), -- CITYMEDI_NM_CD / 시약 명
-  "CMPNY_NO" VARCHAR(50), -- CMPNY_NO / 회사 명
-  "CTPRVNACCTO_INTD_NO" VARCHAR(50), -- CTPRVNACCTO_INTD_NO / 시도별 지방청
-  "STATS_NO" VARCHAR(30), -- STATS_NO / 상태
-  "PUREDO" VARCHAR(100), -- PUREDO / 순도
-  "VALD_TERM" NUMERIC(18,0) -- VALD_TERM / 유효기간
-);
-
-CREATE VIEW "v_I1060_LOGICAL" AS
-SELECT
-  "CITYMEDI_NM_CD" AS "CITYMEDI_NM_CD -- 시약 명",
-  "CMPNY_NO" AS "CMPNY_NO -- 회사 명",
-  "CTPRVNACCTO_INTD_NO" AS "CTPRVNACCTO_INTD_NO -- 시도별 지방청",
-  "STATS_NO" AS "STATS_NO -- 상태",
-  "PUREDO" AS "PUREDO -- 순도",
-  "VALD_TERM" AS "VALD_TERM -- 유효기간"
-FROM "I1060";
-
--- -----------------------------------------------------------------------------
--- I0930 / 식품공전
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0930" (
-  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품목명
-  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목
-  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목
-  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성
-  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
-  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "SPEC_VAL_SUMUP" VARCHAR(200), -- SPEC_VAL_SUMUP / 규격값요약
-  "JDGMNT_FNPRT_CD_NM" VARCHAR(200), -- JDGMNT_FNPRT_CD_NM / 판정형식
-  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
-  "MXMM_VAL_FNPRT_CD_NM" VARCHAR(200), -- MXMM_VAL_FNPRT_CD_NM / 이하/미만
-  "MIMM_VAL" NUMERIC(18,4), -- MIMM_VAL / 최소값
-  "MIMM_VAL_FNPRT_CD_NM" VARCHAR(200), -- MIMM_VAL_FNPRT_CD_NM / 이상/초과
-  "CHOIC_FIT_FNPRT_CD_NM" VARCHAR(200), -- CHOIC_FIT_FNPRT_CD_NM / 세부적합
-  "CHOIC_IMPROPT_FNPRT_CD_NM" VARCHAR(200), -- CHOIC_IMPROPT_FNPRT_CD_NM / 부적합
-  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
-  "UNIT_NM" VARCHAR(200) -- UNIT_NM / 단위명
-);
-
-CREATE VIEW "v_I0930_LOGICAL" AS
-SELECT
-  "PRDLST_NM" AS "PRDLST_NM -- 품목명",
-  "T_KOR_NM" AS "T_KOR_NM -- 시험항목",
-  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목",
-  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성",
-  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
-  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 규격값요약",
-  "JDGMNT_FNPRT_CD_NM" AS "JDGMNT_FNPRT_CD_NM -- 판정형식",
-  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
-  "MXMM_VAL_FNPRT_CD_NM" AS "MXMM_VAL_FNPRT_CD_NM -- 이하/미만",
-  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
-  "MIMM_VAL_FNPRT_CD_NM" AS "MIMM_VAL_FNPRT_CD_NM -- 이상/초과",
-  "CHOIC_FIT_FNPRT_CD_NM" AS "CHOIC_FIT_FNPRT_CD_NM -- 세부적합",
-  "CHOIC_IMPROPT_FNPRT_CD_NM" AS "CHOIC_IMPROPT_FNPRT_CD_NM -- 부적합",
-  "INJRY_YN" AS "INJRY_YN -- 위해여부",
-  "UNIT_NM" AS "UNIT_NM -- 단위명"
-FROM "I0930";
-
--- -----------------------------------------------------------------------------
--- I1050 / 식품별 농약잔류허용기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1050" (
-  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품한글명
-  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품영문명
-  "AGCHM_KOR_NM" VARCHAR(200), -- AGCHM_KOR_NM / 농약명
-  "DEDE_NTK_QTY" NUMERIC(18,4), -- DEDE_NTK_QTY / 일일섭취량
-  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 잠정기준적용여부
-  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
-  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
-  "SCLAS_NM" VARCHAR(50), -- SCLAS_NM / 소분류
-  "OPERTN_CITYPOINT" VARCHAR(100), -- OPERTN_CITYPOINT / 시행시점
-  "STEP" NUMERIC(18,0), -- STEP / 단계
-  "MRL_VAL" VARCHAR(50), -- MRL_VAL / MRL 값
-  "ETC_YN" VARCHAR(1), -- ETC_YN / 기타여부
-  "DSUSE_YN" VARCHAR(1) -- DSUSE_YN / 폐기 여부
-);
-
-CREATE VIEW "v_I1050_LOGICAL" AS
-SELECT
-  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품한글명",
-  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품영문명",
-  "AGCHM_KOR_NM" AS "AGCHM_KOR_NM -- 농약명",
-  "DEDE_NTK_QTY" AS "DEDE_NTK_QTY -- 일일섭취량",
-  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 잠정기준적용여부",
-  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
-  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
-  "SCLAS_NM" AS "SCLAS_NM -- 소분류",
-  "OPERTN_CITYPOINT" AS "OPERTN_CITYPOINT -- 시행시점",
-  "STEP" AS "STEP -- 단계",
-  "MRL_VAL" AS "MRL_VAL -- MRL 값",
-  "ETC_YN" AS "ETC_YN -- 기타여부",
-  "DSUSE_YN" AS "DSUSE_YN -- 폐기 여부"
-FROM "I1050";
-
--- -----------------------------------------------------------------------------
--- I0940 / 식품용 기구 및 용기.포장 공전
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0940" (
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드
-  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
-  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
-  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
-  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
-  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
-  "SPEC_VAL_SUMUP" VARCHAR(200), -- SPEC_VAL_SUMUP / 기준규격값 요약
-  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "SORC" VARCHAR(1000), -- SORC / 출처
-  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
-  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
-  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
-  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
-  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
-);
-
-CREATE VIEW "v_I0940_LOGICAL" AS
-SELECT
-  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
-  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
-  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
-  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
-  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
-  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
-  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
-  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "SORC" AS "SORC -- 출처",
-  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
-  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
-  "INJRY_YN" AS "INJRY_YN -- 위해여부",
-  "UNIT_NM" AS "UNIT_NM -- 단위명"
-FROM "I0940";
-
--- -----------------------------------------------------------------------------
--- I0980 / 식품원료의 한시적 기준 및 규격 인정 현황
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0980" (
-  "LIMIT_STDR_STND_RCOGN_NO" NUMERIC(18,0), -- LIMIT_STDR_STND_RCOGN_NO / 한시적 기준 규격 인정 번호
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "BSSH_ADDR" VARCHAR(500), -- BSSH_ADDR / 주소
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
-  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
-  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
-  "RAWMTRL_NM" VARCHAR(200), -- RAWMTRL_NM / 원재료명
-  "PRPOS" VARCHAR(100), -- PRPOS / 용도
-  "USED" NUMERIC(18,0), -- USED / 사용량
-  "USING_UNIT" VARCHAR(100) -- USING_UNIT / 사용량단위
-);
-
-CREATE VIEW "v_I0980_LOGICAL" AS
-SELECT
-  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 한시적 기준 규격 인정 번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "BSSH_ADDR" AS "BSSH_ADDR -- 주소",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
-  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
-  "PRDT_NM" AS "PRDT_NM -- 제품명",
-  "RAWMTRL_NM" AS "RAWMTRL_NM -- 원재료명",
-  "PRPOS" AS "PRPOS -- 용도",
-  "USED" AS "USED -- 사용량",
-  "USING_UNIT" AS "USING_UNIT -- 사용량단위"
-FROM "I0980";
-
--- -----------------------------------------------------------------------------
--- I1020 / 식품원재료(식물,동물,미생물,수산물) 정보
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1020" (
-  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
-  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
-  "RPRSNT_RAWMTRL_NM" VARCHAR(200), -- RPRSNT_RAWMTRL_NM / 원재료명
-  "RAWMTRL_NCKNM" VARCHAR(200), -- RAWMTRL_NCKNM / 이명
-  "ENG_NM" VARCHAR(300), -- ENG_NM / 영문명
-  "SCNM" VARCHAR(200), -- SCNM / 학명
-  "REGN_CD_NM" VARCHAR(200), -- REGN_CD_NM / 부위명
-  "RAWMTRL_STATS_CD_NM" VARCHAR(200), -- RAWMTRL_STATS_CD_NM / 상태명
-  "USE_CND_NM" VARCHAR(200), -- USE_CND_NM / 사용조건
-  "USE_CND_STDR_CN" VARCHAR(1000) -- USE_CND_STDR_CN / 사용조건기준내용
-);
-
-CREATE VIEW "v_I1020_LOGICAL" AS
-SELECT
-  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
-  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
-  "RPRSNT_RAWMTRL_NM" AS "RPRSNT_RAWMTRL_NM -- 원재료명",
-  "RAWMTRL_NCKNM" AS "RAWMTRL_NCKNM -- 이명",
-  "ENG_NM" AS "ENG_NM -- 영문명",
-  "SCNM" AS "SCNM -- 학명",
-  "REGN_CD_NM" AS "REGN_CD_NM -- 부위명",
-  "RAWMTRL_STATS_CD_NM" AS "RAWMTRL_STATS_CD_NM -- 상태명",
-  "USE_CND_NM" AS "USE_CND_NM -- 사용조건",
-  "USE_CND_STDR_CN" AS "USE_CND_STDR_CN -- 사용조건기준내용"
-FROM "I1020";
-
--- -----------------------------------------------------------------------------
--- I0950 / 식품첨가물공전
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0950" (
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드
-  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
-  "TESTITM_CD" VARCHAR(30), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH)
-  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
-  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
-  "SPEC_VAL" VARCHAR(50), -- SPEC_VAL / 기준규격값
-  "SPEC_VAL_SUMUP" VARCHAR(2000), -- SPEC_VAL_SUMUP / 기준규격값 요약
-  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "SORC" VARCHAR(1000), -- SORC / 출처
-  "MXMM_VAL" NUMERIC(18,4), -- MXMM_VAL / 최대값
-  "MIMM_VAL" NUMERIC(18,4), -- MIMM_VAL / 최소값
-  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
-  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
-  FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
-);
-
-CREATE VIEW "v_I0950_LOGICAL" AS
-SELECT
-  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
-  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
-  "TESTITM_CD" AS "TESTITM_CD -- 시험항목코드",
-  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
-  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
-  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
-  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
-  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "SORC" AS "SORC -- 출처",
-  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
-  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
-  "INJRY_YN" AS "INJRY_YN -- 위해여부",
-  "UNIT_NM" AS "UNIT_NM -- 단위명"
-FROM "I0950";
-
--- -----------------------------------------------------------------------------
--- I1101 / 식품첨가물의 기준 및 규격 현황
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1101" (
-  "PC_KOR_NM" VARCHAR(200), -- PC_KOR_NM / 품목한글명
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목분류코드
-  "T_KOR_NM" VARCHAR(200), -- T_KOR_NM / 시험항목 한글명
-  "FNPRT_ITM_NM" VARCHAR(200), -- FNPRT_ITM_NM / 세부항목명
-  "PIAM_KOR_NM" VARCHAR(200), -- PIAM_KOR_NM / 품목항목속성 한글명
-  "SPEC_VAL" NUMERIC(18,0), -- SPEC_VAL / 기준규격값
-  "SPEC_VAL_SUMUP" VARCHAR(500), -- SPEC_VAL_SUMUP / 기준규격값 요약
-  "VALD_BEGN_DT" DATE, -- VALD_BEGN_DT / 유효개시일자
-  "VALD_END_DT" DATE, -- VALD_END_DT / 유효종료일자
-  "SORC" VARCHAR(1000), -- SORC / 출처
-  "MXMM_VAL" NUMERIC(18,0), -- MXMM_VAL / 최대값
-  "MIMM_VAL" NUMERIC(18,0), -- MIMM_VAL / 최소값
-  "INJRY_YN" VARCHAR(1), -- INJRY_YN / 위해여부
-  "UNIT_NM" VARCHAR(200), -- UNIT_NM / 단위명
-  "UPDT_PRVNS" VARCHAR(1000), -- UPDT_PRVNS / 수정사유
-  "LAST_UPDT_DTM" DATE -- LAST_UPDT_DTM / 수정일자
-);
-
-CREATE VIEW "v_I1101_LOGICAL" AS
-SELECT
-  "PC_KOR_NM" AS "PC_KOR_NM -- 품목한글명",
-  "PRDLST_CD" AS "PRDLST_CD -- 품목분류코드",
-  "T_KOR_NM" AS "T_KOR_NM -- 시험항목 한글명",
-  "FNPRT_ITM_NM" AS "FNPRT_ITM_NM -- 세부항목명",
-  "PIAM_KOR_NM" AS "PIAM_KOR_NM -- 품목항목속성 한글명",
-  "SPEC_VAL" AS "SPEC_VAL -- 기준규격값",
-  "SPEC_VAL_SUMUP" AS "SPEC_VAL_SUMUP -- 기준규격값 요약",
-  "VALD_BEGN_DT" AS "VALD_BEGN_DT -- 유효개시일자",
-  "VALD_END_DT" AS "VALD_END_DT -- 유효종료일자",
-  "SORC" AS "SORC -- 출처",
-  "MXMM_VAL" AS "MXMM_VAL -- 최대값",
-  "MIMM_VAL" AS "MIMM_VAL -- 최소값",
-  "INJRY_YN" AS "INJRY_YN -- 위해여부",
-  "UNIT_NM" AS "UNIT_NM -- 단위명",
-  "UPDT_PRVNS" AS "UPDT_PRVNS -- 수정사유",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 수정일자"
-FROM "I1101";
-
--- -----------------------------------------------------------------------------
--- I1000 / 식품첨가물의 한시적 기준 및 규격 인정 현황
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1000" (
-  "LIMIT_STDR_STND_RCOGN_NO" NUMERIC(18,0), -- LIMIT_STDR_STND_RCOGN_NO / 인정번호 / PK 후보(HIGH)
-  "RCOGN_DT" DATE, -- RCOGN_DT / 인정일자
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "MC_NM" VARCHAR(200), -- MC_NM / 제조회사
-  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
-  PRIMARY KEY ("LIMIT_STDR_STND_RCOGN_NO")
-);
-
-CREATE VIEW "v_I1000_LOGICAL" AS
-SELECT
-  "LIMIT_STDR_STND_RCOGN_NO" AS "LIMIT_STDR_STND_RCOGN_NO -- 인정번호",
-  "RCOGN_DT" AS "RCOGN_DT -- 인정일자",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "TELNO" AS "TELNO -- 전화번호",
-  "MC_NM" AS "MC_NM -- 제조회사",
-  "PRDT_NM" AS "PRDT_NM -- 제품명"
-FROM "I1000";
-
--- -----------------------------------------------------------------------------
--- I1650 / 신고대상분류기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1650" (
-  "CMMN_CD_NM" VARCHAR(30), -- CMMN_CD_NM / 분류
-  "FNPRT_CD_NM" VARCHAR(100), -- FNPRT_CD_NM / 신고분류
-  "USER_DFN_CLMN_1" VARCHAR(100), -- USER_DFN_CLMN_1 / 분류1
-  "USER_DFN_CLMN_2" VARCHAR(100) -- USER_DFN_CLMN_2 / 분류2
-);
-
-CREATE VIEW "v_I1650_LOGICAL" AS
-SELECT
-  "CMMN_CD_NM" AS "CMMN_CD_NM -- 분류",
-  "FNPRT_CD_NM" AS "FNPRT_CD_NM -- 신고분류",
-  "USER_DFN_CLMN_1" AS "USER_DFN_CLMN_1 -- 분류1",
-  "USER_DFN_CLMN_2" AS "USER_DFN_CLMN_2 -- 분류2"
-FROM "I1650";
-
--- -----------------------------------------------------------------------------
--- I1090 / 잔류동물의약품 식품별 잔류허용 기준
--- 카테고리: 기준규격정보
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1090" (
-  "FOOD_KOR_NM" VARCHAR(200), -- FOOD_KOR_NM / 식품한글명
-  "FOOD_ENG_NM" VARCHAR(200), -- FOOD_ENG_NM / 식품영문명
-  "DEDE_NTK_QTY" NUMERIC(18,0), -- DEDE_NTK_QTY / 일일섭취량
-  "TMPR_STDR_APPLC_YN" VARCHAR(1), -- TMPR_STDR_APPLC_YN / 잠정기준적용여부
-  "LCLAS_NM" VARCHAR(30), -- LCLAS_NM / 대분류
-  "MLSFC_NM" VARCHAR(30), -- MLSFC_NM / 중분류
-  "SCLAS_NM" VARCHAR(30) -- SCLAS_NM / 소분류
-);
-
-CREATE VIEW "v_I1090_LOGICAL" AS
-SELECT
-  "FOOD_KOR_NM" AS "FOOD_KOR_NM -- 식품한글명",
-  "FOOD_ENG_NM" AS "FOOD_ENG_NM -- 식품영문명",
-  "DEDE_NTK_QTY" AS "DEDE_NTK_QTY -- 일일섭취량",
-  "TMPR_STDR_APPLC_YN" AS "TMPR_STDR_APPLC_YN -- 잠정기준적용여부",
-  "LCLAS_NM" AS "LCLAS_NM -- 대분류",
-  "MLSFC_NM" AS "MLSFC_NM -- 중분류",
-  "SCLAS_NM" AS "SCLAS_NM -- 소분류"
-FROM "I1090";
-
--- -----------------------------------------------------------------------------
--- I2715 / 해외직구 위해식품 차단정보
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2715" (
-  "PRDT_NM" VARCHAR(200), -- PRDT_NM / 제품명
-  "MUFC_NM" VARCHAR(200), -- MUFC_NM / 제조사명
-  "MUFC_CNTRY_NM" VARCHAR(200), -- MUFC_CNTRY_NM / 제조국가명
-  "INGR_NM_LST" VARCHAR(200), -- INGR_NM_LST / 위해성분명
-  "STT_YMD" DATE, -- STT_YMD / 적용시작일
-  "END_YMD" DATE, -- END_YMD / 적용종료일
-  "CRET_DTM" DATE, -- CRET_DTM / 등록일
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "IMAGE_URL" VARCHAR(1000), -- IMAGE_URL / 이미지URL
-  "SELF_IMPORT_SEQ" DATE, -- SELF_IMPORT_SEQ / 일련번호(고유키값) / PK 후보(HIGH)
-  "BARCD_CTN" VARCHAR(50), -- BARCD_CTN / 바코드번호
-  PRIMARY KEY ("SELF_IMPORT_SEQ")
-);
-
-CREATE VIEW "v_I2715_LOGICAL" AS
-SELECT
-  "PRDT_NM" AS "PRDT_NM -- 제품명",
-  "MUFC_NM" AS "MUFC_NM -- 제조사명",
-  "MUFC_CNTRY_NM" AS "MUFC_CNTRY_NM -- 제조국가명",
-  "INGR_NM_LST" AS "INGR_NM_LST -- 위해성분명",
-  "STT_YMD" AS "STT_YMD -- 적용시작일",
-  "END_YMD" AS "END_YMD -- 적용종료일",
-  "CRET_DTM" AS "CRET_DTM -- 등록일",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "IMAGE_URL" AS "IMAGE_URL -- 이미지URL",
-  "SELF_IMPORT_SEQ" AS "SELF_IMPORT_SEQ -- 일련번호(고유키값)",
-  "BARCD_CTN" AS "BARCD_CTN -- 바코드번호"
-FROM "I2715";
-
--- -----------------------------------------------------------------------------
--- I0470 / 행정처분결과
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0470" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
-  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
-  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I0470_LOGICAL" AS
-SELECT
-  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
-  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
-  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
-  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
-  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
-  "ADDR" AS "ADDR -- 주소",
-  "TELNO" AS "TELNO -- 전화번호",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "DSPSCN" AS "DSPSCN -- 처분내용",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
-  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명",
-  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키"
-FROM "I0470";
-
--- -----------------------------------------------------------------------------
--- I0482 / 행정처분결과(수입식품업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0482" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" TEXT, -- VILTCN / 위반일자 및 위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
-  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
-  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
-  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I0482_LOGICAL" AS
-SELECT
-  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
-  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
-  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
-  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
-  "VILTCN" AS "VILTCN -- 위반일자 및 위반내용",
-  "ADDR" AS "ADDR -- 주소",
-  "TELNO" AS "TELNO -- 전화번호",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
-  "DSPSCN" AS "DSPSCN -- 처분내용",
-  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
-  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
-FROM "I0482";
-
--- -----------------------------------------------------------------------------
--- I2630 / 행정처분결과(식품접객업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2630" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TEL_NO" VARCHAR(30), -- TEL_NO / 전화번호
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
-  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
-  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2630_LOGICAL" AS
-SELECT
-  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
-  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
-  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
-  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
-  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
-  "ADDR" AS "ADDR -- 주소",
-  "TEL_NO" AS "TEL_NO -- 전화번호",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "DSPSCN" AS "DSPSCN -- 처분내용",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
-  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명",
-  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키"
-FROM "I2630";
-
--- -----------------------------------------------------------------------------
--- I0480 / 행정처분결과(식품제조가공업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0480" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자및위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
-  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
-  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
-  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I0480_LOGICAL" AS
-SELECT
-  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
-  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
-  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
-  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
-  "VILTCN" AS "VILTCN -- 위반일자및위반내용",
-  "ADDR" AS "ADDR -- 주소",
-  "TELNO" AS "TELNO -- 전화번호",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
-  "DSPSCN" AS "DSPSCN -- 처분내용",
-  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
-  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
-FROM "I0480";
-
--- -----------------------------------------------------------------------------
--- I0481 / 행정처분결과(식품판매업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0481" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(200), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "DSPS_DCSNDT" DATE, -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" DATE, -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" DATE, -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(30), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(1000), -- VILTCN / 위반일자 및 위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "LAWORD_CD_NM" VARCHAR(200), -- LAWORD_CD_NM / 위반법령
-  "DSPSCN" VARCHAR(1000), -- DSPSCN / 처분내용
-  "PUBLIC_DT" DATE, -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" DATE, -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" NUMERIC(18,0), -- DSPSDTLS_SEQ / 행정처분전산키
-  "DSPS_INSTTCD_NM" VARCHAR(200), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I0481_LOGICAL" AS
-SELECT
-  "PRCSCITYPOINT_BSSHNM" AS "PRCSCITYPOINT_BSSHNM -- 업소명",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "DSPS_DCSNDT" AS "DSPS_DCSNDT -- 처분확정일자",
-  "DSPS_BGNDT" AS "DSPS_BGNDT -- 처분시작일(영업정지의경우)",
-  "DSPS_ENDDT" AS "DSPS_ENDDT -- 처분종료일(영업정지의경우)",
-  "DSPS_TYPECD_NM" AS "DSPS_TYPECD_NM -- 처분유형",
-  "VILTCN" AS "VILTCN -- 위반일자 및 위반내용",
-  "ADDR" AS "ADDR -- 주소",
-  "TELNO" AS "TELNO -- 전화번호",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "LAWORD_CD_NM" AS "LAWORD_CD_NM -- 위반법령",
-  "DSPSCN" AS "DSPSCN -- 처분내용",
-  "PUBLIC_DT" AS "PUBLIC_DT -- 공개기한",
-  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일",
-  "DSPSDTLS_SEQ" AS "DSPSDTLS_SEQ -- 행정처분전산키",
-  "DSPS_INSTTCD_NM" AS "DSPS_INSTTCD_NM -- 처분기관명"
-FROM "I0481";
-
--- -----------------------------------------------------------------------------
--- I0490 / 회수.판매중지 정보
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE "I0490" (
-  "PRDTNM" VARCHAR(200), -- PRDTNM / 제품명
-  "RTRVLPRVNS" VARCHAR(1000), -- RTRVLPRVNS / 회수사유
-  "BSSHNM" VARCHAR(200), -- BSSHNM / 제조업체명
-  "ADDR" VARCHAR(500), -- ADDR / 업체주소
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "BRCDNO" VARCHAR(50), -- BRCDNO / 바코드번호 / PK 후보(HIGH)
-  "FRMLCUNIT" VARCHAR(100), -- FRMLCUNIT / 포장단위
-  "MNFDT" DATE, -- MNFDT / 제조일자
-  "RTRVLPLANDOC_RTRVLMTHD" VARCHAR(1000), -- RTRVLPLANDOC_RTRVLMTHD / 회수방법
-  "DISTBTMLMT" VARCHAR(200), -- DISTBTMLMT / 유통/소비기한
-  "PRDLST_TYPE" VARCHAR(30), -- PRDLST_TYPE / 식품분류
-  "IMG_FILE_PATH" VARCHAR(1000), -- IMG_FILE_PATH / 제품사진 URL
-  "PRDLST_CD" VARCHAR(30), -- PRDLST_CD / 품목코드 / FK 후보: I2510.PRDLST_CD(HIGH)
-  "CRET_DTM" DATE, -- CRET_DTM / 등록일
-  "RTRVLDSUSE_SEQ" NUMERIC(18,0), -- RTRVLDSUSE_SEQ / 회수.판매중지 일련번호
-  "PRDLST_REPORT_NO" VARCHAR(50), -- PRDLST_REPORT_NO / 품목제조보고번호 / FK 후보: I2711.PRDLST_REPORT_NO(HIGH), I1310.PRDLST_REPORT_NO(HIGH)
-  "RTRVL_GRDCD_NM" VARCHAR(200), -- RTRVL_GRDCD_NM / 회수등급
-  "PRDLST_CD_NM" VARCHAR(200), -- PRDLST_CD_NM / 품목유형(품목코드명)
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 업체인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  PRIMARY KEY ("BRCDNO"),
-  FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I2711" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I0490_LOGICAL" AS
-SELECT
-  "PRDTNM" AS "PRDTNM -- 제품명",
-  "RTRVLPRVNS" AS "RTRVLPRVNS -- 회수사유",
-  "BSSHNM" AS "BSSHNM -- 제조업체명",
-  "ADDR" AS "ADDR -- 업체주소",
-  "TELNO" AS "TELNO -- 전화번호",
-  "BRCDNO" AS "BRCDNO -- 바코드번호",
-  "FRMLCUNIT" AS "FRMLCUNIT -- 포장단위",
-  "MNFDT" AS "MNFDT -- 제조일자",
-  "RTRVLPLANDOC_RTRVLMTHD" AS "RTRVLPLANDOC_RTRVLMTHD -- 회수방법",
-  "DISTBTMLMT" AS "DISTBTMLMT -- 유통/소비기한",
-  "PRDLST_TYPE" AS "PRDLST_TYPE -- 식품분류",
-  "IMG_FILE_PATH" AS "IMG_FILE_PATH -- 제품사진 URL",
-  "PRDLST_CD" AS "PRDLST_CD -- 품목코드",
-  "CRET_DTM" AS "CRET_DTM -- 등록일",
-  "RTRVLDSUSE_SEQ" AS "RTRVLDSUSE_SEQ -- 회수.판매중지 일련번호",
-  "PRDLST_REPORT_NO" AS "PRDLST_REPORT_NO -- 품목제조보고번호",
-  "RTRVL_GRDCD_NM" AS "RTRVL_GRDCD_NM -- 회수등급",
-  "PRDLST_CD_NM" AS "PRDLST_CD_NM -- 품목유형(품목코드명)",
-  "LCNS_NO" AS "LCNS_NO -- 업체인허가번호"
-FROM "I0490";
-
--- -----------------------------------------------------------------------------
--- I2500 / 인허가 업소 정보
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2500" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 영업고유구분번호(인허가번호) / PK 후보(HIGH)
-  "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  PRIMARY KEY ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2500_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 영업고유구분번호(인허가번호)",
-  "INDUTY_CD_NM" AS "INDUTY_CD_NM -- 업종",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "TELNO" AS "TELNO -- 전화번호",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "ADDR" AS "ADDR -- 주소"
-FROM "I2500";
-
--- -----------------------------------------------------------------------------
--- I2829 / 즉석판매제조가공업 인허가 대장
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2829" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2829_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2829";
-
--- -----------------------------------------------------------------------------
--- I2834 / 집단급식소 인허가 대장
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2834" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2834_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2834";
-
--- -----------------------------------------------------------------------------
--- I2856 / 푸드트럭지정현황조회
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE "I2856" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
-  "PRMS_DT" DATE, -- PRMS_DT / 인허가일자
-  "INSTT_CDNM" VARCHAR(200), -- INSTT_CDNM / 인허가기관명
-  "INDUTY_CDNM" VARCHAR(200), -- INDUTY_CDNM / 업종명
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 업소주소
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 업소대표자명
-  "TELNO" VARCHAR(30), -- TELNO / 업소전화번호
-  "CHNG_DT" DATE, -- CHNG_DT / 변경일자(YYYYMMDD)
-  PRIMARY KEY ("LCNS_NO")
-);
-
-CREATE VIEW "v_I2856_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "PRMS_DT" AS "PRMS_DT -- 인허가일자",
-  "INSTT_CDNM" AS "INSTT_CDNM -- 인허가기관명",
-  "INDUTY_CDNM" AS "INDUTY_CDNM -- 업종명",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 업소주소",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 업소대표자명",
-  "TELNO" AS "TELNO -- 업소전화번호",
-  "CHNG_DT" AS "CHNG_DT -- 변경일자(YYYYMMDD)"
-FROM "I2856";
-
--- -----------------------------------------------------------------------------
--- C004 / 식품접객업소 위생등급 지정현황
+-- I1220 / 식품제조가공업정보
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
-CREATE TABLE "C004" (
-  "HG_ASGN_NM" VARCHAR(200), -- HG_ASGN_NM / 지정기관
-  "HG_ASGN_LV" VARCHAR(100), -- HG_ASGN_LV / 지정등급
-  "HG_ASGN_NO" VARCHAR(50), -- HG_ASGN_NO / 지정번호 / PK 후보(HIGH)
-  "HG_ASGN_YMD" DATE, -- HG_ASGN_YMD / 지정일자
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I2713.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
+CREATE TABLE "I1220" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "ASGN_FROM" DATE, -- ASGN_FROM / 지정시작일자
-  "ASGN_TO" DATE, -- ASGN_TO / 지정종료일자
-  "TELNO" VARCHAR(30), -- TELNO / 업소전화번호
-  "WRKR_REG_NO" VARCHAR(50), -- WRKR_REG_NO / 사업자등록번호
-  "ASGN_CANCEL_YMD" DATE, -- ASGN_CANCEL_YMD / 지정취소일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 영업상태
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CHNG_DT" DATE, -- CHNG_DT / 변경일자(YYYYMMDD)
-  "INSTT_CD_NM" VARCHAR(200), -- INSTT_CD_NM / 인허가관할기관
-  PRIMARY KEY ("HG_ASGN_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "TELNO" VARCHAR(30), -- TELNO / 전화번호
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO")
 );
 
-CREATE VIEW "v_C004_LOGICAL" AS
+CREATE VIEW "v_I1220_LOGICAL" AS
 SELECT
-  "HG_ASGN_NM" AS "HG_ASGN_NM -- 지정기관",
-  "HG_ASGN_LV" AS "HG_ASGN_LV -- 지정등급",
-  "HG_ASGN_NO" AS "HG_ASGN_NO -- 지정번호",
-  "HG_ASGN_YMD" AS "HG_ASGN_YMD -- 지정일자",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
   "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
-  "ADDR" AS "ADDR -- 주소",
-  "ASGN_FROM" AS "ASGN_FROM -- 지정시작일자",
-  "ASGN_TO" AS "ASGN_TO -- 지정종료일자",
-  "TELNO" AS "TELNO -- 업소전화번호",
-  "WRKR_REG_NO" AS "WRKR_REG_NO -- 사업자등록번호",
-  "ASGN_CANCEL_YMD" AS "ASGN_CANCEL_YMD -- 지정취소일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 영업상태",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CHNG_DT" AS "CHNG_DT -- 변경일자(YYYYMMDD)",
-  "INSTT_CD_NM" AS "INSTT_CD_NM -- 인허가관할기관"
-FROM "C004";
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "TELNO" AS "TELNO -- 전화번호",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I1220";
 
 -- -----------------------------------------------------------------------------
 -- I1200 / 식품접객업정보
@@ -5832,34 +5421,6 @@ SELECT
 FROM "I1200";
 
 -- -----------------------------------------------------------------------------
--- I1220 / 식품제조가공업정보
--- 카테고리: 식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE "I1220" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "TELNO" VARCHAR(30), -- TELNO / 전화번호
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO")
-);
-
-CREATE VIEW "v_I1220_LOGICAL" AS
-SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가 번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "TELNO" AS "TELNO -- 전화번호",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I1220";
-
--- -----------------------------------------------------------------------------
 -- I1230 / 식품첨가물제조업
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
@@ -5912,28 +5473,53 @@ SELECT
 FROM "I1550";
 
 -- -----------------------------------------------------------------------------
--- I0680 / 위생관리등급별 업소 현황
+-- C004 / 식품접객업소 위생등급 지정현황
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I0680" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
+CREATE TABLE "C004" (
+  "HG_ASGN_NM" VARCHAR(200), -- HG_ASGN_NM / 지정기관
+  "HG_ASGN_LV" VARCHAR(100), -- HG_ASGN_LV / 지정등급
+  "HG_ASGN_NO" VARCHAR(50), -- HG_ASGN_NO / 지정번호 / PK 후보(HIGH)
+  "HG_ASGN_YMD" DATE, -- HG_ASGN_YMD / 지정일자
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / FK 후보: I1200.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "EVL_TYPE_DVS_NM" VARCHAR(30), -- EVL_TYPE_DVS_NM / 평가유형
-  "EVL_GRD_NM" VARCHAR(200), -- EVL_GRD_NM / 평가등급
-  "EVL_DT" DATE, -- EVL_DT / 평가일자
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "ASGN_FROM" DATE, -- ASGN_FROM / 지정시작일자
+  "ASGN_TO" DATE, -- ASGN_TO / 지정종료일자
+  "TELNO" VARCHAR(30), -- TELNO / 업소전화번호
+  "WRKR_REG_NO" VARCHAR(50), -- WRKR_REG_NO / 사업자등록번호
+  "ASGN_CANCEL_YMD" DATE, -- ASGN_CANCEL_YMD / 지정취소일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 영업상태
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CHNG_DT" DATE, -- CHNG_DT / 변경일자(YYYYMMDD)
+  "INSTT_CD_NM" VARCHAR(200), -- INSTT_CD_NM / 인허가관할기관
+  PRIMARY KEY ("HG_ASGN_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
 );
 
-CREATE VIEW "v_I0680_LOGICAL" AS
+CREATE VIEW "v_C004_LOGICAL" AS
 SELECT
+  "HG_ASGN_NM" AS "HG_ASGN_NM -- 지정기관",
+  "HG_ASGN_LV" AS "HG_ASGN_LV -- 지정등급",
+  "HG_ASGN_NO" AS "HG_ASGN_NO -- 지정번호",
+  "HG_ASGN_YMD" AS "HG_ASGN_YMD -- 지정일자",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
   "LCNS_NO" AS "LCNS_NO -- 인허가번호",
   "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "EVL_TYPE_DVS_NM" AS "EVL_TYPE_DVS_NM -- 평가유형",
-  "EVL_GRD_NM" AS "EVL_GRD_NM -- 평가등급",
-  "EVL_DT" AS "EVL_DT -- 평가일자"
-FROM "I0680";
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자",
+  "ADDR" AS "ADDR -- 주소",
+  "ASGN_FROM" AS "ASGN_FROM -- 지정시작일자",
+  "ASGN_TO" AS "ASGN_TO -- 지정종료일자",
+  "TELNO" AS "TELNO -- 업소전화번호",
+  "WRKR_REG_NO" AS "WRKR_REG_NO -- 사업자등록번호",
+  "ASGN_CANCEL_YMD" AS "ASGN_CANCEL_YMD -- 지정취소일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 영업상태",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CHNG_DT" AS "CHNG_DT -- 변경일자(YYYYMMDD)",
+  "INSTT_CD_NM" AS "INSTT_CD_NM -- 인허가관할기관"
+FROM "C004";
 
 -- -----------------------------------------------------------------------------
 -- I2861 / 음식점업소 인허가 변경 정보
@@ -5942,7 +5528,7 @@ FROM "I0680";
 CREATE TABLE "I2861" (
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "INDUTY_CD_NM" VARCHAR(200), -- INDUTY_CD_NM / 업종명
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1200.LCNS_NO(HIGH)
   "TELNO" VARCHAR(30), -- TELNO / 전화번호
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
   "CHNG_DT" DATE, -- CHNG_DT / 변경일자
@@ -5950,8 +5536,8 @@ CREATE TABLE "I2861" (
   "CHNG_AF_CN" VARCHAR(1000), -- CHNG_AF_CN / 변경후내용
   "CHNG_PRVNS" VARCHAR(1000), -- CHNG_PRVNS / 변경사유
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2861_LOGICAL" AS
@@ -5996,6 +5582,30 @@ SELECT
 FROM "I0060";
 
 -- -----------------------------------------------------------------------------
+-- I0680 / 위생관리등급별 업소 현황
+-- 카테고리: 식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I0680" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "EVL_TYPE_DVS_NM" VARCHAR(30), -- EVL_TYPE_DVS_NM / 평가유형
+  "EVL_GRD_NM" VARCHAR(200), -- EVL_GRD_NM / 평가등급
+  "EVL_DT" DATE, -- EVL_DT / 평가일자
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I0680_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "EVL_TYPE_DVS_NM" AS "EVL_TYPE_DVS_NM -- 평가유형",
+  "EVL_GRD_NM" AS "EVL_GRD_NM -- 평가등급",
+  "EVL_DT" AS "EVL_DT -- 평가일자"
+FROM "I0680";
+
+-- -----------------------------------------------------------------------------
 -- I1210 / 집단급식소 설치 현황
 -- 카테고리: 식품 등
 -- -----------------------------------------------------------------------------
@@ -6034,11 +5644,11 @@ SELECT
 FROM "I1210";
 
 -- -----------------------------------------------------------------------------
--- I2818 / 용기.포장류제조업 폐업정보
+-- I2827 / 식육즉석판매가공업 폐업정보
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2818" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+CREATE TABLE "I2827" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6048,8 +5658,262 @@ CREATE TABLE "I2818" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2827_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2827";
+
+-- -----------------------------------------------------------------------------
+-- I2821 / 수입식품업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2821" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1260.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2821_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2821";
+
+-- -----------------------------------------------------------------------------
+-- I2817 / 식품보존업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2817" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2817_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2817";
+
+-- -----------------------------------------------------------------------------
+-- I2822 / 건강기능식품 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2822" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2822_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2822";
+
+-- -----------------------------------------------------------------------------
+-- I2815 / 식품소분업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2815" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2815_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2815";
+
+-- -----------------------------------------------------------------------------
+-- I2814 / 식품운반업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2814" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2814_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2814";
+
+-- -----------------------------------------------------------------------------
+-- I2813 / 식품첨가물제조업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2813" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1220.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2813_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2813";
+
+-- -----------------------------------------------------------------------------
+-- I2811 / 식품제조가공업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2811" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1220.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2811_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2811";
+
+-- -----------------------------------------------------------------------------
+-- I2818 / 용기.포장류제조업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2818" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2818_LOGICAL" AS
@@ -6070,7 +5934,7 @@ FROM "I2818";
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I2823" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6080,8 +5944,8 @@ CREATE TABLE "I2823" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2823_LOGICAL" AS
@@ -6098,11 +5962,11 @@ SELECT
 FROM "I2823";
 
 -- -----------------------------------------------------------------------------
--- I2812 / 즉석판매제조가공업 폐업정보
+-- I2816 / 식품판매업 폐업정보
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2812" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+CREATE TABLE "I2816" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I2713.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6112,11 +5976,11 @@ CREATE TABLE "I2812" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO")
 );
 
-CREATE VIEW "v_I2812_LOGICAL" AS
+CREATE VIEW "v_I2816_LOGICAL" AS
 SELECT
   "LCNS_NO" AS "LCNS_NO -- 인허가번호",
   "BSSH_NM" AS "BSSH_NM -- 업소명",
@@ -6127,14 +5991,54 @@ SELECT
   "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
   "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
   "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2812";
+FROM "I2816";
+
+-- -----------------------------------------------------------------------------
+-- I2780 / 수입쇠고기 냉동전환 정보
+-- 카테고리: 수입식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2780" (
+  "MEATWATCH_NO" NUMERIC(18,0), -- MEATWATCH_NO / 이력번호 / PK 후보(HIGH)
+  "HIST_NO" NUMERIC(18,0), -- HIST_NO / 수입신고확인증번호
+  "ORGNP_NM" VARCHAR(200), -- ORGNP_NM / 원산지
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 수입업체명
+  "APLC_DTM" DATE, -- APLC_DTM / 신고일
+  "PRDLST_NM" VARCHAR(200), -- PRDLST_NM / 품명(한글)
+  "FREEZING_CNVRS_QTY" NUMERIC(18,0), -- FREEZING_CNVRS_QTY / 전환수량(BOX)
+  "FREEZING_CNVRS_WT" NUMERIC(18,4), -- FREEZING_CNVRS_WT / 전환중량(KG)
+  "FRESH_DISTB_TMLMT_BGN_DT" DATE, -- FRESH_DISTB_TMLMT_BGN_DT / 냉장유통/소비기한 시작일자
+  "FRESH_DISTB_TMLMT_DT" DATE, -- FRESH_DISTB_TMLMT_DT / 냉장유통/소비기한 만료일자
+  "FREEZING_CNVRS_OPRTN_DT" DATE, -- FREEZING_CNVRS_OPRTN_DT / 냉동전환 실시일
+  "FREEZING_CNVRS_PREARNGE_DT" DATE, -- FREEZING_CNVRS_PREARNGE_DT / 냉동전환 완료일
+  "FREEZING_DISTB_TMLMT_DT" DATE, -- FREEZING_DISTB_TMLMT_DT / 냉동전환 후 유통/소비기한
+  "ACCEPT_NO" VARCHAR(50), -- ACCEPT_NO / 축산물수입신고필증번호
+  PRIMARY KEY ("MEATWATCH_NO")
+);
+
+CREATE VIEW "v_I2780_LOGICAL" AS
+SELECT
+  "MEATWATCH_NO" AS "MEATWATCH_NO -- 이력번호",
+  "HIST_NO" AS "HIST_NO -- 수입신고확인증번호",
+  "ORGNP_NM" AS "ORGNP_NM -- 원산지",
+  "BSSH_NM" AS "BSSH_NM -- 수입업체명",
+  "APLC_DTM" AS "APLC_DTM -- 신고일",
+  "PRDLST_NM" AS "PRDLST_NM -- 품명(한글)",
+  "FREEZING_CNVRS_QTY" AS "FREEZING_CNVRS_QTY -- 전환수량(BOX)",
+  "FREEZING_CNVRS_WT" AS "FREEZING_CNVRS_WT -- 전환중량(KG)",
+  "FRESH_DISTB_TMLMT_BGN_DT" AS "FRESH_DISTB_TMLMT_BGN_DT -- 냉장유통/소비기한 시작일자",
+  "FRESH_DISTB_TMLMT_DT" AS "FRESH_DISTB_TMLMT_DT -- 냉장유통/소비기한 만료일자",
+  "FREEZING_CNVRS_OPRTN_DT" AS "FREEZING_CNVRS_OPRTN_DT -- 냉동전환 실시일",
+  "FREEZING_CNVRS_PREARNGE_DT" AS "FREEZING_CNVRS_PREARNGE_DT -- 냉동전환 완료일",
+  "FREEZING_DISTB_TMLMT_DT" AS "FREEZING_DISTB_TMLMT_DT -- 냉동전환 후 유통/소비기한",
+  "ACCEPT_NO" AS "ACCEPT_NO -- 축산물수입신고필증번호"
+FROM "I2780";
 
 -- -----------------------------------------------------------------------------
 -- I2820 / 집단급식소 폐업정보
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I2820" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1200.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6144,8 +6048,8 @@ CREATE TABLE "I2820" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
 );
 
 CREATE VIEW "v_I2820_LOGICAL" AS
@@ -6166,7 +6070,7 @@ FROM "I2820";
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I2824" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6176,7 +6080,7 @@ CREATE TABLE "I2824" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -6194,11 +6098,11 @@ SELECT
 FROM "I2824";
 
 -- -----------------------------------------------------------------------------
--- I2825 / 축산물 식육포장처리업 폐업정보
+-- I2819 / 식품접객업 폐업정보
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2825" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+CREATE TABLE "I2819" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1200.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6208,7 +6112,71 @@ CREATE TABLE "I2825" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1200" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2819_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2819";
+
+-- -----------------------------------------------------------------------------
+-- I2812 / 즉석판매제조가공업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2812" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1220.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2812_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2812";
+
+-- -----------------------------------------------------------------------------
+-- I2825 / 축산물 식육포장처리업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2825" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -6226,43 +6194,34 @@ SELECT
 FROM "I2825";
 
 -- -----------------------------------------------------------------------------
--- I2826 / 축산물 판매업 폐업정보
--- 카테고리: 폐업정보
+-- I2837 / 용어사전(기구용기포장∙식의약품용어집)
+-- 카테고리: 용어사전
 -- -----------------------------------------------------------------------------
-CREATE TABLE "I2826" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
-  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
-  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
-  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
-  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+CREATE TABLE "I2837" (
+  "WORD" VARCHAR(100), -- WORD / 단어
+  "FRNTNFISH" VARCHAR(100), -- FRNTNFISH / 외국어
+  "DTL_DESC" VARCHAR(1000), -- DTL_DESC / 설명
+  "KEYWORD" VARCHAR(100), -- KEYWORD / 연관어
+  "SAUS" VARCHAR(1000), -- SAUS / 출처
+  "LAST_UPDT_DTM" DATE -- LAST_UPDT_DTM / 최종수정일
 );
 
-CREATE VIEW "v_I2826_LOGICAL" AS
+CREATE VIEW "v_I2837_LOGICAL" AS
 SELECT
-  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
-  "BSSH_NM" AS "BSSH_NM -- 업소명",
-  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
-  "INDUTY_NM" AS "INDUTY_NM -- 업종",
-  "PRMS_DT" AS "PRMS_DT -- 허가일자",
-  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
-  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
-  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
-  "INSTT_NM" AS "INSTT_NM -- 기관명"
-FROM "I2826";
+  "WORD" AS "WORD -- 단어",
+  "FRNTNFISH" AS "FRNTNFISH -- 외국어",
+  "DTL_DESC" AS "DTL_DESC -- 설명",
+  "KEYWORD" AS "KEYWORD -- 연관어",
+  "SAUS" AS "SAUS -- 출처",
+  "LAST_UPDT_DTM" AS "LAST_UPDT_DTM -- 최종수정일"
+FROM "I2837";
 
 -- -----------------------------------------------------------------------------
 -- I2828 / 축산물(도축업,보관업,운반업,집유업,식용란선별포장업) 폐업정보
 -- 카테고리: 폐업정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE "I2828" (
-  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2713.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
   "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
   "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
@@ -6272,7 +6231,7 @@ CREATE TABLE "I2828" (
   "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
   "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
   PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2713" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -6288,3 +6247,35 @@ SELECT
   "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
   "INSTT_NM" AS "INSTT_NM -- 기관명"
 FROM "I2828";
+
+-- -----------------------------------------------------------------------------
+-- I2826 / 축산물 판매업 폐업정보
+-- 카테고리: 폐업정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE "I2826" (
+  "LCNS_NO" VARCHAR(50), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I2500.LCNS_NO(HIGH), I1300.LCNS_NO(HIGH)
+  "BSSH_NM" VARCHAR(200), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(200), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(200), -- INDUTY_NM / 업종
+  "PRMS_DT" DATE, -- PRMS_DT / 허가일자
+  "CLSBIZ_DT" DATE, -- CLSBIZ_DT / 폐업일자
+  "CLSBIZ_DVS_CD_NM" VARCHAR(30), -- CLSBIZ_DVS_CD_NM / 페업상태
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(200), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+);
+
+CREATE VIEW "v_I2826_LOGICAL" AS
+SELECT
+  "LCNS_NO" AS "LCNS_NO -- 인허가번호",
+  "BSSH_NM" AS "BSSH_NM -- 업소명",
+  "PRSDNT_NM" AS "PRSDNT_NM -- 대표자명",
+  "INDUTY_NM" AS "INDUTY_NM -- 업종",
+  "PRMS_DT" AS "PRMS_DT -- 허가일자",
+  "CLSBIZ_DT" AS "CLSBIZ_DT -- 폐업일자",
+  "CLSBIZ_DVS_CD_NM" AS "CLSBIZ_DVS_CD_NM -- 페업상태",
+  "LOCP_ADDR" AS "LOCP_ADDR -- 주소",
+  "INSTT_NM" AS "INSTT_NM -- 기관명"
+FROM "I2826";

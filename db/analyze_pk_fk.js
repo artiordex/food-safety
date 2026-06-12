@@ -304,15 +304,20 @@ function tableNameHasAny(tableName, keywords) {
  *     우선 같은 도메인끼리 연결하는 것이 더 타당하다.
  */
 function getDomainScore(fromTableName, toTableName) {
-    const domainGroups = [
+    // 1. 서로 절대 섞이면 안 되는 대분류 (Root Domains)
+    const rootDomains = [
         ['건강기능식품', '건기식'],
         ['축산물'],
-        ['수입식품', '수입식품등'],
+        ['수입식품', '수입식품등', '수입업', '수입판매업'],
         ['위생용품'],
-        ['식품접객', '음식점', '모범음식점', '푸드트럭'],
-        ['식품제조', '식품첨가물', '품목제조', '즉석판매제조'],
-        ['집단급식소'],
-        ['기구', '용기', '포장'],
+        ['식품접객', '음식점', '모범음식점', '푸드트럭', '집단급식소'],
+        ['식품제조', '식품첨가물', '즉석판매제조'],
+        ['기구', '용기', '포장']
+    ];
+
+    // 2. 도메인에 관계없이 붙을 수 있는 행위/상태 키워드 (Action Keywords)
+    const actionKeywords = [
+        ['품목제조'],
         ['HACCP'],
         ['행정처분'],
         ['폐업'],
@@ -320,11 +325,34 @@ function getDomainScore(fromTableName, toTableName) {
     ];
 
     let score = 0;
-    for (const group of domainGroups) {
+    
+    const fromRoots = [];
+    const toRoots = [];
+    
+    rootDomains.forEach((group, idx) => {
+        if (tableNameHasAny(fromTableName, group)) fromRoots.push(idx);
+        if (tableNameHasAny(toTableName, group)) toRoots.push(idx);
+    });
+
+    // 1. 이기종 도메인 교차 연결 방지 (Cross-Domain Penalty)
+    if (fromRoots.length > 0 && toRoots.length > 0) {
+        const hasIntersection = fromRoots.some(r => toRoots.includes(r));
+        if (!hasIntersection) {
+            // 소속된 대분류가 명확히 다른 경우 강력한 페널티
+            return -100;
+        } else {
+            // 루트 도메인이 정확히 일치함
+            score += 20;
+        }
+    }
+
+    // 2. Action Keyword 매칭 (같은 루트 도메인이거나, 한쪽이 범용인 경우에만 적용)
+    for (const group of actionKeywords) {
         if (tableNameHasAny(fromTableName, group) && tableNameHasAny(toTableName, group)) {
             score += 10;
         }
     }
+
     return score;
 }
 
@@ -504,7 +532,7 @@ const WEAK_FIELD_PATTERNS = [
     /ADDR$/i, /ADDRESS$/i,
     /_DT$/i, /_YMD$/i, /DTM$/i, /DATE$/i,
     /_CN$/i, /_CONT$/i, /_CONTENT$/i, /_DESC$/i, /_MEMO$/i,
-    /_PRVNS$/i, /_MTHD$/i,
+    /_PRVNS$/i, /_MTHD$/i, /_FNCLTY$/i, /_STND$/i, /DISPOS$/i, /USAGE$/i, /_MTRQLT$/i, /_DAYCNT$/i, /_YN$/i,
     /TELNO$/i, /TEL_NO$/i, /_TELNO$/i, /PHONE$/i, /MOBILE$/i, /FAX$/i
 ];
 
@@ -531,7 +559,7 @@ const BAD_PK_KOR_PATTERNS = [
     /명$/, /이름$/, /업소명$/, /기관명$/, /제품명$/, /품목명$/,
     /대표자$/, /대표자명$/, /주소$/, /소재지$/, /내용$/, /사유$/,
     /비고$/, /메모$/, /방법$/, /전화번호$/, /연락처$/, /팩스$/,
-    /일자$/, /날짜$/, /년월일$/,
+    /일자$/, /날짜$/, /년월일$/, /기능성$/, /규격$/, /성상$/, /용도$/, /재질$/, /기한$/, /일수$/, /여부$/, /해당$/,
     // 집계/통계 한글명
     /건수$/, /면적$/, /연도$/, /년도$/, /금액$/, /비율$/, /율$/,
     /합계$/, /총계$/, /평균$/, /수량$/, /중량$/, /농도$/
@@ -598,6 +626,18 @@ function isExcludedFkField(fieldName) {
     return matchesAny(String(fieldName || ''), EXCLUDED_FK_FIELD_PATTERNS);
 }
 
+function toRecordArray(records) {
+    if (Array.isArray(records)) return records.filter(rec => rec && typeof rec === 'object' && !Array.isArray(rec));
+    if (!records || typeof records !== 'object') return [];
+
+    if (Array.isArray(records.rows)) return toRecordArray(records.rows);
+    if (Array.isArray(records.data)) return toRecordArray(records.data);
+    if (Array.isArray(records.list)) return toRecordArray(records.list);
+    if (Array.isArray(records.items)) return toRecordArray(records.items);
+
+    return [];
+}
+
 // =============================================================================
 // 섹션 4-1. 엔트로피 기반 통계 (simple-statistics)
 // =============================================================================
@@ -607,7 +647,8 @@ function isExcludedFkField(fieldName) {
  * 값이 모두 다르면(식별자성) 1.0, 모두 같으면(상수) 0.0 에 가깝다.
  */
 function computeFieldEntropy(records, fieldName) {
-    const vals = records
+    const rows = toRecordArray(records);
+    const vals = rows
         .map(r => normalizeValue(r ? r[fieldName] : ''))
         .filter(v => v !== '');
 
@@ -654,11 +695,12 @@ function deriveInclusionThresholds(ratios) {
 function buildEntropyMap(recordsMap) {
     const entropyMap = new Map();
     for (const [svcNo, records] of recordsMap) {
-        if (!records || records.length === 0) continue;
+        const rows = toRecordArray(records);
+        if (rows.length === 0) continue;
         const fieldMap = new Map();
-        const fields = Object.keys(records[0]);
+        const fields = Object.keys(rows[0]);
         for (const field of fields) {
-            fieldMap.set(field.toUpperCase(), computeFieldEntropy(records, field));
+            fieldMap.set(field.toUpperCase(), computeFieldEntropy(rows, field));
         }
         entropyMap.set(svcNo, fieldMap);
     }
@@ -674,7 +716,8 @@ function buildEntropyMap(recordsMap) {
  * (총 건수, 고유 건수, 중복 건수, 빈값 포함 여부 등)
  */
 function getUniquenessStats(records, fields) {
-    if (!Array.isArray(records) || records.length === 0) {
+    const rows = toRecordArray(records);
+    if (rows.length === 0) {
         return {
             record_count: 0,
             non_empty_count: 0,
@@ -686,7 +729,7 @@ function getUniquenessStats(records, fields) {
         };
     }
 
-    const values = records.map(rec =>
+    const values = rows.map(rec =>
         fields.map(f => normalizeValue(rec ? rec[f] : '')).join('||')
     );
 
@@ -697,13 +740,13 @@ function getUniquenessStats(records, fields) {
     const unique = new Set(nonEmpty);
 
     return {
-        record_count: records.length,
+        record_count: rows.length,
         non_empty_count: nonEmpty.length,
         unique_count: unique.size,
         duplicate_count: nonEmpty.length - unique.size,
         uniqueness_ratio: nonEmpty.length > 0 ? unique.size / nonEmpty.length : 0,
-        has_empty: nonEmpty.length < records.length,
-        is_unique: nonEmpty.length === records.length && unique.size === records.length
+        has_empty: nonEmpty.length < rows.length,
+        is_unique: nonEmpty.length === rows.length && unique.size === rows.length
     };
 }
 
@@ -716,8 +759,9 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
         const key = `${svcNo}|${field}`;
         let set = valuesCache.get(key);
         if (!set) {
+            const rows = toRecordArray(records);
             set = new Set(
-                (records || [])
+                rows
                     .map(r => normalizeValue(r ? r[field] : ''))
                     .filter(v => v !== '')
             );
@@ -726,8 +770,8 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
         return set;
     };
 
-    const fromValues = getCached(fromSvcNo, fromRecords, fromField);
-    const toValues = getCached(toSvcNo, toRecords, toField);
+    const fromValues = getCached(fromSvcNo, toRecordArray(fromRecords), fromField);
+    const toValues = getCached(toSvcNo, toRecordArray(toRecords), toField);
 
     if (fromValues.size === 0 || toValues.size === 0) {
         return {
@@ -994,7 +1038,9 @@ function profileColumnsWithArquero(records, fieldNames) {
  * @param {Map} valuesCache
  */
 function getCompositeInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fields, valuesCache = new Map()) {
-    if (!fromRecords.length || !toRecords.length) {
+    const fromRows = toRecordArray(fromRecords);
+    const toRows = toRecordArray(toRecords);
+    if (!fromRows.length || !toRows.length) {
         return { from_count: 0, to_count: 0, matched: 0, inclusion_ratio: 0, checked: false };
     }
 
@@ -1007,14 +1053,14 @@ function getCompositeInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, 
         const key = `${svcNo}|COMPOSITE|${fields.join(',')}`;
         let set = valuesCache.get(key);
         if (!set) {
-            set = new Set(records.map(makeKey).filter(isValidKey));
+            set = new Set(toRecordArray(records).map(makeKey).filter(isValidKey));
             valuesCache.set(key, set);
         }
         return set;
     };
 
-    const fromValues = getCached(fromSvcNo, fromRecords);
-    const toValues = getCached(toSvcNo, toRecords);
+    const fromValues = getCached(fromSvcNo, fromRows);
+    const toValues = getCached(toSvcNo, toRows);
 
     const fromCount = fromValues.size;
     const toCount = toValues.size;
@@ -1199,9 +1245,17 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
     }
 
     const domainScore = getDomainScore(fromSvcNm, target.svc_nm);
-    if (domainScore > 0) {
+    if (domainScore < 0) {
+        return {
+            skip: true,
+            skip_reason: '이기종 도메인 교차 연결 제한 (Root Domain 불일치)',
+            inclusion: { checked: false, inclusion_ratio: 0 },
+            score: 0,
+            reasons: ['다른 대분류 도메인과의 조인 방지']
+        };
+    } else if (domainScore > 0) {
         score += domainScore;
-        reasons.push(`데이터셋명 도메인 유사성 +${domainScore}`);
+        reasons.push(`데이터셋명 도메인 유사성 가산점 +${domainScore}`);
     }
 
     const inclusion = getInclusionStats(fromSvcNo, target.svc_no, fromRecords, toRecords, fieldName, target.pk.fields[0], valuesCache);
@@ -1728,9 +1782,13 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
 // =============================================================================
 
 function analyze(datasets, recordsMap = new Map(), thresholds = null) {
+    for (const [svcNo, records] of recordsMap) {
+        recordsMap.set(svcNo, toRecordArray(records));
+    }
+
     const tableAnalyses = datasets.map(ds => {
         const svcNo = String(ds.svc_no || '').trim();
-        const records = recordsMap.get(svcNo) || [];
+        const records = toRecordArray(recordsMap.get(svcNo));
         const colMap = buildColMap(ds, records);
         const fields = [...colMap.values()];
 
@@ -2129,13 +2187,15 @@ async function run(options) {
     // 포함률 임계값을 실제 데이터 분포에서 도출 (사전 패스)
     const allInclusionRatios = [];
     for (const [svcNoA, recA] of recordsMap) {
+        const rowsA = toRecordArray(recA);
         for (const [svcNoB, recB] of recordsMap) {
-            if (svcNoA === svcNoB || recA.length === 0 || recB.length === 0) continue;
-            const fieldsA = recA.length > 0 ? Object.keys(recA[0]) : [];
-            const fieldsB = new Set(recB.length > 0 ? Object.keys(recB[0]) : []);
+            const rowsB = toRecordArray(recB);
+            if (svcNoA === svcNoB || rowsA.length === 0 || rowsB.length === 0) continue;
+            const fieldsA = rowsA.length > 0 ? Object.keys(rowsA[0]) : [];
+            const fieldsB = new Set(rowsB.length > 0 ? Object.keys(rowsB[0]) : []);
             for (const f of fieldsA) {
                 if (fieldsB.has(f)) {
-                    const stats = getInclusionStats(svcNoA, svcNoB, recA, recB, f, f);
+                    const stats = getInclusionStats(svcNoA, svcNoB, rowsA, rowsB, f, f);
                     if (stats.checked) allInclusionRatios.push(stats.inclusion_ratio);
                 }
             }

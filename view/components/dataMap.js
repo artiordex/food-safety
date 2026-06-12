@@ -24,7 +24,7 @@ export function renderDataMap(container, onSelectDataset) {
         subjectCounts[subj].items.push({
           id: d.svc_no,
           name: d.svc_nm,
-          description: d.svc_nm + " 공공데이터 API입니다.",
+          description: d.desc || d.svc_nm + " 공공데이터 API입니다.",
           formats: ["JSON", "XML"],
           users: [d.provd_instt_nm || '식품의약품안전처']
         });
@@ -84,36 +84,62 @@ export function renderDataMap(container, onSelectDataset) {
       if (inspector) inspector.classList.add('hidden', 'translate-x-[calc(100%+2rem)]');
     };
 
-    const resetKeywordVisualization = (message = '검색어를 입력하면 데이터 관계도·ERD가 표시됩니다.') => {
+    const showErdSpinner = (panel) => {
+      const canvas = (panel || view).querySelector('#cem-canvas');
+      const loading = (panel || view).querySelector('#cem-loading');
+      if (loading) loading.classList.add('hidden');
+      if (canvas) {
+        canvas.innerHTML = `
+          <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#64748b;">
+            <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+            <p style="font-size:14px;font-weight:600;color:#334155;margin:0;">데이터 관계도 불러오는 중...</p>
+          </div>`;
+      }
+    };
+
+    const resetKeywordVisualization = (message = '검색어를 입력하면 키워드 시각화가 표시됩니다.') => {
       const loading = view.querySelector('#kwmap-loading');
+      const loadingText = view.querySelector('#kwmap-loading-text');
       const error = view.querySelector('#kwmap-error');
       const svgWrap = view.querySelector('#kwmap-svg-wrap');
       const zoomBtns = view.querySelector('#kwmap-zoom-btns');
       const detailPanel = view.querySelector('#kwmap-detail-panel');
 
-      if (loading) loading.style.display = 'none';
+      // 스피너 대신 안내 메시지를 loading 영역에 표시
+      if (loading) {
+        loading.style.display = 'flex';
+        const spinner = loading.querySelector('div:first-child');
+        if (spinner) spinner.style.display = 'none';
+        if (loadingText) {
+          loadingText.innerHTML = `
+            <i class="ri-search-line" style="font-size:34px;display:block;margin-bottom:10px;color:#94a3b8;"></i>
+            <p style="font-size:14px;font-weight:700;color:#334155;margin:0 0 6px;">${message}</p>
+            <p style="font-size:12px;color:#94a3b8;margin:0;">예: 초콜릿, 식품, 회수, HACCP</p>`;
+        }
+      }
       if (error) {
         error.textContent = '';
         error.style.setProperty('display', 'none', 'important');
       }
       if (zoomBtns) zoomBtns.style.display = 'none';
-      if (svgWrap) {
-        svgWrap.style.display = 'block';
-        svgWrap.innerHTML = `
-          <div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#64748b;padding:32px;">
-            <div>
-              <i class="ri-search-line" style="font-size:34px;display:block;margin-bottom:10px;color:#94a3b8;"></i>
-              <p style="font-size:14px;font-weight:700;color:#334155;margin:0 0 6px;">${message}</p>
-              <p style="font-size:12px;margin:0;">예: 초콜릿, 식품, 회수, HACCP</p>
-            </div>
-          </div>`;
-      }
+      if (svgWrap) { svgWrap.style.display = 'none'; svgWrap.innerHTML = ''; }
       if (detailPanel) {
         detailPanel.innerHTML = `
           <div class="h-full flex flex-col items-center justify-center text-center text-slate-400 p-8">
             <i class="ri-search-eye-line text-4xl mb-3 text-slate-300"></i>
             <p class="text-sm font-semibold text-slate-500">${message}</p>
           </div>`;
+      }
+    };
+
+    // showLoading 호출 전 스피너 복원
+    const restoreKwmapSpinner = () => {
+      const loading = view.querySelector('#kwmap-loading');
+      const loadingText = view.querySelector('#kwmap-loading-text');
+      if (loading) {
+        const spinner = loading.querySelector('div:first-child');
+        if (spinner) spinner.style.display = '';
+        if (loadingText) loadingText.innerHTML = '데이터 불러오는 중...';
       }
     };
 
@@ -141,6 +167,7 @@ export function renderDataMap(container, onSelectDataset) {
             resetKeywordVisualization();
             return;
           }
+          restoreKwmapSpinner();
           renderKeywordGraph(kw);
         }
         if (t === 'erd' && !erdRendered) {
@@ -151,6 +178,7 @@ export function renderDataMap(container, onSelectDataset) {
             return;
           }
           erdRendered = true;
+          showErdSpinner(panel);
           if (panel) renderCombinedErdMap(panel);
         }
       });
@@ -167,7 +195,7 @@ export function renderDataMap(container, onSelectDataset) {
         subjectCounts[subj].items.push({
           id: d.svc_no,
           name: d.svc_nm,
-          description: d.description || `${d.svc_nm || d.svc_no} 공공데이터 API입니다.`,
+          description: d.desc || d.description || `${d.svc_nm || d.svc_no} 공공데이터 API입니다.`,
           formats: ["JSON", "XML"],
           users: [d.provd_instt_nm || '식품의약품안전처']
         });
@@ -197,7 +225,8 @@ export function renderDataMap(container, onSelectDataset) {
       const summary = view.querySelector('#keyword-result-summary');
       const cardsEl = view.querySelector('#keyword-dataset-cards');
       const vizEl = view.querySelector('#keyword-viz-container');
-      if (!cardsEl) return;
+      console.log('[dataMap] renderSearchResults called, kw=', kw, 'cardsEl=', cardsEl);
+      if (!cardsEl) { console.warn('[dataMap] #keyword-dataset-cards NOT FOUND in view'); return; }
 
       // 탭 바 표시 (최초 검색 시)
       const tabBar = view.querySelector('#content-tab-bar');
@@ -210,8 +239,9 @@ export function renderDataMap(container, onSelectDataset) {
       const svgWrapEl = view.querySelector('#kwmap-svg-wrap');
       if (svgWrapEl && kw) svgWrapEl.innerHTML = '';
       if (!kw) resetKeywordVisualization();
-      switchContentTab('treemap');
-      view.querySelector('#content-panel-treemap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // ERD: 새 검색 시 재렌더 허용
+      erdRendered = false;
+      // 탭은 현재 위치 유지 (검색 결과는 탭 외부에 표시)
 
       // 로딩 상태
       if (summary) summary.innerHTML = kw
@@ -260,46 +290,70 @@ export function renderDataMap(container, onSelectDataset) {
       updateTreemapForSearch(matched, kw);
 
       if (matched.length === 0) {
-        cardsEl.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:#94a3b8;">
+        cardsEl.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8;">
           <i class="ri-search-line" style="font-size:32px;display:block;margin-bottom:8px;"></i>
           ${kw ? `"<strong>${kw}</strong>"에 해당하는 데이터세트가 없습니다.` : '표시할 데이터세트가 없습니다.'}
         </div>`;
+        const pg = view.querySelector('#keyword-pagination');
+        if (pg) pg.innerHTML = '';
       } else {
-        cardsEl.innerHTML = matched.map((d, idx) => {
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        const totalPages = () => Math.max(1, Math.ceil(matched.length / PAGE_SIZE));
+
+        const renderListItem = (d, idx) => {
           const cat = d.cl_cd_nm || '기타';
           const catColor = getColor(cat, idx);
           const catBg = getSoftColor(cat, idx);
+          const fmt = d.link_yn === 'Y' ? 'LINK' : 'API';
+          const title = kw ? (d.svc_nm || '').replace(new RegExp(kw, 'gi'), m => `<mark style="background:#fef08a;padding:0 1px;">${m}</mark>`) : (d.svc_nm || '');
+          const desc = d.desc || d.description || '';
+          const keywords = [cat, d.provd_instt_nm || '식품의약품안전처'].filter(Boolean);
           return `
-          <div data-svc-no="${d.svc_no}" style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:box-shadow .15s,border-color .15s;">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
-              <div>
-                <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${catBg};color:${catColor};white-space:nowrap;margin-right:4px;">${cat}</span>
-              </div>
-              <span style="font-size:11px;color:#94a3b8;white-space:nowrap;flex-shrink:0;">${d.svc_no}</span>
+          <div data-svc-no="${d.svc_no}" style="padding:20px 24px;cursor:pointer;transition:background .12s;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:${catBg};color:${catColor};border:1px solid ${catColor}33;">${cat}</span>
+              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">${fmt}</span>
             </div>
-            <p style="font-size:14px;font-weight:600;color:#1e293b;margin:0 0 6px;line-height:1.4;">${kw ? (d.svc_nm || '').replace(new RegExp(kw, 'gi'), m => `<mark style="background:#fef08a;padding:0 1px;">${m}</mark>`) : (d.svc_nm || '')}</p>
-            <p style="font-size:12px;color:#64748b;margin:0;">${d.provd_instt_nm || '식품의약품안전처'}</p>
-          </div>
-          `;
-        }).join('');
+            <p style="font-size:17px;font-weight:700;color:#111827;margin:0 0 6px;line-height:1.4;">${title}</p>
+            <p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</p>
+            <p style="font-size:12px;color:#9ca3af;margin:0;">키워드 : ${keywords.map(k => `<a style="color:#f97316;text-decoration:none;" href="#">${k}</a>`).join(', ')}</p>
+          </div>`;
+        };
 
-        // 카드 클릭 → 세부 패널 열기
-        cardsEl.querySelectorAll('[data-svc-no]').forEach(card => {
-          card.addEventListener('mouseover', () => { card.style.boxShadow = '0 4px 16px rgba(0,0,0,.1)'; card.style.borderColor = '#93c5fd'; });
-          card.addEventListener('mouseout', () => {
-            if (card.dataset.active !== '1') { card.style.boxShadow = 'none'; card.style.borderColor = '#e2e8f0'; }
+        const renderPagination = () => {
+          const paginationEl = view.querySelector('#keyword-pagination');
+          if (!paginationEl) return;
+          const tp = totalPages();
+          if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch(e) {} paginationEl.innerHTML = ''; return; }
+          try { $(paginationEl).pagination('destroy'); } catch(e) {}
+          $(paginationEl).pagination({
+            items: matched.length,
+            itemsOnPage: PAGE_SIZE,
+            cssStyle: 'compact-theme',
+            currentPage: currentPage,
+            onPageClick: (pageNumber) => {
+              currentPage = pageNumber;
+              renderPage();
+              view.querySelector('#keyword-search-result-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           });
-          card.addEventListener('click', () => {
-            const svcNo = card.dataset.svcNo;
-            const ds = matched.find(d => String(d.svc_no) === svcNo);
-            if (ds) openDatasetDetail(ds, view);
-            // 선택 강조
-            cardsEl.querySelectorAll('[data-svc-no]').forEach(c => { c.dataset.active = ''; c.style.borderColor = '#e2e8f0'; c.style.boxShadow = 'none'; });
-            card.dataset.active = '1';
-            card.style.borderColor = '#2563eb';
-            card.style.boxShadow = '0 0 0 2px #bfdbfe';
+        };
+
+        const renderPage = () => {
+          const start = (currentPage - 1) * PAGE_SIZE;
+          const paged = matched.slice(start, start + PAGE_SIZE);
+          cardsEl.innerHTML = paged.map((d, i) => renderListItem(d, start + i)).join('');
+          cardsEl.querySelectorAll('[data-svc-no]').forEach(card => {
+            card.addEventListener('click', () => {
+              const ds = matched.find(d => String(d.svc_no) === card.dataset.svcNo);
+              if (ds) openDatasetDetail(ds, view);
+            });
           });
-        });
+          renderPagination();
+        };
+
+        renderPage();
       }
 
       if (typeof window.setGlobalDatamapKeyword === 'function') {
@@ -404,6 +458,7 @@ export function renderDataMap(container, onSelectDataset) {
           .fontSize(d => d.size)
           .on('end', words => {
             wrap.innerHTML = '';
+            d3.selectAll('.wordcloud-tooltip').remove();
             const svg = d3.select(wrap).append('svg')
               .attr('width', width).attr('height', height)
               .style('background', '#f8fafc');
@@ -466,35 +521,75 @@ export function renderDataMap(container, onSelectDataset) {
       }
     }
 
-    // 트리맵 캡처 버튼
+    // 화면 캡처 버튼
     const captureBtn = view.querySelector('#btn-treemap-capture');
     if (captureBtn) {
       captureBtn.addEventListener('click', async () => {
-        const treemapCard = view.querySelector('#treemap-container').closest('.lg\\:col-span-2');
-        if (!treemapCard || typeof html2canvas === 'undefined') return;
+        let targetElement = null;
+        let filename = '식품안전나라_데이터맵';
+        
+        const treemapPanel = view.querySelector('#content-panel-treemap');
+        const vizPanel = view.querySelector('#content-panel-visualization');
+        const erdPanel = view.querySelector('#content-panel-erd');
+        
+        if (treemapPanel && treemapPanel.style.display !== 'none') {
+            targetElement = view.querySelector('#treemap-container');
+            filename = '식품안전나라_데이터분포_트리맵';
+        } else if (vizPanel && vizPanel.style.display !== 'none') {
+            // 상세정보 패널이나 줌 버튼 등 UI 요소를 제외하고 순수 그래프 부분만 캡처
+            targetElement = view.querySelector('#kwmap-svg-wrap') || view.querySelector('#kwmap-graph-container');
+            filename = '식품안전나라_키워드시각화_데이터맵';
+        } else if (erdPanel && erdPanel.style.display !== 'none') {
+            const erdBtn = view.querySelector('#cem-capture');
+            if (erdBtn) {
+               erdBtn.click();
+               return; // ERD 자체 고해상도(3200x2400) 캡처 로직 사용
+            }
+            targetElement = view.querySelector('#cem-canvas');
+            filename = '식품안전나라_데이터융합관계도';
+        }
+
+        if (!targetElement || typeof html2canvas === 'undefined') return;
 
         captureBtn.disabled = true;
-        captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 저장 중...';
+        captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 요소 정렬 중...';
 
         try {
-          // overflow hidden 임시 해제하여 잘림 방지
-          const origOverflow = treemapCard.style.overflow;
-          treemapCard.style.overflow = 'visible';
+          // 캡처 전 요소가 화면에 딱 맞게 정렬되도록(짤림 방지) 자동 맞춤 실행
+          if (filename === '식품안전나라_키워드시각화_데이터맵') {
+             const homeBtn = view.querySelector('#kwmap-zoom-home');
+             if (homeBtn) {
+                 homeBtn.click();
+                 await new Promise(r => setTimeout(r, 800)); // 애니메이션 대기
+             }
+          } else if (filename === '식품안전나라_데이터융합관계도') {
+             const fitBtn = view.querySelector('#cem-fit');
+             if (fitBtn) {
+                 fitBtn.click();
+                 await new Promise(r => setTimeout(r, 1000)); // 물리 엔진/애니메이션 대기
+             }
+          }
 
-          const canvas = await html2canvas(treemapCard, {
-            scale: 2,
+          captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 이미지 생성 중...';
+
+          // overflow hidden 임시 해제하여 캔버스 짤림 방지
+          const origOverflow = targetElement.style.overflow;
+          targetElement.style.overflow = 'visible';
+
+          const canvas = await html2canvas(targetElement, {
+            scale: 4,
             useCORS: true,
             backgroundColor: '#ffffff',
-            width: treemapCard.scrollWidth,
-            height: treemapCard.scrollHeight,
-            windowWidth: treemapCard.scrollWidth,
-            windowHeight: treemapCard.scrollHeight,
+            width: targetElement.scrollWidth,
+            height: targetElement.scrollHeight,
+            windowWidth: targetElement.scrollWidth,
+            windowHeight: targetElement.scrollHeight,
           });
 
-          treemapCard.style.overflow = origOverflow;
+          targetElement.style.overflow = origOverflow;
 
           const link = document.createElement('a');
-          link.download = `식품안전나라_데이터맵_${new Date().toISOString().slice(0,10)}.png`;
+          link.download = `${filename}_${new Date().toISOString().slice(0,10)}.png`;
           link.href = canvas.toDataURL('image/png');
           link.click();
         } catch (e) {
@@ -743,10 +838,18 @@ export function renderDataMap(container, onSelectDataset) {
           .fontSize(d => d.size)
           .on('end', words => {
             wrap.innerHTML = '';
+            d3.selectAll('.wordcloud-tooltip').remove();
             const svg = d3.select(wrap).append('svg')
               .attr('width', width)
               .attr('height', height)
               .style('background', '#f8fafc');
+
+            const tooltip = d3.select('body').append('div')
+              .attr('class', 'wordcloud-tooltip')
+              .style('position', 'absolute').style('visibility', 'hidden')
+              .style('background', 'rgba(0,0,0,.8)').style('color', '#fff')
+              .style('padding', '6px 12px').style('border-radius', '4px')
+              .style('font-size', '13px').style('pointer-events', 'none').style('z-index', '9999');
 
             svg.append('g')
               .attr('transform', `translate(${width / 2},${height / 2})`)
@@ -759,7 +862,19 @@ export function renderDataMap(container, onSelectDataset) {
               .style('fill', (_, i) => fill(i))
               .attr('text-anchor', 'middle')
               .attr('transform', d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
-              .text(d => d.text);
+              .text(d => d.text)
+              .style('cursor', 'pointer')
+              .on('mouseover', function(event, d) {
+                d3.select(this).style('opacity', 0.7);
+                tooltip.style('visibility', 'visible').text(`'${d.text}' (${d.actualCount || '다수'}회 출현)`);
+              })
+              .on('mousemove', function(event) {
+                tooltip.style('top', (event.pageY - 35) + 'px').style('left', (event.pageX + 10) + 'px');
+              })
+              .on('mouseout', function() {
+                d3.select(this).style('opacity', 1);
+                tooltip.style('visibility', 'hidden');
+              });
           })
           .start();
       };
@@ -805,56 +920,90 @@ export function renderDataMap(container, onSelectDataset) {
 
     page.innerHTML = `
       <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 border-b border-slate-100 bg-slate-50">
+        <!-- 헤더 -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">
           <div>
             <button id="btn-back-dataset-list" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-gov-700 mb-3">
               <i class="ri-arrow-left-line"></i> 데이터세트 목록
             </button>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="px-2 py-1 text-[11px] font-bold rounded" style="background:${categoryBg};color:${categoryColor};">${categoryData.subject}</span>
-              <span class="text-xs text-slate-400">ID ${tableName || '-'}</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:3px;background:${categoryBg};color:${categoryColor};border:1px solid ${categoryColor}33;">${categoryData.subject}</span>
+              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">API</span>
+              <span style="font-size:12px;color:#94a3b8;">ID: ${tableName || '-'}</span>
             </div>
-            <h3 class="text-xl font-bold text-slate-900 leading-snug">${dataset.name || dataset.svc_nm || '-'}</h3>
-            <p class="text-sm text-slate-500 mt-1">${dataset.users?.[0] || dataset.provd_instt_nm || '식품의약품안전처'}</p>
+            <h3 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 4px;">${dataset.name || dataset.svc_nm || '-'}</h3>
+            <p style="font-size:13px;color:#6b7280;margin:0;">${dataset.users?.[0] || dataset.provd_instt_nm || '식품의약품안전처'}</p>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-0">
-          <div class="xl:col-span-1 p-6 border-b xl:border-b-0 xl:border-r border-slate-100">
-            <h4 class="text-sm font-bold text-slate-800 mb-3">데이터세트 상세 정보</h4>
-            <p class="text-sm text-slate-600 leading-6 mb-5">${dataset.description || '데이터세트 설명 정보가 없습니다.'}</p>
-            <dl class="space-y-3 text-sm">
-              <div>
-                <dt class="text-xs font-bold text-slate-400 mb-1">제공 형식</dt>
-                <dd class="flex flex-wrap gap-1">${(dataset.formats || ['JSON', 'XML']).map(f => `<span class="px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-semibold">${f}</span>`).join('')}</dd>
-              </div>
-              <div>
-                <dt class="text-xs font-bold text-slate-400 mb-1">분류</dt>
-                <dd class="text-slate-700">${categoryData.subject}</dd>
-              </div>
-              <div>
-                <dt class="text-xs font-bold text-slate-400 mb-1">테이블명</dt>
-                <dd class="font-mono text-slate-700">${tableName || '-'}</dd>
-              </div>
-            </dl>
-          </div>
+        <!-- 설명 -->
+        <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;">
+          <p style="font-size:14px;color:#374151;line-height:1.7;margin:0;">${dataset.description || '데이터세트 설명 정보가 없습니다.'}</p>
+        </div>
 
-          <div class="xl:col-span-2 p-6">
-            <h4 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <i class="ri-cloud-line text-gov-600"></i> 워드 클라우드 정보
-            </h4>
-            <p class="text-xs text-slate-500 mb-4">해당 데이터세트의 실제 데이터에서 자주 등장하는 키워드를 시각화합니다.</p>
-            <div id="treemap-detail-wordcloud-wrap" style="width:100%;height:380px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
-              <div style="text-align:center;color:#64748b;">
-                <div style="display:inline-block;width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
-                <div data-wordcloud-loading-text style="font-size:14px;">워드 클라우드 생성 중...</div>
-              </div>
+        <!-- 컬럼 정보 -->
+        <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;">
+          <h4 style="font-size:14px;font-weight:700;color:#111827;margin:0 0 12px;display:flex;align-items:center;gap:6px;">
+            <i class="ri-table-line" style="color:#2563eb;"></i> 데이터 컬럼 정보
+          </h4>
+          <div id="treemap-detail-columns" style="overflow-x:auto;">
+            <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px;">컬럼 정보를 불러오는 중...</div>
+          </div>
+        </div>
+
+        <!-- 워드 클라우드 -->
+        <div style="padding:20px 24px;">
+          <h4 style="font-size:14px;font-weight:700;color:#111827;margin:0 0 4px;display:flex;align-items:center;gap:6px;">
+            <i class="ri-cloud-line" style="color:#2563eb;"></i> 워드 클라우드 정보
+            <span style="font-size:12px;font-weight:400;color:#94a3b8;">— 실제 데이터에서 자주 등장하는 키워드</span>
+          </h4>
+          <div id="treemap-detail-wordcloud-wrap" style="width:100%;height:380px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-top:12px;">
+            <div style="text-align:center;color:#64748b;">
+              <div style="display:inline-block;width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
+              <div data-wordcloud-loading-text style="font-size:14px;">워드 클라우드 생성 중...</div>
             </div>
           </div>
         </div>
       </div>`;
 
     page.querySelector('#btn-back-dataset-list')?.addEventListener('click', () => showCategoryDatasets(categoryData));
+
+    // 컬럼 정보 fetch
+    const colWrap = page.querySelector('#treemap-detail-columns');
+    fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(tableName)}`)
+      .then(r => r.json())
+      .then(cols => {
+        if (!cols || cols.length === 0) {
+          colWrap.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:8px 0;">컬럼 정보가 없습니다.</div>';
+          return;
+        }
+        colWrap.innerHTML = `
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:#f8fafc;">
+                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">컬럼명 (영문)</th>
+                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">한글명</th>
+                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">타입</th>
+                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">설명</th>
+                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">샘플</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cols.map((c, i) => `
+                <tr style="background:${i % 2 === 0 ? '#fff' : '#fafafa'};">
+                  <td style="padding:7px 12px;border:1px solid #e2e8f0;font-family:monospace;color:#1d4ed8;font-weight:600;">${c.field || '-'}</td>
+                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#374151;">${c.kor_nm || '-'}</td>
+                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#6b7280;">${c.type || '-'}</td>
+                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#6b7280;max-width:200px;">${c.desc && c.desc !== c.field ? c.desc : '-'}</td>
+                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#94a3b8;font-family:monospace;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.sample || ''}">${c.sample || '-'}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`;
+      })
+      .catch(() => {
+        colWrap.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px 0;">컬럼 정보를 불러오지 못했습니다.</div>';
+      });
+
     renderTreemapWordCloud(String(tableName || ''), page.querySelector('#treemap-detail-wordcloud-wrap'));
     page.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -985,24 +1134,8 @@ export function renderDataMap(container, onSelectDataset) {
         </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="treemap-dataset-list">
-        ${categoryData.items.map(ds => `
-          <div class="dataset-card bg-white rounded-xl p-4 flex flex-col min-h-[190px] cursor-pointer hover:shadow-md transition-shadow" data-id="${ds.id}" style="border:1px solid ${categoryBg};border-top:3px solid ${categoryColor};">
-            <div class="flex justify-between items-start gap-3 mb-3">
-              <span class="px-2 py-1 text-[10px] font-bold rounded" style="background:${categoryBg};color:${categoryColor};">${categoryData.subject}</span>
-              <span class="text-[11px] text-slate-400 font-mono">${ds.id}</span>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2 leading-snug">${ds.name}</h4>
-            <p class="text-xs text-slate-500 line-clamp-3 mb-4 flex-1">${ds.description}</p>
-            <div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-slate-100">
-              <span class="text-[11px] text-slate-500 truncate"><i class="ri-building-line"></i> ${ds.users?.[0] || '식품의약품안전처'}</span>
-              <button type="button" class="btn-dataset-detail inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gov-600 text-white text-xs font-bold hover:bg-gov-700" data-id="${ds.id}">
-                세부내용 <i class="ri-arrow-right-line"></i>
-              </button>
-            </div>
-          </div>
-        `).join('')}
-      </div>
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden" id="treemap-dataset-list"></div>
+      <div id="treemap-dataset-pagination" style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:16px;"></div>
     `;
 
     panel.appendChild(page);
@@ -1012,23 +1145,62 @@ export function renderDataMap(container, onSelectDataset) {
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    page.querySelectorAll('.dataset-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const dsId = card.dataset.id;
-        const dataset = categoryData.items.find(i => String(i.id) === String(dsId));
-        if (dataset) showTreemapDatasetDetail(dataset, categoryData);
-      });
-    });
+    // 페이지네이션
+    const PAGE_SIZE = 10;
+    let currentPage = 1;
+    const items = categoryData.items;
+    const totalPages = () => Math.max(1, Math.ceil(items.length / PAGE_SIZE));
 
-    page.querySelectorAll('.btn-dataset-detail').forEach(btn => {
-      btn.addEventListener('click', event => {
-        event.stopPropagation();
-        const dsId = btn.dataset.id;
-        const dataset = categoryData.items.find(i => String(i.id) === String(dsId));
-        if (dataset) showTreemapDatasetDetail(dataset, categoryData);
-      });
-    });
+    const renderCategoryPage = () => {
+      const listEl = page.querySelector('#treemap-dataset-list');
+      const paginationEl = page.querySelector('#treemap-dataset-pagination');
+      if (!listEl) return;
 
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const paged = items.slice(start, start + PAGE_SIZE);
+
+      listEl.innerHTML = paged.map(ds => {
+        const institution = ds.users?.[0] || '식품의약품안전처';
+        const keywords = [categoryData.subject, institution].filter(Boolean);
+        return `
+        <div class="dataset-card cursor-pointer" data-id="${ds.id}" style="padding:20px 24px;border-bottom:1px solid #f1f5f9;transition:background .12s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+            <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:${categoryBg};color:${categoryColor};border:1px solid ${categoryColor}33;">${categoryData.subject}</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">API</span>
+          </div>
+          <h4 style="font-size:17px;font-weight:700;color:#111827;margin:0 0 6px;line-height:1.4;">${ds.name}</h4>
+          <p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ds.description}</p>
+          <p style="font-size:12px;color:#9ca3af;margin:0;">키워드 : ${keywords.map(k => `<a style="color:#f97316;text-decoration:none;" href="#">${k}</a>`).join(', ')}</p>
+        </div>`;
+      }).join('');
+
+      listEl.querySelectorAll('.dataset-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const dataset = items.find(i => String(i.id) === String(card.dataset.id));
+          if (dataset) showTreemapDatasetDetail(dataset, categoryData);
+        });
+      });
+
+
+      // 페이지네이션 렌더
+      if (!paginationEl) return;
+      const tp = totalPages();
+      if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch(e) {} paginationEl.innerHTML = ''; return; }
+      try { $(paginationEl).pagination('destroy'); } catch(e) {}
+      $(paginationEl).pagination({
+        items: items.length,
+        itemsOnPage: PAGE_SIZE,
+        cssStyle: 'compact-theme',
+        currentPage: currentPage,
+        onPageClick: (pageNumber) => {
+          currentPage = pageNumber;
+          renderCategoryPage();
+          page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    };
+
+    renderCategoryPage();
     page.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 

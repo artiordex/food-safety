@@ -1,3 +1,5 @@
+process.env.LANG = 'en_US.UTF-8';
+
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -360,8 +362,8 @@ app.post('/api/searchDatasetList.do', (req, res) => {
       const svc_no = row.svc_no || '';
       const svc_nm = row.svc_nm || '';
       const cat = row.cat || '공공데이터';
-      const desc = row.description || '';
       const info = cacheMap[String(svc_no)] || {};
+      const desc = info.desc || row.description || '';
       const typeNm = info.data_type_nm || 'XML/JSON';
       const provdNm = info.provd_instt_nm || '식품의약품안전처';
 
@@ -377,6 +379,7 @@ app.post('/api/searchDatasetList.do', (req, res) => {
         cl_cd_nm: cat,
         svc_no,
         svc_nm,
+        desc,
         provd_instt_nm: provdNm,
         link_yn: typeNm === 'LINK' ? 'Y' : 'N',
         file_yn: 'N',
@@ -1581,6 +1584,24 @@ app.get('/api/wordcloud', (req, res) => {
       res.status(500).json({ error: e.message });
     }
   })();
+});
+
+// .do URL → pages/ HTML 파일 매핑
+const doRoutes = {
+  '/service/serviceIntro.do': '/service/serviceIntro.html',
+  '/service/serviceUse.do':   '/service/serviceUse.html',
+  '/data/datamap.do':         '/data/datamap.html',
+  '/data/dataset.do':         '/data/dataset.html',
+  '/data/analysis.do':        '/data/analysis.html',
+  '/data/scenario.do':        '/data/scenario.html',
+};
+Object.entries(doRoutes).forEach(([doUrl, htmlPath]) => {
+  app.get(doUrl, (req, res) => {
+    const filePath = path.join(__dirname, 'pages', htmlPath);
+    const keyword = req.query.search_keyword || '';
+    const html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
+    res.send(html);
+  });
 });
 
 // 프론트엔드 정적 리소스 서빙

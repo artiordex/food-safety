@@ -748,3 +748,41 @@ body {
 .api_btn1:hover {
     background-color: #1d4ed8;
 }
+
+/* compact-theme pagination (search.html 스타일 이식) */
+ul.simple-pagination { list-style:none; padding:0; margin:0; overflow:hidden; display:inline-flex; }
+ul.simple-pagination li { list-style:none; padding:0; margin:0; }
+ul.simple-pagination.compact-theme a,
+ul.simple-pagination.compact-theme span {
+  font-family: Tahoma, sans-serif;
+  display: block;
+  color: #3686be;
+  font-size: 14px;
+  line-height: 37px;
+  text-align: center;
+  border: 1px solid #BBB;
+  border-left: none;
+  min-width: 14px;
+  background: #FFF;
+  height: 37px;
+  padding: 0 15px;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+ul.simple-pagination.compact-theme li:first-child a,
+ul.simple-pagination.compact-theme li:first-child span {
+  border-left: 1px solid #BBB;
+  border-radius: 3px 0 0 3px;
+}
+ul.simple-pagination.compact-theme li:last-child a,
+ul.simple-pagination.compact-theme li:last-child span {
+  border-radius: 0 3px 3px 0;
+}
+ul.simple-pagination.compact-theme a:hover { background: #F6F6F6; text-decoration: none; }
+ul.simple-pagination.compact-theme .current { background: #F6F6F6; color: #414151; cursor: default; }
+ul.simple-pagination.compact-theme .ellipse { background: #FFF; cursor: default; color: #999; }
+ul.simple-pagination.compact-theme .disabled { color: #ccc; cursor: default; pointer-events: none; }
+ul.simple-pagination.compact-theme .prev,
+ul.simple-pagination.compact-theme .next { text-indent: 0 !important; background-image: none !important; height: 37px; padding: 0; }

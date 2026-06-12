@@ -1655,23 +1655,52 @@ export function renderCombinedErdMap(container) {
     container.querySelector('#cem-max-nodes')?.addEventListener('change', e => {
       maxNodesLimit=parseInt(e.target.value); renderNetwork();
     });
-    container.querySelector('#cem-fit')?.addEventListener('click', () =>
-      networkInstance?.fit({ animation:{ duration:800, easingFunction:'easeInOutQuad' } })
-    );
+    container.querySelector('#cem-fit')?.addEventListener('click', () => {
+      networkInstance?.fit({ animation:{ duration:600, easingFunction:'easeInOutQuad' } });
+      setTimeout(() => {
+        if(networkInstance) networkInstance.moveTo({ scale: networkInstance.getScale() * 0.85, animation: { duration: 300 } });
+      }, 650);
+    });
     container.querySelector('#cem-capture')?.addEventListener('click', () => {
       if (!networkInstance) return;
       const btn = container.querySelector('#cem-capture');
       if (btn) { btn.disabled=true; btn.innerHTML='<i class="ri-loader-4-line animate-spin"></i> 캡처 중...'; }
+      const pos = networkInstance.getPositions();
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      Object.keys(pos).forEach(id => {
+        const p = pos[id];
+        minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+      });
+      // 노드 크기를 고려한 여백(패딩)
+      minX -= 250; minY -= 150; maxX += 250; maxY += 150;
+      if (minX > maxX) { minX = 0; maxX = 1600; minY = 0; maxY = 1200; }
+      
+      const gW = maxX - minX;
+      const gH = maxY - minY;
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      
+      // 고해상도를 위해 최대 긴 변을 4800px로 제한하되, 요소가 적을 때 과도하게 커지는 것을 방지(최대 스케일 4)
+      const maxDim = 4800;
+      const scale = Math.min(maxDim / Math.max(gW, gH, 1), 4);
+      const pixelW = Math.round(gW * scale);
+      const pixelH = Math.round(gH * scale);
+
       const off = document.createElement('div');
-      off.style.cssText = 'position:fixed;top:0;left:0;width:3200px;height:2400px;z-index:-9999;background:#f8fafc;pointer-events:none;';
+      off.style.cssText = `position:fixed;top:0;left:0;width:${pixelW}px;height:${pixelH}px;z-index:-9999;background:#f8fafc;pointer-events:none;`;
       document.body.appendChild(off);
+      
       const expNet = new vis.Network(off,
         { nodes:new vis.DataSet(networkInstance.body.data.nodes.get()), edges:new vis.DataSet(networkInstance.body.data.edges.get()) },
         { physics:{enabled:false}, interaction:{dragNodes:false,zoomView:false} }
       );
-      const pos = networkInstance.getPositions();
+      
       Object.keys(pos).forEach(id => { try { expNet.moveNode(id, pos[id].x, pos[id].y); } catch{} });
-      expNet.fit({ animation:false });
+      
+      // fit 대신 정확하게 계산된 중앙 좌표와 스케일로 이동하여 빈 여백 제거
+      expNet.moveTo({ position: { x: cx, y: cy }, scale: scale, animation: false });
+      
       setTimeout(() => {
         const cvs = off.querySelector('canvas');
         if (cvs) {
@@ -1694,5 +1723,12 @@ export function renderCombinedErdMap(container) {
   loadData().then(() => {
     renderNetwork();
     bindEvents();
+
+    // 이미 검색어가 입력된 상태에서 ERD 탭을 열었을 때 자동으로 필터링
+    const kwInput = document.getElementById('datamap-keyword-search');
+    const kw = kwInput?.value.trim() || '';
+    if (kw) {
+      document.getElementById('btn-datamap-keyword-search')?.click();
+    }
   });
 }

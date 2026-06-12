@@ -5,9 +5,9 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js",
+    "start": "chcp 65001 && node server.js",
     "crawl": "node crawler/crawler_api.js",
-    "report": "node crawler/crawler_and_report.js",
+    "report": "chcp 65001 && node crawler/crawler_and_report.js",
     "db:import": "node db/import_to_sqlite.js",
     "db:analyze": "node db/analyze_pk_fk.js",
     "db:check-joins": "node db/check_joins.js",

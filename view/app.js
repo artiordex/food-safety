@@ -1,36 +1,33 @@
-import { renderDatasetExplorer } from './components/datasetExplorer.js';
-import { renderDataMap } from './components/dataMap.js';
-import { renderErdMap } from './components/erdMap.js';
-import { renderRelationDataMap } from './components/relationDataMap.js';
-import { renderDetailPanel } from './components/detailPanel.js';
-import { renderSqlPlayground } from './components/sqlPlayground.js';
-import { renderApiExplorer } from './components/apiExplorer.js';
-import { renderApiLiveJoin } from './components/apiLiveJoin.js';
-import { renderLocalHygiene } from './components/localHygiene.js';
-import { renderBarcodeSearch } from './components/barcodeSearch.js';
-import { renderSuperErdMap } from './components/superErdMap.js';
-import { renderSauceDataMap } from './components/sauceDataMap.js';
-import { renderDbErdMap } from './components/dbErdMap.js';
-import { renderNongshimDataset } from './components/nongshimDataset.js';
-import { renderWordCloud } from './components/wordCloud.js';
-import { renderScenarioTabs } from './components/scenarioRecommend.js';
+import { renderDatasetExplorer } from './components/datasetExplorer.js?v=2';
+import { renderDataMap } from './components/dataMap.js?v=2';
+import { renderErdMap } from './components/erdMap.js?v=2';
+import { renderRelationDataMap } from './components/relationDataMap.js?v=2';
+import { renderDetailPanel } from './components/detailPanel.js?v=2';
+import { renderSqlPlayground } from './components/sqlPlayground.js?v=2';
+import { renderApiExplorer } from './components/apiExplorer.js?v=2';
+import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=2';
+import { renderSuperErdMap } from './components/superErdMap.js?v=2';
+import { renderSauceDataMap } from './components/sauceDataMap.js?v=2';
+import { renderDbErdMap } from './components/dbErdMap.js?v=2';
+import { renderWordCloud } from './components/wordCloud.js?v=2';
+import { renderScenarioTabs } from './components/scenarioRecommend.js?v=2';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
 
 const path = window.location.pathname;
-if (path.includes('/data/dataset.html')) {
+if (path.includes('/data/dataset.do')) {
   activeTab = urlParams.get('tab') || 'explorer';
-} else if (path.includes('/data/datamap.html')) {
+} else if (path.includes('/data/datamap.do')) {
   activeTab = urlParams.get('tab') || 'datamap';
 } else if (path.includes('/data/erdmap.html')) {
   activeTab = urlParams.get('tab') || 'erdmap';
 } else if (path.includes('/data/dberd.html')) {
   activeTab = urlParams.get('tab') || 'db-erd';
-} else if (path.includes('/data/scenario.html')) {
+} else if (path.includes('/data/scenario.do')) {
   activeTab = urlParams.get('tab') || 'recommend-beginner';
   if (activeTab === 'recommend') activeTab = 'recommend-beginner';
-} else if (path.includes('/data/analysis.html')) {
+} else if (path.includes('/data/analysis.do')) {
   activeTab = urlParams.get('tab') || 'sql-playground';
 } else {
   // 인덱스 페이지 등 기타 가변 서빙에 대한 분기
@@ -111,16 +108,10 @@ const renderTabContent = () => {
     renderApiExplorer(currentView, onSelectDataset);
   } else if (activeTab === 'api-live-join') {
     renderApiLiveJoin(currentView, onSelectDataset);
-  } else if (activeTab === 'api-hygiene') {
-    renderLocalHygiene(currentView, onSelectDataset);
-  } else if (activeTab === 'api-barcode') {
-    renderBarcodeSearch(currentView, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
     renderSauceDataMap(currentView, initialSearchKeyword, onSelectDataset);
   } else if (activeTab === 'db-erd') {
     renderDbErdMap(currentView);
-  } else if (activeTab === 'nongshim-spec') {
-    renderNongshimDataset(currentView);
   } else if (activeTab === 'wordcloud') {
     renderWordCloud(currentView, onSelectDataset, globalDatamapKeyword);
   } else if (activeTab === 'recommend-beginner') {
@@ -138,9 +129,9 @@ const updateActiveTabUI = () => {
 
   if (datamapTabBar) {
     // 쪼개진 정적 페이지에 속한 서브 탭들의 보임/숨김 제어
-    const isDatamapPage = window.location.pathname.includes('/data/datamap.html');
-    const isScenarioPage = window.location.pathname.includes('/data/scenario.html');
-    const isAnalysisPage = window.location.pathname.includes('/data/analysis.html');
+    const isDatamapPage = window.location.pathname.includes('/data/datamap.do');
+    const isScenarioPage = window.location.pathname.includes('/data/scenario.do');
+    const isAnalysisPage = window.location.pathname.includes('/data/analysis.do');
 
     datamapTabBar.style.display = (isDatamapPage || isScenarioPage || isAnalysisPage) ? 'block' : 'none';
     if (datamapTabs) datamapTabs.style.display = isDatamapPage ? 'flex' : 'none';
@@ -149,7 +140,7 @@ const updateActiveTabUI = () => {
   }
 
   // datamap 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatamapPage = window.location.pathname.includes('/data/datamap.html');
+  const isDatamapPage = window.location.pathname.includes('/data/datamap.do');
   if (isDatamapPage) {
     const container = document.getElementById('datamap-tabs-container');
     if (container) {
@@ -166,7 +157,7 @@ const updateActiveTabUI = () => {
   }
 
   // dataset 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatasetPage = window.location.pathname.includes('/data/dataset.html');
+  const isDatasetPage = window.location.pathname.includes('/data/dataset.do');
   if (isDatasetPage) {
     const container = document.getElementById('dataset-tabs-container');
     if (container) {
@@ -183,7 +174,7 @@ const updateActiveTabUI = () => {
   }
 
   // analysis 페이지의 통합 탭바 디자인 활성화 제어
-  const isAnalysisPage = window.location.pathname.includes('/data/analysis.html');
+  const isAnalysisPage = window.location.pathname.includes('/data/analysis.do');
   if (isAnalysisPage) {
     const container = document.getElementById('analysis-tabs-container');
     if (container) {
@@ -200,7 +191,7 @@ const updateActiveTabUI = () => {
   }
 
   // scenario 페이지의 통합 탭바 디자인 활성화 제어
-  const isScenarioPage = window.location.pathname.includes('/data/scenario.html');
+  const isScenarioPage = window.location.pathname.includes('/data/scenario.do');
   if (isScenarioPage) {
     const container = document.getElementById('scenario-tabs-container');
     if (container) {
@@ -265,20 +256,20 @@ const updateActiveTabUI = () => {
 };
 
 const TAB_PAGES = {
-  'explorer': '/data/dataset.html',
-  'datamap': '/data/datamap.html',
-  'keyword-datamap': '/data/datamap.html',
-  'erdmap': '/data/datamap.html',
-  'db-erd': '/data/datamap.html',
-  'recommend-beginner': '/data/scenario.html',
-  'recommend-developer': '/data/scenario.html',
-  'sql-playground': '/data/analysis.html',
-  'api-explorer': '/data/dataset.html',
-  'api-live-join': '/data/analysis.html',
-  'api-hygiene': '/data/analysis.html',
-  'api-barcode': '/data/analysis.html',
-  'nongshim-spec': '/data/analysis.html',
-  'wordcloud': '/data/datamap.html'
+  'explorer': '/data/dataset.do',
+  'datamap': '/data/datamap.do',
+  'keyword-datamap': '/data/datamap.do',
+  'erdmap': '/data/datamap.do',
+  'db-erd': '/data/datamap.do',
+  'recommend-beginner': '/data/scenario.do',
+  'recommend-developer': '/data/scenario.do',
+  'sql-playground': '/data/analysis.do',
+  'api-explorer': '/data/dataset.do',
+  'api-live-join': '/data/analysis.do',
+  'api-hygiene': '/data/analysis.do',
+  'api-barcode': '/data/analysis.do',
+  'nongshim-spec': '/data/analysis.do',
+  'wordcloud': '/data/datamap.do'
 };
 
 const changeTab = (tabId) => {

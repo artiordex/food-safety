@@ -138,7 +138,8 @@ function applyPanZoom(svgEl, wrap) {
 function fitView(wrap) {
   const cw = wrap.clientWidth || 800;
   const ch = wrap.clientHeight || 550;
-  const s = Math.min(cw / W, ch / H) * 0.88;
+  // 기존 0.88에서 0.70으로 줄여 캡처 시 여백 확보 (가장자리 짤림 방지)
+  const s = Math.min(cw / W, ch / H) * 0.70;
   setTransform({ x: (cw - W * s) / 2, y: (ch - H * s) / 2, scale: s });
 }
 
@@ -324,13 +325,22 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
     tooltip.style('top', (event.pageY - 36) + 'px').style('left', (event.pageX + 12) + 'px');
   })
   .on('mouseout', function(event, d) {
-    d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', d.type === 'leaf' ? 0 : 2);
+    if (d.type === 'center') return;
+    d3.select(this).select('circle')
+      .attr('stroke', d.type === 'table' ? d.color : (d.type === 'domain' ? '#ffffff' : 'none'))
+      .attr('stroke-width', d.type === 'table' ? 3 : (d.type === 'domain' ? 2 : 0));
     tooltip.style('visibility', 'hidden');
   })
   .on('click', function(event, d) {
     event.stopPropagation();
     if (d.type === 'center') return;
-    d3.selectAll('[data-node] circle').attr('stroke', '#fff').attr('stroke-width', d => d.type === 'leaf' ? 0 : 2);
+    
+    // 선택 안 된 다른 노드들을 원래 색상으로 복구
+    d3.selectAll('[data-node] circle')
+      .attr('stroke', dd => dd.type === 'table' ? dd.color : (dd.type === 'domain' ? '#ffffff' : 'none'))
+      .attr('stroke-width', dd => dd.type === 'table' ? 3 : (dd.type === 'domain' ? 2 : 0));
+      
+    // 클릭한 노드만 강조
     d3.select(this).select('circle').attr('stroke', '#fbbf24').attr('stroke-width', 3);
     if (onNodeClick) onNodeClick(d);
   });
