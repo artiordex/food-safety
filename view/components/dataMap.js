@@ -1,6 +1,6 @@
 import { getDatasetsSync } from '../datasetStore.js';
 import { renderKeywordGraph } from './keywordGraph.js';
-import { renderCombinedErdMap } from './dbErdMap.js';
+import { renderCombinedErdMap } from './dbErdMap.js?v=3';
 
 export function renderDataMap(container, onSelectDataset) {
   // DB에서 데이터 가져오기
@@ -143,7 +143,28 @@ export function renderDataMap(container, onSelectDataset) {
       }
     };
 
+    const renderKeywordDependentTabs = (kw) => {
+      if (!kw) {
+        resetErdPanel();
+        resetKeywordVisualization();
+        return;
+      }
+
+      restoreKwmapSpinner();
+      renderKeywordGraph(kw);
+
+      const erdPanel = view.querySelector('#content-panel-erd');
+      if (erdPanel) {
+        erdRendered = true;
+        showErdSpinner(erdPanel);
+        renderCombinedErdMap(erdPanel);
+      }
+    };
+
+    let activeContentTab = 'treemap';
+
     const switchContentTab = (active) => {
+      activeContentTab = active;
       ALL_TABS.forEach(t => {
         const panel = view.querySelector(`#content-panel-${t}`);
         const btn = view.querySelector(`#content-tab-btn-${t}`);
@@ -170,13 +191,16 @@ export function renderDataMap(container, onSelectDataset) {
           restoreKwmapSpinner();
           renderKeywordGraph(kw);
         }
-        if (t === 'erd' && !erdRendered) {
+        if (t === 'erd') {
           const kw = view.querySelector('#datamap-keyword-search')?.value.trim() || '';
           const panel = view.querySelector('#content-panel-erd');
           if (!kw) {
             resetErdPanel();
             return;
           }
+          const canvas = panel?.querySelector('#cem-canvas');
+          const hasRenderedErd = !!canvas?.querySelector('svg, canvas, .vis-network');
+          if (erdRendered && hasRenderedErd) return;
           erdRendered = true;
           showErdSpinner(panel);
           if (panel) renderCombinedErdMap(panel);
@@ -225,7 +249,6 @@ export function renderDataMap(container, onSelectDataset) {
       const summary = view.querySelector('#keyword-result-summary');
       const cardsEl = view.querySelector('#keyword-dataset-cards');
       const vizEl = view.querySelector('#keyword-viz-container');
-      console.log('[dataMap] renderSearchResults called, kw=', kw, 'cardsEl=', cardsEl);
       if (!cardsEl) { console.warn('[dataMap] #keyword-dataset-cards NOT FOUND in view'); return; }
 
       // 탭 바 표시 (최초 검색 시)
@@ -237,10 +260,9 @@ export function renderDataMap(container, onSelectDataset) {
       if (graphWrap) graphWrap.dataset.panzoom = ''; // panzoom 재등록 허용 안함, keyword만 리셋
       // keywordGraph.js의 _currentKeyword를 리셋하기 위해 kwmap-svg-wrap 비움
       const svgWrapEl = view.querySelector('#kwmap-svg-wrap');
-      if (svgWrapEl && kw) svgWrapEl.innerHTML = '';
       if (!kw) resetKeywordVisualization();
-      // ERD: 새 검색 시 재렌더 허용
-      erdRendered = false;
+      // ERD: 검색 버튼에서 미리 렌더링되므로 빈 검색어일 때만 초기화한다.
+      if (!kw) erdRendered = false;
       // 탭은 현재 위치 유지 (검색 결과는 탭 외부에 표시)
 
       // 로딩 상태
@@ -498,15 +520,29 @@ export function renderDataMap(container, onSelectDataset) {
     // 키워드 데이터맵 검색 버튼 연동
     const searchBtn = view.querySelector('#btn-datamap-keyword-search');
     if (searchBtn) {
-      const doSearch = () => {
+      const doSearch = async () => {
         // 항상 현재 DOM에서 input 값을 읽음
         const input = view.querySelector('#datamap-keyword-search');
         const kw = input ? input.value.trim() : '';
-        if (!kw) {
-          resetErdPanel();
-          resetKeywordVisualization();
+        const targetTab = kw
+          ? (activeContentTab === 'erd' ? 'erd' : 'visualization')
+          : activeContentTab;
+        await renderSearchResults(kw);
+        switchContentTab(targetTab);
+        renderKeywordDependentTabs(kw);
+        if (kw && targetTab === 'visualization') {
+          restoreKwmapSpinner();
+          renderKeywordGraph(kw);
         }
-        renderSearchResults(kw);
+        if (kw && targetTab === 'erd') {
+          const panel = view.querySelector('#content-panel-erd');
+          const canvas = panel?.querySelector('#cem-canvas');
+          if (!canvas?.querySelector('svg, canvas, .vis-network')) {
+            erdRendered = true;
+            showErdSpinner(panel);
+            if (panel) renderCombinedErdMap(panel);
+          }
+        }
       };
 
       // 버튼만 교체 (input은 건드리지 않음)
@@ -517,7 +553,9 @@ export function renderDataMap(container, onSelectDataset) {
       // input Enter 키
       const searchInput = view.querySelector('#datamap-keyword-search');
       if (searchInput) {
-        searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+        const newInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newInput, searchInput);
+        newInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
       }
     }
 

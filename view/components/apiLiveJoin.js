@@ -1,3 +1,6 @@
+// 실시간 API 조인 분석 컴포넌트
+// 식약처 외부 OpenAPI에서 두 테이블 데이터를 병렬 크롤링 후 메모리 상에서 Inner Join하여 결과를 표시합니다.
+
 import { getDatasets } from '../datasetStore.js';
 
 export async function renderApiLiveJoin(container, onSelectDataset) {
@@ -7,6 +10,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
   // 이름순 정렬
   apiTables.sort((a, b) => a.name.localeCompare(b.name));
 
+  // 컴포넌트 전체 UI를 container에 렌더링하는 함수 (테이블 선택, 조인 키 입력, 결과 영역 포함)
   const render = () => {
     container.innerHTML = `
       <section style="padding:40px 0; background:#f8f9fb;">
@@ -103,6 +107,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
     bindEvents();
   };
 
+  // 이벤트 리스너 등록 함수: 테이블 선택, 조인 키 추천, 스캔 시작, SSE 스트림 처리
   const bindEvents = () => {
     const btnStart = container.querySelector('#btn-start-join');
     const selA = container.querySelector('#select-table-a');
@@ -243,6 +248,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
       };
     });
 
+    // 로그 패널에 타입별 색상과 함께 메시지를 추가하고 자동 스크롤하는 함수
     const appendLog = (type, msg) => {
       let colorClass = 'text-slate-300';
       if (type === 'ERROR') colorClass = 'text-rose-400';
@@ -256,6 +262,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
       logContent.scrollTop = logContent.scrollHeight;
     };
 
+    // SSE 스트림 종료 후 버튼 상태를 복원하는 함수
     const finishStreaming = () => {
       if (eventSource) {
         eventSource.close();
@@ -266,6 +273,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
       btnStart.classList.remove('opacity-70');
     };
 
+    // 조인 결과 데이터를 결과 영역 테이블로 렌더링하는 함수 (최대 500건 표시)
     const renderResult = (rows, totalMatched) => {
       if (!rows || rows.length === 0) {
         appendLog('WARN', '조인된 결과 데이터가 없습니다. (두 테이블 간 조인 키의 실제 데이터 값이 일치하는 항목이 없음)');

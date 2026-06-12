@@ -1,3 +1,6 @@
+// 워드 클라우드 컴포넌트
+// 선택한 데이터세트의 컬럼값 빈도를 분석하여 d3-cloud로 시각화합니다.
+
 import { getDatasets } from '../datasetStore.js';
 
 export async function renderWordCloud(container, onSelectDataset, keyword = '') {
@@ -59,6 +62,8 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
   
   let currentFetchTimeout = null;
 
+  // 지정한 테이블의 워드클라우드 데이터를 서버에서 가져와 d3-cloud로 렌더링하는 함수
+  // 서버가 202(빌딩 중)를 반환하면 2초 후 재시도
   const fetchWordCloudData = (tableName) => {
     if (currentFetchTimeout) clearTimeout(currentFetchTimeout);
     
@@ -94,6 +99,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
           return;
         }
 
+        // d3-cloud 레이아웃으로 단어 배치를 계산하고 SVG로 그리는 내부 함수
         const drawCloud = () => {
           if (!cloudContainer) return;
           
@@ -187,7 +193,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
   const filterInput = container.querySelector('#wc-keyword-filter');
   const filterBtn = container.querySelector('#btn-wc-filter');
 
-  // 필터 적용: 키워드에 맞는 데이터세트만 드롭다운에 표시
+  // 필터 입력값 기준으로 데이터세트 드롭다운 옵션을 재구성하는 함수
   const applyFilter = () => {
     const kw = filterInput ? filterInput.value.trim() : '';
     const newOptions = '<option value="ALL">전체 통합 데이터베이스 (ALL)</option>' + buildOptions(kw);
@@ -214,7 +220,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
     fetchWordCloudData('ALL');
   }
 
-  // 캡처 기능 구현 (SVG -> Canvas -> PNG)
+  // SVG를 Canvas에 렌더링 후 PNG로 다운로드하는 캡처 기능
   if (captureBtn) {
     captureBtn.addEventListener('click', () => {
       const svg = container.querySelector('#wordcloud-canvas svg');

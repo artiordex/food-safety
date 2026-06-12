@@ -1,3 +1,7 @@
+// 데이터세트 상세 패널 컴포넌트
+// 데이터세트 선택 시 우측에 슬라이드인 패널로 상세 정보(컬럼, 샘플 데이터, API 명세)를 표시합니다.
+
+// 주제 분류별 배지 색상 매핑 (Tailwind 클래스)
 const subjectColorMap = {
   '융합 데이터 세트': 'bg-indigo-50 text-indigo-700 border-indigo-200',
   '식품·제품': 'bg-teal-50 text-teal-700 border-teal-200',
@@ -24,7 +28,7 @@ export function renderDetailPanel(dataset, onClose) {
     }
   };
   
-  // Clean up any existing listeners just in case
+  // 이전 ESC 키 리스너가 중복 등록되지 않도록 기존 리스너 제거 후 재등록
   window.removeEventListener("keydown", window._detailPanelEscHandler);
   window._detailPanelEscHandler = handleEsc;
   window.addEventListener("keydown", window._detailPanelEscHandler);
@@ -205,10 +209,11 @@ export function renderDetailPanel(dataset, onClose) {
     </div>
   `;
 
-  // 실시간 하이브리드(로컬-라이브) 데이터 조회 연동
+  // 로컬 DB 또는 실시간 OpenAPI에서 데이터를 가져오는 하이브리드 프리뷰 로직
   let currentSource = dataset.id.startsWith('v_') ? 'local' : 'live';
   let previewLimit = 10;
 
+  // 현재 소스 모드(로컬/라이브)에 따라 프리뷰 데이터를 로드하고 테이블로 렌더링하는 함수
   const loadLivePreview = async () => {
     const previewContainer = container.querySelector('#live-db-preview-container');
     if (!previewContainer) return;
@@ -341,6 +346,7 @@ export function renderDetailPanel(dataset, onClose) {
     }
   };
 
+  // 로컬 DB / 실시간 OpenAPI 전환 버튼에 클릭 이벤트를 등록하는 함수
   const bindToggleListeners = () => {
     const localBtn = container.querySelector('#toggle-source-local');
     const liveBtn = container.querySelector('#toggle-source-live');

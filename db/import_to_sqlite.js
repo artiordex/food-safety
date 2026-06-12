@@ -476,7 +476,12 @@ function loadDatasets(cachePath) {
         throw new Error(`캐시 파일 없음: ${cachePath} → 먼저 크롤러를 실행하세요.`);
     }
 
-    const datasets = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+    let datasets;
+    try {
+        datasets = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+    } catch (e) {
+        throw new Error(`캐시 파일 JSON 파싱 실패: ${cachePath}\n원인: ${e.message}`);
+    }
     if (!Array.isArray(datasets)) {
         throw new Error('캐시 파일 형식이 배열이 아닙니다. crawl_cache.json 형식을 확인하세요.');
     }
@@ -503,20 +508,6 @@ function loadRecordsMap(datasets, samplesDir) {
 }
 
 // enrichDatasetsWithSqlTypes: datasets의 각 field에 대해 inferColumnSpec로 sqlType을 채움
-function enrichDatasetsWithSqlTypes(datasets, recordsMap) {
-    return datasets.map(ds => {
-        const svcNo = String(ds.svc_no || '').trim();
-        const records = recordsMap.get(svcNo) || [];
-        const fields = (Array.isArray(ds.fields) ? ds.fields : [])
-            .filter(f => !isSystemSampleField(f.field || f.field_id || ''))
-            .map(f => ({
-                ...f,
-                sqlType: inferColumnSpec(f, records).sqlType
-            }));
-        return { ...ds, fields };
-    });
-}
-
 function enrichDatasetsWithSqlTypes(datasets, recordsMap) {
     return datasets.map(ds => {
         const svcNo = String(ds.svc_no || '').trim();
@@ -919,7 +910,7 @@ async function insertRecords(db, svcNo, records, colMeta) {
         log('INFO', `데이터 INSERT: ${records.length}행`);
         return records.length;
     } catch (err) {
-        await runSql(db, 'ROLLBACK').catch(() => { });
+        await runSql(db, 'ROLLBACK').catch(e => log('WARN', `ROLLBACK 실패 (${svcNo}): ${e.message}`));
         log('WARN', `INSERT 실패 (${svcNo}): ${err.message}`);
         return 0;
     }
@@ -1183,7 +1174,7 @@ async function run({
         });
 
     } finally {
-        await closeDb(db);
+        if (db) await closeDb(db);
     }
 }
 

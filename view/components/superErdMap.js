@@ -1,4 +1,8 @@
+// 초융합 ERD 데이터맵 컴포넌트
+// 식약처 6개 핵심 테이블에서 각 5,000건을 병렬 수집하여 실시간으로 조인 관계와 ERD를 시각화합니다.
+
 export function renderSuperErdMap(container, onSelectDataset) {
+  // 컴포넌트 레이아웃 HTML을 렌더링하고 데이터 로드를 시작하는 함수
   const render = () => {
     container.innerHTML = `
       <section class="max-w-[1600px] mx-auto px-4 md:px-8 py-8 animate-fade-in flex flex-col h-full min-h-[90vh]">
@@ -62,6 +66,7 @@ export function renderSuperErdMap(container, onSelectDataset) {
     loadData();
   };
 
+  // 서버에서 생태계 데이터를 가져와 Mermaid ERD와 Vis.js 네트워크 맵을 렌더링하는 함수
   const loadData = async () => {
     const loading = container.querySelector('#loading-indicator');
     const content = container.querySelector('#dashboard-content');
@@ -117,7 +122,7 @@ export function renderSuperErdMap(container, onSelectDataset) {
         mermaid.init(undefined, mermaidContainer.querySelectorAll('.mermaid'));
       }
 
-      // --- Render Vis.js Circular Map ---
+      // Vis.js 포스 기반 원형 네트워크 맵 렌더링
       const visContainer = container.querySelector('#vis-network-container');
       if (window.vis && window.vis.Network) {
         const visNodes = new vis.DataSet(data.nodes);
@@ -151,11 +156,11 @@ export function renderSuperErdMap(container, onSelectDataset) {
         visContainer.innerHTML = '<span class="text-slate-400 p-4">vis.js 라이브러리를 로드할 수 없습니다.</span>';
       }
 
-      // Show content
+      // 로딩 인디케이터를 숨기고 대시보드 콘텐츠를 표시
       loading.classList.add('hidden');
       content.classList.remove('opacity-0');
 
-      // --- Render Sample Data Tables ---
+      // 통합 조인 샘플 데이터를 테이블 형태로 하단에 렌더링
       const sampleContainer = document.createElement('div');
       sampleContainer.className = "col-span-1 lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden mt-2 flex flex-col";
       
@@ -166,6 +171,7 @@ export function renderSuperErdMap(container, onSelectDataset) {
         </div>
         <div class="p-6">`;
         
+      // 조인 결과 rows 배열을 가로 스크롤 테이블 HTML로 변환하는 내부 함수
       const renderWideTable = (rows) => {
         if (!rows || rows.length === 0) return '<div class="p-4 text-slate-500 text-center">조인된 데이터가 없습니다.</div>';
         const keys = Object.keys(rows[0]);

@@ -1,4 +1,6 @@
-// ERD형 공공데이터 연계 데이터맵 시각화 컴포넌트
+// ERD 데이터맵 컴포넌트 (Mermaid.js 기반)
+// 식품안전나라 주요 테이블 간의 관계를 ERD 다이어그램 탭 형태로 표시합니다.
+
 export function renderErdMap(container, onSelectDataset) {
   let activeErdTab = 'core'; // 'core', 'license', 'haccp', 'product', 'standards', 'safety', 'import', 'nutrition', 'discipline'
 
@@ -390,6 +392,7 @@ erDiagram
     }
   };
 
+  // 활성 탭에 해당하는 ERD 다이어그램과 도메인 설명을 포함한 전체 UI를 렌더링하는 함수
   const render = () => {
     container.innerHTML = `
       <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
@@ -486,6 +489,7 @@ erDiagram
     renderMermaid();
   };
 
+  // Mermaid 라이브러리를 초기화하고 현재 탭의 ERD 다이어그램을 렌더링하는 함수
   const renderMermaid = () => {
     try {
       // Mermaid 초기화 및 렌더 가동
@@ -505,6 +509,7 @@ erDiagram
     }
   };
 
+  // 탭 버튼 클릭 이벤트를 등록하는 함수 (탭 전환 시 activeErdTab 변경 후 재렌더링)
   const bindEvents = () => {
     container.querySelectorAll('.erd-tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {

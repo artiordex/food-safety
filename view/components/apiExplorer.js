@@ -1,4 +1,6 @@
 // view/components/apiExplorer.js
+// 식약처 OpenAPI 탐색기 컴포넌트
+// 데이터셋 목록을 검색·선택하고 로컬 에뮬레이터 또는 실제 외부 API로 테스트 호출합니다.
 import { getDatasets } from '../datasetStore.js';
 
 export async function renderApiExplorer(container, onSelectDataset) {
@@ -26,6 +28,7 @@ export async function renderApiExplorer(container, onSelectDataset) {
   let isApiCalling = false;
   let callDuration = 0; // ms
 
+  // 선택된 API와 소스 모드에 따라 실제 호출을 수행하고 응답 상태를 저장하는 함수
   const fetchApiResponse = async () => {
     isApiCalling = true;
     apiResponse = null;
@@ -61,6 +64,7 @@ export async function renderApiExplorer(container, onSelectDataset) {
     }
   };
 
+  // 전체 API 탐색기 UI를 갱신하는 함수 (API 목록, 요약 카드, 파라미터 표, 응답 박스 포함)
   const render = () => {
     const view = document.getElementById('api-explorer-view');
     if (!view) return;
@@ -316,6 +320,7 @@ export async function renderApiExplorer(container, onSelectDataset) {
     }
   };
 
+  // API 목록 검색 입력 이벤트를 바인딩하는 함수
   const bindEvents = () => {
     const view = document.getElementById('api-explorer-view');
     if (!view) return;

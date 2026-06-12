@@ -5,6 +5,7 @@
  * 이 파일은 #kwmap-graph-container 안의 SVG와 #kwmap-detail-panel 만 담당합니다.
  */
 
+// 카테고리별 고정 색상 매핑 (도메인 이름 → 색상 코드)
 const CATEGORY_COLORS = {
   '식품영양정보': '#16a34a',
   '기준규격정보': '#2563eb',
@@ -27,6 +28,7 @@ const CATEGORY_COLORS = {
   '기타': '#475569'
 };
 
+// CATEGORY_COLORS에 없는 도메인에 대한 순환 폴백 색상 목록
 const FALLBACK_COLORS = [
   '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
   '#0891b2', '#ea580c', '#4f46e5', '#db2777', '#0d9488',
@@ -34,12 +36,15 @@ const FALLBACK_COLORS = [
   '#059669', '#be123c', '#475569'
 ];
 
+// 도메인명에 해당하는 색상을 반환하는 헬퍼 함수 (없으면 폴백 색상 순환)
 function getCategoryColor(domain, index = 0) {
   return CATEGORY_COLORS[domain] || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
 }
 
+// SVG 캔버스 크기 및 중심 좌표 상수
 const W = 1800, H = 1400, CX = W / 2, CY = H / 2;
 
+// 전역 상태 변수: D3 시뮬레이션, 타이머, 현재 키워드, 변환 정보 등
 let _sim = null;
 let _settleTimer = null;
 let _currentKeyword = '';
@@ -72,6 +77,7 @@ function appendKwText(parentG, text, kw, x, y, anchor, fontSize, fontWeight, fil
   });
 }
 
+// 긴 텍스트에서 키워드 주변 일부를 잘라내어 말줄임 처리하는 함수
 function snippet(text, kw, maxLen = 24) {
   if (!text) return '';
   if (text.length <= maxLen) return text;
@@ -80,6 +86,7 @@ function snippet(text, kw, maxLen = 24) {
   return '..' + text.substring(Math.max(0, idx - 5), Math.max(0, idx - 5) + maxLen - 4) + '..';
 }
 
+// 로딩 인디케이터를 표시하고 SVG 래퍼와 줌 버튼을 숨기는 함수
 function showLoading(text = '데이터 불러오는 중...') {
   const el = document.getElementById('kwmap-loading');
   const txt = document.getElementById('kwmap-loading-text');
@@ -91,6 +98,7 @@ function showLoading(text = '데이터 불러오는 중...') {
   if (zbtns) zbtns.style.display = 'none';
 }
 
+// 로딩 인디케이터를 숨기고 SVG 래퍼와 줌 버튼을 표시하는 함수
 function hideLoading() {
   const el = document.getElementById('kwmap-loading');
   if (el) el.style.display = 'none';
@@ -100,17 +108,20 @@ function hideLoading() {
   if (zbtns) zbtns.style.display = '';
 }
 
+// 오류 메시지를 에러 엘리먼트에 표시하는 함수
 function showError(msg) {
   const el = document.getElementById('kwmap-error');
   if (el) { el.textContent = '⚠️ ' + msg; el.style.removeProperty('display'); }
   hideLoading();
 }
 
+// SVG 그룹의 translate/scale 변환 값을 업데이트하는 함수
 function setTransform(t) {
   _transform = { ..._transform, ...t };
   if (_svgG) _svgG.attr('transform', `translate(${_transform.x},${_transform.y}) scale(${_transform.scale})`);
 }
 
+// 마우스 드래그(패닝) 및 휠(줌) 이벤트를 등록하는 함수
 function applyPanZoom(svgEl, wrap) {
   let dragging = false, startX = 0, startY = 0, startTx = 0, startTy = 0;
 
@@ -135,6 +146,7 @@ function applyPanZoom(svgEl, wrap) {
   }, { passive: false });
 }
 
+// 전체 그래프가 뷰포트에 맞도록 스케일과 오프셋을 계산하는 함수
 function fitView(wrap) {
   const cw = wrap.clientWidth || 800;
   const ch = wrap.clientHeight || 550;
@@ -143,6 +155,8 @@ function fitView(wrap) {
   setTransform({ x: (cw - W * s) / 2, y: (ch - H * s) / 2, scale: s });
 }
 
+// API 응답 데이터를 D3 시뮬레이션용 노드·링크 배열로 변환하는 함수
+// 중심(CENTER) → 도메인(domain) → 테이블(table) → 리프(leaf) 4계층 구조 생성
 function buildGraph(data, keyword) {
   const tables = data.matchedTables || [];
   const leafs  = data.nodes || [];
@@ -209,6 +223,7 @@ function buildGraph(data, keyword) {
   return { nodes, links };
 }
 
+// SVG를 DOM에 생성하고 노드·링크를 그린 뒤 D3 물리 시뮬레이션을 시작하는 함수
 function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
   wrap.innerHTML = '';
   const cw = wrap.clientWidth || 800;
@@ -372,6 +387,7 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
   if (_sim) { _sim.stop(); clearTimeout(_settleTimer); }
   d3.selectAll('.kwmap-tooltip').remove();
 
+  // D3 포스 시뮬레이션 설정: 링크 거리, 반발력, 충돌 회피, 방사형 배치 힘 적용
   _sim = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.source.type === 'CENTER' ? 280 : 240).strength(0.8))
     .force('charge', d3.forceManyBody().strength(d => d.type === 'domain' ? -1200 : d.type === 'table' ? -400 : -120))
@@ -386,6 +402,7 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
   return { linkSel, nodeG };
 }
 
+// 노드 클릭 시 우측 상세 패널을 업데이트하는 함수 (도메인/테이블/리프별 다른 UI 렌더링)
 function updateDetailPanel(d) {
   const panel = document.getElementById('kwmap-detail-panel');
   if (!panel) return;
@@ -439,6 +456,8 @@ function updateDetailPanel(d) {
   }
 }
 
+// 키워드 데이터맵 그래프를 렌더링하는 메인 진입 함수
+// 동일 키워드 중복 렌더를 방지하고, 데이터 로드 후 buildGraph → renderSvg 순서로 처리
 export function renderKeywordGraph(keyword) {
   const graphWrap = document.getElementById('kwmap-graph-container');
   const svgWrap   = document.getElementById('kwmap-svg-wrap');

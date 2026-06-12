@@ -1,4 +1,6 @@
-// view/components/sqlPlayground.js
+// SQL 플레이그라운드 컴포넌트
+// SQLite DB에 직접 쿼리를 실행하고 결과를 테이블로 표시합니다.
+// join.sql 시나리오 기반의 JOIN 쿼리 가이드도 제공합니다.
 
 // join.sql에서 동적 로드되는 JOIN 시나리오 목록 (서버에서 파싱)
 let joinScenarios = [];
@@ -11,6 +13,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
   let tableData = [];
   let isTableLoading = false;
 
+  // 시나리오 제목에서 테이블 물리명을 논리명(한글명)으로 치환하는 헬퍼 함수
   const getLogicalTitle = (title) => {
     if (!tableList || tableList.length === 0) return title;
     let newTitle = title;
@@ -28,6 +31,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
   let isQueryRunning = false;
   let queryExecutionTime = 0; // ms
 
+  // 로컬 DB의 테이블 목록을 서버 API에서 조회하는 함수
   const fetchTables = async () => {
     try {
       const res = await fetch('/api/tables');
@@ -39,6 +43,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
+  // 선택한 테이블의 스키마(컬럼 정보) 및 상위 50개 데이터를 병렬로 조회하는 함수
   const loadTableDetails = async (tableName) => {
     selectedTable = tableName;
     isTableLoading = true;
@@ -60,6 +65,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
+  // 에디터의 SQL을 서버에 실행 요청하고 결과를 상태에 저장하는 함수
   const runQuery = async () => {
     isQueryRunning = true;
     queryResult = null;
@@ -101,6 +107,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
+  // 전체 UI를 container에 렌더링하는 함수 (테이블 목록, 상세 패널, 에디터, 결과 영역 포함)
   const render = () => {
     const tableItemsHTML = tableList.map(table => {
       const name = table.name;
@@ -442,6 +449,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     bindEvents();
   };
 
+  // 렌더링된 DOM 요소에 이벤트 리스너를 바인딩하는 함수
   const bindEvents = () => {
     // 테이블 브라우저 선택 이벤트
     container.querySelectorAll('.table-select-btn').forEach(btn => {
@@ -569,7 +577,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
-  // join.sql 시나리오 목록 로드
+  // 서버의 /api/join-scenarios 엔드포인트에서 JOIN 시나리오 목록을 로드하는 함수
   const fetchJoinScenarios = async () => {
     try {
       const res = await fetch('/api/join-scenarios');
@@ -584,7 +592,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
-  // 마운트 시 초기 작동
+  // 컴포넌트 초기화 함수: 테이블 목록과 시나리오를 병렬 로드 후 렌더링 및 자동 실행 처리
   const init = async () => {
     await Promise.all([fetchTables(), fetchJoinScenarios()]);
 

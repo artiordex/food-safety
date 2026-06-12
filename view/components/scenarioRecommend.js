@@ -1,3 +1,6 @@
+// 데이터 시나리오 추천 컴포넌트
+// 일반인/개발자 모드에 따라 join.sql 기반 데이터 활용 시나리오를 사이드바+상세 형태로 표시합니다.
+
 export const renderScenarioTabs = async (container, mode) => {
   const view = document.getElementById('scenario-view');
   if (!view) return;
@@ -19,12 +22,13 @@ export const renderScenarioTabs = async (container, mode) => {
     
     let activeIndex = 0;
 
+    // 선택된 시나리오 인덱스에 해당하는 상세 콘텐츠를 우측 패널에 렌더링하는 함수
     const renderDetail = (index) => {
       activeIndex = index;
       const scenario = scenarios[index];
       const isDev = mode === 'developer';
-      
-      // Update sidebar active state
+
+      // 사이드바 항목의 활성 스타일 업데이트
       Array.from(listEl.children).forEach((li, i) => {
         if (i === index) {
           li.className = 'px-4 py-3 text-sm font-bold text-blue-600 bg-blue-50 rounded-lg cursor-pointer transition-colors';
@@ -54,7 +58,7 @@ export const renderScenarioTabs = async (container, mode) => {
       `;
 
       if (isDev) {
-        // Developer Mode: Show SQL and Technical details
+        // 개발자 모드: SQL 코드블록 및 플레이그라운드 연결 버튼 표시
         html += `
           <div class="mt-8 bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl border border-gray-800">
             <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#2d2d2d]">
@@ -81,7 +85,7 @@ export const renderScenarioTabs = async (container, mode) => {
           </div>
         `;
       } else {
-        // Beginner Mode: Show simple expected output or use case
+        // 일반인 모드: 활용 기대 효과 카드 표시
         html += `
           <div class="mt-8 bg-blue-50 rounded-2xl p-8 border border-blue-100">
             <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center">
@@ -110,6 +114,7 @@ export const renderScenarioTabs = async (container, mode) => {
       contentEl.innerHTML = html;
     };
 
+    // 시나리오 목록을 사이드바에 li 요소로 추가하고 클릭 시 상세 렌더링 연결
     scenarios.forEach((sc, idx) => {
       const li = document.createElement('li');
       li.className = 'px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg cursor-pointer transition-colors line-clamp-2';
@@ -132,7 +137,7 @@ export const renderScenarioTabs = async (container, mode) => {
   }
 };
 
-// Add some required custom animations if not using tailwind perfectly
+// fadeInUp 애니메이션 스타일 동적 주입 (Tailwind 미지원 환경 대비)
 const style = document.createElement('style');
 style.innerHTML = `
   @keyframes fadeInUp {

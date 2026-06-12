@@ -1,5 +1,9 @@
+// 데이터 관계 맵 컴포넌트 (React + D3.js)
+// 카테고리별 데이터세트 노드와 연관 관계를 포스 기반 네트워크 그래프로 표시합니다.
+
 import { getDatasets } from '../datasetStore.js';
 
+// 주제 분류별 배지 색상 매핑 (Tailwind 클래스)
 const subjectColorMap = {
   '융합 데이터 세트': 'bg-indigo-50 text-indigo-700 border-indigo-200',
   '식품·제품': 'bg-teal-50 text-teal-700 border-teal-200',
@@ -25,6 +29,7 @@ const domainTables = {
 };
 
 // 모든 미분류 데이터셋을 해당 도메인에 동적으로 분류
+// 미분류 데이터셋을 이름·설명·주제 키워드 기반으로 8대 도메인에 동적으로 배정하는 함수
 function dynamicallyCategorizeDatasets(datasets) {
   const allCategorized = new Set(Object.values(domainTables).flat());
 
@@ -204,6 +209,8 @@ const subjectColors = {
   }
 };
 
+// 데이터 관계 맵 컴포넌트의 메인 렌더 함수
+// Vis.js 포스 네트워크로 데이터셋 노드간 공통키 관계를 인터랙티브하게 시각화
 export async function renderRelationDataMap(container, onSelectDataset) {
   const datasets = await getDatasets();
   const allNodes = datasets.map(ds => ({
@@ -224,7 +231,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
 
   let allColumnsMap = {}; // { svc_no: [{ field, type, kor_nm }, ...] }
 
-  // XML 특수문자 이스케이프 유틸
+  // SVG/HTML 인젝션 방지를 위한 XML 특수문자 이스케이프 유틸
   const escapeXml = (unsafe) => {
     if (!unsafe) return '';
     return String(unsafe)
@@ -235,7 +242,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
       .replace(/'/g, '&apos;');
   };
 
-  // SVG HTML 카드 노드 동적 생성
+  // 테이블 카드 SVG를 base64 데이터 URI로 생성하여 Vis.js 노드 이미지로 사용하는 함수
   const createTableSvg = (tableName, tableKorName, columns) => {
     let rowsHtml = '';
     columns.forEach((col, idx) => {
@@ -359,6 +366,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
 
   const getDatasetById = (id) => datasets.find(d => d.id === id);
 
+  // 전체 데이터 관계 맵 UI를 container에 렌더링하는 함수
   const render = () => {
     container.innerHTML = `
       <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
@@ -1016,6 +1024,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
     let colsMeta = []; // 스키마 컬럼 정보 임시 보관용
 
     // 공통 데이터 샘플 렌더러
+    // 샘플 레코드를 테이블 HTML로 렌더링하는 함수 (더미 데이터 여부에 따라 배지 표시)
     const renderSampleRows = (rows, isMocked = false) => {
       if (!rows || rows.length === 0) {
         dataWrapper.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">테이블에 적재된 데이터 레코드가 없습니다.</div>`;
@@ -1059,6 +1068,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
     };
 
     // 실시간 DB 데이터 쿼리 수행
+    // 선택한 테이블의 샘플 데이터를 로컬 DB에서 가져오는 함수 (실패 시 더미 데이터로 폴백)
     const loadSampleData = () => {
       fetch('/api/query', {
         method: 'POST',
@@ -1266,6 +1276,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
       });
     }
 
+    // 공통키 조인 결과 rows를 테이블 HTML로 렌더링하는 함수
     const renderJoinRows = (rows, isMock = false) => {
       if (!rows || rows.length === 0) {
         joinDataWrapper.innerHTML = `
@@ -1392,6 +1403,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
     }
   };
 
+  // 필터 버튼, 검색 입력, 도메인 선택 등 UI 이벤트를 바인딩하는 함수
   const bindEvents = () => {
     // 0. 키워드 검색 → 테이블명 + 컬럼명/한글명 통합 검색 후 인라인 필터링
     const kwInput = container.querySelector('#rdm-keyword-input');
@@ -1400,6 +1412,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
 
     // (columnMatchedIds는 외부 스코프에 선언됨)
 
+    // 키워드 필터 상태를 UI에 반영하고 네트워크 노드 매칭 결과를 업데이트하는 함수
     const updateKeywordUI = (kw) => {
       const badge = container.querySelector('#rdm-keyword-badge');
       if (!badge) return;

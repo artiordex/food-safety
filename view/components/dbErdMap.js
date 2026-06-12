@@ -1191,6 +1191,7 @@ export function renderCombinedErdMap(container) {
   // ── 데이터 로딩 ───────────────────────────────────────
   const getDs = id => allDatasets.find(d => d.id === id);
 
+  // 데이터셋 목록, 실제 레코드 수, 컬럼 정보, 관계 데이터를 순차적으로 로드하는 함수
   async function loadData() {
     // 데이터셋 목록
     try {
@@ -1284,6 +1285,7 @@ export function renderCombinedErdMap(container) {
   }
 
   // ── 필터링 ────────────────────────────────────────────
+  // 키워드·노드 수 제한 등 현재 필터 조건에 부합하는 가시 노드 ID 집합을 반환하는 함수
   function getVisibleIds() {
     let allowed = new Set(allDatasets.map(d => d.id));
 
@@ -1312,6 +1314,7 @@ export function renderCombinedErdMap(container) {
   }
 
   // ── 관계 유형 판별 ────────────────────────────────────
+  // 두 테이블 간 공통키의 고유성을 기반으로 1:1/1:N/N:1/N:M 관계 유형을 반환하는 함수
   function getRelType(fromT, toT, key) {
     const isPk = (t, c) => {
       const T = t.toUpperCase(), C = c.toUpperCase();
@@ -1325,6 +1328,7 @@ export function renderCombinedErdMap(container) {
   }
 
   // ── 네트워크 렌더 ────────────────────────────────────
+  // 현재 필터 조건에 맞는 노드와 엣지로 Vis.js 네트워크를 초기화하거나 갱신하는 함수
   function renderNetwork() {
     const canvasEl = container.querySelector('#cem-canvas');
     if (!canvasEl) return;
@@ -1611,11 +1615,13 @@ export function renderCombinedErdMap(container) {
   }
 
   // ── 이벤트 바인딩 ────────────────────────────────────
+  // 키워드 검색, 도메인 필터, 노드 수 조절, 물리 시뮬레이션 토글 등 UI 이벤트 등록 함수
+  let runKeywordFilter = async () => {};
+
   function bindEvents() {
     const kwInput = document.getElementById('datamap-keyword-search');
-    const kwBtn   = document.getElementById('btn-datamap-keyword-search');
 
-    const doSearch = async () => {
+    runKeywordFilter = async () => {
       const kw = kwInput?.value.trim() || '';
       if (!kw) { columnMatchedIds=new Set(); activeKeyword=''; maxNodesLimit=9999; renderNetwork(); return; }
       
@@ -1626,9 +1632,6 @@ export function renderCombinedErdMap(container) {
       
       activeKeyword=kw; maxNodesLimit=9999; renderNetwork();
     };
-
-    kwBtn?.addEventListener('click', doSearch);
-    kwInput?.addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
 
     container.querySelectorAll('[data-domain]').forEach(c =>
       c.addEventListener('change', e => { selectedDomains[e.target.dataset.domain]=e.target.checked; renderNetwork(); })
@@ -1728,7 +1731,7 @@ export function renderCombinedErdMap(container) {
     const kwInput = document.getElementById('datamap-keyword-search');
     const kw = kwInput?.value.trim() || '';
     if (kw) {
-      document.getElementById('btn-datamap-keyword-search')?.click();
+      runKeywordFilter();
     }
   });
 }

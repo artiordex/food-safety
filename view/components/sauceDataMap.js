@@ -1,3 +1,6 @@
+// 소스 데이터맵 컴포넌트
+// 8대 주제 도메인별로 데이터세트를 분류하고 관계도를 시각화합니다.
+
 import { getDatasetsSync } from '../datasetStore.js';
 const { useState, useEffect, useRef, useCallback, createElement: h } = React;
 
@@ -23,6 +26,7 @@ const CATEGORY_COLORS = {
   '기타': '#57534e'
 };
 
+// SVG text 엘리먼트에서 키워드 부분만 빨간색 tspan으로 강조하는 React 컴포넌트
 function KwText({ text, kw, ...rest }) {
   if (!kw || !text || !text.includes(kw)) return h('text', rest, text);
   const parts = text.split(kw);
@@ -34,6 +38,7 @@ function KwText({ text, kw, ...rest }) {
   );
 }
 
+// 긴 텍스트에서 키워드 주변 일부를 추출하여 말줄임 처리하는 함수
 function getSnippet(text, kw, maxLen) {
   if (!text) return '';
   if (text.length <= maxLen) return text;
@@ -43,6 +48,7 @@ function getSnippet(text, kw, maxLen) {
   return '..' + text.substring(start, start + maxLen - 4) + '..';
 }
 
+// SVG 패닝(드래그) 및 줌(휠) 인터랙션을 처리하는 커스텀 훅
 function usePanZoom(svgRef) {
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const isDragging = useRef(false);
@@ -84,6 +90,8 @@ function usePanZoom(svgRef) {
   return { transform, onMouseDown, onMouseMove, onMouseUp, onMouseLeave: onMouseUp, setTransform };
 }
 
+// 키워드 기반 데이터맵의 메인 React 컴포넌트
+// D3 시뮬레이션으로 중심 → 도메인 → 테이블 → 리프 4계층 그래프를 렌더링
 function KeywordDataMap({ initialKeyword, onSelectDataset }) {
   const defaultKw = initialKeyword || '소스';
   const [keyword, setKeyword] = useState(defaultKw);
@@ -111,6 +119,7 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
   const W = 1800, H = 1400;
   const CX = W / 2, CY = H / 2;
 
+  // 키워드로 데이터맵 API를 호출하고 D3 시뮬레이션 초기 좌표를 설정하는 함수
   const loadData = useCallback(async (kw) => {
     setLoading(true); setError(null); setData(null); setSelected(null);
     setTransform({ x: -150, y: -250, scale: 0.65 });
@@ -150,7 +159,7 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 
   useEffect(() => { loadData(keyword); }, [keyword, loadData]);
 
-  // Load column metadata when selected node changes
+  // 선택된 노드 변경 시 해당 테이블의 컬럼 메타데이터를 API에서 가져오는 이펙트
   useEffect(() => {
     if (!selected) {
       setTableMetadata([]);
@@ -186,7 +195,7 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
     return () => { active = false; };
   }, [selected]);
 
-  // Setup D3 Simulation
+  // 데이터 변경 시 D3 포스 시뮬레이션을 초기화하고 노드·링크 배열을 구성하는 이펙트
   useEffect(() => {
     if (!data || typeof d3 === 'undefined') return;
 

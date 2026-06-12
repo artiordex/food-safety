@@ -1,3 +1,6 @@
+// 데이터세트 탐색기 컴포넌트
+// 전체 데이터세트 목록을 카테고리·기관·유형별로 필터링하고 페이지네이션으로 표시합니다.
+
 export function renderDatasetExplorer(container, onSelectDataset) {
   // ── 상태 ──────────────────────────────────────────────────────────────────
   let allData      = [];          // 전체 데이터 (로드 후 고정)
@@ -10,6 +13,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   let currentPage  = 1;           // 현재 페이지
 
   // ── 필터링 ────────────────────────────────────────────────────────────────
+  // 현재 선택된 카테고리·기관·유형·키워드 조건으로 데이터를 필터링하는 함수
   const getFiltered = () => allData.filter(item => {
     if (selectedCat  && item.cat             !== selectedCat)  return false;
     if (selectedOrg  && item.provd_instt_nm  !== selectedOrg)  return false;
@@ -63,6 +67,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   `;
 
   // ── 메인 렌더 ─────────────────────────────────────────────────────────────
+  // 필터·페이지 상태를 반영하여 카드 그리드와 페이지네이션을 갱신하는 함수
   const render = () => {
     const view = document.getElementById('dataset-explorer-view');
     if (!view) return;
@@ -207,6 +212,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   };
 
   // ── 이벤트 바인딩 (최초 1회) ────────────────────────────────────────────────
+  // 셀렉트·검색창·버튼 이벤트를 최초 1회만 등록하는 함수
   const bindEvents = () => {
     const view = document.getElementById('dataset-explorer-view');
     if (!view) return;
@@ -244,6 +250,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   };
 
   // ── 초기 로딩 ─────────────────────────────────────────────────────────────
+  // 크롤 캐시와 DB 테이블 목록을 병렬로 가져와 유효한 데이터만 필터링 후 렌더링
   const view = document.getElementById('dataset-explorer-view');
   if (view) {
     const cardsGrid = view.querySelector('#cards-grid');
