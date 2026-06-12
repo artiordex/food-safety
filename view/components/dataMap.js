@@ -184,8 +184,10 @@ export function renderDataMap(container, onSelectDataset) {
     const updateTreemapForSearch = (datasets, kw) => {
       const filteredSubjectArray = buildSubjectArrayFromDatasets(datasets);
       const countEl = view.querySelector('#category-total-count');
+      const treemapPanel = view.querySelector('#content-panel-treemap');
 
       if (countEl) countEl.textContent = kw ? `"${kw}" 검색 ${datasets.length}종` : `전체 ${datasets.length}종`;
+      if (treemapPanel) showTreemapOriginal(treemapPanel);
       renderCategoryList(filteredSubjectArray);
       renderTreemap(filteredSubjectArray);
     };
@@ -703,7 +705,161 @@ export function renderDataMap(container, onSelectDataset) {
       });
   };
 
-  const showCategoryDatasets = (categoryData) => {
+  const getTreemapPanel = () => document.getElementById('datamap-view')?.querySelector('#content-panel-treemap');
+
+  const hideTreemapOriginal = (panel) => {
+    Array.from(panel.children).forEach(child => {
+      if (child.id !== 'treemap-replacement-view') child.style.display = 'none';
+    });
+  };
+
+  const showTreemapOriginal = (panel) => {
+    panel.querySelector('#treemap-replacement-view')?.remove();
+    Array.from(panel.children).forEach(child => {
+      child.style.display = '';
+    });
+  };
+
+  const renderTreemapWordCloud = (tableName, wrap) => {
+    if (!wrap) return;
+
+    const draw = (wordsArray) => {
+      const tryDraw = () => {
+        if (!window.d3 || !window.d3.layout || !window.d3.layout.cloud) {
+          setTimeout(tryDraw, 100);
+          return;
+        }
+
+        const width = wrap.clientWidth || 760;
+        const height = wrap.clientHeight || 360;
+        const fill = d3.scaleOrdinal(d3.schemeTableau10);
+
+        window.d3.layout.cloud()
+          .size([width - 24, height - 24])
+          .words(wordsArray)
+          .padding(4)
+          .rotate(() => (Math.random() > 0.72 ? 90 : 0))
+          .font('Noto Sans KR, sans-serif')
+          .fontSize(d => d.size)
+          .on('end', words => {
+            wrap.innerHTML = '';
+            const svg = d3.select(wrap).append('svg')
+              .attr('width', width)
+              .attr('height', height)
+              .style('background', '#f8fafc');
+
+            svg.append('g')
+              .attr('transform', `translate(${width / 2},${height / 2})`)
+              .selectAll('text')
+              .data(words)
+              .enter()
+              .append('text')
+              .style('font-size', d => `${d.size}px`)
+              .style('font-family', 'Noto Sans KR, sans-serif')
+              .style('fill', (_, i) => fill(i))
+              .attr('text-anchor', 'middle')
+              .attr('transform', d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+              .text(d => d.text);
+          })
+          .start();
+      };
+      tryDraw();
+    };
+
+    const fetchAndDraw = () => {
+      fetch(`/api/wordcloud?tableName=${encodeURIComponent(tableName)}`)
+        .then(res => {
+          if (res.status === 202) {
+            const label = wrap.querySelector('[data-wordcloud-loading-text]');
+            if (label) label.textContent = '데이터 분석 중... 잠시만 기다려주세요.';
+            setTimeout(fetchAndDraw, 2000);
+            throw new Error('BUILDING');
+          }
+          if (!res.ok) throw new Error('FAIL');
+          return res.json();
+        })
+        .then(words => {
+          if (!words || words.length === 0) {
+            wrap.innerHTML = '<div style="color:#94a3b8;font-size:14px;">분석할 텍스트 데이터가 없습니다.</div>';
+            return;
+          }
+          draw(words);
+        })
+        .catch(err => {
+          if (err.message === 'BUILDING') return;
+          wrap.innerHTML = '<div style="color:#ef4444;font-size:14px;">워드 클라우드 데이터를 불러오지 못했습니다.</div>';
+        });
+    };
+
+    fetchAndDraw();
+  };
+
+  const showTreemapDatasetDetail = (dataset, categoryData) => {
+    const panel = getTreemapPanel();
+    const page = panel?.querySelector('#treemap-replacement-view');
+    if (!panel || !page) return;
+
+    const categoryColor = getColor(categoryData.subject, 0);
+    const categoryBg = getSoftColor(categoryData.subject, 0);
+    const tableName = dataset.id || dataset.svc_no;
+
+    page.innerHTML = `
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 border-b border-slate-100 bg-slate-50">
+          <div>
+            <button id="btn-back-dataset-list" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-gov-700 mb-3">
+              <i class="ri-arrow-left-line"></i> 데이터세트 목록
+            </button>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2 py-1 text-[11px] font-bold rounded" style="background:${categoryBg};color:${categoryColor};">${categoryData.subject}</span>
+              <span class="text-xs text-slate-400">ID ${tableName || '-'}</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 leading-snug">${dataset.name || dataset.svc_nm || '-'}</h3>
+            <p class="text-sm text-slate-500 mt-1">${dataset.users?.[0] || dataset.provd_instt_nm || '식품의약품안전처'}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-0">
+          <div class="xl:col-span-1 p-6 border-b xl:border-b-0 xl:border-r border-slate-100">
+            <h4 class="text-sm font-bold text-slate-800 mb-3">데이터세트 상세 정보</h4>
+            <p class="text-sm text-slate-600 leading-6 mb-5">${dataset.description || '데이터세트 설명 정보가 없습니다.'}</p>
+            <dl class="space-y-3 text-sm">
+              <div>
+                <dt class="text-xs font-bold text-slate-400 mb-1">제공 형식</dt>
+                <dd class="flex flex-wrap gap-1">${(dataset.formats || ['JSON', 'XML']).map(f => `<span class="px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-semibold">${f}</span>`).join('')}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-bold text-slate-400 mb-1">분류</dt>
+                <dd class="text-slate-700">${categoryData.subject}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-bold text-slate-400 mb-1">테이블명</dt>
+                <dd class="font-mono text-slate-700">${tableName || '-'}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="xl:col-span-2 p-6">
+            <h4 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <i class="ri-cloud-line text-gov-600"></i> 워드 클라우드 정보
+            </h4>
+            <p class="text-xs text-slate-500 mb-4">해당 데이터세트의 실제 데이터에서 자주 등장하는 키워드를 시각화합니다.</p>
+            <div id="treemap-detail-wordcloud-wrap" style="width:100%;height:380px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+              <div style="text-align:center;color:#64748b;">
+                <div style="display:inline-block;width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
+                <div data-wordcloud-loading-text style="font-size:14px;">워드 클라우드 생성 중...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    page.querySelector('#btn-back-dataset-list')?.addEventListener('click', () => showCategoryDatasets(categoryData));
+    renderTreemapWordCloud(String(tableName || ''), page.querySelector('#treemap-detail-wordcloud-wrap'));
+    page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const showCategoryDatasetsLegacy = (categoryData) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
     const resultPanel = view.querySelector('#keyword-search-result-panel');
@@ -791,6 +947,89 @@ export function renderDataMap(container, onSelectDataset) {
     });
 
     resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const showCategoryDatasets = (categoryData) => {
+    const view = document.getElementById('datamap-view');
+    const panel = getTreemapPanel();
+    if (!view || !panel) return;
+
+    const activeBtn = view.querySelector('#content-tab-btn-treemap');
+    if (panel) panel.style.display = 'block';
+    if (activeBtn) {
+      activeBtn.style.borderBottomColor = '#2563eb';
+      activeBtn.style.color = '#2563eb';
+    }
+
+    const categoryColor = getColor(categoryData.subject, 0);
+    const categoryBg = getSoftColor(categoryData.subject, 0);
+
+    hideTreemapOriginal(panel);
+    panel.querySelector('#treemap-replacement-view')?.remove();
+
+    const page = document.createElement('div');
+    page.id = 'treemap-replacement-view';
+    page.className = 'space-y-5';
+    page.innerHTML = `
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-5">
+        <div>
+          <button id="btn-back-treemap" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-gov-700 mb-3">
+            <i class="ri-arrow-left-line"></i> 데이터 분포 트리맵
+          </button>
+          <h3 class="text-xl font-bold text-slate-900">${categoryData.subject} 데이터세트</h3>
+          <p class="text-sm text-slate-500 mt-1">총 <strong class="text-gov-700">${categoryData.count}개</strong> 데이터세트를 확인할 수 있습니다.</p>
+        </div>
+        <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold" style="background:${categoryBg};color:${categoryColor};">
+          <span class="w-2.5 h-2.5 rounded-full" style="background:${categoryColor};"></span>
+          ${categoryData.subject}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="treemap-dataset-list">
+        ${categoryData.items.map(ds => `
+          <div class="dataset-card bg-white rounded-xl p-4 flex flex-col min-h-[190px] cursor-pointer hover:shadow-md transition-shadow" data-id="${ds.id}" style="border:1px solid ${categoryBg};border-top:3px solid ${categoryColor};">
+            <div class="flex justify-between items-start gap-3 mb-3">
+              <span class="px-2 py-1 text-[10px] font-bold rounded" style="background:${categoryBg};color:${categoryColor};">${categoryData.subject}</span>
+              <span class="text-[11px] text-slate-400 font-mono">${ds.id}</span>
+            </div>
+            <h4 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2 leading-snug">${ds.name}</h4>
+            <p class="text-xs text-slate-500 line-clamp-3 mb-4 flex-1">${ds.description}</p>
+            <div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-slate-100">
+              <span class="text-[11px] text-slate-500 truncate"><i class="ri-building-line"></i> ${ds.users?.[0] || '식품의약품안전처'}</span>
+              <button type="button" class="btn-dataset-detail inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gov-600 text-white text-xs font-bold hover:bg-gov-700" data-id="${ds.id}">
+                세부내용 <i class="ri-arrow-right-line"></i>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    panel.appendChild(page);
+
+    page.querySelector('#btn-back-treemap')?.addEventListener('click', () => {
+      showTreemapOriginal(panel);
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    page.querySelectorAll('.dataset-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const dsId = card.dataset.id;
+        const dataset = categoryData.items.find(i => String(i.id) === String(dsId));
+        if (dataset) showTreemapDatasetDetail(dataset, categoryData);
+      });
+    });
+
+    page.querySelectorAll('.btn-dataset-detail').forEach(btn => {
+      btn.addEventListener('click', event => {
+        event.stopPropagation();
+        const dsId = btn.dataset.id;
+        const dataset = categoryData.items.find(i => String(i.id) === String(dsId));
+        if (dataset) showTreemapDatasetDetail(dataset, categoryData);
+      });
+    });
+
+    page.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   fetchDataAndRender();
