@@ -510,7 +510,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
               </div>
 
               <!-- 관계도 그리기 캔버스 및 우측 슬라이드인 사이드바 영역 -->
-              <div class="flex-1 bg-slate-50/20 relative flex overflow-hidden" style="height: clamp(260px, 30vw, 375px); width: 100%;">
+              <div class="flex-1 bg-slate-50/20 relative flex overflow-hidden" style="height: 700px; width: 100%;">
                 
                 <!-- 캔버스 자체 -->
                 <div class="flex-1 h-full" id="network-graph-canvas"></div>

@@ -86,7 +86,6 @@ function usePanZoom(svgRef) {
 
 function KeywordDataMap({ initialKeyword, onSelectDataset }) {
   const defaultKw = initialKeyword || '소스';
-  const [inputVal, setInputVal] = useState(defaultKw);
   const [keyword, setKeyword] = useState(defaultKw);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -269,18 +268,25 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
     linksRef.current = d3links;
 
     const sim = d3.forceSimulation(d3nodes)
-      .force('link', d3.forceLink(d3links).id(d => d.id).distance(d => d.source.type === 'CENTER' ? 280 : (d.source.type === 'domain' ? 240 : 240)).strength(1))
-      .force('charge', d3.forceManyBody().strength(d => d.type === 'domain' ? -1000 : (d.type === 'table' ? -300 : -100)))
-      .force('collide', d3.forceCollide().radius(d => d.r + (d.type === 'leaf' ? 10 : 20)).iterations(3))
-      .force('radial', d3.forceRadial(d => d.radialDist, CX, CY).strength(1.5))
-      .alphaDecay(0.02)
+      .force('link', d3.forceLink(d3links).id(d => d.id).distance(d => d.source.type === 'CENTER' ? 280 : 240).strength(0.8))
+      .force('charge', d3.forceManyBody().strength(d => d.type === 'domain' ? -1200 : (d.type === 'table' ? -400 : -120)))
+      .force('collide', d3.forceCollide().radius(d => d.r + (d.type === 'leaf' ? 12 : 22)).iterations(2))
+      .force('radial', d3.forceRadial(d => d.radialDist, CX, CY).strength(0.6))
+      .alphaDecay(0.004)
+      .alphaTarget(0.04)
+      .velocityDecay(0.18)
       .on('tick', () => {
         setNodes([...nodesRef.current]);
         setLinks([...linksRef.current]);
       });
 
+    // 5초 후 안정화: alphaTarget을 낮춰 미세 진동만 유지
+    const settleTimer = setTimeout(() => {
+      if (simRef.current) simRef.current.alphaTarget(0.015);
+    }, 5000);
+
     simRef.current = sim;
-    return () => sim.stop();
+    return () => { sim.stop(); clearTimeout(settleTimer); };
   }, [data, keyword]);
 
   // Drag interaction for D3 nodes in React
@@ -574,41 +580,29 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 
   return h('section', { className: 'max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in flex flex-col gap-6' },
     // Header
-    h('div', { className: 'flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200' },
+    h('div', { className: 'flex flex-row justify-between items-center gap-4 mb-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200' },
       h('div', { className: 'flex flex-col gap-1' },
-        h('h2', { className: 'text-xl font-bold text-slate-900 flex items-center gap-2' },
+        h('h3', { className: 'text-lg font-bold text-slate-800 mb-4 flex items-center gap-2' },
           h('i', { className: 'ri-share-circle-fill text-gov-600' }),
-          '키워드 데이터맵 (D3 Force)'
+          '키워드 데이터맵 (D3 Force)',
+          h('span', { className: 'relative group', style: { display: 'inline-flex', alignItems: 'center' } },
+            h('button', { className: 'tooltip-trigger', 'aria-label': '키워드 데이터맵 설명' }, '?'),
+            h('div', { className: 'tooltip-dark', style: { left: '50%', transform: 'translateX(-50%)', top: '26px', width: '280px' } },
+              h('p', null, h('strong', null, '키워드 데이터맵이란?')),
+              h('p', null, '특정 키워드(예: 초콜릿, 우유)와 연관된 데이터세트를 분야별로 분류하여 네트워크 그래프로 시각화합니다. 노드를 드래그하거나 스크롤로 확대/축소할 수 있습니다.'),
+              h('div', { className: 'tooltip-arrow', style: { top: '-5px', left: '50%', transform: 'translateX(-50%) rotate(45deg)' } })
+            )
+          )
         ),
         h('p', { className: 'text-xs text-slate-500' }, '노드를 드래그하여 유기적인 데이터 관계망을 탐색해 보세요.')
       ),
-      h('div', { className: 'flex flex-wrap items-center gap-2 w-full md:w-auto' },
-        h('div', { className: 'relative flex-1 min-w-[200px]' },
-          h('i', { className: 'ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400' }),
-          h('input', {
-            type: 'text',
-            value: inputVal,
-            onChange: e => setInputVal(e.target.value),
-            onKeyDown: e => e.key === 'Enter' && setKeyword(inputVal.trim()),
-            className: 'w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-gov-500 focus:ring-2 focus:ring-gov-200 bg-slate-50 font-medium text-slate-800 transition-all',
-            placeholder: '검색어 입력 (예: 초콜릿)'
-          })
-        ),
-        h('button', {
-          onClick: () => setKeyword(inputVal.trim()),
-          className: 'px-5 py-2.5 bg-gov-600 text-white rounded-lg text-sm font-bold hover:bg-gov-700 transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap'
-        }, 
-          h('i', { className: 'ri-search-2-line' }), 
-          '검색'
-        ),
-        h('button', {
-          onClick: capture,
-          disabled: !data || capturing,
-          className: `px-5 py-2.5 text-white rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap ${capturing ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`
-        }, 
-          h('i', { className: capturing ? 'ri-loader-4-line animate-spin' : 'ri-camera-lens-line' }),
-          capturing ? '캡처 중...' : '화면 캡처'
-        )
+      h('button', {
+        onClick: capture,
+        disabled: !data || capturing,
+        className: `px-5 py-2.5 text-white rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap ${capturing ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`
+      },
+        h('i', { className: capturing ? 'ri-loader-4-line animate-spin' : 'ri-camera-lens-line' }),
+        capturing ? '캡처 중...' : '화면 캡처'
       )
     ),
 
@@ -616,7 +610,17 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
     h('div', { className: 'grid grid-cols-1 lg:grid-cols-3 gap-8 items-start' },
       // Left Panel: Map Container (2 cols)
       h('div', { className: 'lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[600px] relative' },
-        h('h3', { className: 'text-lg font-bold text-slate-800 mb-6' }, '키워드 연계 관계 시각화'),
+        h('h3', { className: 'text-lg font-bold text-slate-800 mb-6 flex items-center gap-2' },
+          '키워드 연계 관계 시각화',
+          h('span', { className: 'relative group', style: { display: 'inline-flex', alignItems: 'center' } },
+            h('button', { className: 'tooltip-trigger', 'aria-label': '키워드 연계 관계 시각화 설명' }, '?'),
+            h('div', { className: 'tooltip-dark', style: { left: '50%', transform: 'translateX(-50%)', top: '24px', width: '256px' } },
+              h('p', null, h('strong', null, '키워드 연계 관계란?')),
+              h('p', null, '중앙 키워드 노드를 기준으로 관련 데이터세트가 분야별 색상으로 연결됩니다. 노드 클릭 시 우측 패널에서 상세 정보를 확인할 수 있습니다.'),
+              h('div', { className: 'tooltip-arrow', style: { top: '-5px', left: '50%', transform: 'translateX(-50%) rotate(45deg)' } })
+            )
+          )
+        ),
         h('div', {
           ref: svgWrapRef,
           onMouseDown, onMouseMove, onMouseUp, onMouseLeave,
@@ -661,7 +665,17 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
 
       // Right Panel: Detail Panel (1 col)
       h('div', { className: 'bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[600px] max-h-[660px]' },
-        h('h3', { className: 'text-lg font-bold text-slate-800 mb-2' }, '상세 정보 패널'),
+        h('h3', { className: 'text-lg font-bold text-slate-800 mb-2 flex items-center gap-2' },
+          '상세 정보 패널',
+          h('span', { className: 'relative group', style: { display: 'inline-flex', alignItems: 'center' } },
+            h('button', { className: 'tooltip-trigger', 'aria-label': '상세 정보 패널 설명' }, '?'),
+            h('div', { className: 'tooltip-dark', style: { left: '50%', transform: 'translateX(-50%)', top: '24px', width: '240px' } },
+              h('p', null, h('strong', null, '상세 정보 패널이란?')),
+              h('p', null, '그래프에서 노드를 클릭하면 해당 데이터세트의 이름, 분야, 제공 기관 등 상세 정보가 이 패널에 표시됩니다.'),
+              h('div', { className: 'tooltip-arrow', style: { top: '-5px', left: '50%', transform: 'translateX(-50%) rotate(45deg)' } })
+            )
+          )
+        ),
         h('p', { className: 'text-xs text-slate-500 mb-6 border-b border-slate-100 pb-3' }, '노드를 드래그하거나 클릭하면 세부 정보가 표시됩니다.'),
         h('div', { className: 'flex-1 overflow-y-auto pr-2' }, renderDetail())
       )
@@ -670,11 +684,10 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
   );
 }
 
-let _root = null;
 export function renderSauceDataMap(container, initialKeyword, onSelectDataset) {
   container.style.height = '100%';
-  if (!_root) {
-    _root = ReactDOM.createRoot(container);
-    _root.render(h(KeywordDataMap, { initialKeyword, onSelectDataset }));
+  if (!container._reactRoot) {
+    container._reactRoot = ReactDOM.createRoot(container);
   }
+  container._reactRoot.render(h(KeywordDataMap, { initialKeyword, onSelectDataset }));
 }

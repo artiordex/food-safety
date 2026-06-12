@@ -1,6 +1,8 @@
 /**
  * dbErdMap.js - 로컬 DB ERD 시각화 (D3.js 기반 동적 물리 시뮬레이션 레이아웃)
+ *              + 데이터 관계도 (Vis.js 포스 다이렉티드 네트워크) 통합
  */
+import { renderRelationDataMap } from './relationDataMap.js';
 
 const CAT_COLORS = [
   { accent: '#3b82f6', light: '#eff6ff', border: '#bfdbfe' },
@@ -286,9 +288,22 @@ export function renderDbErdMap(container) {
     const height = viewport.offsetHeight || 800;
 
     // 카테고리별 컬러 인덱스 맵 생성
+    const categoryBaseColors = {
+      '기준규격정보': '#3b82f6', '식품 등': '#10b981', '폐업정보': '#f59e0b',
+      '식품위해관리': '#ef4444', '업체인허가현황': '#8b5cf6', '이력추적관리': '#06b6d4',
+      '건강기능식품': '#f97316', '축산물': '#6366f1', '코드정보': '#ec4899',
+      '식품안전관리': '#14b8a6', '수입식품 등': '#84cc16', '검사기관정보': '#a855f7',
+      '위생용품': '#f43f5e', '수질환경정보': '#0ea5e9', '어린이식품안전관리': '#3b82f6',
+      '식품영양정보': '#10b981', 'HACCP지정현황': '#f59e0b', '용어사전': '#ef4444'
+    };
     const catColorMap = {};
     categories.forEach((cat, idx) => {
-      catColorMap[cat] = CAT_COLORS[idx % CAT_COLORS.length];
+      if (categoryBaseColors[cat]) {
+        const base = categoryBaseColors[cat];
+        catColorMap[cat] = { accent: base, light: base + '15', border: base + '40' };
+      } else {
+        catColorMap[cat] = CAT_COLORS[idx % CAT_COLORS.length];
+      }
     });
 
     // 1. 노드 데이터 정의
@@ -1032,4 +1047,652 @@ export function renderDbErdMap(container) {
       updateView();
     });
   }
+}
+
+/**
+ * renderCombinedErdMap
+ * ERD 테이블 카드 노드(dbErdMap) + Vis.js 포스 레이아웃(relationDataMap) 통합
+ * - 노드 크기  ∝ log(데이터 건수)
+ * - 연결 많은 테이블은 mass 높게 설정 → 물리 레이아웃에서 자동 중앙 배치
+ */
+export function renderCombinedErdMap(container) {
+  // ── 카테고리 분류 ────────────────────────────────────
+  const domainTables = {
+    core:       ['I2500','I1250','C005','C002','I0580','I0470','I2620','I0490'],
+    license:    ['I2500','I1220','I2857','I2858','I2830','I2831','I2833','I2835','I2836','I2821','I2822','I2829','I2834','I2832','I2856','I2859','I2861','I2560'],
+    haccp:      ['I2500','I0580','I0630','I0600'],
+    product:    ['I1250','C005','C002','I2510','I2852'],
+    standards:  ['I2580','I0960','I2600','I2610','I0940'],
+    safety:     ['I2620','I0490','I2810'],
+    import:     ['C001','C003','I0482','I2821'],
+    nutrition:  ['I2780','I2819'],
+    discipline: ['I0470','I0482','I2822']
+  };
+  const domainNames = {
+    core:'핵심 초융합형', license:'인허가·업소', haccp:'HACCP·위생',
+    product:'품목제조·제품', standards:'기준규격·공전', safety:'검사·부적합·위해',
+    import:'수입식품', nutrition:'영양성분', discipline:'행정처분·폐업'
+  };
+  const domainColors = {
+    core:'#6366f1', license:'#0891b2', haccp:'#0d9488',
+    product:'#e11d48', standards:'#059669', safety:'#dc2626',
+    import:'#d97706', nutrition:'#7c3aed', discipline:'#db2777'
+  };
+  const categoryColorMap = {
+    '식품영양정보': '#16a34a',
+    '기준규격정보': '#2563eb',
+    '코드정보': '#7c3aed',
+    '수질환경정보': '#0284c7',
+    '검사기관정보': '#475569',
+    '식품위해관리': '#dc2626',
+    '식품안전관리': '#0d9488',
+    '이력추적관리': '#4f46e5',
+    '어린이식품안전관리': '#db2777',
+    'HACCP지정현황': '#0891b2',
+    '업체인허가현황': '#ea580c',
+    '위생용품': '#e11d48',
+    '축산물': '#9333ea',
+    '건강기능식품': '#65a30d',
+    '수입식품 등': '#f59e0b',
+    '식품 등': '#059669',
+    '폐업정보': '#be123c',
+    '용어사전': '#ca8a04'
+  };
+  const fallbackCategoryColors = [
+    '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
+    '#0891b2', '#ea580c', '#4f46e5', '#db2777', '#0d9488',
+    '#65a30d', '#9333ea', '#e11d48', '#0284c7', '#ca8a04',
+    '#059669', '#be123c', '#475569'
+  ];
+  const KEY_EDGE_COLORS = {
+    LCNS_NO:'#2563eb', PRDLST_REPORT_NO:'#10b981', BAR_CD:'#d97706',
+    BSSH_NO:'#ec4899', HACCP_NO:'#8b5cf6', PRDLST_CD:'#06b6d4', FOOD_CD:'#f97316'
+  };
+  const subjectColorMap = {
+    '융합 데이터 세트':'bg-indigo-50 text-indigo-700 border-indigo-200',
+    '식품·제품':'bg-teal-50 text-teal-700 border-teal-200',
+    '업체·영업자':'bg-sky-50 text-sky-700 border-sky-200',
+    '원재료·첨가물':'bg-rose-50 text-rose-700 border-rose-200',
+    '영양·건강':'bg-emerald-50 text-emerald-700 border-emerald-200',
+    '수입식품':'bg-amber-50 text-amber-700 border-amber-200',
+    '농·축·수산물':'bg-violet-50 text-violet-700 border-violet-200',
+    '기타':'bg-slate-50 text-slate-700 border-slate-200'
+  };
+
+  // ── 상태 ──────────────────────────────────────────────
+  let allDatasets = [];
+  let allColumnsMap = {};
+  let relationships = [];
+  let networkInstance = null;
+  let activeKeyword = '';
+  let columnMatchedIds = new Set();
+  let maxNodesLimit = 9999;
+  let activePhysics = true;
+  let selectedNodeId = null;
+  let selectedDomains = Object.fromEntries(Object.keys(domainTables).map(k => [k, true]));
+  let selectedKeys = { LCNS_NO:true, PRDLST_REPORT_NO:true, BAR_CD:true, BSSH_NO:true, TESTITM_CD:true };
+
+  const escX = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const quoteIdent = id => `"${String(id).replace(/"/g, '""')}"`;
+  const parseCount = value => {
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
+
+  // ── SVG 테이블 카드 생성 ──────────────────────────────
+  function createCardSvg(tableId, label, cols, rowCount, accentColor, isSelected) {
+    const W = 240, HEADER_H = 40, ROW_H = 18;
+    const displayCols = cols.slice(0, 5);
+    const extra = cols.length - 5;
+    const H = HEADER_H + displayCols.length * ROW_H + (extra > 0 ? 14 : 4) + 2;
+    const stroke = isSelected ? '#fbbf24' : `${accentColor}70`;
+    const strokeW = isSelected ? 3 : 1.5;
+
+    let colRows = displayCols.map((col, i) => {
+      const bg = i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent';
+      const isKey = !!KEY_EDGE_COLORS[col.field];
+      const nameColor = isKey ? '#b45309' : '#374151';
+      const prefix = isKey ? '🔑' : ' ';
+      const raw = `${col.field}${col.kor_nm ? ' ('+col.kor_nm+')' : ''}`;
+      const cut = escX(raw.length > 25 ? raw.slice(0, 24)+'…' : raw);
+      const tp = (col.sql_type||'VC').replace('VARCHAR','VC').replace('NUMERIC','NUM').replace('NUMBER','NUM').slice(0,8);
+      return `<rect x="0" y="${HEADER_H+i*ROW_H}" width="${W}" height="${ROW_H}" fill="${bg}"/>` +
+        `<text x="7" y="${HEADER_H+i*ROW_H+13}" font-size="8.5" fill="${nameColor}" font-family="monospace">${prefix} ${cut}</text>` +
+        `<text x="${W-5}" y="${HEADER_H+i*ROW_H+13}" font-size="8" fill="${accentColor}aa" text-anchor="end" font-family="monospace">${tp}</text>`;
+    }).join('');
+
+    const extraTxt = extra > 0
+      ? `<text x="${W/2}" y="${H-4}" font-size="8.5" fill="#94a3b8" text-anchor="middle">+${extra}개 더</text>` : '';
+    const rowLabel = rowCount > 0 ? `${Number(rowCount).toLocaleString()}rows` : '';
+    const lbl = escX(label.split(' (')[0]).slice(0, 22);
+    const tid = escX(tableId).slice(0, 14);
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">` +
+      `<rect x="3" y="3" width="${W}" height="${H}" rx="7" fill="rgba(0,0,0,0.05)"/>` +
+      `<rect width="${W}" height="${H}" rx="7" fill="#fff" stroke="${stroke}" stroke-width="${strokeW}"/>` +
+      `<rect width="${W}" height="${HEADER_H}" rx="7" fill="${accentColor}"/>` +
+      `<rect y="${HEADER_H-7}" width="${W}" height="7" fill="${accentColor}"/>` +
+      `<text x="8" y="16" font-size="10.5" font-weight="700" fill="#fff" font-family="sans-serif">${lbl}</text>` +
+      `<text x="8" y="30" font-size="8.5" fill="rgba(255,255,255,0.7)" font-family="monospace">${tid}</text>` +
+      `<text x="${W-6}" y="30" font-size="8.5" fill="rgba(255,255,255,0.9)" text-anchor="end" font-family="sans-serif">${rowLabel}</text>` +
+      colRows + extraTxt + `</svg>`;
+
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  // ── UI 렌더 ───────────────────────────────────────────
+  const requiredRoot = container.querySelector('#cem-canvas');
+  if (!requiredRoot) {
+    console.error('[CombinedErd] missing ERD HTML structure');
+    container.className = 'p-8 text-sm text-red-500';
+    container.textContent = 'ERD 화면 구조를 찾을 수 없습니다.';
+    return;
+  }
+  // ── 데이터 로딩 ───────────────────────────────────────
+  const getDs = id => allDatasets.find(d => d.id === id);
+
+  async function loadData() {
+    // 데이터셋 목록
+    try {
+      const r = await fetch('/api/searchDatasetList.do', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ start_idx:1, show_cnt:1000 })
+      });
+      const j = await r.json();
+      allDatasets = (j.list || []).map(d => ({
+        id: d.svc_no, name: d.svc_nm, subject: d.cl_cd_nm || '기타',
+        dataCount: parseCount(d.data_cnt || d.sample_data_length)
+      }));
+    } catch(e) { console.warn('[CombinedErd] datasets load failed', e); }
+
+    let existingTables = new Set(allDatasets.map(ds => ds.id));
+    try {
+      const r = await fetch('/api/query', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ query:`SELECT name FROM sqlite_master WHERE type='table'` })
+      });
+      if (r.ok) {
+        const rows = await r.json();
+        existingTables = new Set((rows || []).map(row => String(row.name)));
+      }
+    } catch {}
+
+    await Promise.allSettled(allDatasets.filter(ds => existingTables.has(String(ds.id))).map(async ds => {
+      try {
+        const r = await fetch('/api/query', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ query:`SELECT COUNT(*) AS cnt FROM ${quoteIdent(ds.id)}` })
+        });
+        if (!r.ok) return;
+        const rows = await r.json();
+        ds.dataCount = parseCount(rows?.[0]?.cnt);
+      } catch {}
+    }));
+
+    // 컬럼 정보 — bulk 쿼리 시도 후 실패 시 개별 fetch
+    allColumnsMap = {};
+    try {
+      const r = await fetch('/api/query', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ query:`SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field` })
+      });
+      const rows = await r.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        rows.forEach(row => {
+          if (!allColumnsMap[row.svc_no]) allColumnsMap[row.svc_no] = [];
+          if (allColumnsMap[row.svc_no].length < 5)
+            allColumnsMap[row.svc_no].push({ field:row.field, kor_nm:row.kor_nm, sql_type:row.sql_type });
+        });
+      }
+    } catch(e) { console.warn('[CombinedErd] columns bulk load failed', e); }
+
+    // bulk 결과가 없으면 개별 테이블 fetch
+    if (Object.keys(allColumnsMap).length === 0) {
+      const targetIds = allDatasets.map(d => d.id);
+      await Promise.allSettled(targetIds.map(async id => {
+        try {
+          const r = await fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(id)}`);
+          const cols = await r.json();
+          if (Array.isArray(cols) && cols.length > 0) {
+            allColumnsMap[id] = cols.slice(0, 5).map(c => ({
+              field: c.field, kor_nm: c.kor_nm, sql_type: c.sql_type || c.data_type
+            }));
+          }
+        } catch{}
+      }));
+    }
+
+    // 관계 데이터
+    try {
+      const r = await fetch('/api/relationships');
+      let loadedRels = await r.json() || [];
+      if (!Array.isArray(loadedRels)) loadedRels = [];
+      
+      // 사용자 요청: 실제 조인 시 매칭되는 값이 존재하는 관계만 묶기
+      relationships = loadedRels.filter(rel => 
+        rel.inclusion_check && rel.inclusion_check.matched_count > 0
+      );
+    } catch(e) { console.warn('[CombinedErd] relationships load failed', e); }
+
+    // 데이터셋이 없으면 domainTables의 ID로 최소 구성
+    if (allDatasets.length === 0) {
+      const allIds = [...new Set(Object.values(domainTables).flat())];
+      allDatasets = allIds.map(id => ({ id, name: id, subject: '기타', dataCount: 0 }));
+    }
+  }
+
+  // ── 필터링 ────────────────────────────────────────────
+  function getVisibleIds() {
+    let allowed = new Set(allDatasets.map(d => d.id));
+
+    if (activeKeyword) {
+      const kw = activeKeyword.toLowerCase();
+      const matched = allDatasets.filter(ds => {
+        if (!allowed.has(ds.id)) return false;
+        return columnMatchedIds.has(ds.id) ||
+          ds.id.toLowerCase().includes(kw) ||
+          ds.name.toLowerCase().includes(kw);
+      });
+      if (matched.length > 0) {
+        const ms = new Set(matched.map(d => d.id));
+        relationships.forEach(r => {
+          if (ms.has(r.from_table) && allowed.has(r.to_table)) ms.add(r.to_table);
+          if (ms.has(r.to_table) && allowed.has(r.from_table)) ms.add(r.from_table);
+        });
+        return ms;
+      } else {
+        return new Set();
+      }
+    }
+
+    const ids = allDatasets.filter(d => allowed.has(d.id)).map(d => d.id);
+    return new Set(ids.slice(0, maxNodesLimit));
+  }
+
+  // ── 관계 유형 판별 ────────────────────────────────────
+  function getRelType(fromT, toT, key) {
+    const isPk = (t, c) => {
+      const T = t.toUpperCase(), C = c.toUpperCase();
+      return (T==='I2500'&&(C==='LCNS_NO'||C==='BSSH_NO')) ||
+             (T==='I1250'&&C==='PRDLST_REPORT_NO');
+    };
+    if (isPk(fromT,key) && isPk(toT,key)) return '1:1';
+    if (isPk(fromT,key)) return '1:N';
+    if (isPk(toT,key)) return 'N:1';
+    return 'N:M';
+  }
+
+  // ── 네트워크 렌더 ────────────────────────────────────
+  function renderNetwork() {
+    const canvasEl = container.querySelector('#cem-canvas');
+    if (!canvasEl) return;
+    if (typeof vis === 'undefined') {
+      console.error('[CombinedErd] vis-network not loaded');
+      const el = container.querySelector('#cem-loading');
+      if (el) { el.classList.remove('hidden'); el.innerHTML = '<p class="text-red-500 text-sm p-4">vis-network 라이브러리가 로드되지 않았습니다.</p>'; }
+      return;
+    }
+
+    const visibleIds = getVisibleIds();
+
+    // degree map (연결 수) → mass 계산에 사용
+    const degreeMap = {};
+    relationships.forEach(r => {
+      if (visibleIds.has(r.from_table)) degreeMap[r.from_table] = (degreeMap[r.from_table]||0) + 1;
+      if (visibleIds.has(r.to_table))   degreeMap[r.to_table]   = (degreeMap[r.to_table]||0)   + 1;
+    });
+
+    const categoryIndex = new Map();
+    let nextColorIndex = 0;
+    const getCategoryColor = (subject) => {
+      const key = subject || '기타';
+      if (categoryColorMap[key]) return categoryColorMap[key];
+      if (!categoryIndex.has(key)) categoryIndex.set(key, nextColorIndex++);
+      return fallbackCategoryColors[categoryIndex.get(key) % fallbackCategoryColors.length];
+    };
+
+    // Vis.js 노드 (SVG 카드)
+    const visNodes = allDatasets
+      .filter(ds => visibleIds.has(ds.id))
+      .map(ds => {
+        const cols   = allColumnsMap[ds.id] || [];
+        const rows   = parseCount(ds.dataCount);
+        const degree = degreeMap[ds.id] || 0;
+        const color  = getCategoryColor(ds.subject);
+        const svgUrl = createCardSvg(ds.id, ds.name, cols, rows, color, selectedNodeId === ds.id);
+
+        // 크기: log 스케일, 70~130px
+        const sz = Math.min(150, Math.max(42, 42 + Math.log10(rows + 1) * 22));
+        // mass: 연결 많을수록 중앙으로 → sqrt(degree) 비례
+        const mass = Math.max(1, Math.sqrt(degree + 1) + Math.log10(rows + 1) * 0.18);
+
+        const tip = document.createElement('div');
+        tip.className = 'p-2 text-xs text-slate-700 max-w-xs';
+        tip.innerHTML = `<p class="font-bold text-slate-900">${ds.name} (${ds.id})</p>
+          <p class="text-slate-400">${ds.subject} · ${Number(rows).toLocaleString()} rows · 연결 ${degree}개</p>`;
+
+        return { id:ds.id, label:'', shape:'image', image:svgUrl, size:sz, mass, title:tip };
+      });
+
+    // Vis.js 엣지
+    const visEdges = relationships
+      .filter(r => {
+        if (!visibleIds.has(r.from_table) || !visibleIds.has(r.to_table)) return false;
+        const k = r.from_field;
+        return selectedKeys[k] !== false;
+      })
+      .map((r, i) => {
+        const key   = r.from_field;
+        const rel   = getRelType(r.from_table, r.to_table, key);
+        const eClr  = KEY_EDGE_COLORS[key] || '#94a3b8';
+        const isSel = selectedNodeId && (r.from_table===selectedNodeId || r.to_table===selectedNodeId);
+        return {
+          id:`e${i}`, from:r.from_table, to:r.to_table,
+          label:`(${rel}) ${key}`,
+          font:{ size:10, face:'sans-serif', color:'#334155', background:'#ffffff', strokeWidth:2, strokeColor:'#f1f5f9' },
+          color:{ color: isSel ? eClr : `${eClr}80`, highlight:eClr, hover:eClr },
+          width: r.confidence==='HIGH' ? 2.5 : 1.5,
+          hoverWidth:3, selectionWidth:3,
+          arrows:{ to:{ enabled:true, scaleFactor:0.7 } },
+          smooth:{ enabled:true, type:'continuous', roundness:0.15 }
+        };
+      });
+
+    // 통계
+    const sn = container.querySelector('#cem-stat-nodes');
+    const se = container.querySelector('#cem-stat-edges');
+    if (sn) sn.textContent = visNodes.length;
+    if (se) se.textContent = visEdges.length;
+
+    const loadingEl = container.querySelector('#cem-loading');
+    if (loadingEl) loadingEl.classList.remove('hidden');
+
+    if (networkInstance) { networkInstance.destroy(); networkInstance = null; }
+
+    networkInstance = new vis.Network(canvasEl,
+      { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges) },
+      {
+        nodes: { borderWidthSelected:4, scaling:{ min:60, max:140 } },
+        interaction: { hover:true, tooltipDelay:150, selectable:true, selectConnectedEdges:true },
+        physics: {
+          enabled: activePhysics,
+          barnesHut: {
+            gravitationalConstant: -4500,
+            centralGravity: 0.28,   // 연결 많은 노드(mass ↑)가 중앙으로
+            springLength: 240,
+            springConstant: 0.04,
+            damping: 0.09,
+            avoidOverlap: 0.9
+          },
+          stabilization: { enabled:true, iterations:600, updateInterval:50 }
+        }
+      }
+    );
+
+    networkInstance.on('stabilizationIterationsDone', () => {
+      if (loadingEl) loadingEl.classList.add('hidden');
+    });
+
+    networkInstance.on('select', ({ nodes:ns, edges:es }) => {
+      if (ns && ns.length > 0) {
+        selectedNodeId = ns[0]; showInspector(ns[0]);
+      } else if (es && es.length > 0) {
+        selectedNodeId = null; showEdgeInspector(es[0]);
+      } else {
+        selectedNodeId = null; hideInspector();
+      }
+    });
+  }
+
+  // ── 인스펙터 (우측 슬라이드 패널) ────────────────────
+  function showInspector(nodeId) {
+    const panel = container.querySelector('#cem-inspector');
+    if (!panel) return;
+    const ds = getDs(nodeId);
+    if (!ds) return;
+    panel.classList.remove('hidden');
+    setTimeout(() => panel.classList.remove('translate-x-[calc(100%+2rem)]'), 10);
+
+    const subjectColor = categoryColorMap[ds.subject] || '#475569';
+    panel.innerHTML = `
+      <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
+            <span class="font-mono text-xs font-bold text-slate-500">${nodeId}</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border" style="color:${subjectColor};border-color:${subjectColor}40;background:${subjectColor}18;">${ds.subject}</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800 truncate">${ds.name.split(' (')[0]}</h3>
+        </div>
+        <button id="cem-close-insp" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 shrink-0 ml-2">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div>
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5">
+            <i class="ri-article-line text-gov-600"></i> 컬럼 명세 (Schema)
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-52">
+            <table class="w-full text-left text-[11px] border-collapse">
+              <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold sticky top-0 z-10">
+                <th class="px-3 py-2 bg-slate-50">컬럼명</th>
+                <th class="px-2 py-2 bg-slate-50">타입</th>
+                <th class="px-3 py-2 bg-slate-50 text-right">한글명</th>
+              </tr></thead>
+              <tbody id="cem-schema-tbody" class="divide-y divide-slate-100">
+                <tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">
+                  <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1 align-middle"></div>로딩 중...
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5">
+            <i class="ri-database-2-line text-gov-600"></i> 데이터 샘플 (상위 30행)
+          </h4>
+          <div id="cem-sample-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-64">
+            <div class="px-3 py-4 text-center text-slate-400 text-xs">
+              <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1 align-middle"></div>로딩 중...
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2 shrink-0">
+        <button id="cem-jump-sql" class="flex-1 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
+          <i class="ri-terminal-box-line"></i> SQL 실행기
+        </button>
+        <button id="cem-jump-api" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
+          <i class="ri-search-eye-line"></i> API 탐색기
+        </button>
+      </div>`;
+
+    fetch('/api/query', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:`SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no='${nodeId}'` })
+    }).then(r => r.json()).then(cols => {
+      const tb = container.querySelector('#cem-schema-tbody');
+      if (!tb) return;
+      tb.innerHTML = (cols||[]).map(c => {
+        const badge = KEY_EDGE_COLORS[c.field]
+          ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
+        return `<tr class="hover:bg-slate-50/50">
+          <td class="px-3 py-1.5 font-mono font-semibold text-slate-800">${c.field}${badge}</td>
+          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${c.sql_type||'VARCHAR'}</td>
+          <td class="px-3 py-1.5 text-right text-slate-500">${c.kor_nm||'-'}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
+    }).catch(() => {});
+
+    fetch('/api/query', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:`SELECT * FROM "${nodeId}" LIMIT 30` })
+    }).then(r => r.json()).then(rows => {
+      const wrap = container.querySelector('#cem-sample-wrap');
+      if (!wrap) return;
+      if (!rows || !rows.length) { wrap.innerHTML='<p class="p-4 text-center text-xs text-slate-400">데이터 없음</p>'; return; }
+      const ks = Object.keys(rows[0]);
+      wrap.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-[10px] border-collapse min-w-[400px]">
+        <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0 z-10">
+          ${ks.map(c=>`<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
+        </tr></thead>
+        <tbody class="divide-y divide-slate-100 font-mono text-slate-600">
+          ${rows.map(row=>`<tr class="hover:bg-slate-50/50">${ks.map(c=>{const v=row[c];const sv=v!==null?String(v).replace(/"/g,'&quot;'):'';return`<td class="px-2.5 py-1 truncate max-w-[100px]" title="${sv}">${v!==null?v:'<span class="text-slate-300">null</span>'}</td>`;}).join('')}</tr>`).join('')}
+        </tbody></table></div>`;
+    }).catch(() => {});
+
+    container.querySelector('#cem-close-insp')?.addEventListener('click', hideInspector);
+    container.querySelector('#cem-jump-sql')?.addEventListener('click', () => {
+      window.sqlPlaygroundAutoQuery = `SELECT * FROM "${nodeId}" LIMIT 10;`;
+      document.querySelector('[data-tab="sql-playground"]')?.click();
+    });
+    container.querySelector('#cem-jump-api')?.addEventListener('click', () => {
+      window.apiExplorerAutoSearch = nodeId;
+      document.querySelector('[data-tab="api-explorer"]')?.click();
+    });
+  }
+
+  function showEdgeInspector(edgeId) {
+    const panel = container.querySelector('#cem-inspector');
+    if (!panel || !networkInstance) return;
+    const edge = networkInstance.body.data.edges.get(edgeId);
+    if (!edge) return;
+    panel.classList.remove('hidden');
+    setTimeout(() => panel.classList.remove('translate-x-[calc(100%+2rem)]'), 10);
+    const baseKey = (edge.label||'').split(' ').pop();
+    panel.innerHTML = `
+      <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+        <div>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">JOIN KEY</span>
+          <h3 class="text-sm font-bold text-slate-800 mt-1">${edge.from} ↔ ${edge.to}</h3>
+          <p class="text-[11px] text-slate-500">공통키: <code class="text-amber-600 font-mono">${baseKey}</code></p>
+        </div>
+        <button id="cem-close-insp" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 shrink-0 ml-2">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4">
+        <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2">결합 데이터 (상위 30행)</h4>
+        <div id="cem-join-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-80">
+          <div class="p-4 text-center text-xs text-slate-400">
+            <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1"></div>조인 데이터 로딩 중...
+          </div>
+        </div>
+      </div>`;
+
+    fetch('/api/query', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query:`SELECT A.*, B.* FROM "${edge.from}" A INNER JOIN "${edge.to}" B ON A."${baseKey}" = B."${baseKey}" LIMIT 30` })
+    }).then(r => r.json()).then(rows => {
+      const wrap = container.querySelector('#cem-join-wrap');
+      if (!wrap) return;
+      if (!rows||!rows.length) { wrap.innerHTML='<p class="p-4 text-center text-xs text-slate-400">매칭 데이터 없음</p>'; return; }
+      const ks = Object.keys(rows[0]);
+      wrap.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-[10px] border-collapse min-w-[400px]">
+        <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0 z-10">
+          ${ks.map(c=>`<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
+        </tr></thead>
+        <tbody class="divide-y divide-slate-100 font-mono text-slate-600">
+          ${rows.map(row=>`<tr>${ks.map(c=>{const v=row[c];return`<td class="px-2.5 py-1 truncate max-w-[80px]">${v!==null?v:''}</td>`;}).join('')}</tr>`).join('')}
+        </tbody></table></div>`;
+    }).catch(() => {});
+
+    container.querySelector('#cem-close-insp')?.addEventListener('click', hideInspector);
+  }
+
+  function hideInspector() {
+    const panel = container.querySelector('#cem-inspector');
+    if (!panel) return;
+    panel.classList.add('translate-x-[calc(100%+2rem)]');
+    setTimeout(() => panel.classList.add('hidden'), 300);
+  }
+
+  // ── 이벤트 바인딩 ────────────────────────────────────
+  function bindEvents() {
+    const kwInput = document.getElementById('datamap-keyword-search');
+    const kwBtn   = document.getElementById('btn-datamap-keyword-search');
+
+    const doSearch = async () => {
+      const kw = kwInput?.value.trim() || '';
+      if (!kw) { columnMatchedIds=new Set(); activeKeyword=''; maxNodesLimit=9999; renderNetwork(); return; }
+      
+      try {
+        const r = await fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`);
+        columnMatchedIds = new Set((await r.json()).tables || []);
+      } catch { columnMatchedIds = new Set(); }
+      
+      activeKeyword=kw; maxNodesLimit=9999; renderNetwork();
+    };
+
+    kwBtn?.addEventListener('click', doSearch);
+    kwInput?.addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
+
+    container.querySelectorAll('[data-domain]').forEach(c =>
+      c.addEventListener('change', e => { selectedDomains[e.target.dataset.domain]=e.target.checked; renderNetwork(); })
+    );
+    container.querySelector('#cem-dom-toggle')?.addEventListener('click', () => {
+      Object.keys(selectedDomains).forEach(k => selectedDomains[k]=!selectedDomains[k]);
+      container.querySelectorAll('[data-domain]').forEach(c => { c.checked=selectedDomains[c.dataset.domain]; });
+      renderNetwork();
+    });
+
+    container.querySelectorAll('[data-joinkey]').forEach(c =>
+      c.addEventListener('change', e => { selectedKeys[e.target.dataset.joinkey]=e.target.checked; renderNetwork(); })
+    );
+    container.querySelector('#cem-key-toggle')?.addEventListener('click', () => {
+      Object.keys(selectedKeys).forEach(k => selectedKeys[k]=!selectedKeys[k]);
+      container.querySelectorAll('[data-joinkey]').forEach(c => { c.checked=selectedKeys[c.dataset.joinkey]; });
+      renderNetwork();
+    });
+
+    container.querySelector('#cem-physics')?.addEventListener('change', e => {
+      activePhysics=e.target.checked;
+      networkInstance?.setOptions({ physics:{ enabled:activePhysics } });
+    });
+    container.querySelector('#cem-max-nodes')?.addEventListener('change', e => {
+      maxNodesLimit=parseInt(e.target.value); renderNetwork();
+    });
+    container.querySelector('#cem-fit')?.addEventListener('click', () =>
+      networkInstance?.fit({ animation:{ duration:800, easingFunction:'easeInOutQuad' } })
+    );
+    container.querySelector('#cem-capture')?.addEventListener('click', () => {
+      if (!networkInstance) return;
+      const btn = container.querySelector('#cem-capture');
+      if (btn) { btn.disabled=true; btn.innerHTML='<i class="ri-loader-4-line animate-spin"></i> 캡처 중...'; }
+      const off = document.createElement('div');
+      off.style.cssText = 'position:fixed;top:0;left:0;width:3200px;height:2400px;z-index:-9999;background:#f8fafc;pointer-events:none;';
+      document.body.appendChild(off);
+      const expNet = new vis.Network(off,
+        { nodes:new vis.DataSet(networkInstance.body.data.nodes.get()), edges:new vis.DataSet(networkInstance.body.data.edges.get()) },
+        { physics:{enabled:false}, interaction:{dragNodes:false,zoomView:false} }
+      );
+      const pos = networkInstance.getPositions();
+      Object.keys(pos).forEach(id => { try { expNet.moveNode(id, pos[id].x, pos[id].y); } catch{} });
+      expNet.fit({ animation:false });
+      setTimeout(() => {
+        const cvs = off.querySelector('canvas');
+        if (cvs) {
+          const out = document.createElement('canvas');
+          out.width=cvs.width; out.height=cvs.height;
+          const ctx=out.getContext('2d');
+          ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,out.width,out.height);
+          ctx.drawImage(cvs,0,0);
+          const a=document.createElement('a');
+          a.download=`데이터관계도ERD_${new Date().toISOString().slice(0,10)}.png`;
+          a.href=out.toDataURL('image/png',1.0); a.click();
+        }
+        document.body.removeChild(off);
+        if (btn) { btn.disabled=false; btn.innerHTML='<i class="ri-camera-line"></i> PNG 저장'; }
+      }, 1200);
+    });
+  }
+
+  // ── 초기화 ────────────────────────────────────────────
+  loadData().then(() => {
+    renderNetwork();
+    bindEvents();
+  });
 }

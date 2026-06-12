@@ -38,6 +38,7 @@ if (path.includes('/data/dataset.html')) {
 }
 
 let initialSearchKeyword = '건강';
+let globalDatamapKeyword = '';
 let selectedDataset = null;
 
 const tabContent = document.getElementById('tab-content');
@@ -121,7 +122,7 @@ const renderTabContent = () => {
   } else if (activeTab === 'nongshim-spec') {
     renderNongshimDataset(currentView);
   } else if (activeTab === 'wordcloud') {
-    renderWordCloud(currentView, onSelectDataset);
+    renderWordCloud(currentView, onSelectDataset, globalDatamapKeyword);
   } else if (activeTab === 'recommend-beginner') {
     renderScenarioTabs(currentView, 'beginner');
   } else if (activeTab === 'recommend-developer') {
@@ -311,7 +312,17 @@ const changeTab = (tabId) => {
 
 window.switchToKeywordMap = (keyword) => {
   initialSearchKeyword = keyword || '소스';
+  globalDatamapKeyword = keyword || '';
   changeTab('keyword-datamap');
+};
+
+window.setGlobalDatamapKeyword = (keyword) => {
+  globalDatamapKeyword = keyword || '';
+  initialSearchKeyword = keyword || initialSearchKeyword;
+};
+
+window.renderSauceDataMapInto = (container, keyword) => {
+  renderSauceDataMap(container, keyword || '검색', null);
 };
 
 document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn, .tab-btn').forEach(btn => {

@@ -1,33 +1,52 @@
 import { getDatasets } from '../datasetStore.js';
 
-export async function renderWordCloud(container, onSelectDataset) {
+export async function renderWordCloud(container, onSelectDataset, keyword = '') {
   const datasets = await getDatasets();
-  // Sort datasets by name for the dropdown
   const sortedDatasets = [...datasets].sort((a, b) => a.name.localeCompare(b.name));
-  
-  const optionsHtml = sortedDatasets.map(ds => 
-    `<option value="${ds.id}">${ds.name} (${ds.id})</option>`
-  ).join('');
+
+  const buildOptions = (kw) => {
+    const filtered = kw
+      ? sortedDatasets.filter(ds =>
+          ds.name.toLowerCase().includes(kw.toLowerCase()) ||
+          (ds.description || '').toLowerCase().includes(kw.toLowerCase()) ||
+          (ds.subject || '').toLowerCase().includes(kw.toLowerCase())
+        )
+      : sortedDatasets;
+    return filtered.map(ds =>
+      `<option value="${ds.id}">${ds.name} (${ds.id})</option>`
+    ).join('');
+  };
 
   container.innerHTML = `
     <div style="padding: 40px; text-align: center;">
-      <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #1a1a2e;">
+      <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 8px; color: #1a1a2e;">
         식품안전 통합 DB 워드 클라우드
       </h2>
       <p style="color: #666; margin-bottom: 20px;">
-        원하는 데이터 세트를 선택하면 해당 데이터에서 가장 자주 등장하는 핵심 내용을 한눈에 확인할 수 있습니다.
+        데이터세트를 선택하면 해당 데이터에서 가장 자주 등장하는 핵심 키워드를 한눈에 확인할 수 있습니다.
       </p>
-      
-      <div style="margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 10px;">
+
+      <!-- 키워드 필터 -->
+      <div style="margin-bottom: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+        <div style="position: relative;">
+          <i class="ri-search-line" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+          <input type="text" id="wc-keyword-filter" value="${keyword}"
+            placeholder="키워드로 데이터세트 필터 (예: 초콜릿, 우유...)"
+            style="padding: 8px 12px 8px 32px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 320px; outline: none;" />
+        </div>
+        <button id="btn-wc-filter" style="padding: 8px 16px; background: #475569; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">필터 적용</button>
+      </div>
+
+      <div style="margin-bottom: 24px; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap;">
         <label for="wc-dataset-select" style="font-weight: 600; color: #333;">분석 대상 선택:</label>
         <select id="wc-dataset-select" style="padding: 8px 16px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; min-width: 300px; outline: none;">
           <option value="ALL">전체 통합 데이터베이스 (ALL)</option>
-          ${optionsHtml}
+          ${buildOptions(keyword)}
         </select>
         <button id="btn-wc-search" style="padding: 8px 20px; background: #0099d8; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px;">
           <i class="ri-search-line"></i> 분석 시작
         </button>
-        <button id="btn-wc-capture" style="padding: 8px 20px; background: #27ae60; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; display: flex; align-items: center; gap: 6px;">
+        <button id="btn-wc-capture" style="padding: 8px 20px; background: #27ae60; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px;">
           <i class="ri-camera-line"></i> 화면 캡처
         </button>
       </div>
@@ -165,11 +184,34 @@ export async function renderWordCloud(container, onSelectDataset) {
   const selectEl = container.querySelector('#wc-dataset-select');
   const searchBtn = container.querySelector('#btn-wc-search');
   const captureBtn = container.querySelector('#btn-wc-capture');
+  const filterInput = container.querySelector('#wc-keyword-filter');
+  const filterBtn = container.querySelector('#btn-wc-filter');
+
+  // 필터 적용: 키워드에 맞는 데이터세트만 드롭다운에 표시
+  const applyFilter = () => {
+    const kw = filterInput ? filterInput.value.trim() : '';
+    const newOptions = '<option value="ALL">전체 통합 데이터베이스 (ALL)</option>' + buildOptions(kw);
+    selectEl.innerHTML = newOptions;
+  };
+
+  if (filterBtn) {
+    filterBtn.addEventListener('click', applyFilter);
+  }
+  if (filterInput) {
+    filterInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') applyFilter();
+    });
+  }
 
   if (searchBtn && selectEl) {
     searchBtn.addEventListener('click', () => {
       fetchWordCloudData(selectEl.value);
     });
+  }
+
+  // 전역 키워드로 자동 실행
+  if (keyword) {
+    fetchWordCloudData('ALL');
   }
 
   // 캡처 기능 구현 (SVG -> Canvas -> PNG)
