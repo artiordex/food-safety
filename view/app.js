@@ -6,7 +6,6 @@ import { renderDetailPanel } from './components/detailDataset.js?v=5';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=3';
 import { renderApiExplorer } from './components/apiExplorer.js?v=3';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
-import { renderSuperErdMap } from './components/superErdMap.js?v=3';
 import { renderSauceDataMap } from './components/sauceDataMap.js?v=3';
 import { renderDbErdMap } from './components/dbErdMap.js?v=11';
 import { renderWordCloud } from './components/wordCloud.js?v=3';
@@ -68,7 +67,6 @@ const renderTabContent = () => {
       'keyword-datamap': 'keyword-datamap-view',
       'erdmap': 'erdmap-view',
       'erd-inquiry': 'erd-inquiry-view',
-      'super-erdmap': 'super-erdmap-view',
       'sql-playground': 'sql-playground-view',
       'api-live-join': 'api-live-join-view',
       'api-hygiene': 'api-hygiene-view',
@@ -101,8 +99,6 @@ const renderTabContent = () => {
     renderRelationDataMap(currentView, onSelectDataset);
   } else if (activeTab === 'erd-inquiry') {
     renderErdMap(currentView, onSelectDataset);
-  } else if (activeTab === 'super-erdmap') {
-    renderSuperErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'sql-playground') {
     renderSqlPlayground(currentView, onSelectDataset);
   } else if (activeTab === 'api-explorer') {
@@ -236,7 +232,7 @@ const updateActiveTabUI = () => {
       }
     } else {
       if (tabId === activeTab) {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.classList.add('bg-emerald-50', 'text-emerald-700');
           btn.classList.remove('text-emerald-600', 'hover:bg-emerald-50');
         } else {
@@ -244,7 +240,7 @@ const updateActiveTabUI = () => {
           btn.classList.remove('text-slate-600', 'hover:text-gov-700', 'hover:bg-slate-50');
         }
       } else {
-        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode' || tabId === 'super-erdmap') {
+        if (tabId === 'api-live-join' || tabId === 'api-hygiene' || tabId === 'api-barcode') {
           btn.classList.remove('bg-emerald-50', 'text-emerald-700');
           btn.classList.add('text-emerald-600', 'hover:bg-emerald-50');
         } else {
