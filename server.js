@@ -66,6 +66,19 @@ function applyIncludes(html, vars = {}) {
 }
 
 const app = express();
+
+let _tableCountsMap = {};
+function initTableCounts() {
+  db.all("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')", [], (err, tables) => {
+    if (err) return;
+    tables.forEach(t => {
+      db.get(`SELECT COUNT(*) as cnt FROM "${t.name}"`, [], (err, row) => {
+        if (!err && row) _tableCountsMap[t.name] = row.cnt;
+      });
+    });
+  });
+}
+
 const PORT = process.env.PORT || 8000;
 const DB_PATH = path.join(__dirname, 'db', 'foodsafety.db');
 
@@ -76,9 +89,10 @@ app.use(express.urlencoded({ extended: true }));
 // DB 연결
 const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
-    logger.error({ err }, 'SQLite 데이터베이스 연결에 실패했습니다.');
+    logger.error({ err }, 'SQLite DB 연결 오류 (서버 시작 전)');
   } else {
-    logger.info({ path: DB_PATH }, 'SQLite 데이터베이스에 성공적으로 연결되었습니다.');
+    logger.info('SQLite DB 연결 성공');
+    initTableCounts(); // 추가됨
   }
 });
 
@@ -1806,7 +1820,7 @@ function buildDatasetEntry(row, cacheItem, fieldNames) {
   ).map(f => f.field);
   const keys = pkFields.length > 0 ? pkFields : (fieldNames.length > 0 ? [fieldNames[0]] : []);
   const includedData = fieldNames.slice(0, 8);
-  const dataCount = Math.max(row.sample_data_length ? Math.floor(row.sample_data_length / 80) : 0, 0);
+  const dataCount = typeof _tableCountsMap[svcNo] !== "undefined" ? _tableCountsMap[svcNo] : 0;
 
   const isView = svcNo.startsWith('v_');
   const difficulty = isView ? 'easy'
@@ -1840,6 +1854,31 @@ function buildDatasetEntry(row, cacheItem, fieldNames) {
     }
   };
 }
+
+// 특정 테이블 내 키워드 매칭 건수 조회
+app.get('/api/tables/:tableName/keyword-count', async (req, res) => {
+  const tableName = req.params.tableName;
+  const keyword = req.query.keyword;
+  if (!keyword) return res.json({ count: 0 });
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  try {
+    const columns = await dbAll(`PRAGMA table_info("${tableName}")`);
+    if (!columns.length) return res.json({ count: 0 });
+
+    const conditions = columns.map(c => `CAST("${c.name}" AS TEXT) LIKE ?`).join(' OR ');
+    const params = columns.map(() => `%${keyword}%`);
+    const sql = `SELECT COUNT(*) AS cnt FROM "${tableName}" WHERE ${conditions}`;
+
+    const rows = await dbAll(sql, params);
+    res.json({ count: rows[0].cnt || 0 });
+  } catch (err) {
+    res.json({ count: 0 });
+  }
+});
 
 app.get('/api/datasets', (req, res) => {
   const cacheMap = getCacheMap();

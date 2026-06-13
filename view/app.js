@@ -1,17 +1,17 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
-import { renderDataMap } from './components/dataMap.js?v=33';
+import { renderDataMap } from './components/dataMap.js?v=35';
 import { renderErdMap } from './components/erdMap.js?v=4';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
-import { renderDetailPanel } from './components/detailDataset.js?v=4';
+import { renderDetailPanel } from './components/detailDataset.js?v=5';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=3';
 import { renderApiExplorer } from './components/apiExplorer.js?v=3';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
 import { renderSuperErdMap } from './components/superErdMap.js?v=3';
 import { renderSauceDataMap } from './components/sauceDataMap.js?v=3';
-import { renderDbErdMap } from './components/dbErdMap.js?v=9';
+import { renderDbErdMap } from './components/dbErdMap.js?v=10';
 import { renderWordCloud } from './components/wordCloud.js?v=3';
-import { renderScenarioTabs } from './components/scenarioRecommend.js?v=3';
-import { getDatasetsSync } from './datasetStore.js';
+import { renderScenarioTabs } from './components/scenarioRecommend.js?v=4';
+import { getDatasetsSync } from './datasetStore.js?v=2';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
@@ -35,7 +35,6 @@ if (path.includes('/data/dataset.do') || path.includes('/pages/data/dataset.html
   activeTab = urlParams.get('tab') || 'explorer';
 }
 
-let initialSearchKeyword = '건강';
 let globalDatamapKeyword = '';
 let selectedDataset = null;
 
@@ -111,7 +110,7 @@ const renderTabContent = () => {
   } else if (activeTab === 'api-live-join') {
     renderApiLiveJoin(currentView, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
-    renderSauceDataMap(currentView, initialSearchKeyword, onSelectDataset);
+    renderSauceDataMap(currentView, globalDatamapKeyword, onSelectDataset);
   } else if (activeTab === 'db-erd') {
     renderDbErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'wordcloud') {
@@ -304,15 +303,14 @@ const changeTab = (tabId) => {
 };
 
 window.switchToKeywordMap = (keyword) => {
-  initialSearchKeyword = keyword || '소스';
   globalDatamapKeyword = keyword || '';
   changeTab('keyword-datamap');
 };
 
 window.setGlobalDatamapKeyword = (keyword) => {
   globalDatamapKeyword = keyword || '';
-  initialSearchKeyword = keyword || initialSearchKeyword;
 };
+window.getGlobalDatamapKeyword = () => globalDatamapKeyword;
 
 window.renderSauceDataMapInto = (container, keyword) => {
   renderSauceDataMap(container, keyword || '검색', null);

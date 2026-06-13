@@ -1345,30 +1345,38 @@ export function renderCombinedErdMap(container, onSelectDataset) {
   // 필터링
   // 키워드·노드 수 제한 등 현재 필터 조건에 부합하는 가시 노드 ID 집합을 반환하는 함수
   function getVisibleIds() {
-    let allowed = new Set(allDatasets.map(d => d.id));
-
-    if (externalFilterIds) {
-      allowed = new Set([...allowed].filter(id => externalFilterIds.has(id)));
-    }
+    // 전체 가능한 노드 집합 (인접 노드 확장의 우주)
+    const allIds = new Set(allDatasets.map(d => d.id));
 
     if (activeKeyword) {
       const showDim = document.getElementById('cem-show-dim')?.checked ?? true;
-      const matched = allDatasets.filter(ds => {
-        if (!allowed.has(ds.id)) return false;
-        return matchedNodeIds.has(ds.id);
-      });
-      if (matched.length > 0) {
-        const ms = new Set(matched.map(d => d.id));
+
+      // externalFilterIds 가 있으면 직접 매칭 범위는 그 안에서만, 없으면 matchedNodeIds 전체
+      const directSource = externalFilterIds
+        ? new Set([...matchedNodeIds].filter(id => externalFilterIds.has(id)))
+        : matchedNodeIds;
+
+      if (directSource.size > 0) {
+        // 직접 매칭 노드
+        const ms = new Set([...directSource]);
+
         if (showDim) {
+          // 인접 노드 확장: React Flow와 동일하게 전체 관계(allIds) 기준
           relationships.forEach(r => {
-            if (ms.has(r.from_table) && allowed.has(r.to_table)) ms.add(r.to_table);
-            if (ms.has(r.to_table) && allowed.has(r.from_table)) ms.add(r.from_table);
+            if (ms.has(r.from_table) && allIds.has(r.to_table)) ms.add(r.to_table);
+            if (ms.has(r.to_table) && allIds.has(r.from_table)) ms.add(r.from_table);
           });
         }
         return ms;
       } else {
         return new Set();
       }
+    }
+
+    // 키워드 없는 경우: externalFilterIds 적용 후 maxNodesLimit
+    let allowed = allIds;
+    if (externalFilterIds) {
+      allowed = new Set([...allIds].filter(id => externalFilterIds.has(id)));
     }
 
     // 연결 수가 많은 순서로 정렬하여 maxNodesLimit 적용

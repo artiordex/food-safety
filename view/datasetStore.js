@@ -9,7 +9,7 @@ let _promise = null;
 export async function getDatasets() {
   if (_cache) return _cache;
   if (!_promise) {
-    _promise = fetch('/api/datasets')
+    _promise = fetch('/api/datasets?_t=' + Date.now())
       .then(r => {
         if (!r.ok) throw new Error(`/api/datasets 응답 오류: ${r.status}`);
         return r.json();

@@ -493,6 +493,10 @@ export function renderDataMap(container, onSelectDataset) {
 
     // 선택된 데이터세트의 상세 패널(워드 클라우드 포함)을 표시함
     const openDatasetDetail = (ds, view) => {
+      if (typeof onSelectDataset === 'function') {
+        onSelectDataset(ds);
+        return;
+      }
       const mappedDataset = {
         id: ds.svc_no,
         name: ds.svc_nm || ds.svc_no,
@@ -1082,6 +1086,10 @@ export function renderDataMap(container, onSelectDataset) {
 
   // 트리맵 내 데이터세트 상세 페이지(컬럼표 + 워드 클라우드)를 렌더링함
   const showTreemapDatasetDetail = (dataset, categoryData) => {
+    if (typeof onSelectDataset === 'function') {
+      onSelectDataset(dataset);
+      return;
+    }
     const mappedDataset = {
       id: dataset.id || dataset.svc_no,
       name: dataset.name || dataset.svc_nm || '-',

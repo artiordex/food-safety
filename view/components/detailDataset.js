@@ -96,7 +96,7 @@ export function renderDetailPanel(dataset, onClose) {
           <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
             ${dataset.process}
           </span>
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gov-50 text-gov-700 border border-gov-100">
+          <span id="detail-dataset-size-badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gov-50 text-gov-700 border border-gov-100">
             데이터 ${dataset.dataCount}개 포함
           </span>
         </div>
@@ -397,6 +397,46 @@ export function renderDetailPanel(dataset, onClose) {
   setTimeout(() => {
     loadLivePreview();
     bindToggleListeners();
+
+    // 키워드 검색 시 해당 키워드 매칭 건수 동적 조회 및 배지 추가
+    if (typeof window.getGlobalDatamapKeyword === 'function') {
+      const kw = window.getGlobalDatamapKeyword();
+      if (kw) {
+        const badgeContainer = container.querySelector('.flex.items-center.gap-2.mb-4.flex-wrap');
+        if (badgeContainer) {
+          const kwBadge = document.createElement('span');
+          kwBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200 animate-pulse';
+          kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> "${kw}" 매칭 건수 계산 중...`;
+          
+          // "데이터 N개 포함" 뱃지 앞에 삽입
+          const sizeBadge = badgeContainer.querySelector('#detail-dataset-size-badge');
+          if (sizeBadge) {
+            badgeContainer.insertBefore(kwBadge, sizeBadge);
+          } else {
+            badgeContainer.appendChild(kwBadge);
+          }
+
+          // 단일 키워드나 AND/OR 중 첫 번째 의미 있는 단어를 사용하거나 전체 kw를 넘겨 서버에서 처리
+          // 여기서는 /api/tables/:tableName/keyword-count?keyword=xxx 로 호출
+          const primaryKw = kw.split(';')[0].trim().replace(/AND|OR/gi, '').trim();
+          fetch(`/api/tables/${dataset.id}/keyword-count?keyword=${encodeURIComponent(primaryKw)}`)
+            .then(r => r.json())
+            .then(data => {
+              kwBadge.classList.remove('animate-pulse');
+              if (data.count > 0) {
+                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${primaryKw}" <strong>${data.count}개</strong> 포함`;
+              } else {
+                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${primaryKw}" 포함 안 됨`;
+                kwBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200';
+              }
+            })
+            .catch(() => {
+              kwBadge.remove(); // 실패 시 숨김
+            });
+        }
+      }
+    }
+
   }, 100);
 
   
