@@ -580,67 +580,18 @@ function ReactErdApp({ onSelectDataset, container }) {
           fetch('/api/relationships')
         ];
         if (kw) {
-          requests.push(fetch('/api/column-search-multi', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ words: searchWords })
-          }));
+          const op = document.getElementById('datamap-keyword-operator')?.value || 'AND';
+          requests.push(fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`));
         }
 
         const resAll = await Promise.all(requests);
         const [dsRes, relRes] = resAll;
-        
+
         if (kw && resAll[2]) {
-          const colData = await resAll[2].json();
-          const resultObj = colData.result || {};
-          const wordMatches = {};
-          searchWords.forEach(w => wordMatches[w] = new Set((resultObj[w] || []).map(String)));
-
-          const dsJsonTemp = await dsRes.clone().json();
-          const list = dsJsonTemp.list || [];
-          
-          const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
-          const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
-          const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
-          const defaultOp = document.getElementById('datamap-keyword-operator')?.value || 'AND';
-          const expr = [];
-          for (let i = 0; i < tokens.length; i++) {
-            expr.push(tokens[i]);
-            if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
-              expr.push(defaultOp);
-            }
-          }
-
-          const matchedIdsList = list.filter(d => {
-            const checkWord = (w) => {
-              const nm = (d.svc_nm || '').toLowerCase();
-              const no = (d.svc_no || '').toLowerCase();
-              const wl = w.toLowerCase();
-              const inName = w.length <= 1
-                ? nm === wl || no === wl
-                : nm.includes(wl) || no.includes(wl);
-              const inData = wordMatches[w] ? wordMatches[w].has(String(d.svc_no)) : false;
-              return inName || inData;
-            };
-
-            let termMatch = null;
-            let finalMatch = false;
-            for (let i = 0; i < expr.length; i++) {
-              const t = expr[i];
-              if (t === 'AND') { continue; }
-              else if (t === 'OR') {
-                if (termMatch !== null) finalMatch = finalMatch || termMatch;
-                termMatch = null;
-              } else {
-                const wordResult = checkWord(t);
-                termMatch = termMatch === null ? wordResult : termMatch && wordResult;
-              }
-            }
-            if (termMatch !== null) finalMatch = finalMatch || termMatch;
-            return finalMatch;
-          }).map(d => String(d.svc_no));
-          
-          initialMatchedIds = new Set(matchedIdsList);
+          const kwdmData = await resAll[2].json();
+          const rawMatchedTables = kwdmData.matchedTables || [];
+          // tableName은 하이픈 없는 형태 (sqlite_master 기준)
+          initialMatchedIds = new Set(rawMatchedTables.map(t => String(t.tableName)));
           setFilterIds(initialMatchedIds);
         }
 
@@ -1101,7 +1052,17 @@ function ReactErdApp({ onSelectDataset, container }) {
           </div>
         </div>
       `}
-      
+
+      ${!loading && filterIds && displayNodes.length === 0 && html`
+        <div style=${{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, flexDirection: 'column', gap: '12px', color: '#94a3b8' }}>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            <path d="M8 11h6"/></svg>
+          <p style=${{ fontSize: '16px', fontWeight: '600', color: '#64748b', margin: 0 }}>검색 결과가 없습니다</p>
+          <p style=${{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>AND 조건을 만족하는 데이터 관계가 존재하지 않습니다.</p>
+        </div>
+      `}
+
       <${ReactFlow}
         nodes=${displayNodes}
         edges=${displayEdges}

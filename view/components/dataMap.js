@@ -12,8 +12,8 @@
 import { getDatasetsSync } from '../datasetStore.js';
 import { renderKeywordGraph } from './keywordGraph.js?v=4';
 import { renderDetailPanel } from './detailDataset.js?v=4';
-import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=47';
-import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=14';
+import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=48';
+import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=15';
 
 // =============================================================================
 // 1. 메인 진입점

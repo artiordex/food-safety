@@ -1497,6 +1497,35 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     if (se) se.textContent = visEdges.length;
 
     const loadingEl = container.querySelector('#cem-loading');
+    
+    // 기존 empty state element 제거
+    const existingEmpty = container.querySelector('#cem-empty');
+    if (existingEmpty) existingEmpty.remove();
+
+    if (visNodes.length === 0) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (networkInstance) { networkInstance.destroy(); networkInstance = null; }
+      
+      const canvasWrap = container.querySelector('#cem-canvas-wrap');
+      if (canvasWrap) {
+        const emptyEl = document.createElement('div');
+        emptyEl.id = 'cem-empty';
+        emptyEl.className = 'absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-20';
+        emptyEl.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; color: #94a3b8;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              <path d="M8 11h6"/>
+            </svg>
+            <p style="font-size: 16px; font-weight: 600; color: #64748b; margin: 0;">검색 결과가 없습니다</p>
+            <p style="font-size: 13px; color: #94a3b8; margin: 0;">AND 조건을 만족하는 데이터 관계가 존재하지 않습니다.</p>
+          </div>
+        `;
+        canvasWrap.appendChild(emptyEl);
+      }
+      return;
+    }
+
     if (loadingEl) loadingEl.classList.remove('hidden');
 
     if (networkInstance) { networkInstance.destroy(); networkInstance = null; }
@@ -1717,76 +1746,20 @@ export function renderCombinedErdMap(container, onSelectDataset) {
 
     runKeywordFilter = async () => {
       const kw = kwInput?.value.trim() || '';
-      if (!kw) { columnMatchedIds = new Set(); activeKeyword = ''; maxNodesLimit = 9999; renderNetwork(); return; }
+      if (!kw) { columnMatchedIds = new Set(); matchedNodeIds = new Set(); activeKeyword = ''; maxNodesLimit = 9999; renderNetwork(); return; }
 
       try {
-        const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
-        const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
-        const searchWords = [...new Set(rawWords.filter(w => !isOperator(w)))];
-        const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
-        const defaultOp = document.getElementById('datamap-keyword-operator')?.value || 'AND';
-        const expr = [];
-        for (let i = 0; i < tokens.length; i++) {
-          expr.push(tokens[i]);
-          if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
-            expr.push(defaultOp);
-          }
-        }
-
-        const isComplexQuery = rawWords.some(w => isOperator(w)) || searchWords.length > 1;
-
-        const r = await fetch('/api/column-search-multi', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ words: searchWords })
-        });
-        const multiData = await r.json();
-        
-        const resultObj = multiData.result || {};
-        const wordMatches = {};
-        searchWords.forEach(w => {
-          wordMatches[w] = new Set((resultObj[w] || []).map(String));
-        });
-
-        columnMatchedIds = new Set();
-        
-        for (const ds of allDatasets) {
-          const checkToken = (w) => {
-            const nm = (ds.name || '').toLowerCase();
-            const id = (ds.id || '').toLowerCase();
-            const wl = w.toLowerCase();
-            const inName = w.length <= 1
-              ? nm === wl || id === wl
-              : nm.includes(wl) || id.includes(wl);
-            const inCol = wordMatches[w] ? wordMatches[w].has(String(ds.id)) : false;
-            return inName || inCol;
-          };
-
-          const evalExpr = () => {
-            if (expr.length === 0) return false;
-            let termMatch = null;
-            let finalMatch = false;
-            for (let i = 0; i < expr.length; i++) {
-              const t = expr[i];
-              if (t === 'AND') { continue; }
-              else if (t === 'OR') {
-                if (termMatch !== null) finalMatch = finalMatch || termMatch;
-                termMatch = null;
-              } else {
-                const wordResult = checkToken(t);
-                termMatch = termMatch === null ? wordResult : termMatch && wordResult;
-              }
-            }
-            if (termMatch !== null) finalMatch = finalMatch || termMatch;
-            return finalMatch;
-          };
-
-          if (evalExpr()) {
-            columnMatchedIds.add(ds.id);
-          }
-        }
+        const op = document.getElementById('datamap-keyword-operator')?.value || 'AND';
+        const res = await fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`);
+        const data = await res.json();
+        const rawMatchedTables = data.matchedTables || [];
+        columnMatchedIds = new Set(rawMatchedTables.map(t => String(t.tableName)));
         matchedNodeIds = new Set([...columnMatchedIds]);
-      } catch (e) { console.error(e); columnMatchedIds = new Set(); }
+      } catch (e) {
+        console.error(e);
+        columnMatchedIds = new Set();
+        matchedNodeIds = new Set();
+      }
 
       activeKeyword = kw; maxNodesLimit = 9999; renderNetwork();
     };
