@@ -1,5 +1,5 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
-import { renderDataMap } from './components/dataMap.js?v=35';
+import { renderDataMap } from './components/dataMap.js?v=36';
 import { renderErdMap } from './components/erdMap.js?v=4';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
 import { renderDetailPanel } from './components/detailDataset.js?v=5';
@@ -8,7 +8,7 @@ import { renderApiExplorer } from './components/apiExplorer.js?v=3';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
 import { renderSuperErdMap } from './components/superErdMap.js?v=3';
 import { renderSauceDataMap } from './components/sauceDataMap.js?v=3';
-import { renderDbErdMap } from './components/dbErdMap.js?v=10';
+import { renderDbErdMap } from './components/dbErdMap.js?v=11';
 import { renderWordCloud } from './components/wordCloud.js?v=3';
 import { renderScenarioTabs } from './components/scenarioRecommend.js?v=4';
 import { getDatasetsSync } from './datasetStore.js?v=2';

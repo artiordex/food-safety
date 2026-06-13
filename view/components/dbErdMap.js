@@ -1751,29 +1751,34 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         columnMatchedIds = new Set();
         
         for (const ds of allDatasets) {
-          // Evaluator function
-          const evalExpr = () => {
-            if (expr.length === 0) return false;
-            let termMatch = true;
-            let finalMatch = false;
-            
-            for (let i = 0; i < expr.length; i++) {
-              const t = expr[i];
-              if (t === 'AND') continue;
-              else if (t === 'OR') {
-                finalMatch = finalMatch || termMatch;
-                termMatch = true;
-              } else {
-                termMatch = termMatch && checkToken(t);
-              }
-            }
-            return finalMatch || termMatch;
-          };
-
           const checkToken = (w) => {
-            const inName = (ds.name || '').toLowerCase().includes(w.toLowerCase()) || (ds.id || '').toLowerCase().includes(w.toLowerCase()) || (ds.description || '').toLowerCase().includes(w.toLowerCase());
+            const nm = (ds.name || '').toLowerCase();
+            const id = (ds.id || '').toLowerCase();
+            const wl = w.toLowerCase();
+            const inName = w.length <= 1
+              ? nm === wl || id === wl
+              : nm.includes(wl) || id.includes(wl);
             const inCol = wordMatches[w] ? wordMatches[w].has(String(ds.id)) : false;
             return inName || inCol;
+          };
+
+          const evalExpr = () => {
+            if (expr.length === 0) return false;
+            let termMatch = null;
+            let finalMatch = false;
+            for (let i = 0; i < expr.length; i++) {
+              const t = expr[i];
+              if (t === 'AND') { continue; }
+              else if (t === 'OR') {
+                if (termMatch !== null) finalMatch = finalMatch || termMatch;
+                termMatch = null;
+              } else {
+                const wordResult = checkToken(t);
+                termMatch = termMatch === null ? wordResult : termMatch && wordResult;
+              }
+            }
+            if (termMatch !== null) finalMatch = finalMatch || termMatch;
+            return finalMatch;
           };
 
           if (evalExpr()) {

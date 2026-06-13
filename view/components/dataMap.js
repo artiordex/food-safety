@@ -12,7 +12,7 @@
 import { getDatasetsSync } from '../datasetStore.js';
 import { renderKeywordGraph } from './keywordGraph.js?v=4';
 import { renderDetailPanel } from './detailDataset.js?v=4';
-import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=46';
+import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=47';
 import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=14';
 
 // =============================================================================
@@ -381,26 +381,43 @@ export function renderDataMap(container, onSelectDataset) {
         }
 
         const checkWord = (w) => {
-          const inName = (d.svc_nm || '').toLowerCase().includes(w.toLowerCase()) || (d.svc_no || '').toLowerCase().includes(w.toLowerCase()) || (d.description || '').toLowerCase().includes(w.toLowerCase());
+          // inName: svc_nm, svc_no만 체크 (description은 너무 광범위해 AND 필터를 무력화)
+          // 단일 문자(1자)는 단어 경계 기준 완전 일치만 허용 (부분 매칭 금지)
+          const nm = (d.svc_nm || '').toLowerCase();
+          const no = (d.svc_no || '').toLowerCase();
+          const wl = w.toLowerCase();
+          const inName = w.length <= 1
+            ? nm === wl || no === wl // 단일 문자는 완전 일치만
+            : nm.includes(wl) || no.includes(wl);
+          // inData: column-search-multi 결과 (실제 DB 데이터 스캔)
           const inData = wordMatches[w] ? wordMatches[w].has(String(d.svc_no)) : false;
           return inName || inData;
         };
 
-        let termMatch = true;
+        // AND/OR 표현식 평가 (올바른 short-circuit 방식)
+        // expr = ['초콜릿', 'AND', '건강', 'AND', '동'] 형태
+        // AND 그룹별로 termMatch 계산 후 OR로 합산
+        let termMatch = null; // null = 아직 항 없음
         let finalMatch = false;
 
         for (let i = 0; i < expr.length; i++) {
           const t = expr[i];
-          if (t === 'AND') { continue; }
-          else if (t === 'OR') {
-            finalMatch = finalMatch || termMatch;
-            termMatch = true; // reset for next term
+          if (t === 'AND') {
+            // 다음 항을 현재 AND 그룹에 계속 AND 연산 (스킵 아닌 명시적 처리)
+            continue;
+          } else if (t === 'OR') {
+            // 현재 AND 그룹 결과를 finalMatch에 OR
+            if (termMatch !== null) finalMatch = finalMatch || termMatch;
+            termMatch = null; // 다음 OR 그룹 초기화
           } else {
-            termMatch = termMatch && checkWord(t);
+            // 키워드 토큰
+            const wordResult = checkWord(t);
+            termMatch = termMatch === null ? wordResult : termMatch && wordResult;
           }
         }
-        finalMatch = finalMatch || termMatch;
-        d._match_inName = finalMatch; // For simplicity
+        // 마지막 AND 그룹 처리
+        if (termMatch !== null) finalMatch = finalMatch || termMatch;
+        d._match_inName = finalMatch;
         return finalMatch;
       }) : allDatasets.map(d => {
         d._match_inName = false;

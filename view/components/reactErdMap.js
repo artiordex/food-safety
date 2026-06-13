@@ -613,25 +613,31 @@ function ReactErdApp({ onSelectDataset, container }) {
 
           const matchedIdsList = list.filter(d => {
             const checkWord = (w) => {
-              const inName = (d.svc_nm || '').toLowerCase().includes(w.toLowerCase()) || (d.svc_no || '').toLowerCase().includes(w.toLowerCase()) || (d.description || '').toLowerCase().includes(w.toLowerCase());
+              const nm = (d.svc_nm || '').toLowerCase();
+              const no = (d.svc_no || '').toLowerCase();
+              const wl = w.toLowerCase();
+              const inName = w.length <= 1
+                ? nm === wl || no === wl
+                : nm.includes(wl) || no.includes(wl);
               const inData = wordMatches[w] ? wordMatches[w].has(String(d.svc_no)) : false;
               return inName || inData;
             };
 
-            let termMatch = true;
+            let termMatch = null;
             let finalMatch = false;
-
             for (let i = 0; i < expr.length; i++) {
               const t = expr[i];
-              if (t === 'AND') continue;
+              if (t === 'AND') { continue; }
               else if (t === 'OR') {
-                finalMatch = finalMatch || termMatch;
-                termMatch = true;
+                if (termMatch !== null) finalMatch = finalMatch || termMatch;
+                termMatch = null;
               } else {
-                termMatch = termMatch && checkWord(t);
+                const wordResult = checkWord(t);
+                termMatch = termMatch === null ? wordResult : termMatch && wordResult;
               }
             }
-            return finalMatch || termMatch;
+            if (termMatch !== null) finalMatch = finalMatch || termMatch;
+            return finalMatch;
           }).map(d => String(d.svc_no));
           
           initialMatchedIds = new Set(matchedIdsList);
