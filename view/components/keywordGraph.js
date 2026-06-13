@@ -57,7 +57,7 @@ let _svg = null;
 let _lastData = null;
 let _externalFilterIds = null;
 
-window.addEventListener('datamap-filter-updated', (e) => {
+function handleDatamapFilterUpdate(e) {
   if (e.detail !== undefined) {
     if (e.detail.matchedIds === null) {
       _externalFilterIds = null;
@@ -72,7 +72,10 @@ window.addEventListener('datamap-filter-updated', (e) => {
       }
     }
   }
-});
+}
+
+window.removeEventListener('datamap-filter-updated', handleDatamapFilterUpdate);
+window.addEventListener('datamap-filter-updated', handleDatamapFilterUpdate);
 
 // 여러 키워드에 대해 정규식 생성 (콤마, 띄어쓰기 등 연산자를 제외한 순수 단어)
 function appendKwText(parentG, text, kw, x, y, anchor, fontSize, fontWeight, fill) {

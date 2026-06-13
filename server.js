@@ -92,6 +92,11 @@ const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
     logger.error({ err }, 'SQLite DB 연결 오류 (서버 시작 전)');
   } else {
     logger.info('SQLite DB 연결 성공');
+    db.serialize(() => {
+      db.run('PRAGMA journal_mode = WAL;');
+      db.run('PRAGMA synchronous = NORMAL;');
+      db.run('PRAGMA cache_size = -10000;');
+    });
     initTableCounts(); // 추가됨
   }
 });
@@ -101,6 +106,11 @@ const readonlyDb = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READONLY, (err) =>
     logger.error({ err }, 'SQLite Read-Only DB 연결 오류 (서버 시작 전)');
   } else {
     logger.info('SQLite Read-Only DB 연결 성공');
+    readonlyDb.serialize(() => {
+      readonlyDb.run('PRAGMA journal_mode = WAL;');
+      readonlyDb.run('PRAGMA synchronous = NORMAL;');
+      readonlyDb.run('PRAGMA cache_size = -10000;');
+    });
   }
 });
 
@@ -1292,12 +1302,24 @@ app.get('/api/super-converge-search', (req, res) => {
 
 
 
+// 키워드 데이터맵 검색 결과 캐시 및 3분 TTL 설정
+const datamapCache = {};
+const DATAMAP_CACHE_TTL = 3 * 60 * 1000;
 
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
 app.get('/api/keyword-datamap', async (req, res) => {
   const rawKeyword = req.query.keyword || '소스';
   const defaultOp = req.query.op || 'AND';
   
+  const cacheKey = `${defaultOp}::${rawKeyword.toLowerCase()}`;
+  if (datamapCache[cacheKey]) {
+    const { timestamp, data } = datamapCache[cacheKey];
+    if (Date.now() - timestamp < DATAMAP_CACHE_TTL) {
+      logger.info({ cacheKey }, 'keyword-datamap 캐시 적중');
+      return res.json(data);
+    }
+  }
+
   const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
   const rawWords = rawKeyword.split(';').map(w => w.trim()).filter(Boolean);
   const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
@@ -1458,14 +1480,21 @@ app.get('/api/keyword-datamap', async (req, res) => {
       }
     }
 
-    res.json({
+    const responseData = {
       keyword: rawKeyword,
       tableCount: matchedTables.length,
       totalLeafCount: allLeafNodes.length,
       nodes,
       edges,
       matchedTables
-    });
+    };
+    
+    datamapCache[cacheKey] = {
+      timestamp: Date.now(),
+      data: responseData
+    };
+
+    res.json(responseData);
   } catch (err) {
     logger.error({ err }, 'Keyword datamap 처리 중 오류가 발생했습니다.');
     res.status(500).json({ error: err.message });

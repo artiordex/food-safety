@@ -387,7 +387,7 @@ updateActiveTabUI();
 renderTabContent();
 
 // 데이터 시나리오 추천 렌더러
-const renderScenarioTabs = async (container, mode) => {
+async function renderScenarioTabs(container, mode) {
   const view = document.getElementById('scenario-view');
   if (!view) return;
   
@@ -524,7 +524,7 @@ const renderScenarioTabs = async (container, mode) => {
     const contentEl = view.querySelector('#scenario-content');
     if (contentEl) contentEl.innerHTML = `<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다: ${err.message}</div>`;
   }
-};
+}
 
 const style = document.createElement('style');
 style.innerHTML = `
