@@ -54,6 +54,26 @@ let _links = [];
 let _svgG = null;   // <g> transform 그룹
 let _svg = null;
 
+let _lastData = null;
+let _externalFilterIds = null;
+
+window.addEventListener('datamap-filter-updated', (e) => {
+  if (e.detail !== undefined) {
+    if (e.detail.matchedIds === null) {
+      _externalFilterIds = null;
+    } else {
+      _externalFilterIds = new Set(e.detail.matchedIds);
+    }
+    if (_lastData && _currentKeyword) {
+      const svgWrap = document.getElementById('kwmap-svg-wrap');
+      if (svgWrap) {
+        const { nodes, links } = buildGraph(_lastData, _currentKeyword);
+        renderSvg(svgWrap, nodes, links, _currentKeyword, updateDetailPanel);
+      }
+    }
+  }
+});
+
 // 키워드 부분을 빨간색으로 강조한 SVG text 추가
 function appendKwText(parentG, text, kw, x, y, anchor, fontSize, fontWeight, fill) {
   const t = parentG.append('text')
@@ -158,7 +178,10 @@ function fitView(wrap) {
 // API 응답 데이터를 D3 시뮬레이션용 노드·링크 배열로 변환하는 함수
 // 중심(CENTER) → 도메인(domain) → 테이블(table) → 리프(leaf) 4계층 구조 생성
 function buildGraph(data, keyword) {
-  const tables = data.matchedTables || [];
+  let tables = data.matchedTables || [];
+  if (_externalFilterIds) {
+    tables = tables.filter(t => _externalFilterIds.has(t.tableName));
+  }
   const leafs  = data.nodes || [];
   const nodes = [], links = [];
 
@@ -527,6 +550,7 @@ export function renderKeywordGraph(keyword) {
   fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(keyword)}`)
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => {
+      _lastData = data;
       const { nodes, links } = buildGraph(data, keyword);
       hideLoading();
       renderSvg(svgWrap, nodes, links, keyword, updateDetailPanel);

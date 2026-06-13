@@ -1,16 +1,17 @@
-import { renderDatasetExplorer } from './components/datasetExplorer.js?v=2';
-import { renderDataMap } from './components/dataMap.js?v=7';
-import { renderErdMap } from './components/erdMap.js?v=2';
-import { renderRelationDataMap } from './components/relationDataMap.js?v=2';
-import { renderDetailPanel } from './components/detailPanel.js?v=2';
-import { renderSqlPlayground } from './components/sqlPlayground.js?v=2';
-import { renderApiExplorer } from './components/apiExplorer.js?v=2';
-import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=2';
-import { renderSuperErdMap } from './components/superErdMap.js?v=2';
-import { renderSauceDataMap } from './components/sauceDataMap.js?v=2';
-import { renderDbErdMap } from './components/dbErdMap.js?v=2';
-import { renderWordCloud } from './components/wordCloud.js?v=2';
-import { renderScenarioTabs } from './components/scenarioRecommend.js?v=2';
+import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
+import { renderDataMap } from './components/dataMap.js?v=11';
+import { renderErdMap } from './components/erdMap.js?v=3';
+import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
+import { renderDetailPanel } from './components/detailPanel.js?v=3';
+import { renderSqlPlayground } from './components/sqlPlayground.js?v=3';
+import { renderApiExplorer } from './components/apiExplorer.js?v=3';
+import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
+import { renderSuperErdMap } from './components/superErdMap.js?v=3';
+import { renderSauceDataMap } from './components/sauceDataMap.js?v=3';
+import { renderDbErdMap } from './components/dbErdMap.js?v=9';
+import { renderWordCloud } from './components/wordCloud.js?v=3';
+import { renderScenarioTabs } from './components/scenarioRecommend.js?v=3';
+import { getDatasetsSync } from './datasetStore.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
@@ -41,7 +42,8 @@ let selectedDataset = null;
 const tabContent = document.getElementById('tab-content');
 
 const onSelectDataset = (ds) => {
-  selectedDataset = ds;
+  const fullDs = getDatasetsSync().find(d => String(d.id) === String(ds.id || ds.svc_no)) || ds;
+  selectedDataset = fullDs;
   renderDetailPanel(selectedDataset, () => {
     selectedDataset = null;
     renderDetailPanel(null);
@@ -111,7 +113,7 @@ const renderTabContent = () => {
   } else if (activeTab === 'keyword-datamap') {
     renderSauceDataMap(currentView, initialSearchKeyword, onSelectDataset);
   } else if (activeTab === 'db-erd') {
-    renderDbErdMap(currentView);
+    renderDbErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'wordcloud') {
     renderWordCloud(currentView, onSelectDataset, globalDatamapKeyword);
   } else if (activeTab === 'recommend-beginner') {

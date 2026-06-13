@@ -364,6 +364,13 @@ export async function renderRelationDataMap(container, onSelectDataset) {
     LCNS_NO: true, PRDLST_REPORT_NO: true, BAR_CD: true, BSSH_NO: true, TESTITM_CD: true, PRDLST_NM: true
   };
 
+  // 기관별 필터 상태
+  const allInstitutions = [...new Set(
+    datasets.map(ds => ds.provd_instt_nm || '식품의약품안전처').filter(Boolean)
+  )].sort();
+  let selectedInstitutions = {};
+  allInstitutions.forEach(inst => { selectedInstitutions[inst] = true; });
+
   const getDatasetById = (id) => datasets.find(d => d.id === id);
 
   // 전체 데이터 관계 맵 UI를 container에 렌더링하는 함수
@@ -453,6 +460,25 @@ export async function renderRelationDataMap(container, onSelectDataset) {
                     </label>
                   `;
     }).join('')}
+              </div>
+            </div>
+
+            <!-- 2-b. 기관별 필터 -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-1.5 text-slate-800"><i class="ri-building-line text-gov-600"></i> 기관별</span>
+                <button id="btn-all-instt-toggle" class="text-[11px] text-gov-600 hover:text-gov-800 hover:underline">반전</button>
+              </h4>
+              <div class="grid grid-cols-1 gap-2">
+                ${allInstitutions.map(inst => `
+                    <label class="flex items-center justify-between gap-2 text-[11px] text-slate-700 cursor-pointer select-none hover:text-slate-900 group">
+                      <span class="flex items-center gap-1.5 min-w-0">
+                        <i class="ri-government-line text-slate-400 shrink-0 text-xs"></i>
+                        <span class="font-semibold text-slate-700 truncate" title="${inst}">${inst}</span>
+                      </span>
+                      <input type="checkbox" data-filter="instt" data-key="${inst}" class="w-3.5 h-3.5 rounded text-gov-600 cursor-pointer" ${selectedInstitutions[inst] ? 'checked' : ''} />
+                    </label>
+                  `).join('')}
               </div>
             </div>
 
@@ -565,6 +591,15 @@ export async function renderRelationDataMap(container, onSelectDataset) {
         domainTables[domainKey].forEach(tblId => filteredNodeIds.add(tblId));
       }
     });
+
+    // 기관별 필터 적용
+    if (Object.values(selectedInstitutions).some(v => v)) {
+      filteredNodeIds = new Set([...filteredNodeIds].filter(nodeId => {
+        const ds = getDatasetById(nodeId);
+        const inst = ds ? (ds.provd_instt_nm || '식품의약품안전처') : '식품의약품안전처';
+        return selectedInstitutions[inst] !== false;
+      }));
+    }
 
     // 키워드 필터 적용 (테이블명·설명 + 컬럼명·한글명 통합 매칭)
     let visibleNodes = allNodes.filter(node => {
@@ -1011,7 +1046,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
           <i class="ri-terminal-box-line"></i> SQL 실행기
         </button>
         <button id="btn-jump-api" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5">
-          <i class="ri-search-eye-line"></i> API 탐색기
+          <i class="ri-file-list-3-line"></i> 데이터 세트 자세히 보기
         </button>
       </div>
     `;
@@ -1146,13 +1181,13 @@ export async function renderRelationDataMap(container, onSelectDataset) {
       });
     }
 
-    // API Explorer로 점프 액션 리스너
+    // 데이터 세트 자세히 보기 액션 리스너
     const btnJumpApi = inspector.querySelector('#btn-jump-api');
     if (btnJumpApi) {
       btnJumpApi.addEventListener('click', () => {
-        window.apiExplorerAutoSearch = nodeId;
-        const apiTabBtn = document.querySelector('[data-tab="api-explorer"], [data-nav="api-explorer"]');
-        if (apiTabBtn) apiTabBtn.click();
+        if (onSelectDataset && ds) {
+          onSelectDataset(ds);
+        }
       });
     }
 
@@ -1491,6 +1526,21 @@ export async function renderRelationDataMap(container, onSelectDataset) {
         initNetwork();
       });
     });
+
+    // 기관별 체크박스
+    container.querySelectorAll('[data-filter="instt"]').forEach(chk => {
+      chk.addEventListener('change', e => {
+        selectedInstitutions[e.target.dataset.key] = e.target.checked;
+        initNetwork();
+      });
+    });
+    const btnInstt = container.querySelector('#btn-all-instt-toggle');
+    if (btnInstt) {
+      btnInstt.addEventListener('click', () => {
+        Object.keys(selectedInstitutions).forEach(k => { selectedInstitutions[k] = !selectedInstitutions[k]; });
+        render();
+      });
+    }
 
     // 3. 도메인 반전 버튼 이벤트
     const btnAllDom = container.querySelector('#btn-all-domains-toggle');

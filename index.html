@@ -129,6 +129,20 @@
     border-radius: 2px;
     margin: 1px 4px 1px 0;
 }
+.datastruct #layerTree .ds-d2 > a {
+    font-weight: 600;
+    color: #1a5f8a;
+    font-size: 12px;
+}
+.datastruct #layerTree .ds-d2 > a::after {
+    content: ' ▾';
+    font-size: 10px;
+    margin-left: 2px;
+    color: #888;
+}
+.datastruct #layerTree .ds-d2 > a.ds-collapsed::after {
+    content: ' ▸';
+}
 .datastruct #layerTree li > a:hover {
     background: #d6eefc;
 }
@@ -193,6 +207,56 @@
 .datastruct .struct_tb td a:hover { text-decoration: underline; }
 .datastruct .struct_tb tbody tr:nth-child(even) td { background: #f9fbfd; }
 .datastruct .struct_tb tbody tr:hover td { background: #eaf4fb; }
+
+/* 칩 UI 숨김 (사용 안 함) */
+#mobile-cat-chips { display: none !important; }
+
+/* ── 모바일 반응형 (768px 이하) ── */
+@media (max-width: 768px) {
+    .datastruct {
+        width: 100%; max-width: 100%;
+        height: 100%; max-height: 100%;
+        top: 0; left: 0;
+        transform: none;
+        border: none; border-radius: 0;
+        flex-direction: column;
+    }
+    .datastruct .ds-body {
+        flex-direction: column;
+        height: calc(100vh - 46px);
+        overflow: hidden;
+    }
+    /* 상단: 데이터카테고리 트리 (40%) */
+    .datastruct .ds-left {
+        width: 100%; min-width: unset;
+        border-right: none;
+        border-bottom: 2px solid #29a8d8;
+        height: 42%;
+        min-height: 180px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .datastruct .ds-tree-wrap {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        height: calc(100% - 34px);
+    }
+    /* 하단: 기준규격정보 테이블 */
+    .datastruct .ds-right {
+        width: 100%; flex: 1; overflow: hidden;
+    }
+    .datastruct .ds-table-wrap {
+        overflow: auto;
+        height: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    .datastruct .struct_tb { font-size: 11px; min-width: 360px; }
+    .datastruct .struct_tb th,
+    .datastruct .struct_tb td { padding: 7px 6px; font-size: 11px; }
+    /* 트리 항목 터치하기 쉽게 크기 키움 */
+    .datastruct #layerTree li > a { padding: 6px 6px 6px 2px; font-size: 13px; }
+    .datastruct #layerTree .ds-d3 > a { padding: 7px 6px 7px 2px; }
+}
 </style>
 </head>
 
@@ -346,6 +410,16 @@
                     $('#ds-provider-tree').html(html);
                 });
 
+                // 트리 d2(분류별/제공기관별/유형별) 클릭 시 펼침/접힘 토글
+                $('#layerTree .ds-d2 > a').on('click', function(e) {
+                    e.stopPropagation();
+                    var $ul = $(this).siblings('ul');
+                    if ($ul.length) {
+                        $ul.slideToggle(150);
+                        $(this).toggleClass('ds-collapsed');
+                    }
+                });
+
                 $(".datastruct_view").on("click", function() {
                     $(".datastruct_op").show();
                     $(".datastruct").css("display", "flex");
@@ -407,8 +481,7 @@
             <!-- INCLUDE_FOOTER -->
             <!-- 데이터구조검색 보기 end -->
             <!-- jstree -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
+    <!-- jstree 제거됨: 커스텀 CSS 트리 사용 -->
     <script src="/view/index_app.js"></script>
         </div>
     </form>

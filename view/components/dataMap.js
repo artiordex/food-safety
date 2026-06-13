@@ -1,6 +1,6 @@
 import { getDatasetsSync } from '../datasetStore.js';
 import { renderKeywordGraph } from './keywordGraph.js';
-import { renderCombinedErdMap } from './dbErdMap.js?v=3';
+import { renderCombinedErdMap } from './dbErdMap.js?v=9';
 
 export function renderDataMap(container, onSelectDataset) {
   // DB에서 데이터 가져오기
@@ -12,8 +12,9 @@ export function renderDataMap(container, onSelectDataset) {
         body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
       });
       const data = await res.json();
-
+      window.currentDatasets = data.list;
       const subjectCounts = {};
+      const instCounts = {};
       let totalCount = 0;
 
       data.list.forEach(d => {
@@ -21,13 +22,21 @@ export function renderDataMap(container, onSelectDataset) {
         if (!subjectCounts[subj]) subjectCounts[subj] = { count: 0, items: [] };
         subjectCounts[subj].count += 1;
 
-        subjectCounts[subj].items.push({
+        const commonItem = {
           id: d.svc_no,
           name: d.svc_nm,
           description: d.desc || d.svc_nm + " 공공데이터 API입니다.",
           formats: ["JSON", "XML"],
           users: [d.provd_instt_nm || '식품의약품안전처']
-        });
+        };
+
+        subjectCounts[subj].items.push(commonItem);
+
+        const inst = d.provd_instt_nm || '식품의약품안전처';
+        if (!instCounts[inst]) instCounts[inst] = { count: 0, items: [] };
+        instCounts[inst].count += 1;
+        instCounts[inst].items.push(commonItem);
+
         totalCount += 1;
       });
 
@@ -38,7 +47,15 @@ export function renderDataMap(container, onSelectDataset) {
         items: subjectCounts[subj].items
       })).sort((a, b) => b.count - a.count);
 
-      renderUI(subjectArray, totalCount);
+      const institutionArray = Object.keys(instCounts).map(inst => ({
+        subject: inst,
+        isInstitution: true,
+        count: instCounts[inst].count,
+        ratio: ((instCounts[inst].count / totalCount) * 100).toFixed(1),
+        items: instCounts[inst].items
+      })).sort((a, b) => b.count - a.count);
+
+      renderUI(subjectArray, institutionArray, totalCount);
 
     } catch (e) {
       console.error(e);
@@ -46,7 +63,7 @@ export function renderDataMap(container, onSelectDataset) {
     }
   };
 
-  const renderUI = (subjectArray, totalCount) => {
+  const renderUI = (subjectArray, institutionArray, totalCount) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
     
@@ -55,7 +72,11 @@ export function renderDataMap(container, onSelectDataset) {
     const countEl = view.querySelector('#category-total-count');
     if (countEl) countEl.textContent = `총 ${totalCount}종`;
 
+    const instCountEl = view.querySelector('#institution-total-count');
+    if (instCountEl) instCountEl.textContent = `총 ${institutionArray.length}개 기관`;
+
     renderCategoryList(subjectArray);
+    renderInstitutionList(institutionArray);
 
     // Treemap 렌더링을 약간 지연시켜 컨테이너 레이아웃이 잡히도록 함
     setTimeout(() => {
@@ -126,8 +147,8 @@ export function renderDataMap(container, onSelectDataset) {
       if (detailPanel) {
         detailPanel.innerHTML = `
           <div class="h-full flex flex-col items-center justify-center text-center text-slate-400 p-8">
-            <i class="ri-search-eye-line text-4xl mb-3 text-slate-300"></i>
-            <p class="text-sm font-semibold text-slate-500">${message}</p>
+            <i class="ri-information-line text-4xl mb-3 text-slate-300"></i>
+            <p class="text-sm font-semibold text-slate-500">검색 후, 좌측 그래프에서<br>노드를 클릭해 보세요.</p>
           </div>`;
       }
     };
@@ -144,16 +165,21 @@ export function renderDataMap(container, onSelectDataset) {
     };
 
     const renderKeywordDependentTabs = (kw) => {
+      const erdPanel = view.querySelector('#content-panel-erd');
+
       if (!kw) {
-        resetErdPanel();
         resetKeywordVisualization();
+        if (erdPanel) {
+          erdRendered = true;
+          showErdSpinner(erdPanel);
+          renderCombinedErdMap(erdPanel);
+        }
         return;
       }
 
       restoreKwmapSpinner();
       renderKeywordGraph(kw);
 
-      const erdPanel = view.querySelector('#content-panel-erd');
       if (erdPanel) {
         erdRendered = true;
         showErdSpinner(erdPanel);
@@ -194,55 +220,18 @@ export function renderDataMap(container, onSelectDataset) {
         if (t === 'erd') {
           const kw = view.querySelector('#datamap-keyword-search')?.value.trim() || '';
           const panel = view.querySelector('#content-panel-erd');
-          if (!kw) {
-            resetErdPanel();
-            return;
-          }
+          // Removed kw check: Render ERD even if keyword is empty
           const canvas = panel?.querySelector('#cem-canvas');
           const hasRenderedErd = !!canvas?.querySelector('svg, canvas, .vis-network');
           if (erdRendered && hasRenderedErd) return;
           erdRendered = true;
           showErdSpinner(panel);
-          if (panel) renderCombinedErdMap(panel);
+          if (panel) renderCombinedErdMap(panel, onSelectDataset);
         }
       });
     });
 
-    const buildSubjectArrayFromDatasets = (datasets) => {
-      const subjectCounts = {};
-      const total = datasets.length;
 
-      datasets.forEach(d => {
-        const subj = d.cl_cd_nm || '기타';
-        if (!subjectCounts[subj]) subjectCounts[subj] = { count: 0, items: [] };
-        subjectCounts[subj].count += 1;
-        subjectCounts[subj].items.push({
-          id: d.svc_no,
-          name: d.svc_nm,
-          description: d.desc || d.description || `${d.svc_nm || d.svc_no} 공공데이터 API입니다.`,
-          formats: ["JSON", "XML"],
-          users: [d.provd_instt_nm || '식품의약품안전처']
-        });
-      });
-
-      return Object.keys(subjectCounts).map(subj => ({
-        subject: subj,
-        count: subjectCounts[subj].count,
-        ratio: total > 0 ? ((subjectCounts[subj].count / total) * 100).toFixed(1) : '0.0',
-        items: subjectCounts[subj].items
-      })).sort((a, b) => b.count - a.count);
-    };
-
-    const updateTreemapForSearch = (datasets, kw) => {
-      const filteredSubjectArray = buildSubjectArrayFromDatasets(datasets);
-      const countEl = view.querySelector('#category-total-count');
-      const treemapPanel = view.querySelector('#content-panel-treemap');
-
-      if (countEl) countEl.textContent = kw ? `"${kw}" 검색 ${datasets.length}종` : `전체 ${datasets.length}종`;
-      if (treemapPanel) showTreemapOriginal(treemapPanel);
-      renderCategoryList(filteredSubjectArray);
-      renderTreemap(filteredSubjectArray);
-    };
 
     // 키워드 검색 결과 렌더링
     const renderSearchResults = async (kw) => {
@@ -331,15 +320,17 @@ export function renderDataMap(container, onSelectDataset) {
           const title = kw ? (d.svc_nm || '').replace(new RegExp(kw, 'gi'), m => `<mark style="background:#fef08a;padding:0 1px;">${m}</mark>`) : (d.svc_nm || '');
           const desc = d.desc || d.description || '';
           const keywords = [cat, d.provd_instt_nm || '식품의약품안전처'].filter(Boolean);
+          const fmtColor = d.link_yn === 'Y' ? '#14b8a6' : '#f97316';
           return `
-          <div data-svc-no="${d.svc_no}" style="padding:20px 24px;cursor:pointer;transition:background .12s;border-bottom:1px solid #f1f5f9;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-            <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
-              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:${catBg};color:${catColor};border:1px solid ${catColor}33;">${cat}</span>
-              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">${fmt}</span>
+          <div data-svc-no="${d.svc_no}" style="padding:20px;cursor:pointer;background:#fff;border-bottom:1px solid #e5e7eb;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${cat}</span>
+              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${d.provd_instt_nm || '식품의약품안전처'}</span>
+              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:${fmtColor};border:1px solid ${fmtColor};">${fmt}</span>
             </div>
-            <p style="font-size:17px;font-weight:700;color:#111827;margin:0 0 6px;line-height:1.4;">${title}</p>
-            <p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</p>
-            <p style="font-size:12px;color:#9ca3af;margin:0;">키워드 : ${keywords.map(k => `<a style="color:#f97316;text-decoration:none;" href="#">${k}</a>`).join(', ')}</p>
+            <p style="font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.4;">${title}</p>
+            <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${desc}</p>
+            <p style="font-size:13px;color:#4b5563;margin:0;">키워드 : ${keywords.join(',')}</p>
           </div>`;
         };
 
@@ -685,6 +676,100 @@ export function renderDataMap(container, onSelectDataset) {
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
   };
 
+  const buildSubjectArrayFromDatasets = (datasets) => {
+    const subjectCounts = {};
+    const total = datasets.length;
+
+    datasets.forEach(d => {
+      const subj = d.cl_cd_nm || '기타';
+      if (!subjectCounts[subj]) subjectCounts[subj] = { count: 0, items: [] };
+      subjectCounts[subj].count += 1;
+      subjectCounts[subj].items.push({
+        id: d.svc_no,
+        name: d.svc_nm,
+        description: d.desc || d.description || `${d.svc_nm || d.svc_no} 공공데이터 API입니다.`,
+        formats: ["JSON", "XML"],
+        users: [d.provd_instt_nm || '식품의약품안전처']
+      });
+    });
+
+    return Object.keys(subjectCounts).map(subj => ({
+      subject: subj,
+      count: subjectCounts[subj].count,
+      ratio: total > 0 ? ((subjectCounts[subj].count / total) * 100).toFixed(1) : '0.0',
+      items: subjectCounts[subj].items
+    })).sort((a, b) => b.count - a.count);
+  };
+
+  const buildInstitutionArrayFromDatasets = (datasets) => {
+    const instCounts = {};
+    const total = datasets.length;
+
+    datasets.forEach(d => {
+      const inst = d.provd_instt_nm || '식품의약품안전처';
+      if (!instCounts[inst]) instCounts[inst] = { count: 0, items: [] };
+      instCounts[inst].count += 1;
+      instCounts[inst].items.push({
+        id: d.svc_no,
+        name: d.svc_nm,
+        description: d.desc || d.description || `${d.svc_nm || d.svc_no} 공공데이터 API입니다.`,
+        formats: ["JSON", "XML"],
+        users: [inst]
+      });
+    });
+
+    return Object.keys(instCounts).map(inst => ({
+      subject: inst,
+      isInstitution: true,
+      count: instCounts[inst].count,
+      ratio: total > 0 ? ((instCounts[inst].count / total) * 100).toFixed(1) : '0.0',
+      items: instCounts[inst].items
+    })).sort((a, b) => b.count - a.count);
+  };
+
+  const updateTreemapForSearch = (datasets, kw, isFromCheckbox = false) => {
+    const filteredSubjectArray = buildSubjectArrayFromDatasets(datasets);
+    const filteredInstitutionArray = buildInstitutionArrayFromDatasets(datasets);
+    const view = document.getElementById('datamap-view');
+    const countEl = view?.querySelector('#category-total-count');
+    const instCountEl = view?.querySelector('#institution-total-count');
+    const treemapPanel = view?.querySelector('#content-panel-treemap');
+
+    if (countEl) countEl.textContent = kw ? `"${kw}" 검색 ${datasets.length}종` : `전체 ${datasets.length}종`;
+    if (instCountEl) instCountEl.textContent = `총 ${filteredInstitutionArray.length}개 기관`;
+    if (treemapPanel) showTreemapOriginal(treemapPanel);
+    
+    if (!isFromCheckbox) {
+      renderCategoryList(filteredSubjectArray);
+      renderInstitutionList(filteredInstitutionArray);
+    }
+    
+    renderTreemap(filteredSubjectArray);
+  };
+
+  const applyCombinedFilters = () => {
+    const view = document.getElementById('datamap-view');
+    const selectedCats = Array.from(view.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+    const selectedInsts = Array.from(view.querySelectorAll('.institution-checkbox:checked')).map(cb => cb.value);
+
+    console.log("applyCombinedFilters called", selectedCats.length, selectedInsts.length);
+    const allData = window.currentDatasets || [];
+    const matched = allData.filter(d => {
+      const cat = d.cl_cd_nm || '기타';
+      const inst = d.provd_instt_nm || '식품의약품안전처';
+      const matchCat = selectedCats.includes(cat);
+      const matchInst = selectedInsts.includes(inst);
+      return matchCat && matchInst;
+    });
+
+    // 1. Update Treemap without showing the list panel
+    updateTreemapForSearch(matched, '', true);
+
+    // 2. Dispatch event to update ERD map
+    const matchedIds = matched.map(d => String(d.svc_no));
+    window.dispatchEvent(new CustomEvent('datamap-filter-updated', { detail: { matchedIds } }));
+  };
+
   const renderCategoryList = (subjectArray) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
@@ -693,41 +778,50 @@ export function renderDataMap(container, onSelectDataset) {
 
     listContainer.innerHTML = subjectArray.map((item, idx) => {
       const color = getColor(item.subject, idx);
-      const softColor = getSoftColor(item.subject, idx);
       return `
-        <div class="category-item cursor-pointer group p-3 rounded-lg transition-colors border" data-subject="${item.subject}" style="border-color:${softColor};background:${softColor};">
-          <div class="flex justify-between items-center mb-1">
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 rounded-full" style="background-color: ${color}"></div>
-              <span class="font-medium text-slate-700 text-sm">${item.subject}</span>
-            </div>
-            <span class="text-xs font-bold text-slate-900">${item.count}종 <span class="text-slate-400 font-normal">(${item.ratio}%)</span></span>
+        <label class="category-item cursor-pointer group py-1.5 px-2 rounded-md transition-colors border border-transparent hover:border-slate-200 hover:bg-slate-50 flex justify-between items-center w-full m-0">
+          <div class="flex items-center gap-2 max-w-[70%]">
+            <input type="checkbox" class="category-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" checked>
+            <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color}"></div>
+            <span class="font-medium text-slate-700 text-[13px] truncate group-hover:text-gov-700" title="${item.subject}">${item.subject}</span>
           </div>
-          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="h-1.5 rounded-full transition-all duration-1000" style="width: 0%; background-color: ${color}" data-target-width="${item.ratio}%"></div>
-          </div>
-        </div>
+          <span class="text-[11px] font-bold text-slate-900 whitespace-nowrap">${item.count}종<span class="text-slate-400 font-normal ml-0.5">(${item.ratio}%)</span></span>
+        </label>
       `;
     }).join('');
 
-    // Animate progress bars
-    setTimeout(() => {
-      listContainer.querySelectorAll('[data-target-width]').forEach(el => {
-        el.style.width = el.dataset.targetWidth;
-      });
-    }, 50);
-
-    // Click event for category list
-    listContainer.querySelectorAll('.category-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const subject = el.dataset.subject;
-        const categoryData = subjectArray.find(s => s.subject === subject);
-        if (categoryData) {
-          showCategoryDatasets(categoryData);
-        }
-      });
+    listContainer.querySelectorAll('.category-checkbox').forEach(el => {
+      el.addEventListener('change', applyCombinedFilters);
     });
   };
+
+  const renderInstitutionList = (instArray) => {
+    const view = document.getElementById('datamap-view');
+    if (!view) return;
+    const listContainer = view.querySelector('#institution-list-container');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = instArray.map((item, idx) => {
+      return `
+        <label class="institution-item cursor-pointer group py-1.5 px-2 rounded-md transition-colors border border-transparent hover:border-slate-200 hover:bg-slate-50 flex justify-between items-center w-full m-0">
+          <div class="flex items-center gap-2 max-w-[70%]">
+            <input type="checkbox" class="institution-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" checked>
+            <i class="ri-building-4-line text-slate-400 group-hover:text-gov-600 shrink-0 text-[13px]"></i>
+            <span class="font-medium text-slate-700 text-[13px] truncate group-hover:text-gov-700" title="${item.subject}">${item.subject}</span>
+          </div>
+          <span class="text-[11px] font-bold text-slate-900 whitespace-nowrap">${item.count}종<span class="text-slate-400 font-normal ml-0.5">(${item.ratio}%)</span></span>
+        </label>
+      `;
+    }).join('');
+
+    listContainer.querySelectorAll('.institution-checkbox').forEach(el => {
+      el.addEventListener('change', applyCombinedFilters);
+    });
+  };
+
+  let lastTreemapData = null;
+  let treemapResizeObserver = null;
+  let lastTreemapWidth = 0;
 
   const renderTreemap = (subjectArray) => {
     if (typeof d3 === 'undefined') return;
@@ -735,8 +829,28 @@ export function renderDataMap(container, onSelectDataset) {
     const containerEl = document.getElementById('treemap-container');
     if (!containerEl) return;
 
+    lastTreemapData = subjectArray;
+
     const width = containerEl.clientWidth || 800;
     const height = containerEl.clientHeight || 250;
+
+    if (!treemapResizeObserver) {
+      let resizeTimer;
+      treemapResizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          const newW = entry.contentRect.width;
+          if (Math.abs(newW - lastTreemapWidth) > 1) {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (lastTreemapData) renderTreemap(lastTreemapData);
+            }, 320); // wait for css transition
+          }
+        }
+      });
+      treemapResizeObserver.observe(containerEl);
+    }
+
+    lastTreemapWidth = width;
 
     // Remove old svg
     containerEl.innerHTML = '';
@@ -1201,14 +1315,15 @@ export function renderDataMap(container, onSelectDataset) {
         const institution = ds.users?.[0] || '식품의약품안전처';
         const keywords = [categoryData.subject, institution].filter(Boolean);
         return `
-        <div class="dataset-card cursor-pointer" data-id="${ds.id}" style="padding:20px 24px;border-bottom:1px solid #f1f5f9;transition:background .12s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
-            <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:${categoryBg};color:${categoryColor};border:1px solid ${categoryColor}33;">${categoryData.subject}</span>
-            <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">API</span>
+        <div class="dataset-card cursor-pointer" data-id="${ds.id}" style="padding:20px;background:#fff;border-bottom:1px solid #e5e7eb;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${categoryData.subject}</span>
+            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${institution}</span>
+            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#14b8a6;border:1px solid #14b8a6;">API</span>
           </div>
-          <h4 style="font-size:17px;font-weight:700;color:#111827;margin:0 0 6px;line-height:1.4;">${ds.name}</h4>
-          <p style="font-size:13px;color:#6b7280;margin:0 0 8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ds.description}</p>
-          <p style="font-size:12px;color:#9ca3af;margin:0;">키워드 : ${keywords.map(k => `<a style="color:#f97316;text-decoration:none;" href="#">${k}</a>`).join(', ')}</p>
+          <h4 style="font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.4;">${ds.name}</h4>
+          <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ds.description}</p>
+          <p style="font-size:13px;color:#4b5563;margin:0;">키워드 : ${keywords.join(',')}</p>
         </div>`;
       }).join('');
 

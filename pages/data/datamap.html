@@ -12,7 +12,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
   <script src="/public/assets/jquery.simplePagination.js"></script>
   <link rel="stylesheet" href="/public/css/main.css">
-  
+  <style>
+    #ndm-filter-sidebar {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .filter-collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      border-right-width: 0 !important;
+      overflow: hidden !important;
+      opacity: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    @media (max-width: 1023px) {
+      .filter-collapsed {
+        height: 0 !important;
+        max-height: 0 !important;
+        min-height: 0 !important;
+        border-bottom-width: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+    }
+  </style>
 </head>
 
 <body class="bg-white flex flex-col min-h-screen">
@@ -39,221 +64,344 @@
             </h2>
           </div>
 
-          <!-- 키워드 검색바 (트리맵 위) -->
-          <div class="datamap-search-bar">
-            <div class="search-input-wrap">
-              <i class="ri-search-line"></i>
-              <input type="text" id="datamap-keyword-search"
-                placeholder="키워드로 데이터 검색 (예: 초콜릿, 우유, 농약...)">
-            </div>
-            <button id="btn-datamap-keyword-search" class="btn-datamap-search">
-              <i class="ri-search-line"></i> 검색
-            </button>
-            <button id="btn-treemap-capture" class="btn-datamap-capture"
-              title="트리맵 화면 캡처">
-              <i class="ri-camera-line"></i> 화면 캡처
-            </button>
-          </div>
+          <!-- NDM Style 래퍼 -->
+          <div
+            class="flex flex-col h-full bg-white lg:min-h-[800px] border border-slate-200 rounded-lg overflow-hidden shadow-sm"
+            style="font-family:'Noto Sans KR',system-ui,sans-serif;">
 
-          <!-- 콘텐츠 탭 바 (단일 3탭, 검색 후 표시) -->
-          <div id="content-tab-bar" style="display:flex;border-bottom:2px solid #e2e8f0;margin-bottom:20px;">
-            <button id="content-tab-btn-treemap"
-              style="padding:10px 20px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #2563eb;color:#2563eb;margin-bottom:-2px;display:flex;align-items:center;gap:6px;">
-              <i class="ri-pie-chart-2-line"></i> 데이터 분포 현황
-            </button>
-            <button id="content-tab-btn-visualization"
-              style="padding:10px 20px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#94a3b8;margin-bottom:-2px;display:flex;align-items:center;gap:6px;">
-              <i class="ri-bubble-chart-line"></i> 키워드 시각화
-            </button>
-            <button id="content-tab-btn-erd"
-              style="padding:10px 20px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:#94a3b8;margin-bottom:-2px;display:flex;align-items:center;gap:6px;">
-              <i class="ri-node-tree"></i> 데이터 관계도·ERD
-            </button>
-          </div>
-
-          <!-- 탭1: 데이터 분포 현황 (트리맵) -->
-          <div id="content-panel-treemap" style="display:block;">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" style="grid-auto-rows: 700px;">
-            <!-- 좌측: D3 Treemap -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col overflow-hidden" style="height: 700px;">
-               <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                 데이터 분포 트리맵 (Treemap)
-                 <span class="relative group inline-flex items-center">
-                   <button class="tooltip-trigger" aria-label="트리맵 설명">?</button>
-                   <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:24px;width:256px;">
-                     <p><strong>트리맵이란?</strong></p>
-                     <p>각 분야별 데이터 건수를 면적 크기로 표현한 차트입니다. 면적이 클수록 해당 분야의 데이터가 많으며, 클릭하면 세부 데이터세트 목록을 볼 수 있습니다.</p>
-                     <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
-                   </div>
-                 </span>
-               </h3>
-               <div id="treemap-container" class="flex-1 w-full rounded-xl overflow-hidden relative bg-slate-50 border border-slate-100">
-               </div>
+            <!-- ① 최상단 탭바 -->
+            <div id="content-tab-bar"
+              class="flex overflow-x-auto no-scrollbar shrink-0 border-b-2 border-slate-200 bg-white px-2 lg:px-5"
+              style="scrollbar-width: none;">
+              <button id="content-tab-btn-treemap"
+                class="ndm-tab active whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
+                style="border-bottom-color:#2563eb;color:#2563eb;background:none;">
+                데이터 분포 현황
+              </button>
+              <button id="content-tab-btn-visualization"
+                class="ndm-tab whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
+                style="border-bottom-color:transparent;color:#94a3b8;background:none;">
+                키워드 시각화
+              </button>
+              <button id="content-tab-btn-erd"
+                class="ndm-tab whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
+                style="border-bottom-color:transparent;color:#94a3b8;background:none;">
+                데이터 관계도·ERD
+              </button>
             </div>
 
-            <!-- 우측: 카테고리 비율 현황 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col overflow-hidden" style="height: 700px;">
-               <h3 class="text-lg font-bold text-slate-800 mb-4 flex justify-between items-center">
-                 <span class="flex items-center gap-2">
-                   카테고리 비율 현황
-                   <span class="relative group inline-flex items-center">
-                     <button class="tooltip-trigger" aria-label="카테고리 비율 설명">?</button>
-                     <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:24px;width:256px;">
-                       <p><strong>카테고리 비율 현황이란?</strong></p>
-                       <p>식품안전나라의 전체 데이터를 분야별로 분류하여 비율을 막대 그래프로 표시합니다. 항목을 클릭하면 해당 분야의 세부 데이터세트를 확인할 수 있습니다.</p>
-                       <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
-                     </div>
-                   </span>
-                 </span>
-                 <span class="text-xs font-normal text-slate-500" id="category-total-count"></span>
-               </h3>
-               <div class="flex-1 overflow-y-auto pr-2 space-y-3" id="category-list-container">
-               </div>
-            </div>
-          </div>
-          
-          </div><!-- /#content-panel-treemap -->
-
-          <!-- 탭2: 데이터세트 목록 -->
-
-          <!-- 탭3: 키워드 시각화 -->
-          <div id="content-panel-visualization" style="display:none;">
-
-            <!-- 헤더 카드 -->
-            <div class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-              <div class="flex flex-col gap-1">
-                <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
-                  키워드 데이터맵 (D3 Force)
-                  <span class="relative group inline-flex items-center">
-                    <button class="tooltip-trigger" aria-label="키워드 데이터맵 설명">?</button>
-                    <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:280px;">
-                      <p><strong>키워드 데이터맵이란?</strong></p>
-                      <p>특정 키워드와 연관된 데이터세트를 분야별로 분류하여 네트워크 그래프로 시각화합니다. 노드를 드래그하거나 스크롤로 확대/축소할 수 있습니다.</p>
-                      <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
-                    </div>
-                  </span>
-                </h3>
+            <!-- ② 툴바 (검색 및 버튼) -->
+            <div
+              style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;flex-shrink:0;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                <div style="position:relative;flex:1;max-width:500px;">
+                  <i class="ri-search-line"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:14px;pointer-events:none;"></i>
+                  <input type="text" id="datamap-keyword-search"
+                    style="width:100%;padding:8px 12px 8px 32px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;background:#fff;"
+                    placeholder="키워드로 데이터 검색 (예: 초콜릿, 우유, 농약...)">
+                </div>
+                <button id="btn-datamap-keyword-search"
+                  style="padding:8px 16px;background:#1B72E8;color:#fff;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:4px;">
+                  <i class="ri-search-line"></i> 검색
+                </button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button id="btn-treemap-capture"
+                  style="padding:8px 12px;background:#fff;border:1px solid #d1d5db;border-radius:4px;font-size:13px;color:#374151;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                  <i class="ri-camera-line"></i> 화면 캡처
+                </button>
               </div>
             </div>
 
-            <!-- 콘텐츠 그리드 -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- ③ 본문: 좌측 필터(분류명) + 우측 콘텐츠 -->
+            <div class="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
 
-              <!-- 좌측: 그래프 패널 (2열) -->
-              <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col" style="min-height:620px;">
-                </h3>
-                <!-- D3 그래프 컨테이너 -->
-                <div id="kwmap-graph-container" class="flex-1 w-full rounded-xl bg-slate-50 border border-slate-100 relative overflow-hidden" style="height:550px;cursor:grab;">
-                  <!-- 로딩 -->
-                  <div id="kwmap-loading" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/90 z-10">
-                    <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-                    <div class="text-slate-600 text-sm font-semibold" id="kwmap-loading-text">데이터 불러오는 중...</div>
+              <!-- 좌측 사이드바: 분류명 (카테고리 비율 현황) -->
+              <div id="ndm-filter-sidebar"
+                class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 lg:border-r border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden max-h-[400px] lg:max-h-full overflow-y-auto">
+
+                <div
+                  style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">
+                  <div class="flex items-center gap-2">
+                    <i class="ri-filter-3-line text-slate-500"></i>
+                    <span style="font-size:14px;font-weight:700;color:#111827;">필터</span>
                   </div>
-                  <!-- 에러 -->
-                  <div id="kwmap-error" class="absolute inset-0 flex items-center justify-center p-8 text-red-500 font-bold z-10" style="display:none!important;"></div>
-                  <!-- SVG 영역 -->
-                  <div id="kwmap-svg-wrap" class="w-full h-full bg-white" style="display:none;"></div>
-                  <!-- 줌 버튼 -->
-                  <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-10" id="kwmap-zoom-btns" style="display:none;">
-                    <button id="kwmap-zoom-in" class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">+</button>
-                    <button id="kwmap-zoom-out" class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">−</button>
-                    <button id="kwmap-zoom-home" class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600"><i class="ri-home-4-line text-lg"></i></button>
+                </div>
+
+                <div style="flex:1;overflow-y:auto;">
+                  <!-- 분류명 섹션 -->
+                  <div>
+                    <div
+                      style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;"
+                      onclick="var b=this.nextElementSibling; var i=this.querySelector('i'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';}else{b.style.display='none';i.style.transform='rotate(-180deg)';}">
+                      <div class="flex items-center gap-2">
+                        <span style="font-size:13px;font-weight:700;color:#111827;">분류명</span>
+                        <span class="text-xs font-normal text-slate-500" id="category-total-count"></span>
+                      </div>
+                      <i class="ri-arrow-up-s-line text-slate-400 transition-transform duration-300"></i>
+                    </div>
+                    <div style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">
+                      <!-- dataMap.js가 여기에 카테고리 리스트를 렌더링합니다 -->
+                      <div id="category-list-container"
+                        class="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
+                    </div>
+                  </div>
+
+                  <!-- 기관명 섹션 -->
+                  <div>
+                    <div
+                      style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;"
+                      onclick="var b=this.nextElementSibling; var i=this.querySelector('i'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';}else{b.style.display='none';i.style.transform='rotate(-180deg)';}">
+                      <div class="flex items-center gap-2">
+                        <span style="font-size:13px;font-weight:700;color:#111827;">기관명</span>
+                        <span class="text-xs font-normal text-slate-500" id="institution-total-count"></span>
+                      </div>
+                      <i class="ri-arrow-up-s-line text-slate-400 transition-transform duration-300"></i>
+                    </div>
+                    <div style="padding:8px 12px;border-bottom:1px solid #f3f4f6;display:block;">
+                      <!-- dataMap.js가 여기에 기관 리스트를 렌더링합니다 -->
+                      <div id="institution-list-container"
+                        class="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- 우측: 상세 정보 패널 (1열) -->
-              <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col" style="min-height:620px;max-height:680px;">
-                <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-                  상세 정보 패널
-                  <span class="relative group inline-flex items-center">
-                    <button class="tooltip-trigger" aria-label="상세 정보 패널 설명">?</button>
-                    <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:24px;width:240px;">
-                      <p><strong>상세 정보 패널이란?</strong></p>
-                      <p>그래프에서 노드를 클릭하면 해당 데이터세트의 이름, 분야, 제공 기관 등 상세 정보가 표시됩니다.</p>
-                      <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+              <!-- 우측 콘텐츠 영역 -->
+              <div class="flex-1 relative bg-slate-50 min-w-0 overflow-y-auto p-4 lg:p-6" id="main-content-area">
+
+                <!-- 플로팅 사이드바 토글 버튼 (데스크탑/모바일 공통) -->
+                <button id="floating-toggle-sidebar"
+                  onclick="const sb = document.getElementById('ndm-filter-sidebar'); sb.classList.toggle('filter-collapsed'); const i = this.querySelector('i'); const topBtn = document.getElementById('btn-toggle-sidebar-top'); if(sb.classList.contains('filter-collapsed')){ i.classList.replace('ri-arrow-left-s-line','ri-arrow-right-s-line'); if(topBtn) topBtn.style.display='flex'; } else { i.classList.replace('ri-arrow-right-s-line','ri-arrow-left-s-line'); if(topBtn) topBtn.style.display='none'; }"
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-14 bg-white border border-slate-200 border-l-0 rounded-r-md shadow-md flex items-center justify-center text-slate-400 hover:text-gov-600 hover:bg-slate-50 z-50 cursor-pointer transition-colors"
+                  style="margin-left: -1px;" title="필터 패널 접기/펴기">
+                  <i class="ri-arrow-left-s-line text-xl pointer-events-none transition-transform duration-300"></i>
+                </button>
+
+                <!-- 탭1: 데이터 분포 현황 (트리맵) -->
+                <div id="content-panel-treemap" style="display:block;">
+                  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col overflow-hidden"
+                    style="min-height: 700px;">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      데이터 분포 트리맵 (Treemap)
+                      <span class="relative group inline-flex items-center">
+                        <button class="tooltip-trigger" aria-label="트리맵 설명"
+                          style="width:18px;height:18px;border-radius:50%;background:#e2e8f0;color:#64748b;font-size:11px;font-weight:bold;display:flex;align-items:center;justify-content:center;border:none;">?</button>
+                        <div
+                          class="tooltip-dark absolute hidden group-hover:block bg-gray-900 text-white text-xs rounded p-3 z-50 shadow-lg"
+                          style="left:50%;transform:translateX(-50%);top:24px;width:256px;">
+                          <p><strong>트리맵이란?</strong></p>
+                          <p class="mt-1">각 분야별 데이터 건수를 면적 크기로 표현한 차트입니다. 면적이 클수록 해당 분야의 데이터가 많으며, 클릭하면 세부 데이터세트 목록을 볼 수
+                            있습니다.</p>
+                        </div>
+                      </span>
+                    </h3>
+                    <div id="treemap-container"
+                      class="flex-1 w-full rounded-xl overflow-hidden relative bg-slate-50 border border-slate-100 min-h-[600px]">
                     </div>
-                  </span>
-                </h3>
-                <p class="text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100">노드를 드래그하거나 클릭하면 세부 정보가 표시됩니다.</p>
-                <div class="flex-1 overflow-y-auto" id="kwmap-detail-panel">
-                  <div class="flex flex-col items-center justify-center h-full text-slate-400 text-sm gap-2" style="min-height:200px;">
-                    <i class="ri-cursor-line text-3xl"></i>
-                    <span>← 맵에서 노드를 클릭하세요</span>
                   </div>
-                </div>
-              </div>
+                </div><!-- /#content-panel-treemap -->
 
-            </div><!-- /grid -->
-          </div><!-- /#content-panel-visualization -->
+                <!-- 탭2: 데이터세트 목록 -->
 
-          <!-- 탭4: 데이터 관계도·ERD -->
-          <div id="content-panel-erd" style="display:none;min-height:800px;">
-            <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
-              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 w-full">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  식품안전 데이터 융합 관계도(D3.js)
-                  <span class="relative group inline-flex items-center">
-                    <button class="tooltip-trigger" aria-label="식품안전 데이터 융합 관계도 설명">?</button>
-                    <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:300px;">
-                      <p><strong>식품안전 데이터 융합 관계도란?</strong></p>
-                      <p>식품안전 데이터셋을 ERD 카드 형태의 노드로 표시하고, 공통 조인 키와 실제 매칭 관계를 포스 다이렉티드 네트워크로 시각화합니다.</p>
-                      <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                <!-- 탭3: 키워드 시각화 -->
+                <div id="content-panel-visualization" style="display:none;">
+
+                  <!-- 헤더 카드 -->
+                  <div
+                    class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col gap-1">
+                      <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
+                        키워드 데이터맵 (D3 Force)
+                        <span class="relative group inline-flex items-center">
+                          <button class="tooltip-trigger" aria-label="키워드 데이터맵 설명">?</button>
+                          <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:280px;">
+                            <p><strong>키워드 데이터맵이란?</strong></p>
+                            <p>특정 키워드와 연관된 데이터세트를 분야별로 분류하여 네트워크 그래프로 시각화합니다. 노드를 드래그하거나 스크롤로 확대/축소할 수 있습니다.</p>
+                            <div class="tooltip-arrow"
+                              style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                          </div>
+                        </span>
+                      </h3>
                     </div>
-                  </span>
-                </h3>
-              </div>
-
-              <div class="flex flex-col lg:flex-row gap-6 w-full">
-                <div class="flex-1 flex flex-col gap-3 min-w-0">
-                  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3">
-                    <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                      <input type="checkbox" id="cem-physics" class="w-3.5 h-3.5 rounded text-gov-600" checked>
-                      <span>물리 레이아웃</span>
-                    </label>
-                    <div class="h-4 w-px bg-slate-200"></div>
-                    <div class="flex items-center gap-1">
-                      <span class="text-xs text-slate-500">최대 표시:</span>
-                      <select id="cem-max-nodes" class="text-xs border border-slate-200 rounded px-2 py-1 outline-none bg-white">
-                        <option value="20">20개</option>
-                        <option value="40">40개</option>
-                        <option value="80">80개</option>
-                        <option value="9999" selected>전체</option>
-                      </select>
-                    </div>
-                    <button id="cem-fit" class="px-2.5 py-1 text-xs border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-slate-600 flex items-center gap-1">
-                      <i class="ri-focus-3-line"></i> 한눈에 보기
-                    </button>
-                    <button id="cem-capture" class="hidden px-2.5 py-1 text-xs border border-gov-200 bg-gov-50 hover:bg-gov-100 rounded-lg text-gov-700 flex items-center gap-1">
-                      <i class="ri-camera-line"></i> PNG 저장
-                    </button>
                   </div>
 
-                  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative" style="height:720px;">
-                    <div id="cem-canvas" class="w-full h-full"></div>
-                    <div id="cem-loading" class="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
-                      <div class="flex flex-col items-center gap-3">
-                        <div class="w-8 h-8 rounded-full border-4 border-slate-200 border-t-gov-600 animate-spin"></div>
-                        <span class="text-xs text-slate-500">데이터 로딩 및 관계 분석 중...</span>
+                  <!-- 콘텐츠 그리드 -->
+                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- 좌측: 그래프 패널 (2열) -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
+                      style="min-height:620px;">
+                      <!-- D3 그래프 컨테이너 -->
+                      <div id="kwmap-graph-container"
+                        class="flex-1 w-full rounded-xl bg-slate-50 border border-slate-100 relative overflow-hidden"
+                        style="height:550px;cursor:grab;">
+                        <!-- 로딩 -->
+                        <div id="kwmap-loading"
+                          class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/90 z-10">
+                          <div
+                            style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;">
+                          </div>
+                          <div class="text-slate-600 text-sm font-semibold" id="kwmap-loading-text">데이터 불러오는 중...</div>
+                        </div>
+                        <!-- 에러 -->
+                        <div id="kwmap-error"
+                          class="absolute inset-0 flex items-center justify-center p-8 text-red-500 font-bold z-10"
+                          style="display:none!important;"></div>
+                        <!-- SVG 영역 -->
+                        <div id="kwmap-svg-wrap" class="w-full h-full bg-white" style="display:none;"></div>
+                        <!-- 줌 버튼 -->
+                        <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-10" id="kwmap-zoom-btns"
+                          style="display:none;">
+                          <button id="kwmap-zoom-in"
+                            class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">+</button>
+                          <button id="kwmap-zoom-out"
+                            class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">−</button>
+                          <button id="kwmap-zoom-home"
+                            class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600"><i
+                              class="ri-home-4-line text-lg"></i></button>
+                        </div>
                       </div>
                     </div>
-                    <div id="cem-inspector"
-                      class="absolute top-4 right-4 h-[calc(100%-2rem)] w-[380px] max-w-[calc(100vw-2rem)]
-                        bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-2xl z-30
-                        transform translate-x-[calc(100%+2rem)] transition-all duration-300 flex flex-col hidden">
+
+                    <!-- 우측: 상세 정보 패널 (1열) -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
+                      style="min-height:620px;max-height:680px;">
+                      <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        상세 정보 패널
+                        <span class="relative group inline-flex items-center">
+                          <button class="tooltip-trigger" aria-label="상세 정보 패널 설명">?</button>
+                          <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:24px;width:240px;">
+                            <p><strong>상세 정보 패널이란?</strong></p>
+                            <p>그래프에서 노드를 클릭하면 해당 데이터세트의 이름, 분야, 제공 기관 등 상세 정보가 표시됩니다.</p>
+                            <div class="tooltip-arrow"
+                              style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                          </div>
+                        </span>
+                      </h3>
+                      <div class="flex-1 overflow-y-auto mt-4" id="kwmap-detail-panel">
+                        <div class="flex flex-col items-center justify-center h-full text-slate-400 text-sm gap-2"
+                          style="min-height:200px;">
+                          <i class="ri-cursor-line text-3xl"></i>
+                          <span>← 맵에서 노드를 클릭하세요</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div><!-- /grid -->
+                </div><!-- /#content-panel-visualization -->
+
+                <!-- 탭4: 데이터 관계도·ERD -->
+                <div id="content-panel-erd" style="display:none;min-height:800px;">
+                  <!-- 헤더 카드 -->
+                  <div
+                    class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col gap-1">
+                      <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
+                        식품안전 데이터 융합 관계도(D3.js)
+                        <span class="relative group inline-flex items-center">
+                          <button class="tooltip-trigger" aria-label="식품안전 데이터 융합 관계도 설명">?</button>
+                          <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:300px;">
+                            <p><strong>식품안전 데이터 융합 관계도란?</strong></p>
+                            <p>식품안전 데이터셋을 ERD 카드 형태의 노드로 표시하고, 공통 조인 키와 실제 매칭 관계를 포스 다이렉티드 네트워크로 시각화합니다.</p>
+                            <div class="tooltip-arrow"
+                              style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                          </div>
+                        </span>
+                      </h3>
                     </div>
                   </div>
-                </div>
-              </div>
-            </section>
-          </div>
 
-          <!-- 검색 결과 (탭 외부 - 항상 표시) -->
-          <div id="keyword-search-result-panel" class="mt-8">
-            <p id="keyword-result-summary" style="font-size:15px;color:#475569;margin-bottom:16px;"></p>
-            <div class="flex flex-col divide-y divide-slate-100 bg-white border border-slate-200 rounded-2xl overflow-hidden" id="keyword-dataset-cards"></div>
-            <div id="keyword-pagination" class="flex items-center justify-center gap-1 mt-4"></div>
-          </div>
+                  <!-- 콘텐츠 그리드 -->
+                  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- 좌측: 그래프 패널 (2열) -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
+                      style="min-height:620px;">
+                      
+                      <!-- 툴바 -->
+                      <div
+                        class="bg-white border border-slate-200 rounded-xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 mb-4">
+                        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                          <input type="checkbox" id="cem-physics" class="w-3.5 h-3.5 rounded text-gov-600" checked>
+                          <span>물리 레이아웃</span>
+                        </label>
+                        <div class="h-4 w-px bg-slate-200"></div>
+                        <div class="flex items-center gap-1">
+                          <span class="text-xs text-slate-500">최대 표시:</span>
+                          <select id="cem-max-nodes"
+                            class="text-xs border border-slate-200 rounded px-2 py-1 outline-none bg-white">
+                            <option value="20">20개</option>
+                            <option value="40">40개</option>
+                            <option value="80">80개</option>
+                            <option value="9999" selected>전체</option>
+                          </select>
+                        </div>
+                        <button id="cem-fit"
+                          class="px-2.5 py-1 text-xs border border-slate-200 bg-white hover:bg-slate-50 rounded-lg text-slate-600 flex items-center gap-1">
+                          <i class="ri-focus-3-line"></i> 한눈에 보기
+                        </button>
+                        <button id="cem-capture"
+                          class="hidden px-2.5 py-1 text-xs border border-gov-200 bg-gov-50 hover:bg-gov-100 rounded-lg text-gov-700 flex items-center gap-1">
+                          <i class="ri-camera-line"></i> PNG 저장
+                        </button>
+                      </div>
+
+                      <!-- 캔버스 영역 -->
+                      <div class="flex-1 w-full bg-slate-50 border border-slate-100 rounded-xl overflow-hidden relative"
+                        style="height:550px;">
+                        <div id="cem-canvas" class="w-full h-full"></div>
+                        <div id="cem-loading"
+                          class="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
+                          <div class="flex flex-col items-center gap-3">
+                            <div class="w-8 h-8 rounded-full border-4 border-slate-200 border-t-gov-600 animate-spin">
+                            </div>
+                            <span class="text-xs text-slate-500">데이터 로딩 및 관계 분석 중...</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 우측: 상세 정보 패널 (1열) -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
+                      style="min-height:620px;">
+                      <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        상세 정보 패널
+                        <span class="relative group inline-flex items-center">
+                          <button class="tooltip-trigger" aria-label="상세 정보 패널 설명">?</button>
+                          <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:24px;width:240px;">
+                            <p><strong>상세 정보 패널이란?</strong></p>
+                            <p>관계도에서 데이터세트 노드를 클릭하면 해당 데이터세트의 컬럼 명세, 결합 데이터 등 상세 정보가 표시됩니다.</p>
+                            <div class="tooltip-arrow"
+                              style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                          </div>
+                        </span>
+                      </h3>
+                      <div class="flex-1 flex flex-col mt-4 overflow-hidden" id="cem-inspector">
+                        <div class="flex flex-col items-center justify-center h-full text-slate-400 text-sm gap-2"
+                          style="min-height:200px;">
+                          <i class="ri-cursor-line text-3xl"></i>
+                          <span>← 맵에서 노드를 클릭하세요</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div><!-- /grid -->
+                </div><!-- /#content-panel-erd -->
+
+                <!-- 검색 결과 (탭 외부 - 항상 표시) -->
+                <div id="keyword-search-result-panel" class="mt-8">
+                  <p id="keyword-result-summary" style="font-size:15px;color:#475569;margin-bottom:16px;"></p>
+                  <div
+                    class="flex flex-col divide-y divide-slate-100 bg-white border border-slate-200 rounded-2xl overflow-hidden"
+                    id="keyword-dataset-cards"></div>
+                  <div id="keyword-pagination" class="flex items-center justify-center gap-1 mt-4"></div>
+                </div>
+
+              </div><!-- /우측 콘텐츠 영역 -->
+            </div><!-- /③ 본문 -->
+          </div><!-- /NDM Style 래퍼 -->
 
         </section>
       </div>
@@ -267,7 +415,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script type="module" src="/view/app.js?v=16"></script>
+  <script type="module" src="/view/app.js?v=26"></script>
 </body>
 
 </html>

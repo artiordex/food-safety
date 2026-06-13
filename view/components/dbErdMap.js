@@ -70,25 +70,25 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
   const extra = (t.columns || []).length - MAX_COLS;
   const cardH = getCardHeight(t);
   const c = colorInfo;
-  
+
   let colRows = '';
   cols.forEach((col, i) => {
     const bg = i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'rgba(0,0,0,0.003)';
     const nameColor = col.pk ? '#b45309' : '#374151';
     const prefix = col.pk ? '🔑 ' : '  ';
-    
+
     // 물리명 + 논리명(한글명) 병합 표기
-    const displayName = col.kor 
+    const displayName = col.kor
       ? `${col.name} (${col.kor})`
       : col.name;
-    
+
     // 카드 영역을 넘지 않도록 말줄임 처리
-    const cutName = displayName.length > 25 
-      ? displayName.substring(0, 24) + '…' 
+    const cutName = displayName.length > 25
+      ? displayName.substring(0, 24) + '…'
       : displayName;
 
     const typeShort = (col.type || 'TEXT').replace('VARCHAR', 'VC').replace('NUMERIC', 'NUM').substring(0, 8);
-    
+
     colRows += `
       <rect x="0" y="${CARD_HEADER + i * CARD_H_COL}" width="${CARD_W}" height="${CARD_H_COL}" fill="${bg}"/>
       <text x="6" y="${CARD_HEADER + i * CARD_H_COL + 14}" font-size="8.5" fill="${nameColor}" font-family="sans-serif">${prefix}${cutName}</text>
@@ -103,13 +103,13 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
   const strokeColor = isSelected ? c.accent : c.border;
   const strokeW = isSelected ? 2.5 : 1.5;
   // 논리형한글명(물리테이블명) 조합
-  const displayTitle = t.label && t.label !== t.table 
-    ? `${t.label}(${t.table})` 
+  const displayTitle = t.label && t.label !== t.table
+    ? `${t.label}(${t.table})`
     : t.table;
-    
+
   // 가로 크기를 넘어가지 않도록 제목 글자수 제한 보정
-  const cutTitle = displayTitle.length > 29 
-    ? displayTitle.substring(0, 28) + '…' 
+  const cutTitle = displayTitle.length > 29
+    ? displayTitle.substring(0, 28) + '…'
     : displayTitle;
 
   return `
@@ -124,7 +124,7 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
     </g>`;
 }
 
-export function renderDbErdMap(container) {
+export function renderDbErdMap(container, onSelectDataset) {
   // CSS 애니메이션 및 D3 용 스타일 주입
   if (!document.getElementById('erd-d3-styles')) {
     const style = document.createElement('style');
@@ -257,11 +257,11 @@ export function renderDbErdMap(container) {
     ]).then(([schemaData, relData]) => {
       schema = schemaData;
       relationships = relData;
-      
+
       // 카테고리 추출
       const cats = new Set(schema.map(t => t.category || '기타'));
       categories = Array.from(cats);
-      
+
       // 카테고리 필터 채우기
       const sel = document.getElementById('erd-cat-filter');
       categories.forEach(cat => {
@@ -271,7 +271,7 @@ export function renderDbErdMap(container) {
       });
 
       loadingDiv.remove();
-      
+
       // D3 시뮬레이터 셋업
       initD3Simulation();
       renderKeyBadges();
@@ -313,7 +313,7 @@ export function renderDbErdMap(container) {
       const catIdx = categories.indexOf(t.category || '기타');
       const angle = (catIdx / categories.length) * 2 * Math.PI;
       const radius = 600 + Math.random() * 800;
-      
+
       return {
         id: t.table,
         tableData: t,
@@ -350,10 +350,10 @@ export function renderDbErdMap(container) {
 
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
     links = [];
-    
+
     relationships.forEach(rel => {
       if (!rel.edges) return;
-      
+
       rel.edges.forEach(edge => {
         if (nodeMap.has(edge.from) && nodeMap.has(edge.to)) {
           links.push({
@@ -400,7 +400,7 @@ export function renderDbErdMap(container) {
     updateView();
     // 생성된 DOM에 사전 연산된 완벽한 x,y 좌표 일괄 적용
     ticked();
-    
+
     // 이후 상호작용(드래그 등)을 위한 틱 핸들러 등록
     simulation.on('tick', ticked);
   }
@@ -415,12 +415,12 @@ export function renderDbErdMap(container) {
       return (ccw(p1, p3, p4) !== ccw(p2, p3, p4)) && (ccw(p1, p2, p3) !== ccw(p1, p2, p4));
     };
     const isLineIntersectingRect = (p1, p2, rect) => {
-      const top = [{x: rect.left, y: rect.top}, {x: rect.right, y: rect.top}];
-      const bottom = [{x: rect.left, y: rect.bottom}, {x: rect.right, y: rect.bottom}];
-      const left = [{x: rect.left, y: rect.top}, {x: rect.left, y: rect.bottom}];
-      const right = [{x: rect.right, y: rect.top}, {x: rect.right, y: rect.bottom}];
-      
-      return [top, bottom, left, right].some(side => 
+      const top = [{ x: rect.left, y: rect.top }, { x: rect.right, y: rect.top }];
+      const bottom = [{ x: rect.left, y: rect.bottom }, { x: rect.right, y: rect.bottom }];
+      const left = [{ x: rect.left, y: rect.top }, { x: rect.left, y: rect.bottom }];
+      const right = [{ x: rect.right, y: rect.top }, { x: rect.right, y: rect.bottom }];
+
+      return [top, bottom, left, right].some(side =>
         isLineIntersectingLine(p1, p2, side[0], side[1])
       );
     };
@@ -446,7 +446,7 @@ export function renderDbErdMap(container) {
       // nodes 배열에서 source/target을 제외한 노드들을 검사
       for (const n of nodes) {
         if (n.id === sourceId || n.id === targetId) continue;
-        
+
         const nH = getCardHeight(n.tableData);
         // 충돌 판정을 위해 약간의 마진(패딩)을 사각형에 추가해서 충돌 판정에 여유를 줌
         const rect = {
@@ -470,11 +470,11 @@ export function renderDbErdMap(container) {
         // 테이블과 겹칠 것 같으면 꺾은선(Polyline) 생성
         const mx = (sx + tx) / 2;
         const bH = getCardHeight(blockingNode.tableData);
-        
+
         // 장애 노드의 아래쪽 또는 위쪽으로 우회
         const blockingCenterY = blockingNode.y + bH / 2;
         const lineCenterY = (sy + ty) / 2;
-        
+
         let bentY;
         if (lineCenterY >= blockingCenterY) {
           // 아래로 우회
@@ -539,7 +539,7 @@ export function renderDbErdMap(container) {
     const filteredLinks = links.filter(l => {
       if (!showRelations) return false;
       if (selectedKey !== 'all' && l.key !== selectedKey) return false;
-      
+
       // 소스/타겟이 모두 필터링된 활성 노드셋에 속해야 함
       if (!activeNodeIds.has(l.source.id) || !activeNodeIds.has(l.target.id)) return false;
 
@@ -629,7 +629,7 @@ export function renderDbErdMap(container) {
     labelMerge.attr('opacity', d => {
       const isRelatedToSelected = selectedTable === d.source.id || selectedTable === d.target.id;
       const isActive = (selectedKey === d.key) || (selectedTable && isRelatedToSelected);
-      
+
       if (selectedKey !== 'all') {
         return (selectedKey === d.key) ? 1.0 : 0.05;
       }
@@ -671,7 +671,7 @@ export function renderDbErdMap(container) {
       event.stopPropagation();
       // 드래그 중 단순 미세 잔상 클릭 오발 방지
       if (event.defaultPrevented) return;
-      
+
       selectedTable = selectedTable === d.id ? null : d.id;
       updateView();
       showDetail(selectedTable);
@@ -724,7 +724,7 @@ export function renderDbErdMap(container) {
       </div>
       <div style="padding:8px 14px;border-bottom:1px solid #e2e8f0;background:#f8fafc;shrink-0;">
         <span style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:99px;font-weight:600;">📁 ${t.category}</span>
-        <span style="font-size:11px;margin-left:8px;color:#64748b;">컬럼 ${(t.columns||[]).length}개</span>
+        <span style="font-size:11px;margin-left:8px;color:#64748b;">컬럼 ${(t.columns || []).length}개</span>
       </div>
       
       <!-- 스크롤 가능한 본문 영역 -->
@@ -743,13 +743,13 @@ export function renderDbErdMap(container) {
                 </tr>
               </thead>
               <tbody>
-                ${(t.columns||[]).map((col, i) => `
-                  <tr style="border-bottom:1px solid #f1f5f9;background:${i%2===0?'transparent':'#f8fafc'}">
-                    <td style="padding:6px 8px;font-family:monospace;color:${col.pk?'#b45309':'#1e293b'};font-weight:${col.pk?'700':'400'};">
+                ${(t.columns || []).map((col, i) => `
+                  <tr style="border-bottom:1px solid #f1f5f9;background:${i % 2 === 0 ? 'transparent' : '#f8fafc'}">
+                    <td style="padding:6px 8px;font-family:monospace;color:${col.pk ? '#b45309' : '#1e293b'};font-weight:${col.pk ? '700' : '400'};">
                       ${col.pk ? '🔑 ' : ''}${col.name}
                     </td>
-                    <td style="padding:6px 6px;color:#2563eb;font-size:10px;font-family:monospace;">${col.type||'TEXT'}</td>
-                    <td style="padding:6px 6px;color:#475569;font-size:10.5px;text-align:right;">${col.kor||'-'}</td>
+                    <td style="padding:6px 6px;color:#2563eb;font-size:10px;font-family:monospace;">${col.type || 'TEXT'}</td>
+                    <td style="padding:6px 6px;color:#475569;font-size:10.5px;text-align:right;">${col.kor || '-'}</td>
                   </tr>`).join('')}
               </tbody>
             </table>
@@ -806,10 +806,10 @@ export function renderDbErdMap(container) {
               ${rows.map(row => `
                 <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                   ${colNames.map(name => {
-                    const val = row[name];
-                    const disp = val !== null ? String(val).replace(/"/g, '&quot;') : '';
-                    return `<td style="padding:6px 10px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${disp}">${val !== null ? val : '<span style="color:#cbd5e1;font-style:italic;">null</span>'}</td>`;
-                  }).join('')}
+        const val = row[name];
+        const disp = val !== null ? String(val).replace(/"/g, '&quot;') : '';
+        return `<td style="padding:6px 10px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${disp}">${val !== null ? val : '<span style="color:#cbd5e1;font-style:italic;">null</span>'}</td>`;
+      }).join('')}
                 </tr>
               `).join('')}
             </tbody>
@@ -847,7 +847,7 @@ export function renderDbErdMap(container) {
 
     // 패널 열기
     detail.style.display = 'flex';
-    
+
     // 위해행정처분 예외 필드 보정
     let fromKey = joinKey;
     let toKey = joinKey;
@@ -927,10 +927,10 @@ export function renderDbErdMap(container) {
               ${rows.map(row => `
                 <tr style="border-bottom:1px solid #f1f5f9;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                   ${cols.map(c => {
-                    const val = row[c];
-                    const disp = val !== null ? String(val).replace(/"/g, '&quot;') : '';
-                    return `<td style="padding:6px 10px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${disp}">${val !== null ? val : '<span style="color:#cbd5e1;font-style:italic;">null</span>'}</td>`;
-                  }).join('')}
+        const val = row[c];
+        const disp = val !== null ? String(val).replace(/"/g, '&quot;') : '';
+        return `<td style="padding:6px 10px;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;" title="${disp}">${val !== null ? val : '<span style="color:#cbd5e1;font-style:italic;">null</span>'}</td>`;
+      }).join('')}
                 </tr>
               `).join('')}
             </tbody>
@@ -969,14 +969,14 @@ export function renderDbErdMap(container) {
 
     const topRels = relationships.slice(0, 10);
     let html = `<span class="erd-key-badge" data-key="all" style="cursor:pointer;font-size:10px;background:${selectedKey === 'all' ? '#2563eb' : '#f1f5f9'};color:${selectedKey === 'all' ? '#ffffff' : '#475569'};padding:3px 10px;border-radius:99px;font-weight:600;border:1px solid ${selectedKey === 'all' ? '#2563eb' : '#cbd5e1'};transition:all 0.15s;display:inline-block;">전체 보기</span>`;
-    
+
     topRels.forEach(rel => {
       const color = KEY_COLORS[rel.key] || '#64748b';
       const isCurrent = selectedKey === rel.key;
       const bg = isCurrent ? color : '#ffffff';
       const textCol = isCurrent ? '#ffffff' : '#374151';
       const borderCol = isCurrent ? color : '#cbd5e1';
-      
+
       html += `
         <span class="erd-key-badge" data-key="${rel.key}" 
           style="cursor:pointer;font-size:10px;background:${bg};color:${textCol};padding:3px 10px;border-radius:99px;font-weight:600;border:1px solid ${borderCol};display:inline-flex;align-items:center;gap:4px;transition:all 0.15s;">
@@ -1006,7 +1006,7 @@ export function renderDbErdMap(container) {
     document.getElementById('erd-zoom-out').addEventListener('click', () => {
       svg.transition().duration(250).call(zoomBehavior.scaleBy, 0.7);
     });
-    
+
     // 리셋 버튼 (모든 노드 고정 해제 및 중앙 시뮬레이션 재정렬)
     document.getElementById('erd-reset').addEventListener('click', () => {
       nodes.forEach(n => {
@@ -1015,11 +1015,11 @@ export function renderDbErdMap(container) {
       });
       // 시뮬레이션 웜업 및 위치 초기화
       simulation.alpha(1).restart();
-      
+
       const width = viewport.offsetWidth || 1200;
       const height = viewport.offsetHeight || 800;
       svg.transition().duration(500).call(
-        zoomBehavior.transform, 
+        zoomBehavior.transform,
         d3.zoomIdentity.translate(width * 0.42, height * 0.42).scale(0.12)
       );
     });
@@ -1055,28 +1055,28 @@ export function renderDbErdMap(container) {
  * - 노드 크기  ∝ log(데이터 건수)
  * - 연결 많은 테이블은 mass 높게 설정 → 물리 레이아웃에서 자동 중앙 배치
  */
-export function renderCombinedErdMap(container) {
+export function renderCombinedErdMap(container, onSelectDataset) {
   // ── 카테고리 분류 ────────────────────────────────────
   const domainTables = {
-    core:       ['I2500','I1250','C005','C002','I0580','I0470','I2620','I0490'],
-    license:    ['I2500','I1220','I2857','I2858','I2830','I2831','I2833','I2835','I2836','I2821','I2822','I2829','I2834','I2832','I2856','I2859','I2861','I2560'],
-    haccp:      ['I2500','I0580','I0630','I0600'],
-    product:    ['I1250','C005','C002','I2510','I2852'],
-    standards:  ['I2580','I0960','I2600','I2610','I0940'],
-    safety:     ['I2620','I0490','I2810'],
-    import:     ['C001','C003','I0482','I2821'],
-    nutrition:  ['I2780','I2819'],
-    discipline: ['I0470','I0482','I2822']
+    core: ['I2500', 'I1250', 'C005', 'C002', 'I0580', 'I0470', 'I2620', 'I0490'],
+    license: ['I2500', 'I1220', 'I2857', 'I2858', 'I2830', 'I2831', 'I2833', 'I2835', 'I2836', 'I2821', 'I2822', 'I2829', 'I2834', 'I2832', 'I2856', 'I2859', 'I2861', 'I2560'],
+    haccp: ['I2500', 'I0580', 'I0630', 'I0600'],
+    product: ['I1250', 'C005', 'C002', 'I2510', 'I2852'],
+    standards: ['I2580', 'I0960', 'I2600', 'I2610', 'I0940'],
+    safety: ['I2620', 'I0490', 'I2810'],
+    import: ['C001', 'C003', 'I0482', 'I2821'],
+    nutrition: ['I2780', 'I2819'],
+    discipline: ['I0470', 'I0482', 'I2822']
   };
   const domainNames = {
-    core:'핵심 초융합형', license:'인허가·업소', haccp:'HACCP·위생',
-    product:'품목제조·제품', standards:'기준규격·공전', safety:'검사·부적합·위해',
-    import:'수입식품', nutrition:'영양성분', discipline:'행정처분·폐업'
+    core: '핵심 초융합형', license: '인허가·업소', haccp: 'HACCP·위생',
+    product: '품목제조·제품', standards: '기준규격·공전', safety: '검사·부적합·위해',
+    import: '수입식품', nutrition: '영양성분', discipline: '행정처분·폐업'
   };
   const domainColors = {
-    core:'#6366f1', license:'#0891b2', haccp:'#0d9488',
-    product:'#e11d48', standards:'#059669', safety:'#dc2626',
-    import:'#d97706', nutrition:'#7c3aed', discipline:'#db2777'
+    core: '#6366f1', license: '#0891b2', haccp: '#0d9488',
+    product: '#e11d48', standards: '#059669', safety: '#dc2626',
+    import: '#d97706', nutrition: '#7c3aed', discipline: '#db2777'
   };
   const categoryColorMap = {
     '식품영양정보': '#16a34a',
@@ -1105,18 +1105,18 @@ export function renderCombinedErdMap(container) {
     '#059669', '#be123c', '#475569'
   ];
   const KEY_EDGE_COLORS = {
-    LCNS_NO:'#2563eb', PRDLST_REPORT_NO:'#10b981', BAR_CD:'#d97706',
-    BSSH_NO:'#ec4899', HACCP_NO:'#8b5cf6', PRDLST_CD:'#06b6d4', FOOD_CD:'#f97316'
+    LCNS_NO: '#2563eb', PRDLST_REPORT_NO: '#10b981', BAR_CD: '#d97706',
+    BSSH_NO: '#ec4899', HACCP_NO: '#8b5cf6', PRDLST_CD: '#06b6d4', FOOD_CD: '#f97316'
   };
   const subjectColorMap = {
-    '융합 데이터 세트':'bg-indigo-50 text-indigo-700 border-indigo-200',
-    '식품·제품':'bg-teal-50 text-teal-700 border-teal-200',
-    '업체·영업자':'bg-sky-50 text-sky-700 border-sky-200',
-    '원재료·첨가물':'bg-rose-50 text-rose-700 border-rose-200',
-    '영양·건강':'bg-emerald-50 text-emerald-700 border-emerald-200',
-    '수입식품':'bg-amber-50 text-amber-700 border-amber-200',
-    '농·축·수산물':'bg-violet-50 text-violet-700 border-violet-200',
-    '기타':'bg-slate-50 text-slate-700 border-slate-200'
+    '융합 데이터 세트': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    '식품·제품': 'bg-teal-50 text-teal-700 border-teal-200',
+    '업체·영업자': 'bg-sky-50 text-sky-700 border-sky-200',
+    '원재료·첨가물': 'bg-rose-50 text-rose-700 border-rose-200',
+    '영양·건강': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    '수입식품': 'bg-amber-50 text-amber-700 border-amber-200',
+    '농·축·수산물': 'bg-violet-50 text-violet-700 border-violet-200',
+    '기타': 'bg-slate-50 text-slate-700 border-slate-200'
   };
 
   // ── 상태 ──────────────────────────────────────────────
@@ -1130,9 +1130,21 @@ export function renderCombinedErdMap(container) {
   let activePhysics = true;
   let selectedNodeId = null;
   let selectedDomains = Object.fromEntries(Object.keys(domainTables).map(k => [k, true]));
-  let selectedKeys = { LCNS_NO:true, PRDLST_REPORT_NO:true, BAR_CD:true, BSSH_NO:true, TESTITM_CD:true };
+  let selectedKeys = { LCNS_NO: true, PRDLST_REPORT_NO: true, BAR_CD: true, BSSH_NO: true, TESTITM_CD: true };
+  let externalFilterIds = null;
 
-  const escX = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  window.addEventListener('datamap-filter-updated', (e) => {
+    if (e.detail !== undefined) {
+      if (e.detail.matchedIds === null) {
+        externalFilterIds = null;
+      } else {
+        externalFilterIds = new Set(e.detail.matchedIds);
+      }
+      renderNetwork();
+    }
+  });
+
+  const escX = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const quoteIdent = id => `"${String(id).replace(/"/g, '""')}"`;
   const parseCount = value => {
     const n = Number(value);
@@ -1142,8 +1154,17 @@ export function renderCombinedErdMap(container) {
   // ── SVG 테이블 카드 생성 ──────────────────────────────
   function createCardSvg(tableId, label, cols, rowCount, accentColor, isSelected) {
     const W = 240, HEADER_H = 40, ROW_H = 18;
-    const displayCols = cols.slice(0, 5);
-    const extra = cols.length - 5;
+
+    const sortedCols = [...cols].sort((a, b) => {
+      const aIsKey = !!KEY_EDGE_COLORS[a.field];
+      const bIsKey = !!KEY_EDGE_COLORS[b.field];
+      if (aIsKey && !bIsKey) return -1;
+      if (!aIsKey && bIsKey) return 1;
+      return 0;
+    });
+
+    const displayCols = sortedCols.slice(0, 5);
+    const extra = sortedCols.length - 5;
     const H = HEADER_H + displayCols.length * ROW_H + (extra > 0 ? 14 : 4) + 2;
     const stroke = isSelected ? '#fbbf24' : `${accentColor}70`;
     const strokeW = isSelected ? 3 : 1.5;
@@ -1153,16 +1174,16 @@ export function renderCombinedErdMap(container) {
       const isKey = !!KEY_EDGE_COLORS[col.field];
       const nameColor = isKey ? '#b45309' : '#374151';
       const prefix = isKey ? '🔑' : ' ';
-      const raw = `${col.field}${col.kor_nm ? ' ('+col.kor_nm+')' : ''}`;
-      const cut = escX(raw.length > 25 ? raw.slice(0, 24)+'…' : raw);
-      const tp = (col.sql_type||'VC').replace('VARCHAR','VC').replace('NUMERIC','NUM').replace('NUMBER','NUM').slice(0,8);
-      return `<rect x="0" y="${HEADER_H+i*ROW_H}" width="${W}" height="${ROW_H}" fill="${bg}"/>` +
-        `<text x="7" y="${HEADER_H+i*ROW_H+13}" font-size="8.5" fill="${nameColor}" font-family="monospace">${prefix} ${cut}</text>` +
-        `<text x="${W-5}" y="${HEADER_H+i*ROW_H+13}" font-size="8" fill="${accentColor}aa" text-anchor="end" font-family="monospace">${tp}</text>`;
+      const raw = `${col.field}${col.kor_nm ? ' (' + col.kor_nm + ')' : ''}`;
+      const cut = escX(raw.length > 25 ? raw.slice(0, 24) + '…' : raw);
+      const tp = (col.sql_type || 'VC').replace('VARCHAR', 'VC').replace('NUMERIC', 'NUM').replace('NUMBER', 'NUM').slice(0, 8);
+      return `<rect x="0" y="${HEADER_H + i * ROW_H}" width="${W}" height="${ROW_H}" fill="${bg}"/>` +
+        `<text x="7" y="${HEADER_H + i * ROW_H + 13}" font-size="8.5" fill="${nameColor}" font-family="monospace">${prefix} ${cut}</text>` +
+        `<text x="${W - 5}" y="${HEADER_H + i * ROW_H + 13}" font-size="8" fill="${accentColor}aa" text-anchor="end" font-family="monospace">${tp}</text>`;
     }).join('');
 
     const extraTxt = extra > 0
-      ? `<text x="${W/2}" y="${H-4}" font-size="8.5" fill="#94a3b8" text-anchor="middle">+${extra}개 더</text>` : '';
+      ? `<text x="${W / 2}" y="${H - 4}" font-size="8.5" fill="#94a3b8" text-anchor="middle">+${extra}개 더</text>` : '';
     const rowLabel = rowCount > 0 ? `${Number(rowCount).toLocaleString()}rows` : '';
     const lbl = escX(label.split(' (')[0]).slice(0, 22);
     const tid = escX(tableId).slice(0, 14);
@@ -1171,10 +1192,10 @@ export function renderCombinedErdMap(container) {
       `<rect x="3" y="3" width="${W}" height="${H}" rx="7" fill="rgba(0,0,0,0.05)"/>` +
       `<rect width="${W}" height="${H}" rx="7" fill="#fff" stroke="${stroke}" stroke-width="${strokeW}"/>` +
       `<rect width="${W}" height="${HEADER_H}" rx="7" fill="${accentColor}"/>` +
-      `<rect y="${HEADER_H-7}" width="${W}" height="7" fill="${accentColor}"/>` +
+      `<rect y="${HEADER_H - 7}" width="${W}" height="7" fill="${accentColor}"/>` +
       `<text x="8" y="16" font-size="10.5" font-weight="700" fill="#fff" font-family="sans-serif">${lbl}</text>` +
       `<text x="8" y="30" font-size="8.5" fill="rgba(255,255,255,0.7)" font-family="monospace">${tid}</text>` +
-      `<text x="${W-6}" y="30" font-size="8.5" fill="rgba(255,255,255,0.9)" text-anchor="end" font-family="sans-serif">${rowLabel}</text>` +
+      `<text x="${W - 6}" y="30" font-size="8.5" fill="rgba(255,255,255,0.9)" text-anchor="end" font-family="sans-serif">${rowLabel}</text>` +
       colRows + extraTxt + `</svg>`;
 
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -1196,58 +1217,61 @@ export function renderCombinedErdMap(container) {
     // 데이터셋 목록
     try {
       const r = await fetch('/api/searchDatasetList.do', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ start_idx:1, show_cnt:1000 })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
       });
       const j = await r.json();
       allDatasets = (j.list || []).map(d => ({
-        id: d.svc_no, name: d.svc_nm, subject: d.cl_cd_nm || '기타',
+        ...d,
+        id: d.svc_no,
+        name: d.svc_nm || d.svc_no,
+        subject: d.cl_cd_nm || '기타',
         dataCount: parseCount(d.data_cnt || d.sample_data_length)
       }));
-    } catch(e) { console.warn('[CombinedErd] datasets load failed', e); }
+    } catch (e) { console.warn('[CombinedErd] datasets load failed', e); }
 
     let existingTables = new Set(allDatasets.map(ds => ds.id));
     try {
       const r = await fetch('/api/query', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ query:`SELECT name FROM sqlite_master WHERE type='table'` })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `SELECT name FROM sqlite_master WHERE type='table'` })
       });
       if (r.ok) {
         const rows = await r.json();
         existingTables = new Set((rows || []).map(row => String(row.name)));
       }
-    } catch {}
+    } catch { }
 
     await Promise.allSettled(allDatasets.filter(ds => existingTables.has(String(ds.id))).map(async ds => {
       try {
         const r = await fetch('/api/query', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ query:`SELECT COUNT(*) AS cnt FROM ${quoteIdent(ds.id)}` })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `SELECT COUNT(*) AS cnt FROM ${quoteIdent(ds.id)}` })
         });
         if (!r.ok) return;
         const rows = await r.json();
         ds.dataCount = parseCount(rows?.[0]?.cnt);
-      } catch {}
+      } catch { }
     }));
 
     // 컬럼 정보 — bulk 쿼리 시도 후 실패 시 개별 fetch
     allColumnsMap = {};
     try {
       const r = await fetch('/api/query', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ query:`SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field` })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field` })
       });
       const rows = await r.json();
       if (Array.isArray(rows) && rows.length > 0) {
         rows.forEach(row => {
           if (!allColumnsMap[row.svc_no]) allColumnsMap[row.svc_no] = [];
           if (allColumnsMap[row.svc_no].length < 5)
-            allColumnsMap[row.svc_no].push({ field:row.field, kor_nm:row.kor_nm, sql_type:row.sql_type });
+            allColumnsMap[row.svc_no].push({ field: row.field, kor_nm: row.kor_nm, sql_type: row.sql_type });
         });
       }
-    } catch(e) { console.warn('[CombinedErd] columns bulk load failed', e); }
+    } catch (e) { console.warn('[CombinedErd] columns bulk load failed', e); }
 
     // bulk 결과가 없으면 개별 테이블 fetch
     if (Object.keys(allColumnsMap).length === 0) {
@@ -1261,7 +1285,7 @@ export function renderCombinedErdMap(container) {
               field: c.field, kor_nm: c.kor_nm, sql_type: c.sql_type || c.data_type
             }));
           }
-        } catch{}
+        } catch { }
       }));
     }
 
@@ -1270,12 +1294,12 @@ export function renderCombinedErdMap(container) {
       const r = await fetch('/api/relationships');
       let loadedRels = await r.json() || [];
       if (!Array.isArray(loadedRels)) loadedRels = [];
-      
+
       // 사용자 요청: 실제 조인 시 매칭되는 값이 존재하는 관계만 묶기
-      relationships = loadedRels.filter(rel => 
+      relationships = loadedRels.filter(rel =>
         rel.inclusion_check && rel.inclusion_check.matched_count > 0
       );
-    } catch(e) { console.warn('[CombinedErd] relationships load failed', e); }
+    } catch (e) { console.warn('[CombinedErd] relationships load failed', e); }
 
     // 데이터셋이 없으면 domainTables의 ID로 최소 구성
     if (allDatasets.length === 0) {
@@ -1288,6 +1312,10 @@ export function renderCombinedErdMap(container) {
   // 키워드·노드 수 제한 등 현재 필터 조건에 부합하는 가시 노드 ID 집합을 반환하는 함수
   function getVisibleIds() {
     let allowed = new Set(allDatasets.map(d => d.id));
+
+    if (externalFilterIds) {
+      allowed = new Set([...allowed].filter(id => externalFilterIds.has(id)));
+    }
 
     if (activeKeyword) {
       const kw = activeKeyword.toLowerCase();
@@ -1318,12 +1346,12 @@ export function renderCombinedErdMap(container) {
   function getRelType(fromT, toT, key) {
     const isPk = (t, c) => {
       const T = t.toUpperCase(), C = c.toUpperCase();
-      return (T==='I2500'&&(C==='LCNS_NO'||C==='BSSH_NO')) ||
-             (T==='I1250'&&C==='PRDLST_REPORT_NO');
+      return (T === 'I2500' && (C === 'LCNS_NO' || C === 'BSSH_NO')) ||
+        (T === 'I1250' && C === 'PRDLST_REPORT_NO');
     };
-    if (isPk(fromT,key) && isPk(toT,key)) return '1:1';
-    if (isPk(fromT,key)) return '1:N';
-    if (isPk(toT,key)) return 'N:1';
+    if (isPk(fromT, key) && isPk(toT, key)) return '1:1';
+    if (isPk(fromT, key)) return '1:N';
+    if (isPk(toT, key)) return 'N:1';
     return 'N:M';
   }
 
@@ -1344,8 +1372,8 @@ export function renderCombinedErdMap(container) {
     // degree map (연결 수) → mass 계산에 사용
     const degreeMap = {};
     relationships.forEach(r => {
-      if (visibleIds.has(r.from_table)) degreeMap[r.from_table] = (degreeMap[r.from_table]||0) + 1;
-      if (visibleIds.has(r.to_table))   degreeMap[r.to_table]   = (degreeMap[r.to_table]||0)   + 1;
+      if (visibleIds.has(r.from_table)) degreeMap[r.from_table] = (degreeMap[r.from_table] || 0) + 1;
+      if (visibleIds.has(r.to_table)) degreeMap[r.to_table] = (degreeMap[r.to_table] || 0) + 1;
     });
 
     const categoryIndex = new Map();
@@ -1361,10 +1389,10 @@ export function renderCombinedErdMap(container) {
     const visNodes = allDatasets
       .filter(ds => visibleIds.has(ds.id))
       .map(ds => {
-        const cols   = allColumnsMap[ds.id] || [];
-        const rows   = parseCount(ds.dataCount);
+        const cols = allColumnsMap[ds.id] || [];
+        const rows = parseCount(ds.dataCount);
         const degree = degreeMap[ds.id] || 0;
-        const color  = getCategoryColor(ds.subject);
+        const color = getCategoryColor(ds.subject);
         const svgUrl = createCardSvg(ds.id, ds.name, cols, rows, color, selectedNodeId === ds.id);
 
         // 크기: log 스케일, 70~130px
@@ -1377,7 +1405,7 @@ export function renderCombinedErdMap(container) {
         tip.innerHTML = `<p class="font-bold text-slate-900">${ds.name} (${ds.id})</p>
           <p class="text-slate-400">${ds.subject} · ${Number(rows).toLocaleString()} rows · 연결 ${degree}개</p>`;
 
-        return { id:ds.id, label:'', shape:'image', image:svgUrl, size:sz, mass, title:tip };
+        return { id: ds.id, label: '', shape: 'image', image: svgUrl, size: sz, mass, title: tip };
       });
 
     // Vis.js 엣지
@@ -1388,19 +1416,20 @@ export function renderCombinedErdMap(container) {
         return selectedKeys[k] !== false;
       })
       .map((r, i) => {
-        const key   = r.from_field;
-        const rel   = getRelType(r.from_table, r.to_table, key);
-        const eClr  = KEY_EDGE_COLORS[key] || '#94a3b8';
-        const isSel = selectedNodeId && (r.from_table===selectedNodeId || r.to_table===selectedNodeId);
+        const key = r.from_field;
+        const rel = getRelType(r.from_table, r.to_table, key);
+        const eClr = KEY_EDGE_COLORS[key] || '#94a3b8';
+        const isSel = selectedNodeId && (r.from_table === selectedNodeId || r.to_table === selectedNodeId);
         return {
-          id:`e${i}`, from:r.from_table, to:r.to_table,
-          label:`(${rel}) ${key}`,
-          font:{ size:10, face:'sans-serif', color:'#334155', background:'#ffffff', strokeWidth:2, strokeColor:'#f1f5f9' },
-          color:{ color: isSel ? eClr : `${eClr}80`, highlight:eClr, hover:eClr },
-          width: r.confidence==='HIGH' ? 2.5 : 1.5,
-          hoverWidth:3, selectionWidth:3,
-          arrows:{ to:{ enabled:true, scaleFactor:0.7 } },
-          smooth:{ enabled:true, type:'continuous', roundness:0.15 }
+          id: `e${i}`, from: r.from_table, to: r.to_table,
+          label: `(${rel}) ${key}`,
+          font: { size: 10, face: 'sans-serif', color: '#334155', background: '#ffffff', strokeWidth: 2, strokeColor: '#f1f5f9' },
+          color: { color: isSel ? eClr : `${eClr}80`, highlight: eClr, hover: eClr },
+          width: r.confidence === 'HIGH' ? 2.5 : 1.5,
+          hoverWidth: 3, selectionWidth: 3,
+          dashes: [4, 4],
+          arrows: { to: { enabled: true, scaleFactor: 0.7 } },
+          smooth: false // 직각은 지원하지 않으므로 깔끔한 직선 점선으로 변경
         };
       });
 
@@ -1418,8 +1447,8 @@ export function renderCombinedErdMap(container) {
     networkInstance = new vis.Network(canvasEl,
       { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges) },
       {
-        nodes: { borderWidthSelected:4, scaling:{ min:60, max:140 } },
-        interaction: { hover:true, tooltipDelay:150, selectable:true, selectConnectedEdges:true },
+        nodes: { borderWidthSelected: 4, scaling: { min: 60, max: 140 } },
+        interaction: { hover: true, tooltipDelay: 150, selectable: true, selectConnectedEdges: true },
         physics: {
           enabled: activePhysics,
           barnesHut: {
@@ -1430,7 +1459,7 @@ export function renderCombinedErdMap(container) {
             damping: 0.09,
             avoidOverlap: 0.9
           },
-          stabilization: { enabled:true, iterations:600, updateInterval:50 }
+          stabilization: { enabled: true, iterations: 600, updateInterval: 50 }
         }
       }
     );
@@ -1439,7 +1468,7 @@ export function renderCombinedErdMap(container) {
       if (loadingEl) loadingEl.classList.add('hidden');
     });
 
-    networkInstance.on('select', ({ nodes:ns, edges:es }) => {
+    networkInstance.on('select', ({ nodes: ns, edges: es }) => {
       if (ns && ns.length > 0) {
         selectedNodeId = ns[0]; showInspector(ns[0]);
       } else if (es && es.length > 0) {
@@ -1452,12 +1481,11 @@ export function renderCombinedErdMap(container) {
 
   // ── 인스펙터 (우측 슬라이드 패널) ────────────────────
   function showInspector(nodeId) {
+    window._debug_showInspector = showInspector;
     const panel = container.querySelector('#cem-inspector');
     if (!panel) return;
     const ds = getDs(nodeId);
     if (!ds) return;
-    panel.classList.remove('hidden');
-    setTimeout(() => panel.classList.remove('translate-x-[calc(100%+2rem)]'), 10);
 
     const subjectColor = categoryColorMap[ds.subject] || '#475569';
     panel.innerHTML = `
@@ -1474,12 +1502,12 @@ export function renderCombinedErdMap(container) {
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        <div>
-          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5">
+      <div class="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
+        <div class="flex flex-col flex-1 min-h-0">
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5 shrink-0">
             <i class="ri-article-line text-gov-600"></i> 컬럼 명세 (Schema)
           </h4>
-          <div class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-52">
+          <div class="border border-slate-200 rounded-xl overflow-auto bg-white flex-1 min-h-0">
             <table class="w-full text-left text-[11px] border-collapse">
               <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold sticky top-0 z-10">
                 <th class="px-3 py-2 bg-slate-50">컬럼명</th>
@@ -1494,59 +1522,63 @@ export function renderCombinedErdMap(container) {
             </table>
           </div>
         </div>
-        <div>
-          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5">
+        <div class="flex flex-col flex-1 min-h-0">
+          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5 shrink-0">
             <i class="ri-database-2-line text-gov-600"></i> 데이터 샘플 (상위 30행)
           </h4>
-          <div id="cem-sample-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-64">
+          <div id="cem-sample-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white flex-1 min-h-0">
             <div class="px-3 py-4 text-center text-slate-400 text-xs">
               <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1 align-middle"></div>로딩 중...
             </div>
           </div>
         </div>
       </div>
-      <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2 shrink-0">
-        <button id="cem-jump-sql" class="flex-1 py-2 bg-gov-600 hover:bg-gov-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
-          <i class="ri-terminal-box-line"></i> SQL 실행기
-        </button>
+      <div class="p-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-2 shrink-0">
         <button id="cem-jump-api" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors">
-          <i class="ri-search-eye-line"></i> API 탐색기
+          <i class="ri-file-list-3-line"></i> 데이터 세트 자세히 보기
         </button>
       </div>`;
 
     fetch('/api/query', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ query:`SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no='${nodeId}'` })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no='${nodeId}'` })
     }).then(r => r.json()).then(cols => {
       const tb = container.querySelector('#cem-schema-tbody');
       if (!tb) return;
-      tb.innerHTML = (cols||[]).map(c => {
+      const sortedCols = (cols || []).sort((a, b) => {
+        const aKey = !!KEY_EDGE_COLORS[a.field];
+        const bKey = !!KEY_EDGE_COLORS[b.field];
+        if (aKey && !bKey) return -1;
+        if (!aKey && bKey) return 1;
+        return 0;
+      });
+      tb.innerHTML = sortedCols.map(c => {
         const badge = KEY_EDGE_COLORS[c.field]
           ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
         return `<tr class="hover:bg-slate-50/50">
           <td class="px-3 py-1.5 font-mono font-semibold text-slate-800">${c.field}${badge}</td>
-          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${c.sql_type||'VARCHAR'}</td>
-          <td class="px-3 py-1.5 text-right text-slate-500">${c.kor_nm||'-'}</td>
+          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${c.sql_type || 'VARCHAR'}</td>
+          <td class="px-3 py-1.5 text-right text-slate-500">${c.kor_nm || '-'}</td>
         </tr>`;
       }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
-    }).catch(() => {});
+    }).catch(() => { });
 
     fetch('/api/query', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ query:`SELECT * FROM "${nodeId}" LIMIT 30` })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT * FROM "${nodeId}" LIMIT 30` })
     }).then(r => r.json()).then(rows => {
       const wrap = container.querySelector('#cem-sample-wrap');
       if (!wrap) return;
-      if (!rows || !rows.length) { wrap.innerHTML='<p class="p-4 text-center text-xs text-slate-400">데이터 없음</p>'; return; }
+      if (!rows || !rows.length) { wrap.innerHTML = '<p class="p-4 text-center text-xs text-slate-400">데이터 없음</p>'; return; }
       const ks = Object.keys(rows[0]);
       wrap.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-[10px] border-collapse min-w-[400px]">
         <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0 z-10">
-          ${ks.map(c=>`<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
+          ${ks.map(c => `<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
         </tr></thead>
         <tbody class="divide-y divide-slate-100 font-mono text-slate-600">
-          ${rows.map(row=>`<tr class="hover:bg-slate-50/50">${ks.map(c=>{const v=row[c];const sv=v!==null?String(v).replace(/"/g,'&quot;'):'';return`<td class="px-2.5 py-1 truncate max-w-[100px]" title="${sv}">${v!==null?v:'<span class="text-slate-300">null</span>'}</td>`;}).join('')}</tr>`).join('')}
+          ${rows.map(row => `<tr class="hover:bg-slate-50/50">${ks.map(c => { const v = row[c]; const sv = v !== null ? String(v).replace(/"/g, '&quot;') : ''; return `<td class="px-2.5 py-1 truncate max-w-[100px]" title="${sv}">${v !== null ? v : '<span class="text-slate-300">null</span>'}</td>`; }).join('')}</tr>`).join('')}
         </tbody></table></div>`;
-    }).catch(() => {});
+    }).catch(() => { });
 
     container.querySelector('#cem-close-insp')?.addEventListener('click', hideInspector);
     container.querySelector('#cem-jump-sql')?.addEventListener('click', () => {
@@ -1554,8 +1586,9 @@ export function renderCombinedErdMap(container) {
       document.querySelector('[data-tab="sql-playground"]')?.click();
     });
     container.querySelector('#cem-jump-api')?.addEventListener('click', () => {
-      window.apiExplorerAutoSearch = nodeId;
-      document.querySelector('[data-tab="api-explorer"]')?.click();
+      if (onSelectDataset && ds) {
+        onSelectDataset(ds);
+      }
     });
   }
 
@@ -1564,9 +1597,7 @@ export function renderCombinedErdMap(container) {
     if (!panel || !networkInstance) return;
     const edge = networkInstance.body.data.edges.get(edgeId);
     if (!edge) return;
-    panel.classList.remove('hidden');
-    setTimeout(() => panel.classList.remove('translate-x-[calc(100%+2rem)]'), 10);
-    const baseKey = (edge.label||'').split(' ').pop();
+    const baseKey = (edge.label || '').split(' ').pop();
     panel.innerHTML = `
       <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
         <div>
@@ -1578,9 +1609,9 @@ export function renderCombinedErdMap(container) {
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto p-4">
-        <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2">결합 데이터 (상위 30행)</h4>
-        <div id="cem-join-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white max-h-80">
+      <div class="flex-1 flex flex-col overflow-hidden p-4">
+        <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 shrink-0">결합 데이터 (상위 30행)</h4>
+        <div id="cem-join-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white flex-1 min-h-0">
           <div class="p-4 text-center text-xs text-slate-400">
             <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1"></div>조인 데이터 로딩 중...
           </div>
@@ -1588,21 +1619,21 @@ export function renderCombinedErdMap(container) {
       </div>`;
 
     fetch('/api/query', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ query:`SELECT A.*, B.* FROM "${edge.from}" A INNER JOIN "${edge.to}" B ON A."${baseKey}" = B."${baseKey}" LIMIT 30` })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT A.*, B.* FROM "${edge.from}" A INNER JOIN "${edge.to}" B ON A."${baseKey}" = B."${baseKey}" LIMIT 30` })
     }).then(r => r.json()).then(rows => {
       const wrap = container.querySelector('#cem-join-wrap');
       if (!wrap) return;
-      if (!rows||!rows.length) { wrap.innerHTML='<p class="p-4 text-center text-xs text-slate-400">매칭 데이터 없음</p>'; return; }
+      if (!rows || !rows.length) { wrap.innerHTML = '<p class="p-4 text-center text-xs text-slate-400">매칭 데이터 없음</p>'; return; }
       const ks = Object.keys(rows[0]);
       wrap.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-[10px] border-collapse min-w-[400px]">
         <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0 z-10">
-          ${ks.map(c=>`<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
+          ${ks.map(c => `<th class="px-2.5 py-1.5 bg-slate-50">${c}</th>`).join('')}
         </tr></thead>
         <tbody class="divide-y divide-slate-100 font-mono text-slate-600">
-          ${rows.map(row=>`<tr>${ks.map(c=>{const v=row[c];return`<td class="px-2.5 py-1 truncate max-w-[80px]">${v!==null?v:''}</td>`;}).join('')}</tr>`).join('')}
+          ${rows.map(row => `<tr>${ks.map(c => { const v = row[c]; return `<td class="px-2.5 py-1 truncate max-w-[80px]">${v !== null ? v : ''}</td>`; }).join('')}</tr>`).join('')}
         </tbody></table></div>`;
-    }).catch(() => {});
+    }).catch(() => { });
 
     container.querySelector('#cem-close-insp')?.addEventListener('click', hideInspector);
   }
@@ -1610,64 +1641,69 @@ export function renderCombinedErdMap(container) {
   function hideInspector() {
     const panel = container.querySelector('#cem-inspector');
     if (!panel) return;
-    panel.classList.add('translate-x-[calc(100%+2rem)]');
-    setTimeout(() => panel.classList.add('hidden'), 300);
+    panel.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full text-slate-400 text-sm gap-2" style="min-height:200px;">
+        <i class="ri-cursor-line text-3xl"></i>
+        <span>← 맵에서 노드를 클릭하세요</span>
+      </div>
+    `;
   }
 
   // ── 이벤트 바인딩 ────────────────────────────────────
   // 키워드 검색, 도메인 필터, 노드 수 조절, 물리 시뮬레이션 토글 등 UI 이벤트 등록 함수
-  let runKeywordFilter = async () => {};
+  let runKeywordFilter = async () => { };
 
   function bindEvents() {
+    window._debug_showInspector = showInspector;
     const kwInput = document.getElementById('datamap-keyword-search');
 
     runKeywordFilter = async () => {
       const kw = kwInput?.value.trim() || '';
-      if (!kw) { columnMatchedIds=new Set(); activeKeyword=''; maxNodesLimit=9999; renderNetwork(); return; }
-      
+      if (!kw) { columnMatchedIds = new Set(); activeKeyword = ''; maxNodesLimit = 9999; renderNetwork(); return; }
+
       try {
         const r = await fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`);
         columnMatchedIds = new Set((await r.json()).tables || []);
       } catch { columnMatchedIds = new Set(); }
-      
-      activeKeyword=kw; maxNodesLimit=9999; renderNetwork();
+
+      activeKeyword = kw; maxNodesLimit = 9999; renderNetwork();
     };
 
     container.querySelectorAll('[data-domain]').forEach(c =>
-      c.addEventListener('change', e => { selectedDomains[e.target.dataset.domain]=e.target.checked; renderNetwork(); })
+      c.addEventListener('change', e => { selectedDomains[e.target.dataset.domain] = e.target.checked; renderNetwork(); })
     );
     container.querySelector('#cem-dom-toggle')?.addEventListener('click', () => {
-      Object.keys(selectedDomains).forEach(k => selectedDomains[k]=!selectedDomains[k]);
-      container.querySelectorAll('[data-domain]').forEach(c => { c.checked=selectedDomains[c.dataset.domain]; });
+      Object.keys(selectedDomains).forEach(k => selectedDomains[k] = !selectedDomains[k]);
+      container.querySelectorAll('[data-domain]').forEach(c => { c.checked = selectedDomains[c.dataset.domain]; });
       renderNetwork();
     });
 
     container.querySelectorAll('[data-joinkey]').forEach(c =>
-      c.addEventListener('change', e => { selectedKeys[e.target.dataset.joinkey]=e.target.checked; renderNetwork(); })
+      c.addEventListener('change', e => { selectedKeys[e.target.dataset.joinkey] = e.target.checked; renderNetwork(); })
     );
     container.querySelector('#cem-key-toggle')?.addEventListener('click', () => {
-      Object.keys(selectedKeys).forEach(k => selectedKeys[k]=!selectedKeys[k]);
-      container.querySelectorAll('[data-joinkey]').forEach(c => { c.checked=selectedKeys[c.dataset.joinkey]; });
+      Object.keys(selectedKeys).forEach(k => selectedKeys[k] = !selectedKeys[k]);
+      container.querySelectorAll('[data-joinkey]').forEach(c => { c.checked = selectedKeys[c.dataset.joinkey]; });
       renderNetwork();
     });
 
     container.querySelector('#cem-physics')?.addEventListener('change', e => {
-      activePhysics=e.target.checked;
-      networkInstance?.setOptions({ physics:{ enabled:activePhysics } });
+      activePhysics = e.target.checked;
+      networkInstance?.setOptions({ physics: { enabled: activePhysics } });
     });
     container.querySelector('#cem-max-nodes')?.addEventListener('change', e => {
-      maxNodesLimit=parseInt(e.target.value); renderNetwork();
+      maxNodesLimit = parseInt(e.target.value); renderNetwork();
     });
     container.querySelector('#cem-fit')?.addEventListener('click', () => {
-      networkInstance?.fit({ animation:{ duration:600, easingFunction:'easeInOutQuad' } });
+      networkInstance?.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
       setTimeout(() => {
-        if(networkInstance) networkInstance.moveTo({ scale: networkInstance.getScale() * 0.85, animation: { duration: 300 } });
+        if (networkInstance) networkInstance.moveTo({ scale: networkInstance.getScale() * 0.85, animation: { duration: 300 } });
       }, 650);
     });
     container.querySelector('#cem-capture')?.addEventListener('click', () => {
       if (!networkInstance) return;
       const btn = container.querySelector('#cem-capture');
-      if (btn) { btn.disabled=true; btn.innerHTML='<i class="ri-loader-4-line animate-spin"></i> 캡처 중...'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 캡처 중...'; }
       const pos = networkInstance.getPositions();
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       Object.keys(pos).forEach(id => {
@@ -1678,12 +1714,12 @@ export function renderCombinedErdMap(container) {
       // 노드 크기를 고려한 여백(패딩)
       minX -= 250; minY -= 150; maxX += 250; maxY += 150;
       if (minX > maxX) { minX = 0; maxX = 1600; minY = 0; maxY = 1200; }
-      
+
       const gW = maxX - minX;
       const gH = maxY - minY;
       const cx = (minX + maxX) / 2;
       const cy = (minY + maxY) / 2;
-      
+
       // 고해상도를 위해 최대 긴 변을 4800px로 제한하되, 요소가 적을 때 과도하게 커지는 것을 방지(최대 스케일 4)
       const maxDim = 4800;
       const scale = Math.min(maxDim / Math.max(gW, gH, 1), 4);
@@ -1693,31 +1729,31 @@ export function renderCombinedErdMap(container) {
       const off = document.createElement('div');
       off.style.cssText = `position:fixed;top:0;left:0;width:${pixelW}px;height:${pixelH}px;z-index:-9999;background:#f8fafc;pointer-events:none;`;
       document.body.appendChild(off);
-      
+
       const expNet = new vis.Network(off,
-        { nodes:new vis.DataSet(networkInstance.body.data.nodes.get()), edges:new vis.DataSet(networkInstance.body.data.edges.get()) },
-        { physics:{enabled:false}, interaction:{dragNodes:false,zoomView:false} }
+        { nodes: new vis.DataSet(networkInstance.body.data.nodes.get()), edges: new vis.DataSet(networkInstance.body.data.edges.get()) },
+        { physics: { enabled: false }, interaction: { dragNodes: false, zoomView: false } }
       );
-      
-      Object.keys(pos).forEach(id => { try { expNet.moveNode(id, pos[id].x, pos[id].y); } catch{} });
-      
+
+      Object.keys(pos).forEach(id => { try { expNet.moveNode(id, pos[id].x, pos[id].y); } catch { } });
+
       // fit 대신 정확하게 계산된 중앙 좌표와 스케일로 이동하여 빈 여백 제거
       expNet.moveTo({ position: { x: cx, y: cy }, scale: scale, animation: false });
-      
+
       setTimeout(() => {
         const cvs = off.querySelector('canvas');
         if (cvs) {
           const out = document.createElement('canvas');
-          out.width=cvs.width; out.height=cvs.height;
-          const ctx=out.getContext('2d');
-          ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,out.width,out.height);
-          ctx.drawImage(cvs,0,0);
-          const a=document.createElement('a');
-          a.download=`데이터관계도ERD_${new Date().toISOString().slice(0,10)}.png`;
-          a.href=out.toDataURL('image/png',1.0); a.click();
+          out.width = cvs.width; out.height = cvs.height;
+          const ctx = out.getContext('2d');
+          ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, out.width, out.height);
+          ctx.drawImage(cvs, 0, 0);
+          const a = document.createElement('a');
+          a.download = `데이터관계도ERD_${new Date().toISOString().slice(0, 10)}.png`;
+          a.href = out.toDataURL('image/png', 1.0); a.click();
         }
         document.body.removeChild(off);
-        if (btn) { btn.disabled=false; btn.innerHTML='<i class="ri-camera-line"></i> PNG 저장'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ri-camera-line"></i> PNG 저장'; }
       }, 1200);
     });
   }

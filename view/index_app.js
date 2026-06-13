@@ -354,17 +354,7 @@ function openWin(winName) {
 
 // index.html 전용 초기화 로직
 $(document).ready(function () {
-    // jsTree 초기화 (레이어 트리가 있을 때만)
-    if ($('#layerTree').length) {
-        $('#layerTree').jstree({
-            "temes": {
-                "theme": "classic",
-                "dots": true,
-                "icons": false
-            },
-            "plugins": ["themes", "html_data"]
-        });
-    }
+    // 트리 직접 렌더링 (jstree 불필요, 커스텀 CSS 트리 사용)
 
     // 초기 데이터구조 목록 조회 (기준규격정보 카테고리)
     fn_dataStrutList('기준규격정보', '', '기준규격정보', '');
