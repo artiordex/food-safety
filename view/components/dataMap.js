@@ -322,9 +322,7 @@ export function renderDataMap(container, onSelectDataset) {
       </div>`;
 
       let allDatasets = [];
-      let wordMatches = {}; // { "word": Set(ids) }
-      let searchWords = [];
-      let isComplexQuery = false;
+      let matchedIdSet = null; // keyword-datamap에서 받은 정확한 매칭 ID 집합
 
       try {
         const metaRequest = fetch('/api/searchDatasetList.do', {
@@ -334,28 +332,22 @@ export function renderDataMap(container, onSelectDataset) {
         });
 
         if (kw) {
-          const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
-          const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
-          searchWords = [...new Set(rawWords.filter(w => !isOperator(w)))];
-          isComplexQuery = rawWords.some(w => isOperator(w)) || searchWords.length > 1;
+          const op = view.querySelector('#datamap-keyword-operator')?.value || 'AND';
 
-          const [colDataRes, metaDataRes] = await Promise.all([
-            fetch('/api/column-search-multi', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ words: searchWords })
-            }),
+          // keyword-datamap: 서버에서 AND/OR 조건을 컬럼 단위로 정확하게 평가 (키워드 시각화와 동일)
+          const [kwdmRes, metaDataRes] = await Promise.all([
+            fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`),
             metaRequest
           ]);
 
-          const colData = await colDataRes.json();
+          const kwdmData = await kwdmRes.json();
           const metaData = await metaDataRes.json();
-          
+
           allDatasets = metaData.list || [];
-          const resultObj = colData.result || {};
-          searchWords.forEach(w => {
-            wordMatches[w] = new Set((resultObj[w] || []).map(String));
-          });
+
+          // matchedTables의 tableName(하이픈 없음)을 집합으로 구성
+          const rawMatchedTables = kwdmData.matchedTables || [];
+          matchedIdSet = new Set(rawMatchedTables.map(t => String(t.tableName)));
 
         } else {
           const metaDataRes = await metaRequest;
@@ -367,61 +359,12 @@ export function renderDataMap(container, onSelectDataset) {
         return;
       }
 
+      // matchedIdSet 기준으로 필터 (svc_no 하이픈 제거 후 비교)
       const matched = kw ? allDatasets.filter(d => {
-        const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
-        const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
-        const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
-        const defaultOp = view.querySelector('#datamap-keyword-operator')?.value || 'AND';
-        const expr = [];
-        for (let i = 0; i < tokens.length; i++) {
-          expr.push(tokens[i]);
-          if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
-            expr.push(defaultOp);
-          }
-        }
-
-        const checkWord = (w) => {
-          // inName: svc_nm, svc_no만 체크 (description은 너무 광범위해 AND 필터를 무력화)
-          // 단일 문자(1자)는 단어 경계 기준 완전 일치만 허용 (부분 매칭 금지)
-          const nm = (d.svc_nm || '').toLowerCase();
-          const no = (d.svc_no || '').toLowerCase();
-          const wl = w.toLowerCase();
-          const inName = w.length <= 1
-            ? nm === wl || no === wl // 단일 문자는 완전 일치만
-            : nm.includes(wl) || no.includes(wl);
-          // inData: column-search-multi 결과 (실제 DB 데이터 스캔)
-          const inData = wordMatches[w] ? wordMatches[w].has(String(d.svc_no)) : false;
-          return inName || inData;
-        };
-
-        // AND/OR 표현식 평가 (올바른 short-circuit 방식)
-        // expr = ['초콜릿', 'AND', '건강', 'AND', '동'] 형태
-        // AND 그룹별로 termMatch 계산 후 OR로 합산
-        let termMatch = null; // null = 아직 항 없음
-        let finalMatch = false;
-
-        for (let i = 0; i < expr.length; i++) {
-          const t = expr[i];
-          if (t === 'AND') {
-            // 다음 항을 현재 AND 그룹에 계속 AND 연산 (스킵 아닌 명시적 처리)
-            continue;
-          } else if (t === 'OR') {
-            // 현재 AND 그룹 결과를 finalMatch에 OR
-            if (termMatch !== null) finalMatch = finalMatch || termMatch;
-            termMatch = null; // 다음 OR 그룹 초기화
-          } else {
-            // 키워드 토큰
-            const wordResult = checkWord(t);
-            termMatch = termMatch === null ? wordResult : termMatch && wordResult;
-          }
-        }
-        // 마지막 AND 그룹 처리
-        if (termMatch !== null) finalMatch = finalMatch || termMatch;
-        d._match_inName = finalMatch;
-        return finalMatch;
+        const normalizedId = String(d.svc_no || '').replace(/-/g, '');
+        return matchedIdSet ? matchedIdSet.has(normalizedId) : false;
       }) : allDatasets.map(d => {
         d._match_inName = false;
-        d._match_inData = false;
         return d;
       });
       if (summary) summary.innerHTML = kw

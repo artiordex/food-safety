@@ -1,5 +1,5 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
-import { renderDataMap } from './components/dataMap.js?v=36';
+import { renderDataMap } from './components/dataMap.js?v=37';
 import { renderErdMap } from './components/erdMap.js?v=4';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
 import { renderDetailPanel } from './components/detailDataset.js?v=5';
