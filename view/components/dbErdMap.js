@@ -1361,10 +1361,14 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const ms = new Set([...directSource]);
 
         if (showDim) {
-          // 인접 노드 확장: React Flow와 동일하게 전체 관계(allIds) 기준
+          // 인접 노드 확장: 루프 중간에 추가된 노드로 더 확장되지 않도록 고정된 directSource 기준으로 1-hop만 수집
+          const neighbors = new Set();
           relationships.forEach(r => {
-            if (ms.has(r.from_table) && allIds.has(r.to_table)) ms.add(r.to_table);
-            if (ms.has(r.to_table) && allIds.has(r.from_table)) ms.add(r.from_table);
+            if (directSource.has(r.from_table) && allIds.has(r.to_table)) neighbors.add(r.to_table);
+            if (directSource.has(r.to_table) && allIds.has(r.from_table)) neighbors.add(r.from_table);
+          });
+          neighbors.forEach(id => {
+            if (!directSource.has(id)) ms.add(id);
           });
         }
         return ms;
