@@ -195,24 +195,28 @@ export function renderDataMap(container, onSelectDataset) {
     const renderKeywordDependentTabs = (kw) => {
       const erdPanel = view.querySelector('#content-panel-erd');
 
+      const renderActiveErd = () => {
+        if (!erdPanel) return;
+        erdRendered = true;
+        showErdSpinner(erdPanel);
+        const btnReact = view.querySelector('#btn-erd-react');
+        const isReactActive = btnReact ? btnReact.classList.contains('text-blue-600') : true;
+        if (isReactActive) {
+          renderReactErdMap(erdPanel, onSelectDataset);
+        } else {
+          renderVisErdMap(erdPanel, onSelectDataset);
+        }
+      };
+
       if (!kw) {
         resetKeywordVisualization();
-        if (erdPanel) {
-          erdRendered = true;
-          showErdSpinner(erdPanel);
-          renderReactErdMap(erdPanel, onSelectDataset);
-        }
+        renderActiveErd();
         return;
       }
 
       restoreKwmapSpinner();
       renderKeywordGraph(kw);
-
-      if (erdPanel) {
-        erdRendered = true;
-        showErdSpinner(erdPanel);
-        renderReactErdMap(erdPanel, onSelectDataset);
-      }
+      renderActiveErd();
     };
 
     let activeContentTab = 'treemap';
@@ -254,7 +258,13 @@ export function renderDataMap(container, onSelectDataset) {
           if (erdRendered && hasRenderedErd) return;
           erdRendered = true;
           showErdSpinner(panel);
-          if (panel) renderReactErdMap(panel, onSelectDataset);
+          const btnReact = view.querySelector('#btn-erd-react');
+          const isReactActive = btnReact ? btnReact.classList.contains('text-blue-600') : true;
+          if (isReactActive) {
+            if (panel) renderReactErdMap(panel, onSelectDataset);
+          } else {
+            if (panel) renderVisErdMap(panel, onSelectDataset);
+          }
         }
       });
     });
@@ -502,25 +512,10 @@ export function renderDataMap(container, onSelectDataset) {
         // 항상 현재 DOM에서 input 값을 읽음
         const input = view.querySelector('#datamap-keyword-search');
         const kw = input ? input.value.trim() : '';
-        const targetTab = kw
-          ? (activeContentTab === 'erd' ? 'erd' : 'visualization')
-          : activeContentTab;
+        const targetTab = activeContentTab;
         await renderSearchResults(kw);
         switchContentTab(targetTab);
         renderKeywordDependentTabs(kw);
-        if (kw && targetTab === 'visualization') {
-          restoreKwmapSpinner();
-          renderKeywordGraph(kw);
-        }
-        if (kw && targetTab === 'erd') {
-          const panel = view.querySelector('#content-panel-erd');
-          const canvas = panel?.querySelector('#cem-canvas');
-          if (!canvas?.querySelector('svg, canvas, .vis-network')) {
-            erdRendered = true;
-            showErdSpinner(panel);
-            if (panel) renderReactErdMap(panel, onSelectDataset);
-          }
-        }
       };
 
       // 버튼만 교체 (input은 건드리지 않음)
