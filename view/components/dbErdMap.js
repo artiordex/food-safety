@@ -1352,16 +1352,19 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     }
 
     if (activeKeyword) {
+      const showDim = document.getElementById('cem-show-dim')?.checked ?? true;
       const matched = allDatasets.filter(ds => {
         if (!allowed.has(ds.id)) return false;
         return matchedNodeIds.has(ds.id);
       });
       if (matched.length > 0) {
         const ms = new Set(matched.map(d => d.id));
-        relationships.forEach(r => {
-          if (ms.has(r.from_table) && allowed.has(r.to_table)) ms.add(r.to_table);
-          if (ms.has(r.to_table) && allowed.has(r.from_table)) ms.add(r.from_table);
-        });
+        if (showDim) {
+          relationships.forEach(r => {
+            if (ms.has(r.from_table) && allowed.has(r.to_table)) ms.add(r.to_table);
+            if (ms.has(r.to_table) && allowed.has(r.from_table)) ms.add(r.from_table);
+          });
+        }
         return ms;
       } else {
         return new Set();
@@ -1796,6 +1799,12 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     container.querySelector('#cem-physics')?.addEventListener('change', e => {
       activePhysics = e.target.checked;
       networkInstance?.setOptions({ physics: { enabled: activePhysics } });
+    });
+    container.querySelector('#cem-show-dim')?.addEventListener('change', () => {
+      const btnReact = container.querySelector('#btn-erd-react');
+      const isReactActive = btnReact && btnReact.classList.contains('text-blue-600');
+      if (isReactActive) return;
+      renderNetwork();
     });
     container.querySelector('#cem-max-nodes')?.addEventListener('change', e => {
       // React Flow 탭이 활성화된 경우 Vis.js는 무시

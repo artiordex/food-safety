@@ -534,6 +534,7 @@ function ReactErdApp({ onSelectDataset, container }) {
   const [relNodeIds, setRelNodeIds] = useState(new Set());
   const [maxNodes, setMaxNodes] = useState(9999);
   const [physicsEnabled, setPhysicsEnabled] = useState(true);
+  const [showDimNodes, setShowDimNodes] = useState(true);
   const [springLayoutResult, setSpringLayoutResult] = useState(null);
   const rfInstance = React.useRef(null);
 
@@ -842,6 +843,17 @@ function ReactErdApp({ onSelectDataset, container }) {
     return () => window.removeEventListener('datamap-filter-updated', handleFilter);
   }, []);
 
+  // 연관 테이블(희미한 노드) 표시 체크박스 연동
+  useEffect(() => {
+    const cb = document.getElementById('cem-show-dim');
+    if (cb) {
+      setShowDimNodes(cb.checked);
+      const onChange = e => setShowDimNodes(e.target.checked);
+      cb.addEventListener('change', onChange);
+      return () => cb.removeEventListener('change', onChange);
+    }
+  }, []);
+
   // 물리 레이아웃 체크박스 연동
   useEffect(() => {
     const cb = document.getElementById('cem-physics');
@@ -902,12 +914,14 @@ function ReactErdApp({ onSelectDataset, container }) {
 
     return nodes.filter(n => {
       const id = String(n.id);
-      return directIds.has(id) || neighborIds.has(id);
+      if (directIds.has(id)) return true;
+      if (showDimNodes && neighborIds.has(id)) return true;
+      return false;
     }).map(n => {
       const isNeighbor = neighborIds.has(String(n.id));
       return isNeighbor ? { ...n, data: { ...n.data, isNeighbor: true } } : n;
     });
-  }, [nodes, edges, filterIds, relNodeIds, maxNodes]);
+  }, [nodes, edges, filterIds, relNodeIds, maxNodes, showDimNodes]);
 
   // displayNodes가 변경될 때 (검색 필터 적용 등) 화면 뷰를 맞춤
   useEffect(() => {
