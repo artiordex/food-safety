@@ -5,19 +5,19 @@
  * Phase 2: 상세 페이지 병렬 스크래핑 + HTTP로 샘플 데이터 직접 수집 (팝업 불필요)
  */
 
-const { chromium }  = require('playwright');
+const { chromium } = require('playwright');
 const { XMLParser } = require('fast-xml-parser');
-const http          = require('http');
-const fs            = require('fs');
-const path          = require('path');
-const logger        = require('../utils/logger');
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const logger = require('../utils/logger');
 
-const CACHE_FILE   = path.join(__dirname, 'crawl_cache.json');
-const SAMPLES_DIR  = path.join(__dirname, 'samples');
-const CONCURRENCY  = 4;
-const LIST_URL     = 'https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE06&menu_no=661&menu_grp=MENU_GRP31';
-const DETAIL_BASE  = 'https://www.foodsafetykorea.go.kr/api/newDatasetDetail.do?svc_no=';
-const SAMPLE_BASE  = 'http://openapi.foodsafetykorea.go.kr/api/sample';
+const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
+const SAMPLES_DIR = path.join(__dirname, 'samples');
+const CONCURRENCY = 4;
+const LIST_URL = 'https://www.foodsafetykorea.go.kr/api/datasetList.do?svc_type_cd=API_TYPE06&menu_no=661&menu_grp=MENU_GRP31';
+const DETAIL_BASE = 'https://www.foodsafetykorea.go.kr/api/newDatasetDetail.do?svc_no=';
+const SAMPLE_BASE = 'http://openapi.foodsafetykorea.go.kr/api/sample';
 
 // HTTP GET 요청 (브라우저 팝업 없이 샘플 데이터 수집)
 function fetchHttp(url, timeoutMs = 15000) {
@@ -63,7 +63,9 @@ async function saveSample(svcNo) {
     return { url, dataLength };
 }
 
+// =============================================================================
 // Phase 1: 목록 페이지만 순회하여 svc_no 수집
+// =============================================================================
 async function collectListItems(page, categories, maxItems, hasForce, cacheMap) {
     const items = [];
 
@@ -109,7 +111,7 @@ async function collectListItems(page, categories, maxItems, hasForce, cacheMap) 
                 const jsonPath = path.join(SAMPLES_DIR, `${row.svc_no}.json`);
                 const cached = cacheMap[row.svc_no];
                 if (!hasForce && cached?.fields?.length > 0 && fs.existsSync(jsonPath)) {
-                    logger.info({ svcNo: row.svc_no , svc_nm: row.svc_nm }, '캐시 있음, 건너뜀');
+                    logger.info({ svcNo: row.svc_no, svc_nm: row.svc_nm }, '캐시 있음, 건너뜀');
                     continue;
                 }
                 items.push({ ...row, cat: cat.text, cat_code: cat.val });
@@ -118,7 +120,7 @@ async function collectListItems(page, categories, maxItems, hasForce, cacheMap) 
             // 다음 페이지
             const nextBtn = page.locator('.pagination a.next, .pagination a.page-link.next').first();
             let hasNextBtn = false;
-            try { await nextBtn.waitFor({ state: 'visible', timeout: 2000 }); hasNextBtn = true; } catch (_) {}
+            try { await nextBtn.waitFor({ state: 'visible', timeout: 2000 }); hasNextBtn = true; } catch (_) { }
 
             if (hasNextBtn) {
                 await nextBtn.click();
@@ -185,7 +187,9 @@ async function scrapeDetail(page, svcNo) {
     return { desc, provdInsttNm, fields };
 }
 
+// =============================================================================
 // Phase 2: 단일 아이템 처리 (상세 스크래핑 + HTTP 샘플)
+// =============================================================================
 async function processItem(context, item, cacheMap) {
     const { svc_no: svcNo, svc_nm, cat, cat_code } = item;
     const detailPage = await context.newPage();
@@ -255,9 +259,9 @@ async function run() {
     logger.info('식품안전나라 통합 파이프라인을 시작합니다.');
 
     const args = process.argv.slice(2);
-    const hasForce   = args.includes('--force') || args.includes('-f');
+    const hasForce = args.includes('--force') || args.includes('-f');
     const limitMatch = args.find(a => !isNaN(parseInt(a, 10)) && !a.startsWith('-'));
-    const maxItems   = limitMatch ? parseInt(limitMatch, 10) : 170;
+    const maxItems = limitMatch ? parseInt(limitMatch, 10) : 170;
 
     logger.info({ skipDuplicate: hasForce ? '비활성화' : '활성화', maxItems }, '크롤링 시작');
 
@@ -266,12 +270,12 @@ async function run() {
     // 캐시 로드
     let cacheList = [];
     if (fs.existsSync(CACHE_FILE)) {
-        try { cacheList = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8')); } catch (_) {}
+        try { cacheList = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8')); } catch (_) { }
     }
     const cacheMap = Object.fromEntries(cacheList.map(item => [item.svc_no, item]));
 
     const browser = await chromium.launch({ headless: true, args: ['--start-maximized'] });
-    const context  = await browser.newContext({ viewport: null });
+    const context = await browser.newContext({ viewport: null });
 
     try {
         const listPage = await context.newPage();

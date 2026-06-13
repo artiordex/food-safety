@@ -74,7 +74,7 @@ window.addEventListener('datamap-filter-updated', (e) => {
   }
 });
 
-// 키워드 부분을 빨간색으로 강조한 SVG text 추가
+// 여러 키워드에 대해 정규식 생성 (콤마, 띄어쓰기 등 연산자를 제외한 순수 단어)
 function appendKwText(parentG, text, kw, x, y, anchor, fontSize, fontWeight, fill) {
   const t = parentG.append('text')
     .attr('x', x).attr('y', y)
@@ -82,14 +82,23 @@ function appendKwText(parentG, text, kw, x, y, anchor, fontSize, fontWeight, fil
     .attr('font-size', fontSize).attr('font-weight', fontWeight).attr('fill', fill)
     .attr('font-family', 'Malgun Gothic,sans-serif');
 
-  if (!kw || !text || !text.toLowerCase().includes(kw.toLowerCase())) {
+  if (!kw || !text) {
     t.text(text);
     return;
   }
-  const regex = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
+  const tokens = kw.split(';').map(w => w.trim()).filter(w => w && !isOperator(w));
+  if (tokens.length === 0) {
+    t.text(text);
+    return;
+  }
+
+  const escapedTokens = tokens.map(w => w.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')).join('|');
+  const regex = new RegExp(`(${escapedTokens})`, 'gi');
   const parts = text.split(regex);
+  
   parts.forEach(part => {
-    if (part.toLowerCase() === kw.toLowerCase()) {
+    if (tokens.some(t => t.toLowerCase() === part.toLowerCase())) {
       t.append('tspan').attr('fill', '#ef4444').attr('font-weight', 900).text(part);
     } else if (part) {
       t.append('tspan').text(part);
@@ -481,14 +490,24 @@ function updateDetailPanel(d) {
 
 // 키워드 데이터맵 그래프를 렌더링하는 메인 진입 함수
 // 동일 키워드 중복 렌더를 방지하고, 데이터 로드 후 buildGraph → renderSvg 순서로 처리
+let _currentOp = 'AND';
+
 export function renderKeywordGraph(keyword) {
   const graphWrap = document.getElementById('kwmap-graph-container');
-  const svgWrap   = document.getElementById('kwmap-svg-wrap');
+  const svgWrap = document.getElementById('kwmap-svg-wrap');
   if (!graphWrap || !svgWrap) return;
 
-  // 이미 같은 키워드로 SVG가 그려진 경우 재렌더 방지
-  if (_currentKeyword === keyword && svgWrap.querySelector('svg')) return;
+  const currentOperator = document.getElementById('datamap-keyword-operator')?.value || 'AND';
+
+  if (_currentKeyword === keyword && _currentOp === currentOperator && _lastData) {
+    // 키워드와 연산자가 모두 같으면 _lastData를 재사용하여 새로 렌더링만 수행 (불필요한 API 요청 방지)
+    const { nodes, links } = buildGraph(_lastData, keyword);
+    renderSvg(svgWrap, nodes, links, keyword, updateDetailPanel);
+    return;
+  }
+
   _currentKeyword = keyword;
+  _currentOp = currentOperator;
 
   showLoading(`"${keyword}" 데이터 불러오는 중...`);
   if (_sim) { _sim.stop(); _sim = null; }
@@ -547,7 +566,8 @@ export function renderKeywordGraph(keyword) {
     });
   }
 
-  fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(keyword)}`)
+  const op = document.getElementById('datamap-keyword-operator')?.value || 'AND';
+  fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(keyword)}&op=${op}`)
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => {
       _lastData = data;

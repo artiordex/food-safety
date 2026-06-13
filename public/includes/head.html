@@ -27,6 +27,7 @@
     <link type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" rel="stylesheet">
     <!-- 공통 커스텀 CSS -->
     <link rel="stylesheet" href="/public/css/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css" />
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/public/assets/jquery.sidr.min.js"></script>
@@ -49,4 +50,18 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "data:text/javascript,const R=window.React;export default R;export const {useState,useEffect,useCallback,useMemo,useRef,useContext,useLayoutEffect,useReducer,useImperativeHandle,forwardRef,memo,createContext,Fragment,Children,isValidElement,cloneElement,Suspense,lazy}=R;",
+        "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime?external=react",
+        "react-dom/client": "data:text/javascript,const D=window.ReactDOM;export default D;export const {createPortal,flushSync,findDOMNode,unmountComponentAtNode,hydrate}=D;export const createRoot=D.createRoot;",
+        "react-dom": "data:text/javascript,const D=window.ReactDOM;export default D;export const {createPortal,flushSync,findDOMNode,unmountComponentAtNode,hydrate}=D;export const createRoot=D.createRoot;",
+        "@xyflow/react": "https://esm.sh/@xyflow/react@12?external=react,react-dom",
+        "htm": "https://esm.sh/htm",
+        "dagre": "https://esm.sh/dagre@0.8.5"
+      }
+    }
+    </script>
 </head>

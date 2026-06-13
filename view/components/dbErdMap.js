@@ -1,9 +1,20 @@
 /**
- * dbErdMap.js - 로컬 DB ERD 시각화 (D3.js 기반 동적 물리 시뮬레이션 레이아웃)
- *              + 데이터 관계도 (Vis.js 포스 다이렉티드 네트워크) 통합
+ * DB ERD 시각화 모듈 (D3.js 물리 시뮬레이션 + Vis.js 포스 다이렉티드 네트워크)
+ * 파일명: dbErdMap.js
+ *
+ * [수행 역할]
+ * 1. /api/query 로 테이블 스키마·관계 데이터를 fetch해 D3 물리 시뮬레이션 ERD를 그림
+ * 2. 카테고리·공통키 필터, 텍스트 검색, 줌/팬, 카드 드래그 고정을 지원함
+ * 3. 테이블 카드 클릭 시 컬럼·샘플 데이터 상세 패널을 렌더링함
+ * 4. Vis.js 기반 통합 관계도(renderCombinedErdMap)에서 노드·엣지 인스펙터를 지원함
+ * 5. 키워드 필터 이벤트(datamap-filter-updated)를 수신해 관련 노드를 강조함
  */
 import { renderRelationDataMap } from './relationDataMap.js';
 
+// =============================================================================
+// 0. 전역 상수
+// =============================================================================
+// 카테고리별 accent/light/border 색상 팔레트 (인덱스 순환)
 const CAT_COLORS = [
   { accent: '#3b82f6', light: '#eff6ff', border: '#bfdbfe' },
   { accent: '#10b981', light: '#f0fdf4', border: '#a7f3d0' },
@@ -22,12 +33,13 @@ const CAT_COLORS = [
   { accent: '#38bdf8', light: '#f0f9ff', border: '#bae6fd' },
 ];
 
+// 테이블 카드 레이아웃 치수 상수
 const CARD_W = 260;
 const CARD_H_COL = 20;
 const CARD_HEADER = 38;
 const MAX_COLS = 7;
 
-// 공통키 테마 칼라 맵
+// 공통키 필드명 → 하이라이트 색상 맵
 const KEY_COLORS = {
   'LCNS_NO': '#2563eb',
   'PRDLST_REPORT_NO': '#10b981',
@@ -42,7 +54,10 @@ const KEY_COLORS = {
   'ITEM_REPORT_NO': '#22c55e'
 };
 
-// CDN을 이용해 D3.js 동적 주입 헬퍼
+// =============================================================================
+// 1. 유틸 함수
+// =============================================================================
+// D3.js가 로드되지 않은 경우 CDN에서 동적으로 삽입 후 콜백 실행함
 function loadD3(callback) {
   if (window.d3) {
     callback();
@@ -57,14 +72,14 @@ function loadD3(callback) {
   document.head.appendChild(script);
 }
 
-// 각 카드의 높이 계산
+// 컬럼 수에 따라 테이블 카드 높이(px)를 계산함
 function getCardHeight(t) {
   const colCount = Math.min((t.columns || []).length, MAX_COLS);
   const extra = (t.columns || []).length > MAX_COLS ? 14 : 4;
   return CARD_HEADER + colCount * CARD_H_COL + extra;
 }
 
-// 테이블 카드 렌더링용 HTML 템플릿 (D3 노드 바인딩용)
+// D3 foreignObject에 삽입할 테이블 카드 HTML 문자열을 생성함
 function getTableCardMarkup(t, isSelected, colorInfo) {
   const cols = (t.columns || []).slice(0, MAX_COLS);
   const extra = (t.columns || []).length - MAX_COLS;
@@ -124,6 +139,14 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
     </g>`;
 }
 
+// =============================================================================
+// 2. D3 물리 시뮬레이션 ERD
+// =============================================================================
+/**
+ * D3 포스 시뮬레이션 기반 ERD를 container에 렌더링한다.
+ * @param {Element} container       - 렌더링 대상 DOM 컨테이너
+ * @param {Function} onSelectDataset - 데이터세트 선택 시 호출되는 콜백
+ */
 export function renderDbErdMap(container, onSelectDataset) {
   // CSS 애니메이션 및 D3 용 스타일 주입
   if (!document.getElementById('erd-d3-styles')) {
@@ -249,7 +272,7 @@ export function renderDbErdMap(container, onSelectDataset) {
     fetchData();
   });
 
-  // 데이터 로드
+  // API에서 스키마·관계·카테고리 데이터를 fetch하고 시뮬레이션을 초기화함
   function fetchData() {
     Promise.all([
       fetch('/api/db-schema').then(r => r.json()),
@@ -651,7 +674,7 @@ export function renderDbErdMap(container, onSelectDataset) {
       .attr('fill', d => KEY_COLORS[d.key] || '#64748b')
       .text(d => `(${d.relType || 'N:M'}) ${d.key}`);
 
-    // ── 3. 노드(테이블 카드) 렌더링 ──
+    // 3. 노드(테이블 카드) 렌더링
     const nodeBind = nodesGroup.selectAll('.erd-card-node')
       .data(filteredNodes, d => d.id);
 
@@ -1055,6 +1078,15 @@ export function renderDbErdMap(container, onSelectDataset) {
  * - 노드 크기  ∝ log(데이터 건수)
  * - 연결 많은 테이블은 mass 높게 설정 → 물리 레이아웃에서 자동 중앙 배치
  */
+
+// =============================================================================
+// 3. Vis.js 통합 관계도
+// =============================================================================
+/**
+ * Vis.js 포스 다이렉티드 네트워크로 데이터 관계도를 렌더링한다.
+ * @param {Element} container       - 렌더링 대상 DOM 컨테이너
+ * @param {Function} onSelectDataset - 노드 선택 시 호출되는 콜백
+ */
 export function renderCombinedErdMap(container, onSelectDataset) {
   // ── 카테고리 분류 ────────────────────────────────────
   const domainTables = {
@@ -1119,12 +1151,13 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     '기타': 'bg-slate-50 text-slate-700 border-slate-200'
   };
 
-  // ── 상태 ──────────────────────────────────────────────
+  // 상태
   let allDatasets = [];
   let allColumnsMap = {};
   let relationships = [];
   let networkInstance = null;
   let activeKeyword = '';
+  let matchedNodeIds = new Set(); // 직접 매칭 노드 (vs 인접 노드)
   let columnMatchedIds = new Set();
   let maxNodesLimit = 9999;
   let activePhysics = true;
@@ -1151,8 +1184,8 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     return Number.isFinite(n) && n >= 0 ? n : 0;
   };
 
-  // ── SVG 테이블 카드 생성 ──────────────────────────────
-  function createCardSvg(tableId, label, cols, rowCount, accentColor, isSelected) {
+  // SVG 테이블 카드 생성
+  function createCardSvg(tableId, label, cols, rowCount, accentColor, isSelected, isNeighbor) {
     const W = 240, HEADER_H = 40, ROW_H = 18;
 
     const sortedCols = [...cols].sort((a, b) => {
@@ -1188,7 +1221,8 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     const lbl = escX(label.split(' (')[0]).slice(0, 22);
     const tid = escX(tableId).slice(0, 14);
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">` +
+    const opacity = isNeighbor ? 'opacity="0.38"' : '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" ${opacity}>` +
       `<rect x="3" y="3" width="${W}" height="${H}" rx="7" fill="rgba(0,0,0,0.05)"/>` +
       `<rect width="${W}" height="${H}" rx="7" fill="#fff" stroke="${stroke}" stroke-width="${strokeW}"/>` +
       `<rect width="${W}" height="${HEADER_H}" rx="7" fill="${accentColor}"/>` +
@@ -1201,7 +1235,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   }
 
-  // ── UI 렌더 ───────────────────────────────────────────
+  // UI 렌더
   const requiredRoot = container.querySelector('#cem-canvas');
   if (!requiredRoot) {
     console.error('[CombinedErd] missing ERD HTML structure');
@@ -1209,7 +1243,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     container.textContent = 'ERD 화면 구조를 찾을 수 없습니다.';
     return;
   }
-  // ── 데이터 로딩 ───────────────────────────────────────
+  // 데이터 로딩
   const getDs = id => allDatasets.find(d => d.id === id);
 
   // 데이터셋 목록, 실제 레코드 수, 컬럼 정보, 관계 데이터를 순차적으로 로드하는 함수
@@ -1308,7 +1342,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     }
   }
 
-  // ── 필터링 ────────────────────────────────────────────
+  // 필터링
   // 키워드·노드 수 제한 등 현재 필터 조건에 부합하는 가시 노드 ID 집합을 반환하는 함수
   function getVisibleIds() {
     let allowed = new Set(allDatasets.map(d => d.id));
@@ -1318,12 +1352,9 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     }
 
     if (activeKeyword) {
-      const kw = activeKeyword.toLowerCase();
       const matched = allDatasets.filter(ds => {
         if (!allowed.has(ds.id)) return false;
-        return columnMatchedIds.has(ds.id) ||
-          ds.id.toLowerCase().includes(kw) ||
-          ds.name.toLowerCase().includes(kw);
+        return matchedNodeIds.has(ds.id);
       });
       if (matched.length > 0) {
         const ms = new Set(matched.map(d => d.id));
@@ -1337,11 +1368,20 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       }
     }
 
-    const ids = allDatasets.filter(d => allowed.has(d.id)).map(d => d.id);
+    // 연결 수가 많은 순서로 정렬하여 maxNodesLimit 적용
+    const degMap = {};
+    relationships.forEach(r => {
+      degMap[r.from_table] = (degMap[r.from_table] || 0) + 1;
+      degMap[r.to_table] = (degMap[r.to_table] || 0) + 1;
+    });
+
+    const ids = allDatasets.filter(d => allowed.has(d.id)).map(d => d.id)
+      .sort((a, b) => (degMap[b] || 0) - (degMap[a] || 0));
+
     return new Set(ids.slice(0, maxNodesLimit));
   }
 
-  // ── 관계 유형 판별 ────────────────────────────────────
+  // 관계 유형 판별
   // 두 테이블 간 공통키의 고유성을 기반으로 1:1/1:N/N:1/N:M 관계 유형을 반환하는 함수
   function getRelType(fromT, toT, key) {
     const isPk = (t, c) => {
@@ -1355,11 +1395,15 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     return 'N:M';
   }
 
-  // ── 네트워크 렌더 ────────────────────────────────────
+  // 네트워크 렌더
   // 현재 필터 조건에 맞는 노드와 엣지로 Vis.js 네트워크를 초기화하거나 갱신하는 함수
   function renderNetwork() {
     const canvasEl = container.querySelector('#cem-canvas');
     if (!canvasEl) return;
+    if (canvasEl._reactRoot) {
+      try { canvasEl._reactRoot.unmount(); } catch (e) { }
+      canvasEl._reactRoot = null;
+    }
     if (typeof vis === 'undefined') {
       console.error('[CombinedErd] vis-network not loaded');
       const el = container.querySelector('#cem-loading');
@@ -1393,7 +1437,9 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const rows = parseCount(ds.dataCount);
         const degree = degreeMap[ds.id] || 0;
         const color = getCategoryColor(ds.subject);
-        const svgUrl = createCardSvg(ds.id, ds.name, cols, rows, color, selectedNodeId === ds.id);
+        // 키워드 검색 중 인접(이웃) 노드는 흐리게
+        const isNeighbor = activeKeyword && matchedNodeIds.size > 0 && !matchedNodeIds.has(ds.id);
+        const svgUrl = createCardSvg(ds.id, ds.name, cols, rows, color, selectedNodeId === ds.id, isNeighbor);
 
         // 크기: log 스케일, 70~130px
         const sz = Math.min(150, Math.max(42, 42 + Math.log10(rows + 1) * 22));
@@ -1479,7 +1525,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     });
   }
 
-  // ── 인스펙터 (우측 슬라이드 패널) ────────────────────
+  // 인스펙터 (우측 슬라이드 패널)
   function showInspector(nodeId) {
     window._debug_showInspector = showInspector;
     const panel = container.querySelector('#cem-inspector');
@@ -1592,6 +1638,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     });
   }
 
+  // 클릭된 엣지의 JOIN 키·포함률·SQL 힌트를 인스펙터 패널에 표시함
   function showEdgeInspector(edgeId) {
     const panel = container.querySelector('#cem-inspector');
     if (!panel || !networkInstance) return;
@@ -1649,7 +1696,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     `;
   }
 
-  // ── 이벤트 바인딩 ────────────────────────────────────
+  // 이벤트 바인딩
   // 키워드 검색, 도메인 필터, 노드 수 조절, 물리 시뮬레이션 토글 등 UI 이벤트 등록 함수
   let runKeywordFilter = async () => { };
 
@@ -1662,9 +1709,68 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       if (!kw) { columnMatchedIds = new Set(); activeKeyword = ''; maxNodesLimit = 9999; renderNetwork(); return; }
 
       try {
-        const r = await fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`);
-        columnMatchedIds = new Set((await r.json()).tables || []);
-      } catch { columnMatchedIds = new Set(); }
+        const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
+        const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
+        const searchWords = [...new Set(rawWords.filter(w => !isOperator(w)))];
+        const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
+        const defaultOp = document.getElementById('datamap-keyword-operator')?.value || 'AND';
+        const expr = [];
+        for (let i = 0; i < tokens.length; i++) {
+          expr.push(tokens[i]);
+          if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
+            expr.push(defaultOp);
+          }
+        }
+
+        const isComplexQuery = rawWords.some(w => isOperator(w)) || searchWords.length > 1;
+
+        const r = await fetch('/api/column-search-multi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ words: searchWords })
+        });
+        const multiData = await r.json();
+        
+        const resultObj = multiData.result || {};
+        const wordMatches = {};
+        searchWords.forEach(w => {
+          wordMatches[w] = new Set((resultObj[w] || []).map(String));
+        });
+
+        columnMatchedIds = new Set();
+        
+        for (const ds of allDatasets) {
+          // Evaluator function
+          const evalExpr = () => {
+            if (expr.length === 0) return false;
+            let termMatch = true;
+            let finalMatch = false;
+            
+            for (let i = 0; i < expr.length; i++) {
+              const t = expr[i];
+              if (t === 'AND') continue;
+              else if (t === 'OR') {
+                finalMatch = finalMatch || termMatch;
+                termMatch = true;
+              } else {
+                termMatch = termMatch && checkToken(t);
+              }
+            }
+            return finalMatch || termMatch;
+          };
+
+          const checkToken = (w) => {
+            const inName = (ds.name || '').toLowerCase().includes(w.toLowerCase()) || (ds.id || '').toLowerCase().includes(w.toLowerCase()) || (ds.description || '').toLowerCase().includes(w.toLowerCase());
+            const inCol = wordMatches[w] ? wordMatches[w].has(String(ds.id)) : false;
+            return inName || inCol;
+          };
+
+          if (evalExpr()) {
+            columnMatchedIds.add(ds.id);
+          }
+        }
+        matchedNodeIds = new Set([...columnMatchedIds]);
+      } catch (e) { console.error(e); columnMatchedIds = new Set(); }
 
       activeKeyword = kw; maxNodesLimit = 9999; renderNetwork();
     };
@@ -1692,6 +1798,10 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       networkInstance?.setOptions({ physics: { enabled: activePhysics } });
     });
     container.querySelector('#cem-max-nodes')?.addEventListener('change', e => {
+      // React Flow 탭이 활성화된 경우 Vis.js는 무시
+      const btnReact = container.querySelector('#btn-erd-react');
+      const isReactActive = btnReact && btnReact.classList.contains('text-blue-600');
+      if (isReactActive) return;
       maxNodesLimit = parseInt(e.target.value); renderNetwork();
     });
     container.querySelector('#cem-fit')?.addEventListener('click', () => {
@@ -1758,7 +1868,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     });
   }
 
-  // ── 초기화 ────────────────────────────────────────────
+  // 초기화
   loadData().then(() => {
     renderNetwork();
     bindEvents();

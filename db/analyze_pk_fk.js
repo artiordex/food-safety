@@ -1,5 +1,4 @@
 /**
- * =============================================================================
  *   식품안전나라 Open API PK/FK 후보 분석기
  *   파일명: analyze_pk_fk.js
  *
@@ -28,7 +27,6 @@
  *        const { analyze, writeReports } = require('./analyze_pk_fk');
  *        const analysis = analyze(datasets, recordsMap);   // 파일 재읽기 없음
  *        writeReports(analysis, { json, md, sql });        // 결과 파일 생성
- * =============================================================================
  */
 
 'use strict';
@@ -37,12 +35,13 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
-const Fuse            = require('fuse.js');
-const aq              = require('arquero');
-const ss              = require('simple-statistics');
-const strSim          = require('string-similarity');
+const Fuse = require('fuse.js');
+const aq = require('arquero');
+const ss = require('simple-statistics');
+const strSim = require('string-similarity');
 const { DirectedGraph } = require('graphology');
 
+// 로그 레벨(INFO/WARN/ERR/STEP)에 따라 logger 메서드를 호출하는 래퍼
 function log(level, msg) {
     if (level === 'ERR') return logger.error(msg);
     if (level === 'WARN') return logger.warn(msg);
@@ -50,8 +49,9 @@ function log(level, msg) {
     return logger.info(msg);
 }
 
+
 // =============================================================================
-// 섹션 0. 기본 설정
+// 0. 기본 설정
 // =============================================================================
 
 const DEFAULT_CACHE = path.join(__dirname, '../crawler/crawl_cache.json');
@@ -77,18 +77,9 @@ const FK_INCLUDE_SUGGESTED_IN_SQL = false; // 불확실한 추정 후보는 SQL 
 const FIELD_SIMILARITY_THRESHOLD = 0.72;  // 정규화 후 Dice 유사도 기준
 const FIELD_SIMILARITY_PENALTY = 15;    // 유사 매칭 시 스코어 감점 최대값
 
-/**
- * 방향 B — 업무 명칭 기반 부모-자식 관계 규칙
- *
- * 목적:
- * - 샘플 최대 1000건 수준에서 값 포함률이 0%로 나와도, 데이터셋명으로 보아
- *   명백히 부모-자식 관계인 경우 CONFIRMED로 승격한다.
- * - 각 규칙은 { childKeywords, parentKeywords } 구조이며,
- *   from(자식) 테이블명에 childKeywords 중 하나가 포함되고
- *   to(부모) 테이블명에 parentKeywords 중 하나가 포함되면 매칭된다.
- * - 매칭된 경우 값 포함률이 낮아도(0% 포함) CONFIRMED로 승격하고
- *   점수에 DOMAIN_CONFIRMED_BONUS를 가산한다.
- */
+// 업무 명칭 기반 부모-자식 관계 규칙 배열.
+// from 테이블명이 childKeywords, to 테이블명이 parentKeywords에 매칭되면
+// 포함률이 낮아도(0% 포함) CONFIRMED로 승격하고 FK_DOMAIN_CONFIRMED_BONUS를 가산한다.
 const FK_DOMAIN_PARENT_CHILD_RULES = [
     // 폐업정보 → 영업(인허가) 마스터
     { childKeywords: ['폐업정보', '폐업'], parentKeywords: ['영업정보', '허가정보', '신고대장', '영업신고대장', '허가대장', '인허가대장', '인허가 업소', '식품접객업정보', '식품제조가공업정보', '위생용품영업정보', '가공업허가정보'] },
@@ -136,15 +127,8 @@ const FK_DOMAIN_PARENT_CHILD_RULES = [
 
 const FK_DOMAIN_CONFIRMED_BONUS = 25; // 업무 명칭 규칙 매칭 시 CONFIRMED 승격 점수 가산
 
-/**
- * 공통키별 대표 마스터 테이블 후보.
- *
- * 목적:
- * - LCNS_NO, PRDLST_REPORT_NO처럼 여러 테이블에 반복되는 공통키가
- *   모든 테이블끼리 N:N으로 연결되는 문제를 줄인다.
- * - 아래 목록에 존재하는 테이블이 있으면 해당 테이블을 우선 부모 후보로 본다.
- * - 실제 데이터 확인 후 프로젝트 기준에 맞게 조정 가능하다.
- */
+// 공통키별 대표 마스터 테이블 목록. 등록된 테이블이 해당 키의 부모로 우선 선택된다.
+// N:N 무분별 연결을 방지하며, 실제 구조에 맞게 조정 가능하다.
 const MASTER_TABLE_BY_KEY = {
     LCNS_NO: [
         'I2500', // 인허가 업소 정보
@@ -190,6 +174,7 @@ const MASTER_TABLE_BY_KEY = {
 };
 
 
+// CLI 인자 배열을 파싱해 옵션 객체를 반환함
 function parseArgs(argv) {
     const args = {
         cache: DEFAULT_CACHE,
@@ -220,6 +205,7 @@ function parseArgs(argv) {
     return args;
 }
 
+// 사용법 및 옵션 도움말을 출력함
 function printHelp() {
     logger.info(`
 식품안전나라 PK/FK 후보 분석기
@@ -246,52 +232,67 @@ Examples:
 `);
 }
 
-// =============================================================================
-// 섹션 1. 공통 유틸
-// =============================================================================
 
+// =============================================================================
+// 1. 공통 유틸
+// =============================================================================
+// SQLite 식별자(테이블명/컬럼명)를 큰따옴표로 안전하게 감쌈
 function quoteIdent(identifier) {
     return `"${String(identifier).replace(/"/g, '""')}"`;
 }
 
+// SQL 주석에 들어갈 텍스트를 한 줄로 정리하고 주석 기호를 치환함
 function sanitizeSqlComment(text) {
     return String(text || '').replace(/\r?\n/g, ' ').replace(/--/g, '－').trim();
 }
 
+// 비교용 값을 문자열로 정규화함
 function normalizeValue(value) {
     if (value === undefined || value === null) return '';
     if (typeof value === 'object') return JSON.stringify(value);
     return String(value).trim();
 }
 
+// 파일을 저장하고 생성 완료 로그를 남김
 function safeFileWrite(filePath, content) {
     fs.writeFileSync(filePath, content, 'utf-8');
     log('INFO', `파일 생성 완료: ${filePath}`);
 }
 
+// 서비스 번호를 비교 가능한 형태로 정규화함
 function normalizeSvcNo(value) {
     return String(value || '').trim().toUpperCase();
 }
 
+// 특정 키에 매핑된 기준 테이블 목록을 반환함
 function getMasterTablesForKey(fieldName, existingSvcNoSet = null) {
     const key = String(fieldName || '').trim().toUpperCase();
     const masters = MASTER_TABLE_BY_KEY[key] || [];
+
+    // 실제 존재하는 서비스 번호만 필터링
     if (!existingSvcNoSet) return masters;
     return masters.filter(svcNo => existingSvcNoSet.has(normalizeSvcNo(svcNo)));
 }
 
+// 특정 서비스 번호가 해당 키의 기준 테이블인지 확인함
 function isMasterTableForKey(svcNo, fieldName, existingSvcNoSet = null) {
     const masters = getMasterTablesForKey(fieldName, existingSvcNoSet).map(normalizeSvcNo);
     return masters.includes(normalizeSvcNo(svcNo));
 }
 
+// 특정 필드에 기준 테이블 규칙이 있는지 확인함
 function hasMasterRule(fieldName) {
-    return Object.prototype.hasOwnProperty.call(MASTER_TABLE_BY_KEY, String(fieldName || '').trim().toUpperCase());
+    return Object.prototype.hasOwnProperty.call(
+        MASTER_TABLE_BY_KEY,
+        String(fieldName || '').trim().toUpperCase()
+    );
 }
 
+// 테이블명에 지정한 키워드가 포함되어 있는지 확인함
 function tableNameHasAny(tableName, keywords) {
     const text = String(tableName || '');
     const normText = normalizeForDomainMatch(text);
+
     return keywords.some(keyword =>
         text.includes(keyword) ||
         normText.includes(normalizeForDomainMatch(keyword))
@@ -325,10 +326,10 @@ function getDomainScore(fromTableName, toTableName) {
     ];
 
     let score = 0;
-    
+
     const fromRoots = [];
     const toRoots = [];
-    
+
     rootDomains.forEach((group, idx) => {
         if (tableNameHasAny(fromTableName, group)) fromRoots.push(idx);
         if (tableNameHasAny(toTableName, group)) toRoots.push(idx);
@@ -454,8 +455,9 @@ function findSimilarPkFields(upperField, pkFieldIndex) {
     return results.sort((a, b) => b.similarity - a.similarity).slice(0, 3);
 }
 
+
 // =============================================================================
-// 섹션 2. 샘플 JSON 파싱
+// 2. 샘플 JSON 파싱
 // =============================================================================
 
 /**
@@ -506,8 +508,9 @@ function parseSampleJson(jsonPath, svcNo) {
     return [];
 }
 
+
 // =============================================================================
-// 섹션 3. 필드 성격 판단 패턴
+// 3. 필드 성격 판단 패턴
 // =============================================================================
 
 const STRONG_PK_FIELD_PATTERNS = [/SEQ$/i, /_SN$/i, /_ID$/i, /_IDX$/i, /NO$/i];
@@ -594,38 +597,48 @@ const SYSTEM_SAMPLE_FIELDS = new Set([
     'NUMOFROWS'
 ]);
 
+
 // =============================================================================
-// 섹션 4. 필드 성격 판단 함수
+// 4. 필드 성격 판단 함수
 // =============================================================================
 
+// 값이 패턴 배열 중 하나라도 일치하는지 확인함
 function matchesAny(value, patterns) { return patterns.some(p => p.test(value)); }
 
+// field 객체에서 영문 필드명을 추출함
 function getFieldName(field) { return String(field.field || '').trim(); }
+// field 객체에서 한글명(kor_nm)을 추출함
 function getKorName(field) { return String(field.kor_nm || '').trim(); }
 
+// 명칭·주소·날짜·집계 성격의 필드인지 확인함 (PK 부적합 여부)
 function isBadPkField(field) {
     return matchesAny(getFieldName(field), BAD_PK_FIELD_PATTERNS) ||
         matchesAny(getKorName(field), BAD_PK_KOR_PATTERNS);
 }
 
+// SEQ/일련번호/식별자 계열 강한 PK 패턴에 해당하는지 확인함
 function isStrongIdentifierField(field) {
     return matchesAny(getFieldName(field), STRONG_PK_FIELD_PATTERNS) ||
         matchesAny(getKorName(field), STRONG_PK_KOR_PATTERNS);
 }
 
+// _CD/_CODE 등 코드 계열 필드인지 확인함
 function isCodeField(field) {
     return matchesAny(getFieldName(field), CODE_FIELD_PATTERNS) ||
         matchesAny(getKorName(field), CODE_KOR_PATTERNS);
 }
 
+// 식품안전나라 공통 관계키(LCNS_NO 등) 여부를 확인함
 function isKnownRelationKey(fieldName) {
     return KNOWN_RELATION_KEYS.has(String(fieldName || '').trim().toUpperCase());
 }
 
+// 명칭·날짜·주소 성격의 필드라 FK 후보에서 제외해야 하는지 확인함
 function isExcludedFkField(fieldName) {
     return matchesAny(String(fieldName || ''), EXCLUDED_FK_FIELD_PATTERNS);
 }
 
+// records 인자를 안전하게 레코드 객체 배열로 변환함
 function toRecordArray(records) {
     if (Array.isArray(records)) return records.filter(rec => rec && typeof rec === 'object' && !Array.isArray(rec));
     if (!records || typeof records !== 'object') return [];
@@ -638,8 +651,9 @@ function toRecordArray(records) {
     return [];
 }
 
+
 // =============================================================================
-// 섹션 4-1. 엔트로피 기반 통계 (simple-statistics)
+// 4-1. 엔트로피 기반 통계 (simple-statistics)
 // =============================================================================
 
 /**
@@ -707,8 +721,9 @@ function buildEntropyMap(recordsMap) {
     return entropyMap;
 }
 
+
 // =============================================================================
-// 섹션 5. 유일성/포함률 통계
+// 5. 유일성/포함률 통계
 // =============================================================================
 
 /**
@@ -797,8 +812,9 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
     };
 }
 
+
 // =============================================================================
-// 섹션 6. PK 후보 점수 계산
+// 6. PK 후보 점수 계산
 // =============================================================================
 
 /**
@@ -877,12 +893,14 @@ function calculateIdentifierScore(field, records) {
     return { field: fname, kor_nm: kor, score, reasons, stats };
 }
 
+// 점수를 HIGH/MEDIUM/LOW 신뢰도 문자열로 변환함
 function getConfidence(score) {
     if (score >= 85) return 'HIGH';
     if (score >= 65) return 'MEDIUM';
     return 'LOW';
 }
 
+// 배열에서 size 크기의 모든 조합을 반환함 (복합 PK 후보 탐색용)
 function makeCombinations(arr, size) {
     const result = [];
     function helper(start, combo) {
@@ -895,8 +913,9 @@ function makeCombinations(arr, size) {
     return result;
 }
 
+
 // =============================================================================
-// 섹션 7. PK 후보 분석
+// 7. PK 후보 분석
 // =============================================================================
 
 /**
@@ -982,8 +1001,9 @@ function analyzePkCandidatesForTable(ds, records) {
         .slice(0, 5);
 }
 
+
 // =============================================================================
-// 섹션 7-1. arquero 기반 복합 FK 탐지
+// 7-1. arquero 기반 복합 FK 탐지
 // =============================================================================
 
 /**
@@ -1156,10 +1176,12 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap) {
     return results.sort((a, b) => b.score - a.score);
 }
 
+
 // =============================================================================
-// 섹션 8. FK 후보 분석 — 정제 반영 버전
+// 8. FK 후보 분석 — 정제 반영 버전
 // =============================================================================
 
+// tableAnalyses 배열을 svcNo → 분석 결과 Map으로 변환함
 function createTableLookup(tableAnalyses) {
     const map = new Map();
     for (const table of tableAnalyses) {
@@ -1168,6 +1190,7 @@ function createTableLookup(tableAnalyses) {
     return map;
 }
 
+// 모든 테이블의 PK 후보를 필드명 기준으로 역인덱싱해 FK 탐색 속도를 높임
 function buildPkFieldIndex(tableAnalyses) {
     const pkFieldIndex = new Map();
 
@@ -1194,6 +1217,7 @@ function buildPkFieldIndex(tableAnalyses) {
     return pkFieldIndex;
 }
 
+// 공통키에 대표 마스터 규칙이 있으면 해당 마스터 테이블만 부모 후보로 좁힘
 function pickTargetTablesByMasterRule(fieldName, targets, existingSvcNoSet) {
     const upperField = String(fieldName || '').trim().toUpperCase();
     if (!hasMasterRule(upperField)) return targets;
@@ -1208,6 +1232,7 @@ function pickTargetTablesByMasterRule(fieldName, targets, existingSvcNoSet) {
     return masterTargets.length > 0 ? masterTargets : targets;
 }
 
+// 이 테이블이 해당 키의 대표 마스터이면 자식 FK 생성 대상에서 제외함
 function shouldSkipByMasterRule(fromSvcNo, fieldName, existingSvcNoSet) {
     const upperField = String(fieldName || '').trim().toUpperCase();
     if (!hasMasterRule(upperField)) return false;
@@ -1217,6 +1242,7 @@ function shouldSkipByMasterRule(fromSvcNo, fieldName, existingSvcNoSet) {
     return isMasterTableForKey(fromSvcNo, upperField, existingSvcNoSet);
 }
 
+// FK 후보 하나에 대해 포함률·도메인 규칙·유사도를 종합해 점수와 관계 유형을 결정함
 function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, toRecords, fieldName, fuseIndex = null, thresholds = null, valuesCache = new Map() }) {
     const fieldSimilarity = target.fieldSimilarity ?? 1.0;
     const exactFieldMatch = target.exactFieldMatch ?? true;
@@ -1284,7 +1310,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
         relationType = 'CONFIRMED';
         reasons.push(`업무 명칭 규칙: "${fromSvcNm}" → "${target.svc_nm}" 부모-자식 관계 확인`);
     }
-    // ─────────────────────────────────────────────────────────────────────────
+    // =============================================================================───────────────────────
 
     if (inclusion.checked) {
         const pct = (inclusion.inclusion_ratio * 100).toFixed(1);
@@ -1341,7 +1367,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
             reasons.push('도메인 규칙·포함률 근거 없음 → SUGGESTED 강등 (-15)');
         }
     }
-    // ─────────────────────────────────────────────────────────────────────────
+    // =============================================================================───────────────────────
 
     const finalScore = Math.min(Math.max(Math.round(score), 0), 100);
 
@@ -1498,6 +1524,7 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
     };
 }
 
+// from/to 테이블+필드 조합이 동일한 중복 FK 관계를 제거함
 function removeDuplicateRelationships(relationships) {
     const seen = new Set();
     return relationships.filter(rel => {
@@ -1508,6 +1535,7 @@ function removeDuplicateRelationships(relationships) {
     });
 }
 
+// 제외 사유까지 포함해 완전히 동일한 중복 제외 관계를 제거함
 function removeDuplicateRejectedRelationships(relationships) {
     const seen = new Set();
     return relationships.filter(rel => {
@@ -1518,8 +1546,9 @@ function removeDuplicateRejectedRelationships(relationships) {
     });
 }
 
+
 // =============================================================================
-// 섹션 9. 컬럼 Map 구성
+// 9. 컬럼 Map 구성
 // =============================================================================
 
 /**
@@ -1582,8 +1611,9 @@ function buildColMap(ds, records) {
     return colMap;
 }
 
+
 // =============================================================================
-// 섹션 9-1. FK 그래프 분석 (graphology)
+// 9-1. FK 그래프 분석 (graphology)
 // =============================================================================
 
 /**
@@ -1777,10 +1807,19 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
     };
 }
 
+
 // =============================================================================
-// 섹션 10. 핵심 분석 함수 — analyze()
+// 10. 핵심 분석 함수 — analyze()
 // =============================================================================
 
+/**
+ * 전체 데이터셋과 샘플 레코드를 받아 PK/FK 후보 분석 결과를 반환한다.
+ *
+ * @param {object[]} datasets - crawl_cache.json의 데이터셋 메타 배열
+ * @param {Map<string, object[]>} recordsMap - svcNo → 레코드 배열
+ * @param {{ min: number, strong: number }|null} thresholds - FK 포함률 임계값 (null이면 상수 기본값 사용)
+ * @returns {object} 분석 결과 (tables, relationships, composite_fks, graph_analysis 포함)
+ */
 function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     for (const [svcNo, records] of recordsMap) {
         recordsMap.set(svcNo, toRecordArray(records));
@@ -1855,12 +1894,14 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     };
 }
 
+
 // =============================================================================
-// 섹션 11. 결과 파일 생성 — writeReports()
+// 11. 결과 파일 생성 — writeReports()
 // =============================================================================
 
 const DEFAULT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
 
+// 분석 결과를 JSON/Markdown/SQL/Excel 파일로 저장함 (import 연동용)
 async function writeReports(analysis, opts = {}) {
     const {
         json = DEFAULT_JSON,
@@ -1874,11 +1915,12 @@ async function writeReports(analysis, opts = {}) {
     } = opts;
 
     if (!noJson) generateJsonReport(analysis, json);
-    if (!noMd)   generateMarkdownReport(analysis, md);
-    if (!noSql)  generateKeysErdSql(analysis, sql);
+    if (!noMd) generateMarkdownReport(analysis, md);
+    if (!noSql) generateKeysErdSql(analysis, sql);
     if (!noXlsx) await generateExcelReport(analysis, xlsx);
 }
 
+// Excel 파일이 있으면 PK/FK 분석 결과로 해당 시트를 갱신함
 async function generateExcelReport(analysis, xlsxPath) {
     if (!fs.existsSync(xlsxPath)) {
         log('WARN', `엑셀 파일 없음 (생략): ${xlsxPath}`);
@@ -1892,19 +1934,23 @@ async function generateExcelReport(analysis, xlsxPath) {
     }
 }
 
+// 분석 결과 전체를 JSON 파일로 저장함
 function generateJsonReport(analysis, outputPath) {
     safeFileWrite(outputPath, JSON.stringify(analysis, null, 2));
 }
 
+// Markdown 테이블 셀 내 파이프/개행 문자를 이스케이프함
 function escapeMd(text) {
     return String(text || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 }
 
+// 포함률 통계 객체를 Markdown 표시용 문자열로 변환함
 function formatInclusionForMd(inclusion) {
     if (!inclusion || !inclusion.checked) return '미검증';
     return `${(inclusion.inclusion_ratio * 100).toFixed(1)}% (${inclusion.matched_count}/${inclusion.from_unique_count})`;
 }
 
+// PK/FK 후보 분석 결과를 Markdown 테이블로 변환해 파일로 저장함
 function generateMarkdownReport(analysis, outputPath) {
     const lines = [];
 
@@ -2001,6 +2047,7 @@ function generateMarkdownReport(analysis, outputPath) {
     safeFileWrite(outputPath, lines.join('\n'));
 }
 
+// PK/FK 후보를 CREATE TABLE + FOREIGN KEY DDL로 변환해 SQLite ERD 파일로 저장함
 function generateKeysErdSql(analysis, outputPath) {
     const lines = [];
 
@@ -2105,10 +2152,16 @@ function generateKeysErdSql(analysis, outputPath) {
     safeFileWrite(outputPath, lines.join('\n'));
 }
 
+
 // =============================================================================
-// 섹션 12. CLI 독립 실행용 run()
+// 12. CLI 독립 실행용 run()
 // =============================================================================
 
+/**
+ * CLI 독립 실행 진입점. 캐시 파일과 샘플을 읽어 분석하고 결과 파일을 생성한다.
+ *
+ * @param {object} options - parseArgs()가 반환한 옵션 객체
+ */
 async function run(options) {
     const { cache, samples, json, md, sql, noJson, noMd, noSql, noXlsx } = options;
 
@@ -2123,7 +2176,7 @@ async function run(options) {
     const recordsMap = new Map();
 
     // SQLite 데이터베이스가 존재하면 우선적으로 연결
-    const dbPath = path.join(__dirname, '..', 'foodsafety.db');
+    const dbPath = path.join(__dirname, 'foodsafety.db'); // db/ 폴더 내 실제 DB
     let db = null;
     if (fs.existsSync(dbPath)) {
         try {
@@ -2229,8 +2282,9 @@ async function run(options) {
     log('INFO', sep);
 }
 
+
 // =============================================================================
-// 섹션 13. CLI 진입점
+// 13. CLI 진입점
 // =============================================================================
 
 if (require.main === module) {
@@ -2245,9 +2299,9 @@ if (require.main === module) {
     })();
 }
 
-// =============================================================================
+
 // exports
-// =============================================================================
+
 
 module.exports = {
     analyze,

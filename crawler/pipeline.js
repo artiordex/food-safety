@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
-const CACHE_FILE  = path.join(__dirname, 'crawl_cache.json');
+const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const OUTPUT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
 
@@ -46,11 +46,11 @@ function loadSamples(datasets, samplesDir) {
 function getSqlHint(serviceNoA, datasetNameA, serviceNoB, datasetNameB, sharedKeys, joinType) {
   const onClause = sharedKeys.slice(0, 3).map(key => `A.${key} = B.${key}`).join(' AND ');
   const selectKeys = sharedKeys.slice(0, 3).map(key => `A.${key}`).join(', ');
-  
+
   let sqlJoin = 'LEFT JOIN';
   if (joinType.includes('1:1')) sqlJoin = 'INNER JOIN';
   if (joinType.includes('M:1')) sqlJoin = 'LEFT JOIN';
-  
+
   return `SELECT ${selectKeys}, A.*, B.*\nFROM   [${serviceNoA}] A  -- ${datasetNameA}\n${sqlJoin} [${serviceNoB}] B  -- ${datasetNameB}\n  ON   ${onClause};`;
 }
 
@@ -66,7 +66,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   if (datasets.length === 0) throw new Error('분석 가능한 데이터셋이 없습니다.');
 
   const samplesDir = options.samplesDir || SAMPLES_DIR;
-  
+
   logger.info('STEP 1: 샘플 데이터 로딩 중...');
   const recordsMap = loadSamples(datasets, samplesDir);
 
@@ -83,30 +83,32 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   const analysisResult = analyze(datasets, recordsMap, entropyMap);
 
   logger.info('STEP 4: 엑셀 리포터 데이터 구조 매핑 중...');
-  
+
+  // =============================================================================
   // 1. ka (keyAnalysis) 객체 구성
+  // =============================================================================
   const fieldFreq = {};
   const fieldMeta = {};
   const datasetKeyMap = {};
   const keyDatasetMap = {};
   const commonKeysSet = new Set();
-  
+
   // 데이터셋 카테고리 빠른 매핑
   const catMap = {};
   for (const ds of datasets) {
     catMap[ds.svc_no] = ds.cat || '';
     datasetKeyMap[ds.svc_no] = [];
-    
+
     for (const f of ds.fields || []) {
       const fieldName = (f.field || '').trim().toUpperCase();
       if (!fieldName) continue;
-      
+
       fieldFreq[fieldName] = (fieldFreq[fieldName] || 0) + 1;
       datasetKeyMap[ds.svc_no].push(fieldName);
-      
+
       if (!keyDatasetMap[fieldName]) keyDatasetMap[fieldName] = [];
       keyDatasetMap[fieldName].push(ds.svc_no);
-      
+
       if (!fieldMeta[fieldName] || (f.kor_nm && !fieldMeta[fieldName].kor_nm)) {
         fieldMeta[fieldName] = {
           kor_nm: f.kor_nm || '',
@@ -119,14 +121,16 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     }
   }
 
+  // =============================================================================
   // 2. 시나리오 매핑
+  // =============================================================================
   const excelScenarios = [];
-  
+
   for (const sc of analysisResult.relationships) {
-    
+
     // 이 시나리오에 사용된 타겟 필드를 공통키 풀에 등록
     commonKeysSet.add(sc.to_field);
-    
+
     excelScenarios.push({
       ds_a: sc.from_table,
       nm_a: sc.from_table_name,
@@ -164,7 +168,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     common_keys: commonKeys,
     ds_key_map: datasetKeyMap,
     key_ds_map: keyDatasetMap,
-    threshold: 3, 
+    threshold: 3,
     total_ds: datasets.length
   };
 
@@ -172,7 +176,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
 
   logger.info('STEP 5: 추가 분석 결과 로딩 (Arquero / SQLite Chain Joins)...');
   let extraData = {};
-  
+
   try {
     const scenarioJsonPath = path.join(__dirname, '../db/scenario_analysis.json');
     if (fs.existsSync(scenarioJsonPath)) {
@@ -202,7 +206,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
 
   logger.info('STEP 6: 엑셀 파일 생성 중...');
   await buildExcel(datasets, ka, excelScenarios, outputXlsx, extraData);
-  
+
   logger.info(`통합 파이프라인 실행 완료! 결과 파일: ${outputXlsx}`);
 
   return { datasets, keyAnalysis: ka, scenarios: excelScenarios };

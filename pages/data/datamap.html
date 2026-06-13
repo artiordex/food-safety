@@ -12,6 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
   <script src="/public/assets/jquery.simplePagination.js"></script>
   <link rel="stylesheet" href="/public/css/main.css">
+  <link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css" />
   <style>
     #ndm-filter-sidebar {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -94,12 +95,16 @@
             <div
               style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;flex-shrink:0;flex-wrap:wrap;gap:8px;">
               <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                <select id="datamap-keyword-operator" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:4px; font-size:13px; outline:none; background:#fff; cursor:pointer; color:#374151; font-weight:600;">
+                  <option value="AND">AND (모두 포함)</option>
+                  <option value="OR">OR (하나라도 포함)</option>
+                </select>
                 <div style="position:relative;flex:1;max-width:500px;">
                   <i class="ri-search-line"
                     style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:14px;pointer-events:none;"></i>
                   <input type="text" id="datamap-keyword-search"
                     style="width:100%;padding:8px 12px 8px 32px;border:1px solid #d1d5db;border-radius:4px;font-size:14px;outline:none;background:#fff;"
-                    placeholder="키워드로 데이터 검색 (예: 초콜릿, 우유, 농약...)">
+                    placeholder="키워드로 데이터 검색 (다중 검색 구분자 ';', 예: 초콜릿; 우유; 농약...)">
                 </div>
                 <button id="btn-datamap-keyword-search"
                   style="padding:8px 16px;background:#1B72E8;color:#fff;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:4px;">
@@ -119,7 +124,7 @@
 
               <!-- 좌측 사이드바: 분류명 (카테고리 비율 현황) -->
               <div id="ndm-filter-sidebar"
-                class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 lg:border-r border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden max-h-[400px] lg:max-h-full overflow-y-auto">
+                class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden max-h-[400px] lg:max-h-none lg:self-start lg:sticky lg:top-4 z-10">
 
                 <div
                   style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">
@@ -129,7 +134,7 @@
                   </div>
                 </div>
 
-                <div style="flex:1;overflow-y:auto;">
+                <div style="flex:1;">
                   <!-- 분류명 섹션 -->
                   <div>
                     <div
@@ -169,12 +174,12 @@
               </div>
 
               <!-- 우측 콘텐츠 영역 -->
-              <div class="flex-1 relative bg-slate-50 min-w-0 overflow-y-auto p-4 lg:p-6" id="main-content-area">
+              <div class="flex-1 relative bg-slate-50 min-w-0 overflow-y-auto p-4 lg:p-6 lg:border-l border-slate-200" id="main-content-area">
 
                 <!-- 플로팅 사이드바 토글 버튼 (데스크탑/모바일 공통) -->
                 <button id="floating-toggle-sidebar"
                   onclick="const sb = document.getElementById('ndm-filter-sidebar'); sb.classList.toggle('filter-collapsed'); const i = this.querySelector('i'); const topBtn = document.getElementById('btn-toggle-sidebar-top'); if(sb.classList.contains('filter-collapsed')){ i.classList.replace('ri-arrow-left-s-line','ri-arrow-right-s-line'); if(topBtn) topBtn.style.display='flex'; } else { i.classList.replace('ri-arrow-right-s-line','ri-arrow-left-s-line'); if(topBtn) topBtn.style.display='none'; }"
-                  class="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-14 bg-white border border-slate-200 border-l-0 rounded-r-md shadow-md flex items-center justify-center text-slate-400 hover:text-gov-600 hover:bg-slate-50 z-50 cursor-pointer transition-colors"
+                  class="absolute left-0 top-10 w-6 h-14 bg-white border border-slate-200 border-l-0 rounded-r-md shadow-md flex items-center justify-center text-slate-400 hover:text-gov-600 hover:bg-slate-50 z-50 cursor-pointer transition-colors"
                   style="margin-left: -1px;" title="필터 패널 접기/펴기">
                   <i class="ri-arrow-left-s-line text-xl pointer-events-none transition-transform duration-300"></i>
                 </button>
@@ -232,7 +237,7 @@
 
                     <!-- 좌측: 그래프 패널 (2열) -->
                     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="min-height:620px;">
+                      style="height:calc(100vh - 210px); min-height:560px;">
                       <!-- D3 그래프 컨테이너 -->
                       <div id="kwmap-graph-container"
                         class="flex-1 w-full rounded-xl bg-slate-50 border border-slate-100 relative overflow-hidden"
@@ -267,7 +272,7 @@
 
                     <!-- 우측: 상세 정보 패널 (1열) -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="min-height:620px;max-height:680px;">
+                      style="height:calc(100vh - 210px); min-height:560px; overflow-y:auto;">
                       <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                         상세 정보 패널
                         <span class="relative group inline-flex items-center">
@@ -293,13 +298,13 @@
                 </div><!-- /#content-panel-visualization -->
 
                 <!-- 탭4: 데이터 관계도·ERD -->
-                <div id="content-panel-erd" style="display:none;min-height:800px;">
+                <div id="content-panel-erd" style="display:none;">
                   <!-- 헤더 카드 -->
                   <div
                     class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col gap-1">
                       <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
-                        식품안전 데이터 융합 관계도(D3.js)
+                        식품안전 데이터 융합 관계도
                         <span class="relative group inline-flex items-center">
                           <button class="tooltip-trigger" aria-label="식품안전 데이터 융합 관계도 설명">?</button>
                           <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:300px;">
@@ -311,6 +316,15 @@
                         </span>
                       </h3>
                     </div>
+                    <!-- ERD Sub Tabs -->
+                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                      <button id="btn-erd-react"
+                        class="px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all">React
+                        Flow (직각)</button>
+                      <button id="btn-erd-vis"
+                        class="px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all">Vis.js
+                        (물리 곡선)</button>
+                    </div>
                   </div>
 
                   <!-- 콘텐츠 그리드 -->
@@ -318,8 +332,8 @@
 
                     <!-- 좌측: 그래프 패널 (2열) -->
                     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="min-height:620px;">
-                      
+                      style="height:calc(100vh - 210px); min-height:560px;">
+
                       <!-- 툴바 -->
                       <div
                         class="bg-white border border-slate-200 rounded-xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 mb-4">
@@ -349,8 +363,8 @@
                       </div>
 
                       <!-- 캔버스 영역 -->
-                      <div class="flex-1 w-full bg-slate-50 border border-slate-100 rounded-xl overflow-hidden relative"
-                        style="height:550px;">
+                      <div id="cem-canvas-wrap" class="flex-1 w-full bg-slate-50 border border-slate-100 rounded-xl overflow-hidden relative"
+                        style="min-height:0;">
                         <div id="cem-canvas" class="w-full h-full"></div>
                         <div id="cem-loading"
                           class="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
@@ -365,7 +379,7 @@
 
                     <!-- 우측: 상세 정보 패널 (1열) -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="min-height:620px;">
+                      style="height:calc(100vh - 210px); min-height:560px; overflow-y:auto;">
                       <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                         상세 정보 패널
                         <span class="relative group inline-flex items-center">
@@ -415,7 +429,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script type="module" src="/view/app.js?v=26"></script>
+  <script type="module" src="/view/app.js?v=38"></script>
 </body>
 
 </html>

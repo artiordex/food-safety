@@ -1,5 +1,4 @@
 /**
- * =============================================================================
  * 식품안전나라 Open API 샘플 데이터 최적화 업데이트 스크립트
  * 파일명: update_samples.js
  *
@@ -8,7 +7,6 @@
  * 2. 원자적 파일 쓰기(Atomic Write)를 통해 크롤링 중 기존 샘플 파손을 방지함
  * 3. 비동기 작업 풀(Pool)을 이용해 동시성(Concurrency)을 제어하며 고속 수집함
  * 4. 개별 태스크 실패가 전체 파이프라인 마비로 이어지지 않도록 철저히 격리함
- * =============================================================================
  */
 
 'use strict';
@@ -85,7 +83,7 @@ async function fetchWithRetry(context, url, serviceId, dataType) {
         size: toKbText(content.length),
         retry: retry > 1 ? `${retry}차` : '성공'
       }, `[${dataType.toUpperCase()}] 샘플 데이터 업데이트 완료`);
-      
+
       return true; // 성공 시 true 반환
     } catch (err) {
       logger.warn({
@@ -191,12 +189,12 @@ async function main() {
 
     for (const dataType of ['xml', 'json']) {
       const url = `http://openapi.foodsafetykorea.go.kr/api/${API_KEY}/${serviceId}/${dataType}/${START_IDX}/${END_IDX}`;
-      
+
       // 태스크 큐 풀에 삽입
       tasks.push(async () => {
         const success = await fetchWithRetry(context, url, serviceId, dataType);
         // 단일 스레드별 최소 대기 시간을 주어 서버 가부하를 방지합니다.
-        await sleep(300); 
+        await sleep(300);
         return { serviceId, dataType, success };
       });
     }

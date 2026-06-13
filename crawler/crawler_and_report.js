@@ -55,12 +55,12 @@ async function main() {
   //   logger.warn({ err }, 'update_samples.js 실패 — 다음 단계를 계속 진행합니다.');
   // }
 
-  // STEP 4: SQLite 변환 (import_to_sqlite.js)
-  try {
-    run('4/9 import_to_sqlite', path.join(DB_DIR, 'import_to_sqlite.js'), '--apply-constraints');
-  } catch (err) {
-    logger.warn({ err }, 'import_to_sqlite.js 실패 — 다음 단계를 계속 진행합니다.');
-  }
+  // // STEP 4: SQLite 변환 (import_to_sqlite.js)
+  // try {
+  //   run('4/9 import_to_sqlite', path.join(DB_DIR, 'import_to_sqlite.js'), '--apply-constraints');
+  // } catch (err) {
+  //   logger.warn({ err }, 'import_to_sqlite.js 실패 — 다음 단계를 계속 진행합니다.');
+  // }
 
   // STEP 5: PK/FK 분석 (analyze_pk_fk.js)
   try {

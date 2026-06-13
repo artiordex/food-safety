@@ -567,6 +567,72 @@ app.get('/api/external/:serviceId/:dataType/:startIdx/:endIdx', async (req, res)
 // 7. PK/FK 관계 데이터 조회 API (데이터맵 동적 연동용)
 // 실제 테이블 데이터 + 컬럼 메타 통합 키워드 검색 → 매칭 테이블 ID 목록 반환
 // keyword-datamap과 완전히 동일한 dbAll + processTable 패턴 사용
+
+// 다중 키워드 검색 (AND/OR 조건 지원용)
+app.post('/api/column-search-multi', async (req, res) => {
+  const words = req.body.words || [];
+  if (!words.length) return res.json({ result: {} });
+
+  const dbAll = (sql, params) => new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
+  });
+
+  try {
+    const result = {}; // { "word": Set(ids) }
+    words.forEach(w => result[w] = new Set());
+
+    // 1) 컬럼 메타 매칭
+    for (const w of words) {
+      const metaRows = await dbAll(
+        `SELECT DISTINCT replace(svc_no, '-', '') AS id FROM api_columns WHERE field LIKE ? OR kor_nm LIKE ?`,
+        [`%${w}%`, `%${w}%`]
+      );
+      metaRows.forEach(r => r.id && result[w].add(r.id));
+    }
+
+    // 2) 테이블 데이터 스캔
+    const tables = await dbAll(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('api_tables', 'api_columns')`
+    );
+
+    const processTable = async (tableName) => {
+      let columns = [];
+      try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch (e) { return; }
+      if (!columns.length) return;
+
+      for (const w of words) {
+        if (result[w].has(tableName)) continue; // 이미 매칭되었으면 스킵
+        const colResults = await Promise.all(columns.map(async col => {
+          try {
+            const rows = await dbAll(
+              `SELECT 1 FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ? LIMIT 1`,
+              [`%${w}%`]
+            );
+            return rows.length > 0;
+          } catch (e) { return false; }
+        }));
+        if (colResults.some(Boolean)) result[w].add(tableName);
+      }
+    };
+
+    const BATCH_SIZE = 20;
+    for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+      const batch = tables.slice(i, i + BATCH_SIZE).map(t => t.name);
+      await Promise.all(batch.map(processTable));
+    }
+
+    const finalResult = {};
+    for (const w of words) {
+      finalResult[w] = [...result[w]];
+    }
+
+    res.json({ result: finalResult });
+  } catch (err) {
+    logger.error({ err }, '[column-search-multi] 검색 중 오류');
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/column-search', async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   if (!keyword) return res.json({ tables: [], count: 0 });
@@ -1300,7 +1366,20 @@ app.get('/api/bulk-ecosystem', async (req, res) => {
 
 // 키워드 기반 전체 테이블 스캔 데이터맵 API
 app.get('/api/keyword-datamap', async (req, res) => {
-  const keyword = req.query.keyword || '소스';
+  const rawKeyword = req.query.keyword || '소스';
+  const defaultOp = req.query.op || 'AND';
+  
+  const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
+  const rawWords = rawKeyword.split(';').map(w => w.trim()).filter(Boolean);
+  const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
+  const expr = [];
+  for (let i = 0; i < tokens.length; i++) {
+    expr.push(tokens[i]);
+    if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
+      expr.push(defaultOp);
+    }
+  }
+
   const dbAll = (sql, params) => new Promise((resolve, reject) => {
     db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
   });
@@ -1349,7 +1428,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
     // 2. Center node
     nodes.push({
       id: 'CENTER',
-      label: keyword,
+      label: rawKeyword,
       shape: 'circle',
       size: 55,
       color: { background: '#1e293b', border: '#f59e0b', highlight: { background: '#334155', border: '#fbbf24' } },
@@ -1368,8 +1447,17 @@ app.get('/api/keyword-datamap', async (req, res) => {
       // Check each column in parallel within the table
       const colResults = await Promise.all(columns.map(async col => {
         try {
-          const countRow = await dbAll(`SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ?`, [`%${keyword}%`]);
-          return (countRow[0] && countRow[0].cnt > 0) ? { col: col.name, count: countRow[0].cnt } : null;
+          let sqlWhere = '';
+          const params = [];
+          for (let i = 0; i < expr.length; i++) {
+            const t = expr[i];
+            if (t === 'AND' || t === 'OR') { sqlWhere += ` ${t} `; }
+            else { sqlWhere += `CAST("${col.name}" AS TEXT) LIKE ?`; params.push(`%${t}%`); }
+          }
+          if (!sqlWhere) return null;
+          
+          const countRow = await dbAll(`SELECT COUNT(*) as cnt FROM "${tableName}" WHERE ${sqlWhere}`, params);
+          return (countRow[0] && countRow[0].cnt > 0) ? { col: col.name, count: countRow[0].cnt, sqlWhere, params } : null;
         } catch (e) { return null; }
       }));
 
@@ -1385,8 +1473,8 @@ app.get('/api/keyword-datamap', async (req, res) => {
       let sampleRows = [];
       try {
         sampleRows = await dbAll(
-          `SELECT "${bestCol.col}" as val, * FROM "${tableName}" WHERE CAST("${bestCol.col}" AS TEXT) LIKE ? LIMIT 3`,
-          [`%${keyword}%`]
+          `SELECT "${bestCol.col}" as val, * FROM "${tableName}" WHERE ${bestCol.sqlWhere} LIMIT 3`,
+          bestCol.params
         );
       } catch (e) { }
 
@@ -1442,7 +1530,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
     }
 
     res.json({
-      keyword,
+      keyword: rawKeyword,
       tableCount: matchedTables.length,
       totalLeafCount: allLeafNodes.length,
       nodes,

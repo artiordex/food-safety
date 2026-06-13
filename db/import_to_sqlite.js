@@ -1,5 +1,4 @@
 /**
- * =============================================================================
  *   식품안전나라 Open API SQLite 마이그레이션 파이프라인 (Node.js 버전)
  *   파일명: import_to_sqlite.js
  *
@@ -39,7 +38,6 @@
  *     node import_to_sqlite.js --no-erd
  *     node import_to_sqlite.js --no-pk-fk
  *     node import_to_sqlite.js --apply-constraints
- * =============================================================================
  */
 
 'use strict';
@@ -112,7 +110,7 @@ const logger = require('../utils/logger');
 
 // log: 레벨 기반으로 logger의 로그 함수를 호출하는 간단한 래퍼
 function log(level, msg) {
-    if (level === 'ERR')  return logger.error(msg);
+    if (level === 'ERR') return logger.error(msg);
     if (level === 'WARN') return logger.warn(msg);
     if (level === 'STEP') return logger.info(`\n▶ ${msg}`);
     return logger.info(msg);
@@ -710,7 +708,7 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
                 const fname = String(f.field || '').trim();
                 const spec = inferColumnSpec(f, records);
                 const korNm = sanitizeSqlComment(f.kor_nm || '');
-                const columnFks = fksList.filter(fk => 
+                const columnFks = fksList.filter(fk =>
                     fk.relation_type === 'COMPOSITE_FK' ? fk.from_fields.includes(fname) : fk.from_field === fname
                 );
                 const fkComment = columnFks.length > 0
@@ -998,7 +996,7 @@ async function validateForeignKeysIfNeeded(db, applyConstraints) {
     if (!applyConstraints) return { checked: false, errorCount: 0 };
 
     await execSql(db, 'PRAGMA foreign_keys = ON;');
-    
+
     let fkErrors = [];
     try {
         fkErrors = await allSql(db, 'PRAGMA foreign_key_check;');

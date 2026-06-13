@@ -1,9 +1,31 @@
+/**
+ * 데이터맵 메인 렌더러
+ * 파일명: dataMap.js
+ *
+ * [수행 역할]
+ * 1. /api/searchDatasetList.do 에서 전체 데이터세트 목록을 로드함
+ * 2. 분야별 트리맵 · 기관별 사이드바 · 키워드 시각화 · ERD 탭을 렌더링함
+ * 3. 키워드 검색 결과를 카드 목록 + 페이지네이션으로 표시함
+ * 4. 트리맵 셀 클릭 시 데이터세트 목록 → 상세 → 워드 클라우드 드릴다운을 지원함
+ * 5. 화면 캡처(html2canvas / React Flow 자체 캡처)를 수행함
+ */
 import { getDatasetsSync } from '../datasetStore.js';
-import { renderKeywordGraph } from './keywordGraph.js';
-import { renderCombinedErdMap } from './dbErdMap.js?v=9';
+import { renderKeywordGraph } from './keywordGraph.js?v=4';
+import { renderDetailPanel } from './detailDataset.js?v=4';
+import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=44';
+import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=13';
 
+// =============================================================================
+// 1. 메인 진입점
+// =============================================================================
+/**
+ * 데이터맵 화면 전체를 초기화하고 렌더링한다.
+ * @param {Element} container  - 렌더링 대상 DOM 컨테이너
+ * @param {Function} onSelectDataset - 데이터세트 선택 시 호출되는 콜백
+ */
 export function renderDataMap(container, onSelectDataset) {
-  // DB에서 데이터 가져오기
+  // 1-1. 데이터 fetch 및 렌더 트리거
+  // API에서 전체 데이터세트를 받아 분야별·기관별 집계 후 renderUI를 호출함
   const fetchDataAndRender = async () => {
     try {
       const res = await fetch('/api/searchDatasetList.do', {
@@ -63,12 +85,14 @@ export function renderDataMap(container, onSelectDataset) {
     }
   };
 
+  // 1-2. UI 초기화 및 탭·이벤트 바인딩
+  // 트리맵·사이드바·탭 전환·검색·캡처 이벤트를 일괄 초기화함
   const renderUI = (subjectArray, institutionArray, totalCount) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
-    
+
     view.style.display = 'block';
-    
+
     const countEl = view.querySelector('#category-total-count');
     if (countEl) countEl.textContent = `총 ${totalCount}종`;
 
@@ -86,6 +110,7 @@ export function renderDataMap(container, onSelectDataset) {
     // 3탭 전환 헬퍼
     const ALL_TABS = ['treemap', 'visualization', 'erd'];
     let erdRendered = false;
+    // ERD 패널을 초기(빈) 상태로 리셋함
     const resetErdPanel = (message = '검색어를 입력하면 데이터 관계도·ERD가 표시됩니다.') => {
       erdRendered = false;
       const canvas = view.querySelector('#cem-canvas');
@@ -105,6 +130,7 @@ export function renderDataMap(container, onSelectDataset) {
       if (inspector) inspector.classList.add('hidden', 'translate-x-[calc(100%+2rem)]');
     };
 
+    // ERD 패널에 로딩 스피너를 표시함
     const showErdSpinner = (panel) => {
       const canvas = (panel || view).querySelector('#cem-canvas');
       const loading = (panel || view).querySelector('#cem-loading');
@@ -118,6 +144,7 @@ export function renderDataMap(container, onSelectDataset) {
       }
     };
 
+    // 키워드 시각화 패널을 초기 안내 메시지 상태로 리셋함
     const resetKeywordVisualization = (message = '검색어를 입력하면 키워드 시각화가 표시됩니다.') => {
       const loading = view.querySelector('#kwmap-loading');
       const loadingText = view.querySelector('#kwmap-loading-text');
@@ -153,7 +180,7 @@ export function renderDataMap(container, onSelectDataset) {
       }
     };
 
-    // showLoading 호출 전 스피너 복원
+    // kwmap 스피너 DOM을 원래 상태(로딩 중 텍스트)로 복원함
     const restoreKwmapSpinner = () => {
       const loading = view.querySelector('#kwmap-loading');
       const loadingText = view.querySelector('#kwmap-loading-text');
@@ -164,6 +191,7 @@ export function renderDataMap(container, onSelectDataset) {
       }
     };
 
+    // 키워드 유무에 따라 시각화·ERD 탭을 렌더링함
     const renderKeywordDependentTabs = (kw) => {
       const erdPanel = view.querySelector('#content-panel-erd');
 
@@ -172,7 +200,7 @@ export function renderDataMap(container, onSelectDataset) {
         if (erdPanel) {
           erdRendered = true;
           showErdSpinner(erdPanel);
-          renderCombinedErdMap(erdPanel);
+          renderReactErdMap(erdPanel, onSelectDataset);
         }
         return;
       }
@@ -183,12 +211,13 @@ export function renderDataMap(container, onSelectDataset) {
       if (erdPanel) {
         erdRendered = true;
         showErdSpinner(erdPanel);
-        renderCombinedErdMap(erdPanel);
+        renderReactErdMap(erdPanel, onSelectDataset);
       }
     };
 
     let activeContentTab = 'treemap';
 
+    // 콘텐츠 탭을 전환하고 비활성 탭 패널을 숨김
     const switchContentTab = (active) => {
       activeContentTab = active;
       ALL_TABS.forEach(t => {
@@ -220,20 +249,39 @@ export function renderDataMap(container, onSelectDataset) {
         if (t === 'erd') {
           const kw = view.querySelector('#datamap-keyword-search')?.value.trim() || '';
           const panel = view.querySelector('#content-panel-erd');
-          // Removed kw check: Render ERD even if keyword is empty
           const canvas = panel?.querySelector('#cem-canvas');
-          const hasRenderedErd = !!canvas?.querySelector('svg, canvas, .vis-network');
+          const hasRenderedErd = !!canvas?.querySelector('svg, canvas, .vis-network, .react-flow');
           if (erdRendered && hasRenderedErd) return;
           erdRendered = true;
           showErdSpinner(panel);
-          if (panel) renderCombinedErdMap(panel, onSelectDataset);
+          if (panel) renderReactErdMap(panel, onSelectDataset);
         }
       });
     });
 
+    // ERD Sub-tab listeners
+    const btnErdReact = view.querySelector('#btn-erd-react');
+    const btnErdVis = view.querySelector('#btn-erd-vis');
+    const panelErd = view.querySelector('#content-panel-erd');
+
+    if (btnErdReact && btnErdVis && panelErd) {
+      btnErdReact.addEventListener('click', () => {
+        btnErdReact.className = 'px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all';
+        btnErdVis.className = 'px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all';
+        showErdSpinner(panelErd);
+        renderReactErdMap(panelErd, onSelectDataset);
+      });
+      btnErdVis.addEventListener('click', () => {
+        btnErdVis.className = 'px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all';
+        btnErdReact.className = 'px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all';
+        showErdSpinner(panelErd);
+        renderVisErdMap(panelErd, onSelectDataset);
+      });
+    }
 
 
-    // 키워드 검색 결과 렌더링
+
+    // 키워드로 데이터세트를 검색하고 카드 목록·페이지네이션을 렌더링함
     const renderSearchResults = async (kw) => {
       const summary = view.querySelector('#keyword-result-summary');
       const cardsEl = view.querySelector('#keyword-dataset-cards');
@@ -263,33 +311,87 @@ export function renderDataMap(container, onSelectDataset) {
         <div style="font-size:14px;">${kw ? `실제 데이터 안에서 <strong>"${kw}"</strong> 검색 중...` : '전체 데이터세트를 불러오는 중...'}<br><span style="font-size:12px;color:#94a3b8;">잠시만 기다려주세요.</span></div>
       </div>`;
 
-      let matchedTableIds = new Set();
       let allDatasets = [];
+      let wordMatches = {}; // { "word": Set(ids) }
+      let searchWords = [];
+      let isComplexQuery = false;
+
       try {
         const metaRequest = fetch('/api/searchDatasetList.do', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
+        });
+
+        if (kw) {
+          const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
+          const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
+          searchWords = [...new Set(rawWords.filter(w => !isOperator(w)))];
+          isComplexQuery = rawWords.some(w => isOperator(w)) || searchWords.length > 1;
+
+          const [colDataRes, metaDataRes] = await Promise.all([
+            fetch('/api/column-search-multi', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ words: searchWords })
+            }),
+            metaRequest
+          ]);
+
+          const colData = await colDataRes.json();
+          const metaData = await metaDataRes.json();
+          
+          allDatasets = metaData.list || [];
+          const resultObj = colData.result || {};
+          searchWords.forEach(w => {
+            wordMatches[w] = new Set((resultObj[w] || []).map(String));
           });
-        const [colData, metaData] = await Promise.all([
-          kw
-            ? fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`).then(res => res.json())
-            : Promise.resolve({ tables: [] }),
-          metaRequest.then(res => res.json())
-        ]);
-        (colData.tables || []).forEach(id => matchedTableIds.add(String(id)));
-        allDatasets = metaData.list || [];
+
+        } else {
+          const metaDataRes = await metaRequest;
+          const metaData = await metaDataRes.json();
+          allDatasets = metaData.list || [];
+        }
       } catch (e) {
         cardsEl.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:#ef4444;">검색 중 오류가 발생했습니다.</div>`;
         return;
       }
 
       const matched = kw ? allDatasets.filter(d => {
-        const inName = (d.svc_nm || '').toLowerCase().includes(kw.toLowerCase()) || (d.description || '').toLowerCase().includes(kw.toLowerCase());
-        const inData = matchedTableIds.has(String(d.svc_no));
-        d._match_inName = inName;
-        d._match_inData = inData;
-        return inName || inData;
+        const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
+        const rawWords = kw.split(';').map(w => w.trim()).filter(Boolean);
+        const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
+        const defaultOp = view.querySelector('#datamap-keyword-operator')?.value || 'AND';
+        const expr = [];
+        for (let i = 0; i < tokens.length; i++) {
+          expr.push(tokens[i]);
+          if (i < tokens.length - 1 && !isOperator(tokens[i]) && !isOperator(tokens[i+1])) {
+            expr.push(defaultOp);
+          }
+        }
+
+        const checkWord = (w) => {
+          const inName = (d.svc_nm || '').toLowerCase().includes(w.toLowerCase()) || (d.svc_no || '').toLowerCase().includes(w.toLowerCase()) || (d.description || '').toLowerCase().includes(w.toLowerCase());
+          const inData = wordMatches[w] ? wordMatches[w].has(String(d.svc_no)) : false;
+          return inName || inData;
+        };
+
+        let termMatch = true;
+        let finalMatch = false;
+
+        for (let i = 0; i < expr.length; i++) {
+          const t = expr[i];
+          if (t === 'AND') { continue; }
+          else if (t === 'OR') {
+            finalMatch = finalMatch || termMatch;
+            termMatch = true; // reset for next term
+          } else {
+            termMatch = termMatch && checkWord(t);
+          }
+        }
+        finalMatch = finalMatch || termMatch;
+        d._match_inName = finalMatch; // For simplicity
+        return finalMatch;
       }) : allDatasets.map(d => {
         d._match_inName = false;
         d._match_inData = false;
@@ -299,6 +401,10 @@ export function renderDataMap(container, onSelectDataset) {
         ? `검색어 <strong style="color:#1e293b;">"${kw}"</strong> 포함 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
         : `전체 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`;
       updateTreemapForSearch(matched, kw);
+
+      // 검색 결과로 필터 업데이트 이벤트 발행 (ERD 연동용)
+      const matchedIds = kw ? matched.map(d => String(d.svc_no)) : null;
+      window.dispatchEvent(new CustomEvent('datamap-filter-updated', { detail: { matchedIds, keyword: kw } }));
 
       if (matched.length === 0) {
         cardsEl.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8;">
@@ -338,14 +444,15 @@ export function renderDataMap(container, onSelectDataset) {
           const paginationEl = view.querySelector('#keyword-pagination');
           if (!paginationEl) return;
           const tp = totalPages();
-          if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch(e) {} paginationEl.innerHTML = ''; return; }
-          try { $(paginationEl).pagination('destroy'); } catch(e) {}
+          if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch (e) { } paginationEl.innerHTML = ''; return; }
+          try { $(paginationEl).pagination('destroy'); } catch (e) { }
           $(paginationEl).pagination({
             items: matched.length,
             itemsOnPage: PAGE_SIZE,
             cssStyle: 'compact-theme',
             currentPage: currentPage,
-            onPageClick: (pageNumber) => {
+            onPageClick: (pageNumber, event) => {
+              if (event) event.preventDefault();
               currentPage = pageNumber;
               renderPage();
               view.querySelector('#keyword-search-result-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -374,141 +481,21 @@ export function renderDataMap(container, onSelectDataset) {
       }
     };
 
-    // 데이터세트 세부 패널 (워드 클라우드 포함)
+    // 선택된 데이터세트의 상세 패널(워드 클라우드 포함)을 표시함
     const openDatasetDetail = (ds, view) => {
-      let detailEl = view.querySelector('#dataset-detail-panel');
-      if (!detailEl) {
-        detailEl = document.createElement('div');
-        detailEl.id = 'dataset-detail-panel';
-        view.querySelector('#keyword-search-result-panel')?.appendChild(detailEl);
-      }
-      detailEl.style.cssText = 'margin-top:32px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;';
-      detailEl.innerHTML = `
-        <!-- 세부 헤더 -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">
-          <div>
-            <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1d4ed8;margin-bottom:6px;display:inline-block;">${ds.cl_cd_nm || '기타'}</span>
-            <h4 style="font-size:18px;font-weight:700;color:#1e293b;margin:0;">${ds.svc_nm || ''}</h4>
-            <p style="font-size:13px;color:#64748b;margin:4px 0 0;">${ds.provd_instt_nm || '식품의약품안전처'} · 데이터셋 ID: ${ds.svc_no}</p>
-          </div>
-          <button id="btn-close-detail" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:22px;line-height:1;" title="닫기">
-            <i class="ri-close-line"></i>
-          </button>
-        </div>
-
-        <!-- 워드 클라우드 영역 -->
-        <div style="padding:24px;">
-          <h5 style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 4px;display:flex;align-items:center;gap:8px;">
-            <i class="ri-cloud-line" style="color:#2563eb;"></i> 키워드 워드 클라우드
-            <span style="font-size:12px;font-weight:400;color:#94a3b8;">— 해당 데이터세트에서 가장 많이 등장하는 단어</span>
-          </h5>
-          <div id="detail-wordcloud-wrap" style="width:100%;height:360px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-top:16px;">
-            <div id="detail-wc-loading" style="text-align:center;color:#64748b;">
-              <div style="display:inline-block;width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
-              <div style="font-size:14px;">워드 클라우드 생성 중...</div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      detailEl.querySelector('#btn-close-detail').addEventListener('click', () => {
-        detailEl.remove();
-        view.querySelectorAll('[data-svc-no]').forEach(c => { c.dataset.active = ''; c.style.borderColor = '#e2e8f0'; c.style.boxShadow = 'none'; });
-      });
-
-      detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      // 워드 클라우드 fetch & render
-      renderDetailWordCloud(String(ds.svc_no), detailEl.querySelector('#detail-wordcloud-wrap'));
-    };
-
-    const renderDetailWordCloud = (tableName, wrap) => {
-      let retryTimer = null;
-
-      const fetchAndDraw = () => {
-        fetch(`/api/wordcloud?tableName=${tableName}`)
-          .then(res => {
-            if (res.status === 202) {
-              const loadEl = wrap.querySelector('#detail-wc-loading');
-              if (loadEl) loadEl.querySelector('div:last-child').textContent = '데이터 분석 중... 잠시만 기다려주세요.';
-              retryTimer = setTimeout(fetchAndDraw, 2000);
-              throw new Error('BUILDING');
-            }
-            if (!res.ok) throw new Error('FAIL');
-            return res.json();
-          })
-          .then(words => {
-            if (!words || words.length === 0) {
-              wrap.innerHTML = '<div style="color:#94a3b8;font-size:14px;">분석할 텍스트 데이터가 없습니다.</div>';
-              return;
-            }
-            drawWordCloud(words, wrap);
-          })
-          .catch(err => {
-            if (err.message === 'BUILDING') return;
-            wrap.innerHTML = '<div style="color:#ef4444;font-size:14px;">워드 클라우드 데이터를 불러오지 못했습니다.</div>';
-          });
+      const mappedDataset = {
+        id: ds.svc_no,
+        name: ds.svc_nm || ds.svc_no,
+        subject: ds.cl_cd_nm || '기타',
+        process: '제공 데이터',
+        dataCount: ds.data_cnt || 0,
+        description: ds.desc || ds.description || '상세 설명이 없습니다.',
+        detail: {}
       };
-
-      fetchAndDraw();
+      renderDetailPanel(mappedDataset, () => renderDetailPanel(null));
     };
 
-    const drawWordCloud = (wordsArray, wrap) => {
-      const tryDraw = () => {
-        if (!window.d3 || !window.d3.layout || !window.d3.layout.cloud) {
-          setTimeout(tryDraw, 100); return;
-        }
-        const width = wrap.clientWidth || 700;
-        const height = wrap.clientHeight || 360;
-        const fill = d3.scaleOrdinal(d3.schemeTableau10);
-
-        window.d3.layout.cloud()
-          .size([width - 20, height - 20])
-          .words(wordsArray)
-          .padding(4)
-          .rotate(() => (~~(Math.random() * 2) * 90))
-          .font('Noto Sans KR, sans-serif')
-          .fontSize(d => d.size)
-          .on('end', words => {
-            wrap.innerHTML = '';
-            d3.selectAll('.wordcloud-tooltip').remove();
-            const svg = d3.select(wrap).append('svg')
-              .attr('width', width).attr('height', height)
-              .style('background', '#f8fafc');
-            const tooltip = d3.select('body').append('div')
-              .attr('class', 'wordcloud-tooltip')
-              .style('position', 'absolute').style('visibility', 'hidden')
-              .style('background', 'rgba(0,0,0,.8)').style('color', '#fff')
-              .style('padding', '6px 12px').style('border-radius', '4px')
-              .style('font-size', '13px').style('pointer-events', 'none').style('z-index', '9999');
-            svg.append('g')
-              .attr('transform', `translate(${width / 2},${height / 2})`)
-              .selectAll('text').data(words).enter().append('text')
-              .style('font-size', d => d.size + 'px')
-              .style('font-family', 'Noto Sans KR, sans-serif')
-              .style('fill', (_, i) => fill(i))
-              .attr('text-anchor', 'middle')
-              .attr('transform', d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
-              .text(d => d.text)
-              .style('cursor', 'pointer')
-              .on('mouseover', function(event, d) {
-                d3.select(this).style('opacity', 0.7);
-                tooltip.style('visibility', 'visible').text(`'${d.text}' (${d.actualCount || '다수'}회 출현)`);
-              })
-              .on('mousemove', function(event) {
-                tooltip.style('top', (event.pageY - 35) + 'px').style('left', (event.pageX + 10) + 'px');
-              })
-              .on('mouseout', function() {
-                d3.select(this).style('opacity', 1);
-                tooltip.style('visibility', 'hidden');
-              });
-          })
-          .start();
-      };
-      tryDraw();
-    };
-
-    // 키워드 데이터맵 검색 버튼 연동
+    // 키워드 검색 버튼 · Enter 키 이벤트 바인딩
     const searchBtn = view.querySelector('#btn-datamap-keyword-search');
     if (searchBtn) {
       const doSearch = async () => {
@@ -531,7 +518,7 @@ export function renderDataMap(container, onSelectDataset) {
           if (!canvas?.querySelector('svg, canvas, .vis-network')) {
             erdRendered = true;
             showErdSpinner(panel);
-            if (panel) renderCombinedErdMap(panel);
+            if (panel) renderReactErdMap(panel, onSelectDataset);
           }
         }
       };
@@ -550,32 +537,56 @@ export function renderDataMap(container, onSelectDataset) {
       }
     }
 
-    // 화면 캡처 버튼
+    // 현재 활성 탭(트리맵·시각화·ERD)을 PNG로 캡처하여 다운로드함
     const captureBtn = view.querySelector('#btn-treemap-capture');
     if (captureBtn) {
       captureBtn.addEventListener('click', async () => {
         let targetElement = null;
         let filename = '식품안전나라_데이터맵';
-        
+
         const treemapPanel = view.querySelector('#content-panel-treemap');
         const vizPanel = view.querySelector('#content-panel-visualization');
         const erdPanel = view.querySelector('#content-panel-erd');
-        
+
         if (treemapPanel && treemapPanel.style.display !== 'none') {
-            targetElement = view.querySelector('#treemap-container');
-            filename = '식품안전나라_데이터분포_트리맵';
+          targetElement = view.querySelector('#treemap-container');
+          filename = '식품안전나라_데이터분포_트리맵';
         } else if (vizPanel && vizPanel.style.display !== 'none') {
-            // 상세정보 패널이나 줌 버튼 등 UI 요소를 제외하고 순수 그래프 부분만 캡처
-            targetElement = view.querySelector('#kwmap-svg-wrap') || view.querySelector('#kwmap-graph-container');
-            filename = '식품안전나라_키워드시각화_데이터맵';
+          // 상세정보 패널이나 줌 버튼 등 UI 요소를 제외하고 순수 그래프 부분만 캡처
+          targetElement = view.querySelector('#kwmap-svg-wrap') || view.querySelector('#kwmap-graph-container');
+          filename = '식품안전나라_키워드시각화_데이터맵';
         } else if (erdPanel && erdPanel.style.display !== 'none') {
-            const erdBtn = view.querySelector('#cem-capture');
-            if (erdBtn) {
-               erdBtn.click();
-               return; // ERD 자체 고해상도(3200x2400) 캡처 로직 사용
+          const btnErdReact = view.querySelector('#btn-erd-react');
+          const isReactActive = btnErdReact && btnErdReact.classList.contains('text-blue-600') && btnErdReact.classList.contains('bg-white');
+          if (isReactActive) {
+            // React Flow 탭: 컴포넌트 내장 캡처 함수 사용 (CSS transform 짤림 방지)
+            const panel = view.querySelector('#content-panel-erd');
+            if (panel?._rfCapture) {
+              captureBtn.disabled = true;
+              captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 캡처 중...';
+              try {
+                const cvs = await panel._rfCapture();
+                if (cvs) {
+                  const link = document.createElement('a');
+                  link.download = '식품안전나라_데이터융합관계도_ReactFlow.png';
+                  link.href = cvs.toDataURL('image/png');
+                  link.click();
+                }
+              } finally {
+                captureBtn.disabled = false;
+                captureBtn.innerHTML = '<i class="ri-camera-line"></i> 화면 캡처';
+              }
+              return;
             }
             targetElement = view.querySelector('#cem-canvas');
-            filename = '식품안전나라_데이터융합관계도';
+            filename = '식품안전나라_데이터융합관계도_ReactFlow';
+          } else {
+            // Vis.js 탭: 자체 고해상도 캡처 사용
+            const erdBtn = view.querySelector('#cem-capture');
+            if (erdBtn) { erdBtn.click(); return; }
+            targetElement = view.querySelector('#cem-canvas');
+            filename = '식품안전나라_데이터융합관계도_Visjs';
+          }
         }
 
         if (!targetElement || typeof html2canvas === 'undefined') return;
@@ -584,41 +595,25 @@ export function renderDataMap(container, onSelectDataset) {
         captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 요소 정렬 중...';
 
         try {
-          // 캡처 전 요소가 화면에 딱 맞게 정렬되도록(짤림 방지) 자동 맞춤 실행
           if (filename === '식품안전나라_키워드시각화_데이터맵') {
-             const homeBtn = view.querySelector('#kwmap-zoom-home');
-             if (homeBtn) {
-                 homeBtn.click();
-                 await new Promise(r => setTimeout(r, 800)); // 애니메이션 대기
-             }
-          } else if (filename === '식품안전나라_데이터융합관계도') {
-             const fitBtn = view.querySelector('#cem-fit');
-             if (fitBtn) {
-                 fitBtn.click();
-                 await new Promise(r => setTimeout(r, 1000)); // 물리 엔진/애니메이션 대기
-             }
+            const homeBtn = view.querySelector('#kwmap-zoom-home');
+            if (homeBtn) {
+              homeBtn.click();
+              await new Promise(r => setTimeout(r, 800));
+            }
           }
 
           captureBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> 이미지 생성 중...';
 
-          // overflow hidden 임시 해제하여 캔버스 짤림 방지
-          const origOverflow = targetElement.style.overflow;
-          targetElement.style.overflow = 'visible';
-
           const canvas = await html2canvas(targetElement, {
-            scale: 4,
+            scale: 3,
             useCORS: true,
             backgroundColor: '#ffffff',
-            width: targetElement.scrollWidth,
-            height: targetElement.scrollHeight,
-            windowWidth: targetElement.scrollWidth,
-            windowHeight: targetElement.scrollHeight,
+            logging: false,
           });
 
-          targetElement.style.overflow = origOverflow;
-
           const link = document.createElement('a');
-          link.download = `${filename}_${new Date().toISOString().slice(0,10)}.png`;
+          link.download = `${filename}_${new Date().toISOString().slice(0, 10)}.png`;
           link.href = canvas.toDataURL('image/png');
           link.click();
         } catch (e) {
@@ -632,6 +627,10 @@ export function renderDataMap(container, onSelectDataset) {
     }
   };
 
+  // =============================================================================
+  // 2. 색상 유틸리티
+  // =============================================================================
+  // 카테고리 미매핑 시 사용하는 fallback 색상 팔레트
   const colorScale = [
     '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
     '#0891b2', '#ea580c', '#4f46e5', '#db2777', '#0d9488',
@@ -639,6 +638,7 @@ export function renderDataMap(container, onSelectDataset) {
     '#059669', '#be123c', '#475569'
   ];
 
+  // 분야명 → 고정 브랜드 색상 맵
   const categoryColorMap = {
     '식품영양정보': '#16a34a',
     '기준규격정보': '#2563eb',
@@ -660,7 +660,9 @@ export function renderDataMap(container, onSelectDataset) {
     '용어사전': '#ca8a04'
   };
 
+  // 분야명에 해당하는 색상을 반환함 (없으면 colorScale fallback)
   const getColor = (subject, idx) => categoryColorMap[subject] || colorScale[idx % colorScale.length];
+  // HEX 색상 문자열을 { r, g, b } 객체로 변환함
   const hexToRgb = (hex) => {
     const raw = String(hex || '').replace('#', '');
     const value = raw.length === 3 ? raw.split('').map(ch => ch + ch).join('') : raw;
@@ -671,11 +673,16 @@ export function renderDataMap(container, onSelectDataset) {
       b: n & 255
     };
   };
+  // 분야 색상의 12% 투명도 rgba 문자열을 반환함 (배경 칩 등에 사용)
   const getSoftColor = (subject, idx) => {
     const rgb = hexToRgb(getColor(subject, idx));
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
   };
 
+  // =============================================================================
+  // 3. 데이터 변환 유틸리티
+  // =============================================================================
+  // 데이터세트 배열에서 분야별 집계 배열을 생성함
   const buildSubjectArrayFromDatasets = (datasets) => {
     const subjectCounts = {};
     const total = datasets.length;
@@ -701,6 +708,7 @@ export function renderDataMap(container, onSelectDataset) {
     })).sort((a, b) => b.count - a.count);
   };
 
+  // 데이터세트 배열에서 기관별 집계 배열을 생성함
   const buildInstitutionArrayFromDatasets = (datasets) => {
     const instCounts = {};
     const total = datasets.length;
@@ -727,6 +735,7 @@ export function renderDataMap(container, onSelectDataset) {
     })).sort((a, b) => b.count - a.count);
   };
 
+  // 검색·필터 결과로 트리맵·사이드바·카운트를 일괄 갱신함
   const updateTreemapForSearch = (datasets, kw, isFromCheckbox = false) => {
     const filteredSubjectArray = buildSubjectArrayFromDatasets(datasets);
     const filteredInstitutionArray = buildInstitutionArrayFromDatasets(datasets);
@@ -738,15 +747,16 @@ export function renderDataMap(container, onSelectDataset) {
     if (countEl) countEl.textContent = kw ? `"${kw}" 검색 ${datasets.length}종` : `전체 ${datasets.length}종`;
     if (instCountEl) instCountEl.textContent = `총 ${filteredInstitutionArray.length}개 기관`;
     if (treemapPanel) showTreemapOriginal(treemapPanel);
-    
+
     if (!isFromCheckbox) {
       renderCategoryList(filteredSubjectArray);
       renderInstitutionList(filteredInstitutionArray);
     }
-    
+
     renderTreemap(filteredSubjectArray);
   };
 
+  // 분야·기관 체크박스 선택 상태를 읽어 트리맵과 ERD를 동시에 필터링함
   const applyCombinedFilters = () => {
     const view = document.getElementById('datamap-view');
     const selectedCats = Array.from(view.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
@@ -770,6 +780,10 @@ export function renderDataMap(container, onSelectDataset) {
     window.dispatchEvent(new CustomEvent('datamap-filter-updated', { detail: { matchedIds } }));
   };
 
+  // =============================================================================
+  // 4. 사이드바 목록 렌더링
+  // =============================================================================
+  // 분야별 체크박스 목록을 #category-list-container에 렌더링함
   const renderCategoryList = (subjectArray) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
@@ -795,6 +809,7 @@ export function renderDataMap(container, onSelectDataset) {
     });
   };
 
+  // 기관별 체크박스 목록을 #institution-list-container에 렌더링함
   const renderInstitutionList = (instArray) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
@@ -819,10 +834,15 @@ export function renderDataMap(container, onSelectDataset) {
     });
   };
 
+  // =============================================================================
+  // 5. 트리맵 및 드릴다운
+  // =============================================================================
+  // 마지막 렌더 데이터 캐시 (리사이즈 시 재렌더용)
   let lastTreemapData = null;
   let treemapResizeObserver = null;
   let lastTreemapWidth = 0;
 
+  // D3 treemap으로 분야별 데이터 분포를 시각화하고 클릭 시 드릴다운함
   const renderTreemap = (subjectArray) => {
     if (typeof d3 === 'undefined') return;
 
@@ -922,7 +942,7 @@ export function renderDataMap(container, onSelectDataset) {
         const fitSize = Math.floor(w / (name.length * 0.65));
         return Math.min(maxFontSize, Math.max(minFontSize, fitSize)) + "px";
       })
-      .each(function(d) {
+      .each(function (d) {
         const w = d.x1 - d.x0;
         if (w < 20) { d3.select(this).text(""); return; }
         d3.select(this).text(d.data.name);
@@ -952,14 +972,17 @@ export function renderDataMap(container, onSelectDataset) {
       });
   };
 
+  // 트리맵 패널 DOM 엘리먼트를 반환함
   const getTreemapPanel = () => document.getElementById('datamap-view')?.querySelector('#content-panel-treemap');
 
+  // 트리맵 교체 뷰 진입 시 원래 자식 엘리먼트를 숨김
   const hideTreemapOriginal = (panel) => {
     Array.from(panel.children).forEach(child => {
       if (child.id !== 'treemap-replacement-view') child.style.display = 'none';
     });
   };
 
+  // 교체 뷰에서 원래 트리맵 패널로 복귀함
   const showTreemapOriginal = (panel) => {
     panel.querySelector('#treemap-replacement-view')?.remove();
     Array.from(panel.children).forEach(child => {
@@ -967,6 +990,7 @@ export function renderDataMap(container, onSelectDataset) {
     });
   };
 
+  // 트리맵 데이터세트 상세 뷰의 워드 클라우드를 fetch하고 그림
   const renderTreemapWordCloud = (tableName, wrap) => {
     if (!wrap) return;
 
@@ -1016,14 +1040,14 @@ export function renderDataMap(container, onSelectDataset) {
               .attr('transform', d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
               .text(d => d.text)
               .style('cursor', 'pointer')
-              .on('mouseover', function(event, d) {
+              .on('mouseover', function (event, d) {
                 d3.select(this).style('opacity', 0.7);
                 tooltip.style('visibility', 'visible').text(`'${d.text}' (${d.actualCount || '다수'}회 출현)`);
               })
-              .on('mousemove', function(event) {
+              .on('mousemove', function (event) {
                 tooltip.style('top', (event.pageY - 35) + 'px').style('left', (event.pageX + 10) + 'px');
               })
-              .on('mouseout', function() {
+              .on('mouseout', function () {
                 d3.select(this).style('opacity', 1);
                 tooltip.style('visibility', 'hidden');
               });
@@ -1061,105 +1085,21 @@ export function renderDataMap(container, onSelectDataset) {
     fetchAndDraw();
   };
 
+  // 트리맵 내 데이터세트 상세 페이지(컬럼표 + 워드 클라우드)를 렌더링함
   const showTreemapDatasetDetail = (dataset, categoryData) => {
-    const panel = getTreemapPanel();
-    const page = panel?.querySelector('#treemap-replacement-view');
-    if (!panel || !page) return;
-
-    const categoryColor = getColor(categoryData.subject, 0);
-    const categoryBg = getSoftColor(categoryData.subject, 0);
-    const tableName = dataset.id || dataset.svc_no;
-
-    page.innerHTML = `
-      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <!-- 헤더 -->
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid #f1f5f9;background:#f8fafc;">
-          <div>
-            <button id="btn-back-dataset-list" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-gov-700 mb-3">
-              <i class="ri-arrow-left-line"></i> 데이터세트 목록
-            </button>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-              <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:3px;background:${categoryBg};color:${categoryColor};border:1px solid ${categoryColor}33;">${categoryData.subject}</span>
-              <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:3px;background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;">API</span>
-              <span style="font-size:12px;color:#94a3b8;">ID: ${tableName || '-'}</span>
-            </div>
-            <h3 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 4px;">${dataset.name || dataset.svc_nm || '-'}</h3>
-            <p style="font-size:13px;color:#6b7280;margin:0;">${dataset.users?.[0] || dataset.provd_instt_nm || '식품의약품안전처'}</p>
-          </div>
-        </div>
-
-        <!-- 설명 -->
-        <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;">
-          <p style="font-size:14px;color:#374151;line-height:1.7;margin:0;">${dataset.description || '데이터세트 설명 정보가 없습니다.'}</p>
-        </div>
-
-        <!-- 컬럼 정보 -->
-        <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;">
-          <h4 style="font-size:14px;font-weight:700;color:#111827;margin:0 0 12px;display:flex;align-items:center;gap:6px;">
-            <i class="ri-table-line" style="color:#2563eb;"></i> 데이터 컬럼 정보
-          </h4>
-          <div id="treemap-detail-columns" style="overflow-x:auto;">
-            <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px;">컬럼 정보를 불러오는 중...</div>
-          </div>
-        </div>
-
-        <!-- 워드 클라우드 -->
-        <div style="padding:20px 24px;">
-          <h4 style="font-size:14px;font-weight:700;color:#111827;margin:0 0 4px;display:flex;align-items:center;gap:6px;">
-            <i class="ri-cloud-line" style="color:#2563eb;"></i> 워드 클라우드 정보
-            <span style="font-size:12px;font-weight:400;color:#94a3b8;">— 실제 데이터에서 자주 등장하는 키워드</span>
-          </h4>
-          <div id="treemap-detail-wordcloud-wrap" style="width:100%;height:380px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-top:12px;">
-            <div style="text-align:center;color:#64748b;">
-              <div style="display:inline-block;width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
-              <div data-wordcloud-loading-text style="font-size:14px;">워드 클라우드 생성 중...</div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-
-    page.querySelector('#btn-back-dataset-list')?.addEventListener('click', () => showCategoryDatasets(categoryData));
-
-    // 컬럼 정보 fetch
-    const colWrap = page.querySelector('#treemap-detail-columns');
-    fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(tableName)}`)
-      .then(r => r.json())
-      .then(cols => {
-        if (!cols || cols.length === 0) {
-          colWrap.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:8px 0;">컬럼 정보가 없습니다.</div>';
-          return;
-        }
-        colWrap.innerHTML = `
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:#f8fafc;">
-                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">컬럼명 (영문)</th>
-                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">한글명</th>
-                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">타입</th>
-                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">설명</th>
-                <th style="text-align:left;padding:8px 12px;border:1px solid #e2e8f0;color:#374151;font-weight:700;white-space:nowrap;">샘플</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${cols.map((c, i) => `
-                <tr style="background:${i % 2 === 0 ? '#fff' : '#fafafa'};">
-                  <td style="padding:7px 12px;border:1px solid #e2e8f0;font-family:monospace;color:#1d4ed8;font-weight:600;">${c.field || '-'}</td>
-                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#374151;">${c.kor_nm || '-'}</td>
-                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#6b7280;">${c.type || '-'}</td>
-                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#6b7280;max-width:200px;">${c.desc && c.desc !== c.field ? c.desc : '-'}</td>
-                  <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#94a3b8;font-family:monospace;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.sample || ''}">${c.sample || '-'}</td>
-                </tr>`).join('')}
-            </tbody>
-          </table>`;
-      })
-      .catch(() => {
-        colWrap.innerHTML = '<div style="color:#ef4444;font-size:13px;padding:8px 0;">컬럼 정보를 불러오지 못했습니다.</div>';
-      });
-
-    renderTreemapWordCloud(String(tableName || ''), page.querySelector('#treemap-detail-wordcloud-wrap'));
-    page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const mappedDataset = {
+      id: dataset.id || dataset.svc_no,
+      name: dataset.name || dataset.svc_nm || '-',
+      subject: categoryData.subject || '기타',
+      process: '제공 데이터',
+      dataCount: dataset.dataCount || 0,
+      description: dataset.description || '데이터세트 설명 정보가 없습니다.',
+      detail: {}
+    };
+    renderDetailPanel(mappedDataset, () => renderDetailPanel(null));
   };
 
+  // (구버전) 분야 클릭 시 검색결과 패널에 카드 목록을 표시함
   const showCategoryDatasetsLegacy = (categoryData) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
@@ -1250,6 +1190,7 @@ export function renderDataMap(container, onSelectDataset) {
     resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // 트리맵 셀 클릭 시 해당 분야 데이터세트 목록 페이지를 렌더링함
   const showCategoryDatasets = (categoryData) => {
     const view = document.getElementById('datamap-view');
     const panel = getTreemapPanel();
@@ -1338,14 +1279,15 @@ export function renderDataMap(container, onSelectDataset) {
       // 페이지네이션 렌더
       if (!paginationEl) return;
       const tp = totalPages();
-      if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch(e) {} paginationEl.innerHTML = ''; return; }
-      try { $(paginationEl).pagination('destroy'); } catch(e) {}
+      if (tp <= 1) { try { $(paginationEl).pagination('destroy'); } catch (e) { } paginationEl.innerHTML = ''; return; }
+      try { $(paginationEl).pagination('destroy'); } catch (e) { }
       $(paginationEl).pagination({
         items: items.length,
         itemsOnPage: PAGE_SIZE,
         cssStyle: 'compact-theme',
         currentPage: currentPage,
-        onPageClick: (pageNumber) => {
+        onPageClick: (pageNumber, event) => {
+          if (event) event.preventDefault();
           currentPage = pageNumber;
           renderCategoryPage();
           page.scrollIntoView({ behavior: 'smooth', block: 'start' });

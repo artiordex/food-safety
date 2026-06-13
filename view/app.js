@@ -1,8 +1,8 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
-import { renderDataMap } from './components/dataMap.js?v=11';
-import { renderErdMap } from './components/erdMap.js?v=3';
+import { renderDataMap } from './components/dataMap.js?v=32';
+import { renderErdMap } from './components/erdMap.js?v=4';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
-import { renderDetailPanel } from './components/detailPanel.js?v=3';
+import { renderDetailPanel } from './components/detailDataset.js?v=4';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=3';
 import { renderApiExplorer } from './components/apiExplorer.js?v=3';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
@@ -17,9 +17,9 @@ const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
 
 const path = window.location.pathname;
-if (path.includes('/data/dataset.do')) {
+if (path.includes('/data/dataset.do') || path.includes('/pages/data/dataset.html')) {
   activeTab = urlParams.get('tab') || 'explorer';
-} else if (path.includes('/data/datamap.do')) {
+} else if (path.includes('/data/datamap.do') || path.includes('/pages/data/datamap.html')) {
   activeTab = urlParams.get('tab') || 'datamap';
 } else if (path.includes('/data/erdmap.html')) {
   activeTab = urlParams.get('tab') || 'erdmap';
@@ -131,7 +131,7 @@ const updateActiveTabUI = () => {
 
   if (datamapTabBar) {
     // 쪼개진 정적 페이지에 속한 서브 탭들의 보임/숨김 제어
-    const isDatamapPage = window.location.pathname.includes('/data/datamap.do');
+  const isDatamapPage = window.location.pathname.includes('/data/datamap.do') || window.location.pathname.includes('/pages/data/datamap.html');
     const isScenarioPage = window.location.pathname.includes('/data/scenario.do');
     const isAnalysisPage = window.location.pathname.includes('/data/analysis.do');
 
@@ -142,7 +142,7 @@ const updateActiveTabUI = () => {
   }
 
   // datamap 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatamapPage = window.location.pathname.includes('/data/datamap.do');
+  const isDatamapPage = window.location.pathname.includes('/data/datamap.do') || window.location.pathname.includes('/pages/data/datamap.html');
   if (isDatamapPage) {
     const container = document.getElementById('datamap-tabs-container');
     if (container) {
@@ -159,7 +159,7 @@ const updateActiveTabUI = () => {
   }
 
   // dataset 페이지의 통합 탭바 디자인 활성화 제어
-  const isDatasetPage = window.location.pathname.includes('/data/dataset.do');
+  const isDatasetPage = window.location.pathname.includes('/data/dataset.do') || window.location.pathname.includes('/pages/data/dataset.html');
   if (isDatasetPage) {
     const container = document.getElementById('dataset-tabs-container');
     if (container) {

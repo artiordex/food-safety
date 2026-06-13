@@ -33,7 +33,7 @@ export function renderDetailPanel(dataset, onClose) {
   window._detailPanelEscHandler = handleEsc;
   window.addEventListener("keydown", window._detailPanelEscHandler);
 
-  const includedListHTML = dataset.detail.includedList.map((item, i) => `
+  const includedListHTML = (dataset.detail?.includedList || []).map((item, i) => `
     <li class="flex items-start gap-2.5 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-4 py-3">
       <span class="w-5 h-5 rounded-full bg-gov-50 text-gov-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
         ${i + 1}
@@ -42,32 +42,32 @@ export function renderDetailPanel(dataset, onClose) {
     </li>
   `).join('');
 
-  const joinKeysHTML = dataset.detail.joinKeys.map(key => `
+  const joinKeysHTML = (dataset.detail?.joinKeys || []).map(key => `
     <div class="flex items-center gap-2 text-sm text-slate-700 bg-teal-50 border border-teal-100 rounded-lg px-4 py-2.5">
       <i class="ri-key-2-line text-teal-600"></i>
       ${key}
     </div>
   `).join('');
 
-  const scenariosHTML = dataset.detail.scenarios.map(scenario => `
+  const scenariosHTML = (dataset.detail?.scenarios || []).map(scenario => `
     <li class="text-sm text-slate-700 flex items-start gap-2">
       <i class="ri-check-double-line text-emerald-500 mt-0.5 shrink-0"></i>
       ${scenario}
     </li>
   `).join('');
 
-  const recommendedUsersHTML = dataset.detail.recommendedUsers.map(u => `
+  const recommendedUsersHTML = (dataset.detail?.recommendedUsers || []).map(u => `
     <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">${u}</span>
   `).join('');
 
-  const guideLinksHTML = dataset.detail.guideLinks.map(link => `
+  const guideLinksHTML = (dataset.detail?.guideLinks || []).map(link => `
     <a href="${link.url}" class="flex items-center gap-2 text-sm text-gov-700 hover:text-gov-900 bg-gov-50 hover:bg-gov-100 border border-gov-100 rounded-lg px-4 py-2.5 transition-colors">
       <i class="ri-external-link-line text-xs"></i>
       ${link.label}
     </a>
   `).join('');
 
-  const examplesHTML = dataset.detail.examples.map((ex, i) => `
+  const examplesHTML = (dataset.detail?.examples || []).map((ex, i) => `
     <div class="mb-2 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
       <span class="text-gov-600 font-semibold text-xs mr-1.5">예시 ${i + 1}</span>
       ${ex}
@@ -112,7 +112,7 @@ export function renderDetailPanel(dataset, onClose) {
             <i class="ri-file-list-3-line text-gov-600"></i> 데이터세트 개요
           </h3>
           <p class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-lg p-4 border border-slate-100">
-            ${dataset.detail.overview}
+            ${dataset.detail?.overview || dataset.description || ""}
           </p>
         </div>
 
@@ -172,6 +172,30 @@ export function renderDetailPanel(dataset, onClose) {
             <i class="ri-bar-chart-box-line text-gov-600"></i> 예상 활용 예시
           </h3>
           ${examplesHTML}
+        </div>
+
+        
+        <!-- 워드 클라우드 영역 -->
+        <div class="mb-6">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i class="ri-cloud-line text-gov-600"></i> 키워드 워드 클라우드
+          </h3>
+          <div id="detail-wordcloud-wrap" class="w-full h-[320px] bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center relative overflow-hidden">
+            <div id="detail-wc-loading" class="text-center text-slate-500 text-xs">
+              <i class="ri-loader-4-line animate-spin text-gov-600 text-lg mr-1 inline-block align-middle"></i>
+              워드 클라우드 분석 중...
+            </div>
+          </div>
+        </div>
+
+        <!-- 데이터 컬럼 정보 -->
+        <div class="mb-6">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i class="ri-table-line text-gov-600"></i> 데이터 컬럼 (스키마)
+          </h3>
+          <div id="detail-columns-wrap" class="overflow-x-auto border border-slate-200 rounded-xl">
+             <div class="p-4 text-center text-slate-500 text-xs">컬럼 정보를 불러오는 중...</div>
+          </div>
         </div>
 
         <!-- Live DB Preview -->
@@ -375,7 +399,135 @@ export function renderDetailPanel(dataset, onClose) {
     bindToggleListeners();
   }, 100);
 
-  const doClose = () => {
+  
+  // 워드 클라우드 렌더링
+  const renderDetailWordCloud = (tableName, wrap) => {
+    const fetchAndDraw = () => {
+      fetch(`/api/wordcloud?tableName=${tableName}`)
+        .then(res => {
+          if (res.status === 202) {
+            const loadEl = wrap.querySelector('#detail-wc-loading');
+            if (loadEl) loadEl.innerHTML = '<i class="ri-loader-4-line animate-spin text-gov-600 text-lg mr-1 inline-block align-middle"></i>데이터 분석 중... 잠시만 기다려주세요.';
+            setTimeout(fetchAndDraw, 2000);
+            throw new Error('BUILDING');
+          }
+          if (!res.ok) throw new Error('FAIL');
+          return res.json();
+        })
+        .then(words => {
+          if (!words || words.length === 0) {
+            wrap.innerHTML = '<div class="text-slate-400 text-sm">분석할 텍스트 데이터가 없습니다.</div>';
+            return;
+          }
+          drawWordCloud(words, wrap);
+        })
+        .catch(err => {
+          if (err.message === 'BUILDING') return;
+          wrap.innerHTML = '<div class="text-rose-500 text-sm">워드 클라우드 데이터를 불러오지 못했습니다.</div>';
+        });
+    };
+    fetchAndDraw();
+  };
+
+  const drawWordCloud = (wordsArray, wrap) => {
+    const tryDraw = () => {
+      if (!window.d3 || !window.d3.layout || !window.d3.layout.cloud) {
+        setTimeout(tryDraw, 100); return;
+      }
+      const width = wrap.clientWidth || 600;
+      const height = wrap.clientHeight || 320;
+      const fill = window.d3.scaleOrdinal(window.d3.schemeTableau10);
+
+      window.d3.layout.cloud()
+        .size([width - 20, height - 20])
+        .words(wordsArray)
+        .padding(4)
+        .rotate(() => (~~(Math.random() * 2) * 90))
+        .font('Noto Sans KR, sans-serif')
+        .fontSize(d => d.size)
+        .on('end', words => {
+          wrap.innerHTML = '';
+          window.d3.selectAll('.wordcloud-tooltip').remove();
+          const svg = window.d3.select(wrap).append('svg')
+            .attr('width', width).attr('height', height)
+            .style('background', '#f8fafc');
+          
+          const tooltip = window.d3.select('body').append('div')
+            .attr('class', 'wordcloud-tooltip')
+            .style('position', 'absolute').style('visibility', 'hidden')
+            .style('background', 'rgba(0,0,0,.8)').style('color', '#fff')
+            .style('padding', '6px 12px').style('border-radius', '4px')
+            .style('font-size', '13px').style('pointer-events', 'none').style('z-index', '99999');
+
+          svg.append('g')
+            .attr('transform', `translate(${width / 2},${height / 2})`)
+            .selectAll('text').data(words).enter().append('text')
+            .style('font-size', d => d.size + 'px')
+            .style('font-family', 'Noto Sans KR, sans-serif')
+            .style('fill', (_, i) => fill(i))
+            .attr('text-anchor', 'middle')
+            .attr('transform', d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+            .text(d => d.text)
+            .style('cursor', 'pointer')
+            .on('mouseover', function(event, d) {
+              window.d3.select(this).style('opacity', 0.7);
+              tooltip.style('visibility', 'visible').text(`'${d.text}' (${d.actualCount || '다수'}회 출현)`);
+            })
+            .on('mousemove', function(event) {
+              tooltip.style('top', (event.pageY - 35) + 'px').style('left', (event.pageX + 10) + 'px');
+            })
+            .on('mouseout', function() {
+              window.d3.select(this).style('opacity', 1);
+              tooltip.style('visibility', 'hidden');
+            });
+        })
+        .start();
+    };
+    tryDraw();
+  };
+
+  // 컬럼 정보 가져오기
+  const loadColumns = () => {
+    const colWrap = container.querySelector('#detail-columns-wrap');
+    fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(dataset.id)}`)
+      .then(r => r.json())
+      .then(cols => {
+        if (!cols || cols.length === 0) {
+          colWrap.innerHTML = '<div class="p-4 text-center text-slate-400 text-sm">컬럼 정보가 없습니다.</div>';
+          return;
+        }
+        colWrap.innerHTML = `
+          <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="px-3 py-2 w-1/3">컬럼명 (영문)</th>
+                <th class="px-3 py-2">한글명 (설명)</th>
+                <th class="px-3 py-2">타입</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              ${cols.map((c, i) => `
+                <tr class="hover:bg-slate-50/50">
+                  <td class="px-3 py-2 font-mono text-gov-700">${c.field || '-'}</td>
+                  <td class="px-3 py-2">${c.kor_nm || '-'}</td>
+                  <td class="px-3 py-2 text-slate-500 font-mono text-[11px]">${c.sql_type || c.data_type || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      })
+      .catch(() => {
+        colWrap.innerHTML = '<div class="p-4 text-center text-rose-500 text-sm">컬럼 정보를 불러오지 못했습니다.</div>';
+      });
+  };
+
+  setTimeout(() => {
+    renderDetailWordCloud(dataset.id, container.querySelector('#detail-wordcloud-wrap'));
+    loadColumns();
+  }, 100);
+
+const doClose = () => {
     window.removeEventListener("keydown", window._detailPanelEscHandler);
     onClose();
   };

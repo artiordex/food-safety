@@ -1,16 +1,24 @@
+/**
+ * 식품안전나라 Open API 데이터 관계 분석 엑셀 보고서 생성 스크립트
+ *
+ * 주요 기능:
+ * 1. 데이터셋 목록, 공통키 분석, 키×데이터셋 맵 시트 생성
+ * 2. 결합 시나리오, SQLite 조인 검증, Arquero 상세 분석 시트 생성
+ * 3. PK/FK 후보 분석 결과를 기존 엑셀 파일에 부분 갱신
+ * 4. ExcelJS 기반 워크북 메타데이터, 시트 스타일, 셀 포맷 자동 적용
+ */
+
 const ExcelJS = require('exceljs');
 const logger = require('../utils/logger');
 
 // 기존 호출부와 호환되는 log 래퍼
 const log = {
-  info:  (msg) => logger.info(msg),
-  warn:  (msg) => logger.warn(msg),
-  error: (msg) => logger.error(msg),
+  info: (...args) => logger.info(...args),
+  warn: (...args) => logger.warn(...args),
+  error: (...args) => logger.error(...args),
 };
 
-// ═════════════════════════════════════════════════════════════
 // 상수 정의
-// ═════════════════════════════════════════════════════════════
 
 const MAX_CROSS_KEYS = 35;   // 크로스맵에 표시할 최대 공통키 수
 const DESC_MAX_LEN = 100;  // 설명 필드 최대 표시 길이
@@ -71,9 +79,7 @@ const TAB_COLORS = {
   [SHEET_NAMES.FK_CANDIDATES]: 'ED7D31',
 };
 
-// ═════════════════════════════════════════════════════════════
 // 공통 유틸리티
-// ═════════════════════════════════════════════════════════════
 
 // 전달된 값을 항상 배열 형태로 변환하여 반환 (null/undefined 방지)
 function toArray(value) {
@@ -171,9 +177,7 @@ function normalizeScenarios(scenarios) {
   return toArray(scenarios).map(normalizeScenario);
 }
 
-/**
- * 공통 셀 포맷터
- */
+// 공통 셀 포맷터
 function formatCell(cell, {
   val = undefined,
   bg = 'FFFFFF',
@@ -225,12 +229,12 @@ function writeRow(ws, rowNo, cols, defaultStyle = {}) {
   });
 }
 
-/** 카테고리에 맞는 배경색 반환 */
+// 카테고리에 맞는 배경색 반환
 function catBg(cat, idx) {
   return CAT_COLOR[cat] || (idx % 2 ? 'F9F9F9' : 'FFFFFF');
 }
 
-/** 점수(0~100)에 따른 배경색 반환 */
+// 점수(0~100)에 따른 배경색 반환
 function scoreBg(score) {
   const safeScore = toSafeNumber(score, 0);
   if (safeScore >= 70) return 'C6EFCE';
@@ -239,7 +243,7 @@ function scoreBg(score) {
   return 'F2F3F4';
 }
 
-/** 사용 비율(%)에 따른 히트맵 배경/글자색 반환 */
+// 사용 비율(%)에 따른 히트맵 배경/글자색 반환
 function heatmap(pct) {
   const safePct = toSafeNumber(pct, 0);
   if (safePct >= 70) return { bg: 'C00000', fg: 'FFFFFF' };
@@ -248,14 +252,14 @@ function heatmap(pct) {
   return { bg: 'FFFFFF', fg: '000000' };
 }
 
-/** 열 너비 배열을 한 번에 설정 */
+// 열 너비 배열을 한 번에 설정
 function setColWidths(ws, widths) {
   widths.forEach((w, i) => {
     ws.getColumn(i + 1).width = w;
   });
 }
 
-/** 헤더 행을 한 번에 렌더링 */
+// 헤더 행을 한 번에 렌더링
 function renderHeader(ws, row, headers, bg = '1F4E79', fg = 'FFFFFF') {
   ws.getRow(row).height = 30;
   headers.forEach((h, i) => {
@@ -282,9 +286,7 @@ function setWorksheetCommon(ws, sheetName, views = [{ showGridLines: false }]) {
   ws.properties.tabColor = { argb: `FF${TAB_COLORS[sheetName] || '1F4E79'}` };
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 1: 분석 개요
-// ═════════════════════════════════════════════════════════════
 function shCover(ws, datasets, ka, scenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.COVER);
   setColWidths(ws, [3, 26, 52, 18]);
@@ -354,15 +356,15 @@ function shCover(ws, datasets, ka, scenarios) {
   ws.getRow(12).height = 24;
 
   const steps = [
-    ['STEP 1', '목록 크롤링',        'crawler_api.js: searchDatasetList.do AJAX POST → 전체 Open API 데이터셋 목록 수집'],
-    ['STEP 2', '링크 수집',          'crawler_link.js: 각 데이터셋 링크 캐시 업데이트 및 SQLite 적재'],
-    ['STEP 3', '상세 크롤링',        'crawler_api.js: 출력항목 탭 파싱 → 필드·한글명·타입·샘플 수집'],
-    ['STEP 4', '샘플 업데이트',      'update_samples.js: Open API 호출 → 최대 1000건 샘플 JSON 저장'],
-    ['STEP 5', 'SQLite 적재',        'import_to_sqlite.js: 샘플 데이터를 테이블별 SQLite DB 적재'],
-    ['STEP 6', 'PK/FK 분석',         'analyze_pk_fk.js: 엔트로피·포함률·Fuse.js 기반 PK/FK 후보 자동 도출'],
-    ['STEP 7', '조인 검증',          'verify_joins.js: 실제 SQLite INNER JOIN 검증 → join.sql · chain_joins.sql 생성'],
+    ['STEP 1', '목록 크롤링', 'crawler_api.js: searchDatasetList.do AJAX POST → 전체 Open API 데이터셋 목록 수집'],
+    ['STEP 2', '링크 수집', 'crawler_link.js: 각 데이터셋 링크 캐시 업데이트 및 SQLite 적재'],
+    ['STEP 3', '상세 크롤링', 'crawler_api.js: 출력항목 탭 파싱 → 필드·한글명·타입·샘플 수집'],
+    ['STEP 4', '샘플 업데이트', 'update_samples.js: Open API 호출 → 최대 1000건 샘플 JSON 저장'],
+    ['STEP 5', 'SQLite 적재', 'import_to_sqlite.js: 샘플 데이터를 테이블별 SQLite DB 적재'],
+    ['STEP 6', 'PK/FK 분석', 'analyze_pk_fk.js: 엔트로피·포함률·Fuse.js 기반 PK/FK 후보 자동 도출'],
+    ['STEP 7', '조인 검증', 'verify_joins.js: 실제 SQLite INNER JOIN 검증 → join.sql · chain_joins.sql 생성'],
     ['STEP 8', '시각화 분석 (선택)', 'analyze_scenario.js: Arquero 기반 복합 FK 탐지 및 시나리오 분석'],
-    ['STEP 9', '엑셀 보고서',        `excel_reporter.js: ${Object.keys(SHEET_NAMES).length}개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·Arquero·직접조인·체인조인·출력항목원본`],
+    ['STEP 9', '엑셀 보고서', `excel_reporter.js: ${Object.keys(SHEET_NAMES).length}개 시트 자동 생성: 개요·데이터셋목록·공통키분석·크로스맵·결합시나리오·Arquero·직접조인·체인조인·출력항목원본`],
   ];
 
   steps.forEach(([step, title, desc], idx) => {
@@ -415,9 +417,7 @@ function shCover(ws, datasets, ka, scenarios) {
   });
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 2: 데이터셋 목록
-// ═════════════════════════════════════════════════════════════
 function shList(ws, datasets, ka) {
   setWorksheetCommon(ws, SHEET_NAMES.DATASETS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 14, 40, 14, 10, 10, 10, 12, 45]);
@@ -441,11 +441,11 @@ function shList(ws, datasets, ka) {
     const ckCnt = dsKeys.filter(f => ckSet.has(f)).length;
     const hasErr = Boolean(ds.error);
     const sampleCount = ds.sample_count || 0;
-    
+
     let status = '';
     let statusBg = null;
     let statusFg = null;
-    
+
     if (hasErr) {
       status = '크롤링 오류';
       statusBg = 'FCE4D6';
@@ -476,9 +476,7 @@ function shList(ws, datasets, ka) {
   ws.autoFilter = `A1:I${datasets.length + 1}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 3: 공통키 분석
-// ═════════════════════════════════════════════════════════════
 function shKeys(ws, ka, datasets) {
   setWorksheetCommon(ws, SHEET_NAMES.KEYS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 26, 16, 14, 12, 12, 8, 45, 38]);
@@ -527,9 +525,7 @@ function shKeys(ws, ka, datasets) {
   ws.autoFilter = `A1:I${ck.length + 1}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 4: 키×데이터셋 크로스맵
-// ═════════════════════════════════════════════════════════════
 function shCross(ws, datasets, ka) {
   setWorksheetCommon(ws, SHEET_NAMES.CROSS, [{ showGridLines: false, state: 'frozen', xSplit: 3, ySplit: 2 }]);
 
@@ -600,9 +596,7 @@ function shCross(ws, datasets, ka) {
   });
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 5: 결합 시나리오
-// ═════════════════════════════════════════════════════════════
 function shScenarios(ws, scenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.SCENARIOS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 13, 32, 12, 13, 32, 12, 8, 30, 9, 12, 8, 48, 58]);
@@ -650,9 +644,7 @@ function shScenarios(ws, scenarios) {
   ws.autoFilter = `A1:N${scenarios.length + 1}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 6: 출력항목 원본
-// ═════════════════════════════════════════════════════════════
 function shRaw(ws, datasets) {
   setWorksheetCommon(ws, SHEET_NAMES.RAW, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 13, 30, 12, 26, 14, 12, 10, 30, 24]);
@@ -695,9 +687,7 @@ function shRaw(ws, datasets) {
   ws.autoFilter = `A1:J${Math.max(r - 1, 1)}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트 7: Arquero 상세 분석 (추가 데이터)
-// ═════════════════════════════════════════════════════════════
 function shArquero(ws, arqueroScenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.ARQUERO, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 18, 30, 10, 10, 10, 30, 48]);
@@ -713,7 +703,7 @@ function shArquero(ws, arqueroScenarios) {
   arqueroScenarios.scenarios.forEach((sc, idx) => {
     const r = idx + 2;
     ws.getRow(r).height = 45;
-    
+
     const relationsStr = (sc.relations || []).map(rel => `${rel.from} <-> ${rel.to} (${rel.joinType})`).join('\n');
     const datasetsStr = (sc.datasets || []).join(', ');
 
@@ -733,9 +723,7 @@ function shArquero(ws, arqueroScenarios) {
   ws.autoFilter = `A1:I${arqueroScenarios.scenarios.length + 1}`;
 }
 
-// ═════════════════════════════════════════════════════════════
-// 시트 7: SQLite 직접 조인 검증 쿼리
-// ═════════════════════════════════════════════════════════════
+// 시트 8: SQLite 직접 조인 검증 쿼리
 function shJoinSql(ws, joinSqlText) {
   setWorksheetCommon(ws, SHEET_NAMES.JOIN_SQL, [{ showGridLines: false }]);
   setColWidths(ws, [120]);
@@ -758,8 +746,7 @@ function shJoinSql(ws, joinSqlText) {
   });
 }
 
-// 시트 8: SQLite 체인 조인 쿼리 (추가 데이터)
-// ═════════════════════════════════════════════════════════════
+// 시트 9: SQLite 체인 조인 쿼리 (추가 데이터)
 function shChainJoins(ws, chainJoinsText) {
   setWorksheetCommon(ws, SHEET_NAMES.CHAIN_SQL, [{ showGridLines: false }]);
   setColWidths(ws, [120]);
@@ -782,18 +769,14 @@ function shChainJoins(ws, chainJoinsText) {
   });
 }
 
-// ═════════════════════════════════════════════════════════════
 // 신뢰도 배경색
-// ═════════════════════════════════════════════════════════════
 const CONF_BG = { HIGH: 'C6EFCE', MEDIUM: 'FFEB9C', LOW: 'FFC7CE', SUGGESTED: 'FCE4D6' };
 
 function confidenceBg(confidence, rowIdx) {
   return CONF_BG[confidence] || (rowIdx % 2 ? 'F9F9F9' : 'FFFFFF');
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트: PK 후보 분석
-// ═════════════════════════════════════════════════════════════
 function shPkCandidates(ws, tables) {
   setWorksheetCommon(ws, SHEET_NAMES.PK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 36, 18, 22, 22, 10, 10, 8, 10, 12, 10, 60]);
@@ -845,9 +828,7 @@ function shPkCandidates(ws, tables) {
   ws.autoFilter = `A1:M${Math.max(toArray(tables).length + 1, 1)}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 시트: FK 후보 분석
-// ═════════════════════════════════════════════════════════════
 function shFkCandidates(ws, relationships, compositeFks) {
   setWorksheetCommon(ws, SHEET_NAMES.FK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 12, 12, 32, 20, 12, 32, 20, 8, 10, 10, 10, 70]);
@@ -911,9 +892,8 @@ function shFkCandidates(ws, relationships, compositeFks) {
   ws.autoFilter = `A1:N${Math.max(r, 1)}`;
 }
 
-// ═════════════════════════════════════════════════════════════
 // 워크북 설정
-// ═════════════════════════════════════════════════════════════
+
 // 엑셀 워크북의 작성자 등 메타데이터 기본 설정
 function setupWorkbookMetadata(workbook) {
   workbook.creator = '식품안전나라 API 분석기';
@@ -935,7 +915,7 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   shKeys(workbook.addWorksheet(SHEET_NAMES.KEYS), ka, datasets);
   shCross(workbook.addWorksheet(SHEET_NAMES.CROSS), datasets, ka);
   shScenarios(workbook.addWorksheet(SHEET_NAMES.SCENARIOS), scenarios);
-  
+
   if (extraData.arqueroScenarios) {
     shArquero(workbook.addWorksheet(SHEET_NAMES.ARQUERO), extraData.arqueroScenarios);
   }
@@ -945,20 +925,17 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   if (extraData.chainJoinsText) {
     shChainJoins(workbook.addWorksheet(SHEET_NAMES.CHAIN_SQL), extraData.chainJoinsText);
   }
-  
+
   shRaw(workbook.addWorksheet(SHEET_NAMES.RAW), datasets);
 }
 
-// ═════════════════════════════════════════════════════════════
 // 진입 함수: buildExcel
-// ═════════════════════════════════════════════════════════════
-/**
- * 전체 엑셀 보고서를 생성하는 진입 함수
- * @param {Array}  datasets   - 크롤링된 데이터셋 목록
- * @param {Object} ka         - 공통키 분석 결과
- * @param {Array}  scenarios  - 데이터셋 결합 시나리오 목록
- * @param {string} outputPath - 생성할 엑셀 파일 경로
- */
+
+// 전체 엑셀 보고서를 생성하는 진입 함수
+// @param {Array}  datasets   - 크롤링된 데이터셋 목록
+// @param {Object} ka         - 공통키 분석 결과
+// @param {Array}  scenarios  - 데이터셋 결합 시나리오 목록
+// @param {string} outputPath - 생성할 엑셀 파일 경로
 async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   log.info('STEP 9: 엑셀 보고서 생성 시작');
 
@@ -981,16 +958,12 @@ async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   log.info({ outputPath, sheets: workbook.worksheets.length }, `STEP 9 완료`);
 }
 
-// ═════════════════════════════════════════════════════════════
 // 기존 xlsx에 시트 교체 (부분 갱신용)
-// ═════════════════════════════════════════════════════════════
 
-/**
- * 기존 엑셀 파일의 PK/FK 시트를 갱신한다.
- * analyze_pk_fk.js 에서 호출.
- * @param {Object} analysis - foodsafety_key_candidates.json 내용
- * @param {string} xlsxPath - 갱신할 xlsx 경로
- */
+// 기존 엑셀 파일의 PK/FK 시트를 갱신한다.
+// analyze_pk_fk.js 에서 호출.
+// @param {Object} analysis - foodsafety_key_candidates.json 내용
+// @param {string} xlsxPath - 갱신할 xlsx 경로
 async function updatePkFkSheets(analysis, xlsxPath) {
   log.info('PK/FK 시트 갱신 시작');
   const workbook = new ExcelJS.Workbook();
@@ -1016,12 +989,10 @@ async function updatePkFkSheets(analysis, xlsxPath) {
   );
 }
 
-/**
- * 기존 엑셀 파일의 Arquero 상세 분석 시트를 갱신한다.
- * analyze_scenario.js 에서 호출.
- * @param {Array}  scenarios - clusterByJoinKey() 결과
- * @param {string} xlsxPath  - 갱신할 xlsx 경로
- */
+// 기존 엑셀 파일의 Arquero 상세 분석 시트를 갱신한다.
+// analyze_scenario.js 에서 호출.
+// @param {Array}  scenarios - clusterByJoinKey() 결과
+// @param {string} xlsxPath  - 갱신할 xlsx 경로
 async function updateArqueroSheet(scenarios, xlsxPath) {
   log.info('Arquero 시트 갱신 시작');
   const workbook = new ExcelJS.Workbook();
@@ -1051,9 +1022,7 @@ module.exports = {
   heatmap,
 };
 
-// ═════════════════════════════════════════════════════════════
 // 단독 실행 (Standalone) 모드
-// ═════════════════════════════════════════════════════════════
 if (require.main === module) {
   // pipeline.js가 캐시 로드, PK/FK 분석, ka/시나리오 구성, 엑셀 빌드를 모두 수행한다.
   const { runAnalysis } = require('./pipeline.js');
