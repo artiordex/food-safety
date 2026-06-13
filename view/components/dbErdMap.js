@@ -301,7 +301,11 @@ export function renderDbErdMap(container, onSelectDataset) {
       bindEvents();
     }).catch(err => {
       console.error(err);
-      loadingDiv.innerHTML = `<div style="color:#ef4444;font-size:14px;">⚠️ 스키마 로드 실패: ${err.message}</div>`;
+      loadingDiv.textContent = '';
+      const errEl = document.createElement('div');
+      errEl.style.cssText = 'color:#ef4444;font-size:14px;';
+      errEl.textContent = '⚠️ 스키마 로드 실패: ' + (err.message || '알 수 없는 오류');
+      loadingDiv.appendChild(errEl);
     });
   }
 
@@ -970,7 +974,11 @@ export function renderDbErdMap(container, onSelectDataset) {
       .then(res => res.json())
       .then(rows => {
         if (rows && rows.error) {
-          joinDataWrapper.innerHTML = `<div style="padding:24px;text-align:center;color:#ef4444;font-size:11px;">조인 쿼리 오류: ${rows.error}</div>`;
+          joinDataWrapper.textContent = '';
+          const errDiv = document.createElement('div');
+          errDiv.style.cssText = 'padding:24px;text-align:center;color:#ef4444;font-size:11px;';
+          errDiv.textContent = '조인 쿼리 오류가 발생했습니다.';
+          joinDataWrapper.appendChild(errDiv);
           return;
         }
         if (!rows || rows.length === 0) {

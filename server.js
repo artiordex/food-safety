@@ -1,6 +1,8 @@
+require('dotenv').config();
 process.env.LANG = 'en_US.UTF-8';
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
@@ -18,7 +20,7 @@ const logger = pino({
   }
 });
 
-const REAL_API_KEY = '77183c01c07d44798948';
+const REAL_API_KEY = process.env.FOOD_API_KEY || '77183c01c07d44798948'; // TODO: .env에 FOOD_API_KEY=<key> 설정 권장
 
 // HTML 파일에 head/header/search include를 주입하는 공통 함수
 function applyIncludes(html, vars = {}) {
@@ -66,6 +68,16 @@ function applyIncludes(html, vars = {}) {
 }
 
 const app = express();
+
+// API Rate Limiting — IP당 분당 100회 초과 시 429 반환
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,       // 1분
+  max: 100,                   // 최대 100회
+  standardHeaders: true,      // RateLimit-* 헤더 포함
+  legacyHeaders: false,
+  message: { error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }
+});
+app.use('/api/', apiLimiter);
 
 let _tableCountsMap = {};
 function initTableCounts() {
@@ -126,7 +138,7 @@ app.get('/api/tables', (req, res) => {
   db.all(query, [], (err, rows) => {
     if (err) {
       logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     }
     res.json(rows.map(row => ({
       name: row.name,
@@ -147,7 +159,7 @@ app.get('/api/tables/:tableName/schema', (req, res) => {
   db.all(query, [], (err, rows) => {
     if (err) {
       logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     }
     res.json(rows);
   });
@@ -175,7 +187,7 @@ app.get('/api/tables/:tableName/data', (req, res) => {
   db.all(query, params, (err, rows) => {
     if (err) {
       logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     }
     res.json(rows);
   });
@@ -256,7 +268,7 @@ app.get('/api/join-scenarios', (req, res) => {
     res.json(finalResult);
   } catch (err) {
     logger.error({ err }, 'join.sql 파싱 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -270,15 +282,16 @@ app.post('/api/query', (req, res) => {
   logger.info({ query }, 'SQL 쿼리 실행 요청이 들어왔습니다.');
 
   // SELECT 등 조회 쿼리에만 대응하도록 간단히 체크 (데이터 훼손 방지)
-  const trimmed = query.trim().toUpperCase();
-  if (trimmed.startsWith('INSERT') || trimmed.startsWith('UPDATE') || trimmed.startsWith('DELETE') || trimmed.startsWith('DROP')) {
-    return res.status(403).json({ error: '안전을 위해 조회(SELECT, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
+  // 화이트리스트 방식: SELECT / EXPLAIN / PRAGMA 만 허용 (ATTACH 등 우회 차단)
+  const ALLOWED_SQL = /^\s*(SELECT|EXPLAIN|PRAGMA\s+(table_info|table_list|index_list|foreign_key_list|database_list|compile_options|encoding|journal_mode|page_size|user_version|schema_version|quick_check|integrity_check))/i;
+  if (!ALLOWED_SQL.test(query)) {
+    return res.status(403).json({ error: '안전을 위해 조회(SELECT, EXPLAIN, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
   }
 
   readonlyDb.all(query, [], (err, rows) => {
     if (err) {
       logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: 'SQL 실행 중 오류가 발생했습니다.' });
     }
     res.json(rows);
   });
@@ -300,7 +313,7 @@ app.get('/api/datasetAllSearch.do', (req, res) => {
 // 4.2a 카테고리 목록 API
 app.get('/api/categoryList.do', (req, res) => {
   db.all(`SELECT DISTINCT cat, COUNT(*) as cnt FROM api_tables WHERE cat IS NOT NULL AND cat != '' GROUP BY cat ORDER BY cnt DESC`, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     res.json(rows.map(r => ({ cat: r.cat, cnt: r.cnt })));
   });
 });
@@ -343,7 +356,7 @@ app.post('/api/search', (req, res) => {
   if (clCdCode) { query += ' AND cat = ?'; params.push(clCdCode); }
 
   db.all(query, params, (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
 
     const HIDDEN = new Set(['품목제조보고번호유효성확인(대한상공회의소사용)', '불량식품 신고이력 조회(내부용)', '불량식품 신고정보 조회(내부용)']);
     const cacheMap = getCacheMap();
@@ -384,7 +397,7 @@ app.post('/api/searchDatasetList.do', (req, res) => {
   const provdFilter = (req.body.search_provdInsttCode || '').trim();
 
   db.all('SELECT svc_no, svc_nm, cat, description FROM api_tables', [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
 
     const cacheMap = getCacheMap();
     let list = [];
@@ -437,7 +450,7 @@ app.get('/api/dataset-tree', (req, res) => {
     res.json(data);
   } catch (err) {
     logger.error({ err }, '[dataset-tree] 크롤 캐시 읽기 오류');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -448,7 +461,7 @@ app.get('/api/datasetMetadata.do', (req, res) => {
 
   let query = `SELECT * FROM api_columns WHERE replace(svc_no, '-', '') = replace(?, '-', '')`;
   db.all(query, [svc_no], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     res.json(rows);
   });
 });
@@ -661,7 +674,7 @@ app.post('/api/column-search-multi', async (req, res) => {
     res.json({ result: finalResult });
   } catch (err) {
     logger.error({ err }, '[column-search-multi] 검색 중 오류');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -713,7 +726,7 @@ app.get('/api/column-search', async (req, res) => {
     res.json({ tables: [...matched], count: matched.size });
   } catch (err) {
     logger.error({ err }, '[column-search] 검색 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -1497,7 +1510,7 @@ app.get('/api/keyword-datamap', async (req, res) => {
     res.json(responseData);
   } catch (err) {
     logger.error({ err }, 'Keyword datamap 처리 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -1682,7 +1695,8 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
 
 // pages/ 안의 JS·CSS 등 정적 리소스도 /pages 없이 서빙
 app.use(express.static(path.join(__dirname, 'pages')));
-app.use(express.static(__dirname));
+// app.use(express.static(__dirname)); // ⚠️ 루트 노출 제거 — view/public만 서빙
+app.use('/view', express.static(path.join(__dirname, 'view')));
 
 // 서버 구동
 // 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
@@ -1725,7 +1739,7 @@ app.get('/api/nongshim-dataset', async (req, res) => {
     res.json(rows);
   } catch (err) {
     logger.error({ err }, 'Nongshim dataset 조회 중 오류가 발생했습니다.');
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
 
@@ -1804,6 +1818,9 @@ app.get('/api/tables/:tableName/keyword-count', async (req, res) => {
   const tableName = req.params.tableName;
   const keyword = req.query.keyword;
   if (!keyword) return res.json({ count: 0 });
+  if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
+    return res.status(400).json({ error: '유효하지 않은 테이블 이름입니다.' });
+  }
 
   const dbAll = (sql, params) => new Promise((resolve, reject) => {
     db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
@@ -1836,7 +1853,7 @@ app.get('/api/datasets', (req, res) => {
      ORDER BY t.svc_no`,
     [],
     (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
 
       const datasets = rows.map(row => {
         const fieldNames = row.fields_concat ? row.fields_concat.split('||') : [];
@@ -1849,9 +1866,7 @@ app.get('/api/datasets', (req, res) => {
   );
 });
 
-app.listen(PORT, () => {
-  logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);
-});
+// [서버 기동 — 파일 하단으로 이동됨]
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
 app.get('/api/db-schema', (req, res) => {
@@ -1901,7 +1916,7 @@ app.get('/api/db-schema', (req, res) => {
       res.json(result);
     } catch (err) {
       logger.error({ err }, '[db-schema] 스키마 조회 중 오류가 발생했습니다.');
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     }
   })();
 });
@@ -1917,8 +1932,6 @@ let cachedRelationships = null;
 
 
 app.get('/api/db-relationships', (req, res) => {
-  const dbAll = (sql, p) => new Promise((ok, ng) => db.all(sql, p || [], (e, r) => e ? ng(e) : ok(r)));
-
   if (cachedRelationships) {
     return res.json(cachedRelationships);
   }
@@ -2037,7 +2050,7 @@ app.get('/api/db-relationships', (req, res) => {
       res.json(result);
     } catch (err) {
       logger.error({ err }, '[db-relationships] 관계 분석 중 오류가 발생했습니다.');
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
     }
   })();
 });
@@ -2052,4 +2065,8 @@ process.on('SIGINT', () => {
     }
     process.exit(0);
   });
+});
+
+app.listen(PORT, () => {
+  logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);
 });

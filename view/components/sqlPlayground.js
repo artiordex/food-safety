@@ -2,6 +2,24 @@
 // SQLite DB에 직접 쿼리를 실행하고 결과를 테이블로 표시합니다.
 // join.sql 시나리오 기반의 JOIN 쿼리 가이드도 제공합니다.
 
+function escapeHtml(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // join.sql에서 동적 로드되는 JOIN 시나리오 목록 (서버에서 파싱)
 let joinScenarios = [];
 
@@ -109,6 +127,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
 
   // 전체 UI를 container에 렌더링하는 함수 (테이블 목록, 상세 패널, 에디터, 결과 영역 포함)
   const render = () => {
+    // ── 테이블 목록 ── escapeAttr: title 속성, escapeHtml: 텍스트 콘텐츠
     const tableItemsHTML = tableList.map(table => {
       const name = table.name;
       const logicalName = table.logicalName;
@@ -116,11 +135,11 @@ export function renderSqlPlayground(container, onSelectDataset) {
       const activeClass = "bg-gov-50 border-gov-300 text-gov-800 font-semibold shadow-sm";
       const inactiveClass = "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300";
       return `
-        <button data-table="${name}" class="table-select-btn w-full text-left px-4 py-3 rounded-lg border text-xs flex items-center justify-between transition-all ${isSelected ? activeClass : inactiveClass}">
-          <span class="truncate" title="${logicalName} (${name})">
+        <button data-table="${escapeAttr(name)}" class="table-select-btn w-full text-left px-4 py-3 rounded-lg border text-xs flex items-center justify-between transition-all ${isSelected ? activeClass : inactiveClass}">
+          <span class="truncate" title="${escapeAttr(logicalName)} (${escapeAttr(name)})">
             <i class="ri-database-2-line text-gov-500 mr-1.5"></i>
-            <span class="font-bold text-slate-800">${logicalName}</span>
-            <span class="text-slate-400">(${name})</span>
+            <span class="font-bold text-slate-800">${escapeHtml(logicalName)}</span>
+            <span class="text-slate-400">(${escapeHtml(name)})</span>
           </span>
           <i class="ri-arrow-right-s-line text-slate-400"></i>
         </button>
@@ -131,7 +150,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
       const isSuper = sc.grade === 'SUPER';
       const prefix = isSuper ? '🔗 [다중 JOIN] ' : '';
       return `
-        <option value="${sc.no}" ${isSuper ? 'style="color:#f59e0b; font-weight:bold;"' : ''}>${prefix}${getLogicalTitle(sc.title)}</option>
+        <option value="${escapeAttr(sc.no)}" ${isSuper ? 'style="color:#f59e0b; font-weight:bold;"' : ''}>${prefix}${escapeHtml(getLogicalTitle(sc.title))}</option>
       `;
     }).join('');
 
@@ -153,12 +172,12 @@ export function renderSqlPlayground(container, onSelectDataset) {
         </div>
       `;
     } else {
-      // 1단: 컬럼 정보 (Schema)
+      // 1단: 컬럼 정보 (Schema) — PRAGMA 결과는 상대적으로 안전하나 일관성을 위해 이스케이프
       const schemaRowsHTML = tableSchema.map(col => `
         <tr class="hover:bg-slate-50/50">
-          <td class="px-4 py-2.5 font-medium text-slate-400">${col.cid}</td>
-          <td class="px-4 py-2.5 font-semibold text-slate-900">${col.name}</td>
-          <td class="px-4 py-2.5"><code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-600 font-mono text-[10px]">${col.type || 'TEXT'}</code></td>
+          <td class="px-4 py-2.5 font-medium text-slate-400">${escapeHtml(col.cid)}</td>
+          <td class="px-4 py-2.5 font-semibold text-slate-900">${escapeHtml(col.name)}</td>
+          <td class="px-4 py-2.5"><code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-600 font-mono text-[10px]">${escapeHtml(col.type || 'TEXT')}</code></td>
           <td class="px-4 py-2.5">${col.notnull ? '❌ Not Null' : '⭕ Nullable'}</td>
           <td class="px-4 py-2.5">${col.pk ? '🔑 <span class="text-amber-600 font-semibold">PK</span>' : '-'}</td>
         </tr>
@@ -212,13 +231,13 @@ export function renderSqlPlayground(container, onSelectDataset) {
               <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10 bg-slate-50">
-                    ${keys.map(k => `<th class="px-4 py-2.5 bg-slate-50">${k}</th>`).join('')}
+                    ${keys.map(k => `<th class="px-4 py-2.5 bg-slate-50">${escapeHtml(k)}</th>`).join('')}
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                   ${tableData.map(row => `
                     <tr class="hover:bg-slate-50/50">
-                      ${keys.map(k => `<td class="px-4 py-2.5 max-w-[250px] truncate" title="${row[k] !== null ? row[k] : ''}">${row[k] !== null ? row[k] : '<span class="text-slate-300">null</span>'}</td>`).join('')}
+                      ${keys.map(k => `<td class="px-4 py-2.5 max-w-[250px] truncate" title="${escapeAttr(row[k])}">${row[k] !== null ? escapeHtml(row[k]) : '<span class="text-slate-300">null</span>'}</td>`).join('')}
                     </tr>
                   `).join('')}
                 </tbody>
@@ -233,7 +252,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
           <div class="px-5 py-3.5 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h3 class="text-sm font-bold text-slate-900">${selectedTable} <span class="text-xs font-normal text-slate-500">테이블 정보 카탈로그</span></h3>
+              <h3 class="text-sm font-bold text-slate-900">${escapeHtml(selectedTable)} <span class="text-xs font-normal text-slate-500">테이블 정보 카탈로그</span></h3>
             </div>
           </div>
           <div class="p-5 flex flex-col gap-6">
@@ -255,12 +274,13 @@ export function renderSqlPlayground(container, onSelectDataset) {
         </div>
       `;
     } else if (queryError) {
+      // 에러 메시지도 escapeHtml 처리 (서버 에러 메시지가 HTML을 포함할 수 있음)
       queryResultHTML = `
         <div class="p-5 border border-red-200 bg-red-50 text-red-700 rounded-xl flex items-start gap-3">
           <i class="ri-error-warning-line text-xl mt-0.5 shrink-0"></i>
           <div>
             <h4 class="text-sm font-bold">SQL 실행 중 오류 발생</h4>
-            <p class="text-xs font-mono mt-1.5 leading-relaxed bg-white/60 p-3 rounded-lg border border-red-100">${queryError}</p>
+            <p class="text-xs font-mono mt-1.5 leading-relaxed bg-white/60 p-3 rounded-lg border border-red-100">${escapeHtml(queryError)}</p>
           </div>
         </div>
       `;
@@ -278,9 +298,9 @@ export function renderSqlPlayground(container, onSelectDataset) {
         const keys = originalKeys.filter(k => {
           return queryResult.some(row => row[k] !== null && row[k] !== '');
         });
-        
+
         const hiddenCount = originalKeys.length - keys.length;
-        const hiddenMessage = hiddenCount > 0 
+        const hiddenMessage = hiddenCount > 0
           ? `<span class="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded border border-amber-200 font-sans">빈 컬럼 ${hiddenCount}개 숨김 처리됨</span>`
           : '';
 
@@ -300,18 +320,18 @@ export function renderSqlPlayground(container, onSelectDataset) {
                 <i class="ri-file-excel-2-line text-emerald-600"></i> CSV 다운로드
               </button>
             </div>
-            
+
             <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
               <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
                   <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold sticky top-0 z-10">
-                    ${keys.map(k => `<th class="px-4 py-3 bg-slate-100">${k}</th>`).join('')}
+                    ${keys.map(k => `<th class="px-4 py-3 bg-slate-100">${escapeHtml(k)}</th>`).join('')}
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700">
                   ${queryResult.map(row => `
                     <tr class="hover:bg-slate-50">
-                      ${keys.map(k => `<td class="px-4 py-2.5 max-w-[300px] truncate" title="${row[k] !== null ? row[k] : ''}">${row[k] !== null ? row[k] : '<span class="text-slate-300 font-mono">null</span>'}</td>`).join('')}
+                      ${keys.map(k => `<td class="px-4 py-2.5 max-w-[300px] truncate" title="${escapeAttr(row[k])}">${row[k] !== null ? escapeHtml(row[k]) : '<span class="text-slate-300 font-mono">null</span>'}</td>`).join('')}
                     </tr>
                   `).join('')}
                 </tbody>
@@ -353,7 +373,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
                 ${tableItemsHTML}
               </div>
             </div>
-            
+
             <!-- Main: Detail schema & raw data viewer -->
             <div class="lg:col-span-3" id="table-detail-container">
               ${detailContentHTML}
@@ -372,7 +392,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
                   <p class="text-[10px] text-slate-400">데이터 조회(SELECT) 및 테이블 스키마 확인 전용 에디터</p>
                 </div>
               </div>
-              
+
               <!-- Select Join Scenarios -->
               <div class="flex items-center gap-3 flex-wrap justify-end">
                 <div class="relative">
@@ -395,7 +415,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
                 const firstScenario = joinScenarios.length > 0 ? joinScenarios[0] : null;
                 const isFirstSuper = firstScenario && firstScenario.grade === 'SUPER';
                 const borderClass = isFirstSuper ? 'border-amber-500/50 shadow-md shadow-amber-500/5' : 'border-slate-800';
-                const titleHTML = isFirstSuper 
+                const titleHTML = isFirstSuper
                   ? `<i class="ri-lightbulb-fill text-amber-400"></i> <span class="text-amber-400 font-bold">대규모 다중 연계 조인 시나리오</span> <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold ml-1.5">RECOMMENDED</span>`
                   : `<i class="ri-information-line"></i> 시나리오 상세 설명`;
                 return `
@@ -403,22 +423,26 @@ export function renderSqlPlayground(container, onSelectDataset) {
                     <h4 class="text-xs font-bold text-gov-400 uppercase tracking-wider mb-1 flex items-center gap-1.5" id="scenario-desc-title">
                       ${titleHTML}
                     </h4>
-                    <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${firstScenario ? firstScenario.description : '시나리오 로딩 중...'}</p>
+                    <p id="scenario-desc-text" class="text-xs text-slate-300 leading-relaxed">${firstScenario ? escapeHtml(firstScenario.description) : '시나리오 로딩 중...'}</p>
                   </div>
                 `;
               })()}
 
-              <!-- SQL Textarea -->
-              <div class="relative font-mono text-xs">
-                <textarea id="sql-editor" rows="10" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-5 text-emerald-400 outline-none focus:border-gov-500 focus:ring-1 focus:ring-gov-500 font-mono leading-relaxed resize-y" placeholder="SELECT * FROM table_name LIMIT 10;"></textarea>
-              </div>
-              
+              <!-- SQL Editor textarea -->
+              <textarea
+                id="sql-editor"
+                class="w-full bg-slate-800 text-green-300 font-mono text-sm p-4 rounded-xl border border-slate-700 focus:border-gov-500 focus:outline-none resize-none leading-relaxed"
+                rows="8"
+                spellcheck="false"
+                placeholder="SELECT * FROM 테이블명 LIMIT 10;"
+              ></textarea>
+
               <div class="mt-4 flex items-center justify-between flex-wrap gap-3">
                 <div class="flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                   <span class="text-xs text-slate-400">데이터의 무단 변조 방지를 위해 <strong class="text-slate-200">조회(SELECT) 목적</strong>의 쿼리만 실행됩니다.</span>
                 </div>
-                
+
                 <button id="run-query-btn" class="px-6 py-3 rounded-lg bg-gov-600 hover:bg-gov-700 text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-md ${isQueryRunning ? 'opacity-70 cursor-not-allowed' : ''}" ${isQueryRunning ? 'disabled' : ''}>
                   ${isQueryRunning ? '<i class="ri-loader-4-line animate-spin"></i> 실행 중...' : '<i class="ri-play-fill"></i> 쿼리 실행 (Run SQL)'}
                 </button>
@@ -459,24 +483,22 @@ export function renderSqlPlayground(container, onSelectDataset) {
       });
     });
 
-    // 테이블 뷰어 탭 토글 비활성화 (2단 상하 동시 노출로 변경)
-
     // 시나리오 검색 이벤트
     const scenarioSearch = container.querySelector('#scenario-search');
     if (scenarioSearch) {
       scenarioSearch.addEventListener('input', (e) => {
         const keyword = e.target.value.toLowerCase();
-        const filtered = joinScenarios.filter(sc => 
-          sc.title.toLowerCase().includes(keyword) || 
-          sc.description.toLowerCase().includes(keyword) || 
+        const filtered = joinScenarios.filter(sc =>
+          sc.title.toLowerCase().includes(keyword) ||
+          sc.description.toLowerCase().includes(keyword) ||
           sc.sql.toLowerCase().includes(keyword)
         );
-        
+
         const selector = container.querySelector('#scenario-selector');
         const countLabel = container.querySelector('#scenario-count');
         if (selector) {
           if (filtered.length > 0) {
-            selector.innerHTML = filtered.map(sc => `<option value="${sc.no}">${getLogicalTitle(sc.title)}</option>`).join('');
+            selector.innerHTML = filtered.map(sc => `<option value="${escapeAttr(sc.no)}">${escapeHtml(getLogicalTitle(sc.title))}</option>`).join('');
           } else {
             selector.innerHTML = '<option value="">검색 결과가 없습니다</option>';
           }
@@ -505,13 +527,13 @@ export function renderSqlPlayground(container, onSelectDataset) {
           if (editor) {
             editor.value = currentSql;
           }
-          
+
           const descContainer = container.querySelector('#scenario-desc-container');
           const descTitle = container.querySelector('#scenario-desc-title');
           const desc = container.querySelector('#scenario-desc-text');
-          
+
           if (desc) {
-            desc.textContent = sc.description;
+            desc.textContent = sc.description; // textContent: XSS 안전
           }
           if (sc.grade === 'SUPER') {
             if (descContainer) {
@@ -551,7 +573,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
     if (csvBtn && queryResult && queryResult.length > 0) {
       csvBtn.addEventListener('click', () => {
         const keys = Object.keys(queryResult[0]);
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // 한글 깨짐 방지 BOM 추가
+        let csvContent = "data:text/csv;charset=utf-8,﻿"; // 한글 깨짐 방지 BOM 추가
         csvContent += keys.join(",") + "\n";
 
         queryResult.forEach(row => {

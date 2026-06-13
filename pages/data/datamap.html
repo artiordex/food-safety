@@ -3,17 +3,23 @@
 
 <head>
   <!-- INCLUDE_HEAD -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
-  <script src="/public/assets/jquery.simplePagination.js"></script>
+
+  <!-- ── 외부 라이브러리 (defer: 파싱 블로킹 방지) ── -->
+  <script defer src="https://d3js.org/d3.v7.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script defer src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script defer crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script defer crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+  <script defer src="/public/assets/jquery.simplePagination.js"></script>
+
+  <!-- ── 스타일시트 ── -->
   <link rel="stylesheet" href="/public/css/main.css">
   <link rel="stylesheet" href="https://unpkg.com/@xyflow/react@12/dist/style.css" />
+
   <style>
+    /* ── 사이드바 접기/펴기 ── */
     #ndm-filter-sidebar {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -38,6 +44,41 @@
         padding-bottom: 0 !important;
       }
     }
+
+    /* ── 툴바 공통 레이아웃 (인라인 style 추출) ── */
+    .dm-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── 아코디언 버튼 초기화 ── */
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border: none;
+      border-bottom: 1px solid #f3f4f6;
+      background: none;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+
+    .accordion-header .accordion-icon {
+      transition: transform 0.3s;
+    }
+
+    .accordion-header[aria-expanded="false"] .accordion-icon {
+      transform: rotate(-180deg);
+    }
   </style>
 </head>
 
@@ -45,12 +86,11 @@
   <div id="wrap" class="flex flex-col min-h-screen">
     <!-- INCLUDE_HEADER -->
 
-    <!-- Tab Content -->
     <div class="bg-white flex-1" id="tab-content">
-      <!-- Data Map View -->
       <div id="datamap-view" class="static-view" style="display: block;">
         <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 animate-fade-in">
-          <!-- Header -->
+
+          <!-- ── 페이지 헤더 ── -->
           <div class="mb-6 flex items-center gap-3">
             <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2 shrink-0">
               식품안전나라 데이터맵
@@ -65,37 +105,39 @@
             </h2>
           </div>
 
-          <!-- NDM Style 래퍼 -->
-          <div
-            class="flex flex-col h-full bg-white lg:min-h-[800px] border border-slate-200 rounded-lg overflow-hidden shadow-sm"
+          <!-- ── NDM 래퍼 ── -->
+          <div class="flex flex-col h-full bg-white lg:min-h-[800px] border border-slate-200 rounded-lg overflow-hidden shadow-sm"
             style="font-family:'Noto Sans KR',system-ui,sans-serif;">
 
-            <!-- ① 최상단 탭바 -->
-            <div id="content-tab-bar"
+            <!-- ① 탭바 (role="tablist" for accessibility) ── -->
+            <div id="content-tab-bar" role="tablist" aria-label="데이터맵 뷰 선택"
               class="flex overflow-x-auto no-scrollbar shrink-0 border-b-2 border-slate-200 bg-white px-2 lg:px-5"
-              style="scrollbar-width: none;">
-              <button id="content-tab-btn-treemap"
+              style="scrollbar-width:none;">
+              <button role="tab" id="content-tab-btn-treemap"
+                aria-selected="true" aria-controls="content-panel-treemap"
                 class="ndm-tab active whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
                 style="border-bottom-color:#2563eb;color:#2563eb;background:none;">
                 데이터 분포 현황
               </button>
-              <button id="content-tab-btn-visualization"
+              <button role="tab" id="content-tab-btn-visualization"
+                aria-selected="false" aria-controls="content-panel-visualization"
                 class="ndm-tab whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
                 style="border-bottom-color:transparent;color:#94a3b8;background:none;">
                 키워드 시각화
               </button>
-              <button id="content-tab-btn-erd"
+              <button role="tab" id="content-tab-btn-erd"
+                aria-selected="false" aria-controls="content-panel-erd"
                 class="ndm-tab whitespace-nowrap px-3 lg:px-7 py-3 text-[13px] lg:text-[15px] font-semibold transition-all mb-[-2px] border-b-[3px] focus:outline-none"
                 style="border-bottom-color:transparent;color:#94a3b8;background:none;">
                 데이터 관계도·ERD
               </button>
             </div>
 
-            <!-- ② 툴바 (검색 및 버튼) -->
-            <div
-              style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #e5e7eb;background:#f9fafb;flex-shrink:0;flex-wrap:wrap;gap:8px;">
+            <!-- ② 툴바 (검색 및 버튼) ── -->
+            <div class="dm-toolbar">
               <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                <select id="datamap-keyword-operator" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:4px; font-size:13px; outline:none; background:#fff; cursor:pointer; color:#374151; font-weight:600;">
+                <select id="datamap-keyword-operator"
+                  style="padding:8px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;outline:none;background:#fff;cursor:pointer;color:#374151;font-weight:600;">
                   <option value="AND">AND (모두 포함)</option>
                   <option value="OR">OR (하나라도 포함)</option>
                 </select>
@@ -119,10 +161,10 @@
               </div>
             </div>
 
-            <!-- ③ 본문: 좌측 필터(분류명) + 우측 콘텐츠 -->
+            <!-- ③ 본문: 사이드바 + 콘텐츠 ── -->
             <div class="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
 
-              <!-- 좌측 사이드바: 분류명 (카테고리 비율 현황) -->
+              <!-- 좌측 필터 사이드바 ── -->
               <div id="ndm-filter-sidebar"
                 class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden max-h-[400px] lg:max-h-none lg:self-start lg:sticky lg:top-4 z-10">
 
@@ -135,37 +177,31 @@
                 </div>
 
                 <div style="flex:1;">
-                  <!-- 분류명 섹션 -->
+                  <!-- 분류명 아코디언 ── -->
                   <div>
-                    <div
-                      style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;"
-                      onclick="var b=this.nextElementSibling; var i=this.querySelector('i'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';}else{b.style.display='none';i.style.transform='rotate(-180deg)';}">
+                    <button class="accordion-header" aria-expanded="true" aria-controls="accordion-category">
                       <div class="flex items-center gap-2">
                         <span style="font-size:13px;font-weight:700;color:#111827;">분류명</span>
                         <span class="text-xs font-normal text-slate-500" id="category-total-count"></span>
                       </div>
-                      <i class="ri-arrow-up-s-line text-slate-400 transition-transform duration-300"></i>
-                    </div>
-                    <div style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">
-                      <!-- dataMap.js가 여기에 카테고리 리스트를 렌더링합니다 -->
+                      <i class="ri-arrow-up-s-line text-slate-400 accordion-icon"></i>
+                    </button>
+                    <div id="accordion-category" style="padding:8px 12px;border-bottom:1px solid #f3f4f6;">
                       <div id="category-list-container"
                         class="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
                     </div>
                   </div>
 
-                  <!-- 기관명 섹션 -->
+                  <!-- 기관명 아코디언 ── -->
                   <div>
-                    <div
-                      style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;cursor:pointer;"
-                      onclick="var b=this.nextElementSibling; var i=this.querySelector('i'); if(b.style.display==='none'){b.style.display='block';i.style.transform='rotate(0deg)';}else{b.style.display='none';i.style.transform='rotate(-180deg)';}">
+                    <button class="accordion-header" aria-expanded="true" aria-controls="accordion-institution">
                       <div class="flex items-center gap-2">
                         <span style="font-size:13px;font-weight:700;color:#111827;">기관명</span>
                         <span class="text-xs font-normal text-slate-500" id="institution-total-count"></span>
                       </div>
-                      <i class="ri-arrow-up-s-line text-slate-400 transition-transform duration-300"></i>
-                    </div>
-                    <div style="padding:8px 12px;border-bottom:1px solid #f3f4f6;display:block;">
-                      <!-- dataMap.js가 여기에 기관 리스트를 렌더링합니다 -->
+                      <i class="ri-arrow-up-s-line text-slate-400 accordion-icon"></i>
+                    </button>
+                    <div id="accordion-institution" style="padding:8px 12px;border-bottom:1px solid #f3f4f6;display:block;">
                       <div id="institution-list-container"
                         class="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar"></div>
                     </div>
@@ -173,21 +209,23 @@
                 </div>
               </div>
 
-              <!-- 우측 콘텐츠 영역 -->
-              <div class="flex-1 relative bg-slate-50 min-w-0 overflow-y-auto p-4 lg:p-6 lg:border-l border-slate-200" id="main-content-area">
+              <!-- 우측 콘텐츠 영역 ── -->
+              <div class="flex-1 relative bg-slate-50 min-w-0 overflow-y-auto p-4 lg:p-6 lg:border-l border-slate-200"
+                id="main-content-area">
 
-                <!-- 플로팅 사이드바 토글 버튼 (데스크탑/모바일 공통) -->
+                <!-- 플로팅 사이드바 토글 버튼 ── -->
                 <button id="floating-toggle-sidebar"
-                  onclick="const sb = document.getElementById('ndm-filter-sidebar'); sb.classList.toggle('filter-collapsed'); const i = this.querySelector('i'); const topBtn = document.getElementById('btn-toggle-sidebar-top'); if(sb.classList.contains('filter-collapsed')){ i.classList.replace('ri-arrow-left-s-line','ri-arrow-right-s-line'); if(topBtn) topBtn.style.display='flex'; } else { i.classList.replace('ri-arrow-right-s-line','ri-arrow-left-s-line'); if(topBtn) topBtn.style.display='none'; }"
                   class="absolute left-0 top-10 w-6 h-14 bg-white border border-slate-200 border-l-0 rounded-r-md shadow-md flex items-center justify-center text-slate-400 hover:text-gov-600 hover:bg-slate-50 z-50 cursor-pointer transition-colors"
-                  style="margin-left: -1px;" title="필터 패널 접기/펴기">
+                  style="margin-left:-1px;" title="필터 패널 접기/펴기"
+                  aria-label="필터 패널 접기/펴기" aria-expanded="true">
                   <i class="ri-arrow-left-s-line text-xl pointer-events-none transition-transform duration-300"></i>
                 </button>
 
-                <!-- 탭1: 데이터 분포 현황 (트리맵) -->
-                <div id="content-panel-treemap" style="display:block;">
+                <!-- 탭1: 데이터 분포 현황 (트리맵) ── -->
+                <div id="content-panel-treemap" role="tabpanel" aria-labelledby="content-tab-btn-treemap"
+                  style="display:block;">
                   <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col overflow-hidden"
-                    style="min-height: 700px;">
+                    style="min-height:700px;">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                       데이터 분포 트리맵 (Treemap)
                       <span class="relative group inline-flex items-center">
@@ -206,14 +244,12 @@
                       class="flex-1 w-full rounded-xl overflow-hidden relative bg-slate-50 border border-slate-100 min-h-[600px]">
                     </div>
                   </div>
-                </div><!-- /#content-panel-treemap -->
+                </div>
 
-                <!-- 탭2: 데이터세트 목록 -->
+                <!-- 탭2: 키워드 시각화 ── -->
+                <div id="content-panel-visualization" role="tabpanel" aria-labelledby="content-tab-btn-visualization"
+                  style="display:none;">
 
-                <!-- 탭3: 키워드 시각화 -->
-                <div id="content-panel-visualization" style="display:none;">
-
-                  <!-- 헤더 카드 -->
                   <div
                     class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col gap-1">
@@ -232,17 +268,15 @@
                     </div>
                   </div>
 
-                  <!-- 콘텐츠 그리드 -->
                   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    <!-- 좌측: 그래프 패널 (2열) -->
+                    <!-- 그래프 패널 ── -->
                     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="height:calc(100vh - 210px); min-height:560px;">
-                      <!-- D3 그래프 컨테이너 -->
+                      style="height:calc(100vh - 210px);min-height:560px;">
                       <div id="kwmap-graph-container"
                         class="flex-1 w-full rounded-xl bg-slate-50 border border-slate-100 relative overflow-hidden"
-                        style="height:550px;cursor:grab;">
-                        <!-- 로딩 -->
+                        style="cursor:grab;min-height:0;">
+                        <!-- 로딩 ── -->
                         <div id="kwmap-loading"
                           class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/90 z-10">
                           <div
@@ -250,29 +284,30 @@
                           </div>
                           <div class="text-slate-600 text-sm font-semibold" id="kwmap-loading-text">데이터 불러오는 중...</div>
                         </div>
-                        <!-- 에러 -->
+                        <!-- 에러 ── -->
                         <div id="kwmap-error"
                           class="absolute inset-0 flex items-center justify-center p-8 text-red-500 font-bold z-10"
                           style="display:none!important;"></div>
-                        <!-- SVG 영역 -->
+                        <!-- SVG 영역 ── -->
                         <div id="kwmap-svg-wrap" class="w-full h-full bg-white" style="display:none;"></div>
-                        <!-- 줌 버튼 -->
+                        <!-- 줌 버튼 ── -->
                         <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-10" id="kwmap-zoom-btns"
                           style="display:none;">
-                          <button id="kwmap-zoom-in"
+                          <button id="kwmap-zoom-in" aria-label="확대"
                             class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">+</button>
-                          <button id="kwmap-zoom-out"
+                          <button id="kwmap-zoom-out" aria-label="축소"
                             class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600 font-bold text-lg">−</button>
-                          <button id="kwmap-zoom-home"
-                            class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600"><i
-                              class="ri-home-4-line text-lg"></i></button>
+                          <button id="kwmap-zoom-home" aria-label="원래 크기"
+                            class="w-10 h-10 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center text-slate-600 hover:text-gov-600">
+                            <i class="ri-home-4-line text-lg"></i>
+                          </button>
                         </div>
                       </div>
                     </div>
 
-                    <!-- 우측: 상세 정보 패널 (1열) -->
+                    <!-- 상세 정보 패널 (키워드 시각화) ── -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="height:calc(100vh - 210px); min-height:560px; overflow-y:auto;">
+                      style="height:calc(100vh - 210px);min-height:560px;overflow-y:auto;">
                       <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                         상세 정보 패널
                         <span class="relative group inline-flex items-center">
@@ -294,12 +329,13 @@
                       </div>
                     </div>
 
-                  </div><!-- /grid -->
-                </div><!-- /#content-panel-visualization -->
+                  </div>
+                </div>
 
-                <!-- 탭4: 데이터 관계도·ERD -->
-                <div id="content-panel-erd" style="display:none;">
-                  <!-- 헤더 카드 -->
+                <!-- 탭3: 데이터 관계도·ERD ── -->
+                <div id="content-panel-erd" role="tabpanel" aria-labelledby="content-tab-btn-erd"
+                  style="display:none;">
+
                   <div
                     class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col gap-1">
@@ -316,25 +352,26 @@
                         </span>
                       </h3>
                     </div>
-                    <!-- ERD Sub Tabs -->
-                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                    <!-- ERD 서브탭 ── -->
+                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg"
+                      role="group" aria-label="ERD 렌더링 방식 선택">
                       <button id="btn-erd-react"
-                        class="px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all">React
-                        Flow (직각)</button>
+                        class="px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all">
+                        React Flow (직각)
+                      </button>
                       <button id="btn-erd-vis"
-                        class="px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all">Vis.js
-                        (물리 곡선)</button>
+                        class="px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all">
+                        Vis.js (물리 곡선)
+                      </button>
                     </div>
                   </div>
 
-                  <!-- 콘텐츠 그리드 -->
                   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    <!-- 좌측: 그래프 패널 (2열) -->
+                    <!-- 그래프 패널 ── -->
                     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="height:calc(100vh - 210px); min-height:560px;">
+                      style="height:calc(100vh - 210px);min-height:560px;">
 
-                      <!-- 툴바 -->
                       <div
                         class="bg-white border border-slate-200 rounded-xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 mb-4">
                         <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
@@ -342,7 +379,8 @@
                           <span>물리 레이아웃</span>
                         </label>
                         <div class="h-4 w-px bg-slate-200"></div>
-                        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer" title="검색어와 일치하지 않지만 조인 가능한 연관 테이블을 희미하게 표시합니다.">
+                        <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer"
+                          title="검색어와 일치하지 않지만 조인 가능한 연관 테이블을 희미하게 표시합니다.">
                           <input type="checkbox" id="cem-show-dim" class="w-3.5 h-3.5 rounded text-gov-600" checked>
                           <span>연관 테이블 표시</span>
                         </label>
@@ -367,8 +405,8 @@
                         </button>
                       </div>
 
-                      <!-- 캔버스 영역 -->
-                      <div id="cem-canvas-wrap" class="flex-1 w-full bg-slate-50 border border-slate-100 rounded-xl overflow-hidden relative"
+                      <div id="cem-canvas-wrap"
+                        class="flex-1 w-full bg-slate-50 border border-slate-100 rounded-xl overflow-hidden relative"
                         style="min-height:0;">
                         <div id="cem-canvas" class="w-full h-full"></div>
                         <div id="cem-loading"
@@ -382,9 +420,9 @@
                       </div>
                     </div>
 
-                    <!-- 우측: 상세 정보 패널 (1열) -->
+                    <!-- 상세 정보 패널 (ERD) ── -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col"
-                      style="height:calc(100vh - 210px); min-height:560px; overflow-y:auto;">
+                      style="height:calc(100vh - 210px);min-height:560px;overflow-y:auto;">
                       <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                         상세 정보 패널
                         <span class="relative group inline-flex items-center">
@@ -406,10 +444,10 @@
                       </div>
                     </div>
 
-                  </div><!-- /grid -->
-                </div><!-- /#content-panel-erd -->
+                  </div>
+                </div>
 
-                <!-- 검색 결과 (탭 외부 - 항상 표시) -->
+                <!-- 검색 결과 (탭 외부 공통) ── -->
                 <div id="keyword-search-result-panel" class="mt-8">
                   <p id="keyword-result-summary" style="font-size:15px;color:#475569;margin-bottom:16px;"></p>
                   <div
@@ -418,23 +456,47 @@
                   <div id="keyword-pagination" class="flex items-center justify-center gap-1 mt-4"></div>
                 </div>
 
-              </div><!-- /우측 콘텐츠 영역 -->
-            </div><!-- /③ 본문 -->
-          </div><!-- /NDM Style 래퍼 -->
+              </div><!-- /우측 콘텐츠 -->
+            </div><!-- /본문 -->
+          </div><!-- /NDM 래퍼 -->
 
         </section>
       </div>
     </div>
 
-    <!-- Detail Panel Container -->
     <div id="detail-panel-container"></div>
-    <div class="mt-auto">
-      <!-- INCLUDE_FOOTER -->
-    </div>
+    <div class="mt-auto"><!-- INCLUDE_FOOTER --></div>
   </div>
 
-  <!-- JavaScript -->
-  <script type="module" src="/view/app.js?v=50"></script>
+  <!-- ── 페이지 이벤트 초기화 (인라인 onclick 분리) ── -->
+  <script>
+    (function () {
+      // 사이드바 토글
+      document.getElementById('floating-toggle-sidebar').addEventListener('click', function () {
+        const sb      = document.getElementById('ndm-filter-sidebar');
+        const icon    = this.querySelector('i');
+        const topBtn  = document.getElementById('btn-toggle-sidebar-top');
+        const collapsed = sb.classList.toggle('filter-collapsed');
+        icon.classList.toggle('ri-arrow-left-s-line',  !collapsed);
+        icon.classList.toggle('ri-arrow-right-s-line',  collapsed);
+        this.setAttribute('aria-expanded', String(!collapsed));
+        if (topBtn) topBtn.style.display = collapsed ? 'flex' : 'none';
+      });
+
+      // 아코디언 토글 (분류명 / 기관명)
+      document.querySelectorAll('.accordion-header').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const target   = document.getElementById(this.getAttribute('aria-controls'));
+          const expanded = this.getAttribute('aria-expanded') === 'true';
+          this.setAttribute('aria-expanded', String(!expanded));
+          target.style.display = expanded ? 'none' : '';
+        });
+      });
+    })();
+  </script>
+
+  <!-- ── 앱 진입점 ── -->
+  <script type="module" src="/view/app.js?v=49"></script>
 </body>
 
 </html>
