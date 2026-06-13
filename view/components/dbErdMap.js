@@ -1166,7 +1166,10 @@ export function renderCombinedErdMap(container, onSelectDataset) {
   let selectedKeys = { LCNS_NO: true, PRDLST_REPORT_NO: true, BAR_CD: true, BSSH_NO: true, TESTITM_CD: true };
   let externalFilterIds = null;
 
-  window.addEventListener('datamap-filter-updated', (e) => {
+  if (window._dbErdFilterHandler) {
+    window.removeEventListener('datamap-filter-updated', window._dbErdFilterHandler);
+  }
+  window._dbErdFilterHandler = (e) => {
     if (e.detail !== undefined) {
       if (e.detail.matchedIds === null) {
         externalFilterIds = null;
@@ -1175,7 +1178,8 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       }
       renderNetwork();
     }
-  });
+  };
+  window.addEventListener('datamap-filter-updated', window._dbErdFilterHandler);
 
   const escX = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const quoteIdent = id => `"${String(id).replace(/"/g, '""')}"`;

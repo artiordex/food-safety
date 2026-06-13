@@ -96,6 +96,14 @@ const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
   }
 });
 
+const readonlyDb = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READONLY, (err) => {
+  if (err) {
+    logger.error({ err }, 'SQLite Read-Only DB 연결 오류 (서버 시작 전)');
+  } else {
+    logger.info('SQLite Read-Only DB 연결 성공');
+  }
+});
+
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
 app.get('/api/tables', (req, res) => {
   const query = `
@@ -257,7 +265,7 @@ app.post('/api/query', (req, res) => {
     return res.status(403).json({ error: '안전을 위해 조회(SELECT, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
   }
 
-  db.all(query, [], (err, rows) => {
+  readonlyDb.all(query, [], (err, rows) => {
     if (err) {
       logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
       return res.status(400).json({ error: err.message });
