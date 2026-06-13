@@ -11,3 +11,11 @@ server.log
 .env
 .env.*
 !.env.example
+
+# 로그 파일
+pipeline.log
+*.log
+
+# 백업 파일
+server.js.bak
+*.bak

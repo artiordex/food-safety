@@ -3,6 +3,7 @@ process.env.LANG = 'en_US.UTF-8';
 
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
@@ -79,6 +80,18 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
+// CORS — 개발 환경(localhost)과 배포 도메인만 허용
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8000').split(',');
+app.use(cors({
+  origin: (origin, callback) => {
+    // origin이 없는 경우(같은 서버 요청, curl 등) 허용
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('CORS 정책에 의해 차단된 요청입니다.'));
+  },
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type']
+}));
+
 let _tableCountsMap = {};
 function initTableCounts() {
   db.all("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')", [], (err, tables) => {
@@ -126,72 +139,21 @@ const readonlyDb = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READONLY, (err) =>
   }
 });
 
+// ── 모듈 레벨 DB 헬퍼 (라우트 핸들러에서 공통 사용) ──────────────────────────
+// db.all을 Promise로 래핑 — 읽기/쓰기 가능 연결
+const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
+  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+});
+// readonlyDb.all을 Promise로 래핑 — 읽기 전용 연결
+const readonlyDbAll = (sql, params = []) => new Promise((resolve, reject) => {
+  readonlyDb.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+});
+
+// ── 라우터 마운트 ─────────────────────────────────────────────────────────────
+const tablesRouter = require('./routes/tables')(db, dbAll, logger);
+app.use('/api/tables', tablesRouter);
+
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
-app.get('/api/tables', (req, res) => {
-  const query = `
-    SELECT m.name, a.svc_nm AS logical_name
-    FROM sqlite_master m
-    LEFT JOIN api_tables a ON m.name = a.svc_no
-    WHERE m.type = 'table' AND m.name NOT LIKE 'sqlite_%' AND m.name NOT LIKE 'v_%'
-    ORDER BY m.name;
-  `;
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err }, '테이블 목록 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-    }
-    res.json(rows.map(row => ({
-      name: row.name,
-      logicalName: row.logical_name || row.name
-    })));
-  });
-});
-
-// 2. 특정 테이블 스키마 조회 API
-app.get('/api/tables/:tableName/schema', (req, res) => {
-  const { tableName } = req.params;
-  // SQL Injection 방지를 위해 알파벳, 숫자, 언더바만 허용하도록 테이블명 검증
-  if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
-    return res.status(400).json({ error: '유효하지 않은 테이블 명입니다.' });
-  }
-
-  const query = `PRAGMA table_info("${tableName}");`;
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err, tableName }, '스키마 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-    }
-    res.json(rows);
-  });
-});
-
-// 3. 특정 테이블 실시간 상위 데이터 조회 API
-app.get('/api/tables/:tableName/data', (req, res) => {
-  const { tableName } = req.params;
-  const limit = req.query.limit;
-
-  if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
-    return res.status(400).json({ error: '유효하지 않은 테이블 명입니다.' });
-  }
-
-  let query = `SELECT * FROM "${tableName}"`;
-  const params = [];
-
-  if (limit && limit !== 'all') {
-    query += ` LIMIT ?;`;
-    params.push(parseInt(limit, 10));
-  } else {
-    query += `;`;
-  }
-
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      logger.error({ err, tableName }, '데이터 조회 중 오류가 발생했습니다.');
-      return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-    }
-    res.json(rows);
-  });
-});
 
 app.get('/api/join-scenarios', (req, res) => {
   const joinSqlPath = path.join(__dirname, 'db', 'join.sql');
@@ -618,10 +580,6 @@ app.post('/api/column-search-multi', async (req, res) => {
   const words = req.body.words || [];
   if (!words.length) return res.json({ result: {} });
 
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   try {
     const result = {}; // { "word": Set(ids) }
     words.forEach(w => result[w] = new Set());
@@ -681,10 +639,6 @@ app.post('/api/column-search-multi', async (req, res) => {
 app.get('/api/column-search', async (req, res) => {
   const keyword = (req.query.keyword || '').trim();
   if (!keyword) return res.json({ tables: [], count: 0 });
-
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
 
   try {
     const matched = new Set();
@@ -754,7 +708,12 @@ app.get('/api/live-join-stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
+  let isClosed = false;
+  req.on('close', () => { isClosed = true; });
+
   const sendEvent = (data) => {
+    if (isClosed) return;
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
@@ -913,7 +872,12 @@ app.get('/api/live-hygiene-stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
+  let isClosed = false;
+  req.on('close', () => { isClosed = true; });
+
   const sendEvent = (data) => {
+    if (isClosed) return;
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
@@ -1076,7 +1040,12 @@ app.get('/api/live-barcode-stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
+  let isClosed = false;
+  req.on('close', () => { isClosed = true; });
+
   const sendEvent = (data) => {
+    if (isClosed) return;
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
@@ -1254,11 +1223,6 @@ app.get('/api/super-converge-search', (req, res) => {
     barcodes: []       // C005
   };
 
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err); else resolve(rows);
-    });
-  });
   const dbGet = (sql, params) => new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
       if (err) reject(err); else resolve(row);
@@ -1343,10 +1307,6 @@ app.get('/api/keyword-datamap', async (req, res) => {
       expr.push(defaultOp);
     }
   }
-
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
 
   try {
     // 1. Get all table names, excluding system and metadata tables
@@ -1546,10 +1506,6 @@ app.get('/api/wordcloud', (req, res) => {
     return res.json(_wcCache[tableName].words);
   }
 
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   const isTextCol = (name) => {
     const u = name.toUpperCase();
     // 주소·코드·번호·날짜 컬럼은 제외
@@ -1701,10 +1657,6 @@ app.use('/view', express.static(path.join(__dirname, 'view')));
 // 서버 구동
 // 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
 app.get('/api/nongshim-dataset', async (req, res) => {
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   try {
     const query = `
       SELECT 
@@ -1814,33 +1766,6 @@ function buildDatasetEntry(row, cacheItem, fieldNames) {
 }
 
 // 특정 테이블 내 키워드 매칭 건수 조회
-app.get('/api/tables/:tableName/keyword-count', async (req, res) => {
-  const tableName = req.params.tableName;
-  const keyword = req.query.keyword;
-  if (!keyword) return res.json({ count: 0 });
-  if (!/^[a-zA-Z0-9_-]+$/.test(tableName)) {
-    return res.status(400).json({ error: '유효하지 않은 테이블 이름입니다.' });
-  }
-
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
-  try {
-    const columns = await dbAll(`PRAGMA table_info("${tableName}")`);
-    if (!columns.length) return res.json({ count: 0 });
-
-    const conditions = columns.map(c => `CAST("${c.name}" AS TEXT) LIKE ?`).join(' OR ');
-    const params = columns.map(() => `%${keyword}%`);
-    const sql = `SELECT COUNT(*) AS cnt FROM "${tableName}" WHERE ${conditions}`;
-
-    const rows = await dbAll(sql, params);
-    res.json({ count: rows[0].cnt || 0 });
-  } catch (err) {
-    res.json({ count: 0 });
-  }
-});
-
 app.get('/api/datasets', (req, res) => {
   const cacheMap = getCacheMap();
 
@@ -1870,10 +1795,6 @@ app.get('/api/datasets', (req, res) => {
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
 app.get('/api/db-schema', (req, res) => {
-  const dbAll = (sql, params) => new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => { if (err) reject(err); else resolve(rows); });
-  });
-
   (async () => {
     try {
       // 1) 모든 base 테이블 목록 (뷰, sqlite 내부 테이블 제외)

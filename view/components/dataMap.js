@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 /**
  * 데이터맵 메인 렌더러
  * 파일명: dataMap.js
@@ -314,11 +315,11 @@ export function renderDataMap(container, onSelectDataset) {
 
       // 로딩 상태
       if (summary) summary.innerHTML = kw
-        ? `실제 데이터 내 <strong style="color:#1e293b;">"${kw}"</strong> 검색 중...`
+        ? `실제 데이터 내 <strong style="color:#1e293b;">"${escapeHtml(kw)}"</strong> 검색 중...`
         : `전체 데이터세트를 불러오는 중...`;
       cardsEl.innerHTML = `<div style="grid-column:1/-1;padding:48px 24px;text-align:center;color:#64748b;">
         <div style="display:inline-block;width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;"></div>
-        <div style="font-size:14px;">${kw ? `실제 데이터 안에서 <strong>"${kw}"</strong> 검색 중...` : '전체 데이터세트를 불러오는 중...'}<br><span style="font-size:12px;color:#94a3b8;">잠시만 기다려주세요.</span></div>
+        <div style="font-size:14px;">${kw ? `실제 데이터 안에서 <strong>"${escapeHtml(kw)}"</strong> 검색 중...` : '전체 데이터세트를 불러오는 중...'}<br><span style="font-size:12px;color:#94a3b8;">잠시만 기다려주세요.</span></div>
       </div>`;
 
       let allDatasets = [];

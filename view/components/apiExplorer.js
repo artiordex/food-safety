@@ -2,6 +2,7 @@
 // 식약처 OpenAPI 탐색기 컴포넌트
 // 데이터셋 목록을 검색·선택하고 로컬 에뮬레이터 또는 실제 외부 API로 테스트 호출합니다.
 import { getDatasets } from '../datasetStore.js';
+import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 
 export async function renderApiExplorer(container, onSelectDataset) {
   const datasets = await getDatasets();
@@ -256,12 +257,7 @@ export async function renderApiExplorer(container, onSelectDataset) {
     if (responseBox) {
       let responseBoxHTML = '';
       if (isApiCalling) {
-        responseBoxHTML = `
-          <div style="text-align:center; padding:40px 0; color:#888;">
-            <i class="ri-loader-4-line animate-spin" style="font-size:32px; color:#0168c1; display:block; margin-bottom:8px;"></i>
-            <p style="font-size:13px;">서버와 실시간 통신 중입니다...</p>
-          </div>
-        `;
+        responseBoxHTML = renderLoadingSpinner('서버와 실시간 통신 중입니다...');
       } else if (apiError) {
         responseBoxHTML = `
           <div style="padding:16px; border:1px solid #f5c5c5; background:#fff3f3; border-radius:6px; color:#c00;">
@@ -296,12 +292,7 @@ export async function renderApiExplorer(container, onSelectDataset) {
           </div>
         `;
       } else {
-        responseBoxHTML = `
-          <div style="text-align:center; padding:40px 0; border:2px dashed #dde1e7; border-radius:6px; background:#fafafa;">
-            <i class="ri-send-plane-2-line" style="font-size:32px; color:#ccc; display:block; margin-bottom:8px;"></i>
-            <p style="font-size:13px; color:#888; margin:0;">호출 버튼을 클릭하여 API 테스트를 시작하세요.</p>
-          </div>
-        `;
+        responseBoxHTML = renderEmptyState('호출 버튼을 클릭하여 API 테스트를 시작하세요.', '', 'ri-send-plane-2-line');
       }
 
       responseBox.innerHTML = responseBoxHTML;

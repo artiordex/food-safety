@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 // 실시간 API 조인 분석 컴포넌트
 // 식약처 외부 OpenAPI에서 두 테이블 데이터를 병렬 크롤링 후 메모리 상에서 Inner Join하여 결과를 표시합니다.
 
@@ -164,7 +165,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
           }
           
           if (commonCols.length > 0) {
-            datalist.innerHTML = commonCols.map(col => `<option value="${col}">추천 공통 키 (Synonym 포함)</option>`).join('');
+            datalist.innerHTML = commonCols.map(col => `<option value="${escapeAttr(col)}">추천 공통 키 (Synonym 포함)</option>`).join('');
             // 자동으로 첫 번째 공통 키를 입력창에 세팅 (사용자 편의성)
             inputKey.value = commonCols[0];
             keyHint.textContent = `${commonCols.length}개의 공통 키 발견!`;
@@ -172,7 +173,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
           } else {
             // 공통 키가 없으면 그냥 두 테이블의 모든 컬럼을 후보로 제공
             const allCols = [...new Set([...colsA, ...colsB])];
-            datalist.innerHTML = allCols.map(col => `<option value="${col}"></option>`).join('');
+            datalist.innerHTML = allCols.map(col => `<option value="${escapeAttr(col)}"></option>`).join('');
             keyHint.textContent = `공통 키 없음`;
             keyHint.classList.remove('hidden');
             keyHint.classList.replace('text-emerald-600', 'text-amber-500');
@@ -257,7 +258,15 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
       
       const time = new Date().toLocaleTimeString();
       const div = document.createElement('div');
-      div.innerHTML = `<span class="text-slate-500">[${time}]</span> <span class="${colorClass}">${msg}</span>`;
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'text-slate-500';
+      timeSpan.textContent = '[' + time + ']';
+      const msgSpan = document.createElement('span');
+      msgSpan.className = colorClass;
+      msgSpan.textContent = msg;
+      div.appendChild(timeSpan);
+      div.appendChild(document.createTextNode(' '));
+      div.appendChild(msgSpan);
       logContent.appendChild(div);
       logContent.scrollTop = logContent.scrollHeight;
     };

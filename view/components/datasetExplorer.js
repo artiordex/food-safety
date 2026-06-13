@@ -1,6 +1,8 @@
 // 데이터세트 탐색기 컴포넌트
 // 전체 데이터세트 목록을 카테고리·기관·유형별로 필터링하고 페이지네이션으로 표시합니다.
 
+import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
+
 export function renderDatasetExplorer(container, onSelectDataset) {
   // ── 상태 ──────────────────────────────────────────────────────────────────
   let allData      = [];          // 전체 데이터 (로드 후 고정)
@@ -141,10 +143,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     const cardsGrid = view.querySelector('#cards-grid');
     if (cardsGrid) {
       cardsGrid.innerHTML = paged.length === 0
-        ? `<div class="col-span-full py-20 text-center text-slate-400">
-            <i class="ri-search-line text-4xl block mb-3 opacity-40"></i>
-            검색 결과가 없습니다.
-           </div>`
+        ? `<div class="col-span-full">${renderEmptyState('검색 결과가 없습니다.', '다른 검색어나 필터 조건을 사용해 보세요.', 'ri-search-line')}</div>`
         : paged.map(cardHTML).join('');
         
       // 이벤트 재바인딩
@@ -255,12 +254,7 @@ export function renderDatasetExplorer(container, onSelectDataset) {
   if (view) {
     const cardsGrid = view.querySelector('#cards-grid');
     if (cardsGrid) {
-      cardsGrid.innerHTML = `
-        <div class="col-span-full py-32 text-center text-slate-400">
-          <i class="ri-loader-4-line text-3xl block mb-3 animate-spin opacity-60"></i>
-          데이터를 불러오는 중입니다...
-        </div>
-      `;
+      cardsGrid.innerHTML = `<div class="col-span-full">${renderLoadingSpinner('데이터를 불러오는 중입니다...')}</div>`;
     }
   }
 

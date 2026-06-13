@@ -4,6 +4,7 @@
  * HTML 구조는 datamap.html에 이미 정의되어 있고,
  * 이 파일은 #kwmap-graph-container 안의 SVG와 #kwmap-detail-panel 만 담당합니다.
  */
+import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 
 // 카테고리별 고정 색상 매핑 (도메인 이름 → 색상 코드)
 const CATEGORY_COLORS = {
@@ -121,9 +122,11 @@ function snippet(text, kw, maxLen = 24) {
 // 로딩 인디케이터를 표시하고 SVG 래퍼와 줌 버튼을 숨기는 함수
 function showLoading(text = '데이터 불러오는 중...') {
   const el = document.getElementById('kwmap-loading');
-  const txt = document.getElementById('kwmap-loading-text');
-  if (el) el.style.display = '';
-  if (txt) txt.textContent = text;
+  if (el) {
+    el.style.display = '';
+    el.style.background = 'white'; // 투명도 제거하여 화면 덮기
+    el.innerHTML = renderLoadingSpinner(text, '네트워크 토폴로지를 분석하고 있습니다.');
+  }
   const wrap = document.getElementById('kwmap-svg-wrap');
   const zbtns = document.getElementById('kwmap-zoom-btns');
   if (wrap) wrap.style.display = 'none';
@@ -143,7 +146,14 @@ function hideLoading() {
 // 오류 메시지를 에러 엘리먼트에 표시하는 함수
 function showError(msg) {
   const el = document.getElementById('kwmap-error');
-  if (el) { el.textContent = '⚠️ ' + msg; el.style.removeProperty('display'); }
+  if (el) { 
+    el.innerHTML = renderEmptyState(msg, '다른 검색어나 필터 조건을 사용해 보세요.', 'ri-inbox-line');
+    el.style.removeProperty('display');
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.background = 'white';
+    el.style.zIndex = '20';
+  }
   hideLoading();
 }
 
@@ -574,6 +584,15 @@ export function renderKeywordGraph(keyword) {
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => {
       _lastData = data;
+      if (!data.matchedTables || data.matchedTables.length === 0) {
+        showError('일치하는 데이터가 없습니다.');
+        return;
+      }
+      
+      // 검색 결과가 있으면 에러창 숨김
+      const errEl = document.getElementById('kwmap-error');
+      if (errEl) errEl.style.display = 'none';
+
       const { nodes, links } = buildGraph(data, keyword);
       hideLoading();
       renderSvg(svgWrap, nodes, links, keyword, updateDetailPanel);

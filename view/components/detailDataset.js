@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 // 데이터세트 상세 패널 컴포넌트
 // 데이터세트 선택 시 우측에 슬라이드인 패널로 상세 정보(컬럼, 샘플 데이터, API 명세)를 표시합니다.
 
@@ -424,9 +425,9 @@ export function renderDetailPanel(dataset, onClose) {
             .then(data => {
               kwBadge.classList.remove('animate-pulse');
               if (data.count > 0) {
-                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${primaryKw}" <strong>${data.count}개</strong> 포함`;
+                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${escapeHtml(primaryKw)}" <strong>${escapeHtml(data.count)}개</strong> 포함`;
               } else {
-                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${primaryKw}" 포함 안 됨`;
+                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${escapeHtml(primaryKw)}" 포함 안 됨`;
                 kwBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200';
               }
             })

@@ -2,6 +2,7 @@
 // SQLite DB에 직접 쿼리를 실행하고 결과를 테이블로 표시합니다.
 // join.sql 시나리오 기반의 JOIN 쿼리 가이드도 제공합니다.
 
+import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 function escapeHtml(value) {
   if (value == null) return '';
   return String(value)
@@ -266,13 +267,10 @@ export function renderSqlPlayground(container, onSelectDataset) {
     // 쿼리 결과 섹션 렌더링
     let queryResultHTML = '';
     if (isQueryRunning) {
-      queryResultHTML = `
-        <div class="flex flex-col items-center justify-center py-20 text-slate-500">
-          <i class="ri-loader-4-line text-4xl animate-spin text-gov-600 mb-3"></i>
-          <p class="text-sm font-medium">데이터베이스 매칭 쿼리가 수행 중입니다...</p>
-          <p class="text-xs text-slate-400 mt-1">대량 데이터에 대한 JOIN 및 정밀 필터링 연산을 수행하고 있습니다.</p>
-        </div>
-      `;
+      queryResultHTML = renderLoadingSpinner(
+        '데이터베이스 매칭 쿼리가 수행 중입니다...',
+        '대량 데이터에 대한 JOIN 및 정밀 필터링 연산을 수행하고 있습니다.'
+      );
     } else if (queryError) {
       // 에러 메시지도 escapeHtml 처리 (서버 에러 메시지가 HTML을 포함할 수 있음)
       queryResultHTML = `
@@ -286,13 +284,10 @@ export function renderSqlPlayground(container, onSelectDataset) {
       `;
     } else if (queryResult) {
       if (queryResult.length === 0) {
-        queryResultHTML = `
-          <div class="p-8 text-center text-slate-500 border border-slate-200 bg-white rounded-xl shadow-sm">
-            <i class="ri-inbox-line text-3xl text-slate-300 mb-2"></i>
-            <p class="text-sm font-semibold">쿼리가 성공적으로 수행되었으나, 일치하는 데이터가 없습니다.</p>
-            <p class="text-xs text-slate-400 mt-1 font-mono">Query Execution Time: ${queryExecutionTime}ms</p>
-          </div>
-        `;
+        queryResultHTML = renderEmptyState(
+          '쿼리가 성공적으로 수행되었으나, 일치하는 데이터가 없습니다.',
+          `Query Execution Time: ${queryExecutionTime}ms`
+        );
       } else {
         const originalKeys = Object.keys(queryResult[0]);
         const keys = originalKeys.filter(k => {

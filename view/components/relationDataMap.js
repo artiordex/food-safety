@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 // 데이터 관계 맵 컴포넌트 (React + D3.js)
 // 카테고리별 데이터세트 노드와 연관 관계를 포스 기반 네트워크 그래프로 표시합니다.
 
@@ -903,13 +904,13 @@ export async function renderRelationDataMap(container, onSelectDataset) {
         <div class="min-w-0">
           <div class="flex items-center gap-1.5 mb-1">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
-            <span class="font-mono text-xs font-bold text-slate-500 truncate max-w-[120px] block" title="${nodeId}">${nodeId}</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${subjectColorMap[ds.subject] || 'bg-slate-100 text-slate-700'}">${ds.subject}</span>
+            <span class="font-mono text-xs font-bold text-slate-500 truncate max-w-[120px] block" title="${escapeAttr(nodeId)}">${escapeHtml(nodeId)}</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${subjectColorMap[ds.subject] || 'bg-slate-100 text-slate-700'}">${escapeHtml(ds.subject)}</span>
           </div>
           <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <i class="ri-table-line text-gov-600"></i> ${ds.name.split(' (')[0]}
+            <i class="ri-table-line text-gov-600"></i> ${escapeHtml(ds.name.split(' (')[0])}
           </h3>
-          <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${ds.description}</p>
+          <p class="text-[10px] text-slate-400 mt-0.5 line-clamp-1">${escapeHtml(ds.description)}</p>
         </div>
         <button id="btn-close-inspector" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center text-slate-500 shrink-0 ml-2">
           <i class="ri-close-line text-lg"></i>
@@ -1083,7 +1084,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
           <table class="w-full text-left border-collapse min-w-[500px]">
             <thead>
               <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-50 z-10">
-                ${cols.map(c => `<th class="px-3 py-2 bg-slate-50">${c}</th>`).join('')}
+                ${cols.map(c => `<th class="px-3 py-2 bg-slate-50">${escapeHtml(c)}</th>`).join('')}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-[10px] text-slate-600 font-mono">
@@ -1091,8 +1092,8 @@ export async function renderRelationDataMap(container, onSelectDataset) {
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   ${cols.map(c => {
                     const val = row[c];
-                    const displayVal = val !== null ? String(val).replace(/"/g, '&quot;') : '';
-                    return `<td class="px-3 py-1.5 truncate max-w-[150px]" title="${displayVal}">${val !== null ? val : '<span class="text-slate-300 italic">null</span>'}</td>`;
+                    const displayVal = val !== null ? escapeAttr(String(val)) : '';
+                    return `<td class="px-3 py-1.5 truncate max-w-[150px]" title="${displayVal}">${val !== null ? escapeHtml(val) : '<span class="text-slate-300 italic">null</span>'}</td>`;
                   }).join('')}
                 </tr>
               `).join('')}
@@ -1150,9 +1151,9 @@ export async function renderRelationDataMap(container, onSelectDataset) {
           }
           return `
             <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${row.field}${keyBadge}</td>
-              <td class="px-3 py-2 font-mono text-[10px] text-blue-600">${row.sql_type || 'VARCHAR'}</td>
-              <td class="px-3 py-2 text-right text-slate-500 font-medium">${row.kor_nm || '-'}</td>
+              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${escapeHtml(row.field)}${keyBadge}</td>
+              <td class="px-3 py-2 font-mono text-[10px] text-blue-600">${escapeHtml(row.sql_type || 'VARCHAR')}</td>
+              <td class="px-3 py-2 text-right text-slate-500 font-medium">${escapeHtml(row.kor_nm || '-')}</td>
             </tr>
           `;
         }).join('');
@@ -1337,7 +1338,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
           <table class="w-full text-left border-collapse min-w-[600px] text-[10px]">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10 bg-slate-50">
-                ${cols.map(c => `<th class="px-2.5 py-2 bg-slate-50 whitespace-nowrap">${c}</th>`).join('')}
+                ${cols.map(c => `<th class="px-2.5 py-2 bg-slate-50 whitespace-nowrap">${escapeHtml(c)}</th>`).join('')}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700 font-mono">
@@ -1345,8 +1346,8 @@ export async function renderRelationDataMap(container, onSelectDataset) {
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   ${cols.map(c => {
                     const val = row[c];
-                    const displayVal = val !== null ? String(val).replace(/"/g, '&quot;') : '';
-                    return `<td class="px-2.5 py-1.5 truncate max-w-[120px]" title="${displayVal}">${val !== null ? val : '<span class="text-slate-350 italic">null</span>'}</td>`;
+                    const displayVal = val !== null ? escapeAttr(String(val)) : '';
+                    return `<td class="px-2.5 py-1.5 truncate max-w-[120px]" title="${displayVal}">${val !== null ? escapeHtml(val) : '<span class="text-slate-350 italic">null</span>'}</td>`;
                   }).join('')}
                 </tr>
               `).join('')}
