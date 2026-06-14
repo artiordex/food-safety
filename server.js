@@ -85,7 +85,7 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 // CORS — 개발 환경(localhost)과 배포 도메인만 허용
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8000').split(',');
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:8000,https://food-safety-muxr.onrender.com').split(',');
 app.use(cors({
   origin: (origin, callback) => {
     // origin이 없는 경우(같은 서버 요청, curl 등) 허용

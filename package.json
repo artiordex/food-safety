@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "chcp 65001 && node server.js",
+    "start": "node server.js",
     "crawl": "node crawler/crawler_api.js",
     "report": "chcp 65001 && node crawler/crawler_and_report.js",
     "db:import": "node db/import_to_sqlite.js",
