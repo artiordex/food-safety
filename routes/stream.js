@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
-const REAL_API_KEY = process.env.FOOD_API_KEY || '';
 
 module.exports = (db, dbAll, logger) => {
 router.get('/live-join-stream', async (req, res) => {

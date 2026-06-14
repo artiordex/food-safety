@@ -1024,7 +1024,7 @@ export function renderDataMap(container, onSelectDataset) {
     };
 
     const fetchAndDraw = () => {
-      fetch(`/api/wordcloud?tableName=${encodeURIComponent(tableName)}`)
+      fetch(`/api/tables/${tableName}/wordcloud`)
         .then(res => {
           if (res.status === 202) {
             const label = wrap.querySelector('[data-wordcloud-loading-text]');

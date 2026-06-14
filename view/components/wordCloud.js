@@ -79,7 +79,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
     const existingSvg = cloudContainer.querySelector('svg');
     if (existingSvg) existingSvg.remove();
 
-    fetch(`/api/wordcloud?tableName=${tableName}`)
+    fetch(`/api/tables/${tableName}/wordcloud`)
       .then(res => {
         if (res.status === 202) {
           if (loadingEl) loadingEl.innerText = '데이터베이스 스캔 및 단어 빈도 분석이 진행 중입니다. 잠시만 기다려주세요...';

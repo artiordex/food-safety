@@ -444,7 +444,7 @@ export function renderDetailPanel(dataset, onClose) {
   // 워드 클라우드 렌더링
   const renderDetailWordCloud = (tableName, wrap) => {
     const fetchAndDraw = () => {
-      fetch(`/api/wordcloud?tableName=${tableName}`)
+      fetch(`/api/tables/${tableName}/wordcloud`)
         .then(res => {
           if (res.status === 202) {
             const loadEl = wrap.querySelector('#detail-wc-loading');

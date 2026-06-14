@@ -1,3 +1,43 @@
+/* =====================================================
+ * 전체 레이아웃 너비 보장 (Tailwind CDN 간섭 방지)
+ * ===================================================== */
+html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
+
+/* form 태그가 #wrap을 감싸고 있어 명시적 처리 필요 */
+body > form,
+#baseForm {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+}
+
+#wrap {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+    box-sizing: border-box !important;
+}
+
+/* search.css가 main {width:995px; margin:30px auto 0;} 를 전역 적용하므로
+   index 메인 컨테이너에서 강제 해제 */
+main,
+main#container,
+#container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+}
+
 /* Base styling overrides */
 body {
   font-family: 'Inter', 'Pretendard', sans-serif;

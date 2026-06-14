@@ -9,6 +9,14 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- [CSS 깨짐 방지] Tailwind의 기본 태그 초기화(Reset CSS) 기능 강제 비활성화 -->
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false
+            }
+        }
+    </script>
 
     <meta http-equiv="X-UA-Compatible" id="document_mode" content="IE=edge">
     <meta name="viewport"

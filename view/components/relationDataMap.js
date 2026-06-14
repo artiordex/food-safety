@@ -1481,7 +1481,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
 
       // 실제 테이블 데이터 + 컬럼 메타 통합 검색
       try {
-        const res = await fetch(`/api/column-search?keyword=${encodeURIComponent(kw)}`);
+        const res = await fetch(`/api/tables/column-search?keyword=${encodeURIComponent(kw)}`);
         const json = await res.json();
         columnMatchedIds = new Set(json.tables || []);
       } catch (_) {
