@@ -165,6 +165,9 @@ app.use('/api/tables', tablesRouter);
 const searchRouter = require('./routes/search')(db, applyIncludes, logger, __dirname);
 app.use('/api', searchRouter);
 
+// 공공포털 호환 스텁 (클라이언트 JS가 호출하나 사용하지 않음)
+app.post('/api/topMenu.do', (req, res) => res.json({ result: [] }));
+
 // OpenAPI 프록시 라우터 — 반드시 다른 /api/* 라우터보다 나중에 등록
 const openapiRouter = require('./routes/openapi')(db, logger, REAL_API_KEY);
 app.use('/api', openapiRouter);
@@ -229,6 +232,7 @@ app.get('/crawler/crawl_cache.json', (req, res) => {
 app.use(express.static(path.join(__dirname, 'pages')));
 // app.use(express.static(__dirname)); // ⚠️ 루트 노출 제거 — view/public만 서빙
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/css', express.static(path.join(__dirname, 'css')));  // 공공포털 CSS 호환
 app.use('/view', express.static(path.join(__dirname, 'view')));
 
 // 서버 구동

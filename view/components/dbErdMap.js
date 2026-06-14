@@ -1145,7 +1145,11 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     '#65a30d', '#9333ea', '#e11d48', '#0284c7', '#ca8a04',
     '#059669', '#be123c', '#475569'
   ];
-  const KEY_EDGE_COLORS = {
+  function hexRgba(hex, a) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+    const KEY_EDGE_COLORS = {
     LCNS_NO: '#2563eb', PRDLST_REPORT_NO: '#10b981', BAR_CD: '#d97706',
     BSSH_NO: '#ec4899', HACCP_NO: '#8b5cf6', PRDLST_CD: '#06b6d4', FOOD_CD: '#f97316'
   };
@@ -1502,7 +1506,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           id: `e${i}`, from: r.from_table, to: r.to_table,
           label: `(${rel}) ${key}`,
           font: { size: 10, face: 'sans-serif', color: '#334155', background: '#ffffff', strokeWidth: 2, strokeColor: '#f1f5f9' },
-          color: { color: eClr, opacity: isSel ? 1.0 : 0.55, highlight: eClr, hover: eClr },
+          color: { color: isSel ? eClr : hexRgba(eClr, 0.45), highlight: eClr, hover: eClr },
           width: r.confidence === 'HIGH' ? 3 : 2,
           hoverWidth: 3, selectionWidth: 3,
           dashes: [4, 4],
@@ -1559,13 +1563,14 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         physics: {
           enabled: activePhysics,
           barnesHut: {
-            gravitationalConstant: -4500,
-            centralGravity: 0.28,   // 연결 많은 노드(mass ↑)가 중앙으로
+            gravitationalConstant: -3500,
+            centralGravity: 0.28,
             springLength: 240,
             springConstant: 0.04,
-            damping: 0.09,
+            damping: 0.45,
             avoidOverlap: 0.9
           },
+          maxVelocity: 50,
           stabilization: { enabled: true, iterations: 600, updateInterval: 50 }
         }
       }

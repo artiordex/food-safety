@@ -1,3 +1,5 @@
+// jQuery 3.x .size() 호환 패치
+if(typeof jQuery !== "undefined" && !jQuery.fn.size){jQuery.fn.size=function(){return this.length;};}
 var windowWidth;
 var windowHeight;
 $(function(){
