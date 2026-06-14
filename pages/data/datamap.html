@@ -137,9 +137,9 @@
             <div class="dm-toolbar">
               <div style="display:flex;align-items:center;gap:8px;flex:1;">
                 <select id="datamap-keyword-operator"
-                  style="padding:8px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;outline:none;background:#fff;cursor:pointer;color:#374151;font-weight:600;">
-                  <option value="AND">AND (모두 포함)</option>
-                  <option value="OR">OR (하나라도 포함)</option>
+                  style="padding:8px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;outline:none;background:#fff;cursor:pointer;color:#374151;font-weight:600;flex-shrink:0;">
+                  <option value="AND" data-full="AND (모두 포함)" data-short="AND">AND (모두 포함)</option>
+                  <option value="OR" data-full="OR (하나라도 포함)" data-short="OR">OR (하나라도 포함)</option>
                 </select>
                 <div style="position:relative;flex:1;max-width:500px;">
                   <i class="ri-search-line"
@@ -154,19 +154,19 @@
                 </button>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
-                <button id="btn-treemap-capture"
-                  style="padding:8px 12px;background:#fff;border:1px solid #d1d5db;border-radius:4px;font-size:13px;color:#374151;cursor:pointer;display:flex;align-items:center;gap:4px;">
-                  <i class="ri-camera-line"></i> 화면 캡처
+                <button id="btn-treemap-capture" title="화면 캡처"
+                  style="padding:8px 10px;background:#fff;border:1px solid #d1d5db;border-radius:4px;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ri-camera-line" style="font-size:18px;"></i>
                 </button>
               </div>
             </div>
 
             <!-- ③ 본문: 사이드바 + 콘텐츠 ── -->
-            <div class="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
+            <div class="flex flex-col lg:flex-row flex-1 lg:overflow-hidden min-h-0">
 
               <!-- 좌측 필터 사이드바 ── -->
               <div id="ndm-filter-sidebar"
-                class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden max-h-[400px] lg:max-h-none lg:self-start lg:sticky lg:top-4 z-10">
+                class="w-full lg:w-[250px] lg:min-w-[250px] border-b lg:border-b-0 border-slate-200 bg-white flex flex-col shrink-0 lg:overflow-hidden lg:max-h-none lg:self-start lg:sticky lg:top-4 lg:z-10">
 
                 <div
                   style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#fafafa;">
@@ -251,7 +251,7 @@
                   style="display:none;">
 
                   <div
-                    class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col gap-1">
                       <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
                         키워드 데이터맵 (D3 Force)
@@ -337,7 +337,7 @@
                   style="display:none;">
 
                   <div
-                    class="flex flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col gap-1">
                       <h3 class="text-lg font-bold text-slate-800 mb-0 flex items-center gap-2">
                         식품안전 데이터 융합 관계도
@@ -353,14 +353,14 @@
                       </h3>
                     </div>
                     <!-- ERD 서브탭 ── -->
-                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg"
+                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg w-full sm:w-auto"
                       role="group" aria-label="ERD 렌더링 방식 선택">
                       <button id="btn-erd-react"
-                        class="px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all">
+                        class="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-md bg-white text-blue-600 shadow-sm transition-all text-center">
                         React Flow (직각)
                       </button>
                       <button id="btn-erd-vis"
-                        class="px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all">
+                        class="flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-800 transition-all text-center">
                         Vis.js (물리 곡선)
                       </button>
                     </div>
@@ -471,6 +471,20 @@
   <!-- ── 페이지 이벤트 초기화 (인라인 onclick 분리) ── -->
   <script>
     (function () {
+      // 모바일 (lg 미만)에서 사이드바 기본 접힘
+      (function() {
+        if (window.innerWidth < 1024) {
+          const sb = document.getElementById('ndm-filter-sidebar');
+          const icon = document.querySelector('#floating-toggle-sidebar i');
+          if (sb && !sb.classList.contains('filter-collapsed')) {
+            sb.classList.add('filter-collapsed');
+            if (icon) { icon.classList.remove('ri-arrow-left-s-line'); icon.classList.add('ri-arrow-right-s-line'); }
+            const tb = document.getElementById('btn-toggle-sidebar-top');
+            if (tb) tb.style.display = 'flex';
+          }
+        }
+      })();
+
       // 사이드바 토글
       document.getElementById('floating-toggle-sidebar').addEventListener('click', function () {
         const sb      = document.getElementById('ndm-filter-sidebar');
@@ -492,11 +506,25 @@
           target.style.display = expanded ? 'none' : '';
         });
       });
+
+      // AND/OR 셀렉트 박스: 모바일에서 짧은 텍스트 표시
+      (function () {
+        function updateOperatorLabel() {
+          var sel = document.getElementById('datamap-keyword-operator');
+          if (!sel) return;
+          var isMobile = window.innerWidth < 640;
+          Array.from(sel.options).forEach(function (opt) {
+            opt.text = isMobile ? opt.dataset.short : opt.dataset.full;
+          });
+        }
+        updateOperatorLabel();
+        window.addEventListener('resize', updateOperatorLabel);
+      })();
     })();
   </script>
 
   <!-- ── 앱 진입점 ── -->
-  <script type="module" src="/view/app.js?v=100"></script>
+  <script type="module" src="/view/app.js?v=101"></script>
 </body>
 
 </html>

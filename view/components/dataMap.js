@@ -25,6 +25,10 @@ import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=16';
  * @param {Function} onSelectDataset - 데이터세트 선택 시 호출되는 콜백
  */
 export function renderDataMap(container, onSelectDataset) {
+  // 이미 초기화된 경우 중복 이벤트 바인딩 방지 (탭 전환 시 재호출 방어)
+  if (container._datamapInitialized) return;
+  container._datamapInitialized = true;
+
   // 1-1. 데이터 fetch 및 렌더 트리거
   // API에서 전체 데이터세트를 받아 분야별·기관별 집계 후 renderUI를 호출함
   const fetchDataAndRender = async () => {
@@ -92,8 +96,6 @@ export function renderDataMap(container, onSelectDataset) {
   const renderUI = (subjectArray, institutionArray, totalCount) => {
     const view = document.getElementById('datamap-view');
     if (!view) return;
-
-    view.style.display = 'block';
 
     const countEl = view.querySelector('#category-total-count');
     if (countEl) countEl.textContent = `총 ${totalCount}종`;
@@ -440,7 +442,6 @@ export function renderDataMap(container, onSelectDataset) {
         const renderPage = () => {
           const start = (currentPage - 1) * PAGE_SIZE;
           const paged = matched.slice(start, start + PAGE_SIZE);
-          cardsEl.innerHTML = paged.map((d, i) => renderListItem(d, start + i)).join('');
           cardsEl.innerHTML = paged.map((d, i) => renderListItem(d, start + i)).join('');
           cardsEl.onclick = (e) => {
             const card = e.target.closest('[data-svc-no]');
