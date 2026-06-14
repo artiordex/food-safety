@@ -257,10 +257,19 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
     if (!validateTableName(tableName, res)) return;
 
     // [보안 검증] 실제 존재하는 테이블인지 확인 (SQL 인젝션 방지)
-    if (Object.keys(_tableCountsMap).length > 0 && !Object.prototype.hasOwnProperty.call(_tableCountsMap, tableName)) {
-      logger.warn({ tableName }, '유효하지 않은 테이블명 파라미터 접근 차단');
-      return res.status(400).json({ error: '유효하지 않은 테이블명입니다.' });
-    }
+    // 'ALL' → 전체 테이블 스캔 (wordCloud.js 초기화 시 사용)
+    const tableList = tableName === 'ALL'
+      ? Object.keys(_tableCountsMap)
+      : (() => {
+          if (Object.keys(_tableCountsMap).length > 0 && !Object.prototype.hasOwnProperty.call(_tableCountsMap, tableName)) {
+            logger.warn({ tableName }, '유효하지 않은 테이블명 파라미터 접근 차단');
+            res.status(400).json({ error: '유효하지 않은 테이블명입니다.' });
+            return null;
+          }
+          return [tableName];
+        })();
+
+    if (!tableList) return;
 
     if (_wcCache[tableName] && (now - _wcCache[tableName].ts) < WC_TTL) {
       return res.json(_wcCache[tableName].words);
@@ -295,7 +304,7 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
 
     (async () => {
       try {
-        const tables = [tableName];
+        const tables = tableList;
         const freq = {};
         const SAMPLE_LIMIT = 2000;
 

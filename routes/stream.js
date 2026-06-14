@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-module.exports = (db, dbAll, logger) => {
+module.exports = (db, dbAll, logger, REAL_API_KEY) => {
 router.get('/live-join-stream', async (req, res) => {
   const { tableA, tableB, joinKey } = req.query;
 

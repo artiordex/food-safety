@@ -1,5 +1,9 @@
-let _cache = null;
-let _promise = null;
+// 모듈 버전 쿼리스트링(예: ?v=100)이 달라도 하나의 fetch만 발생하도록
+// window 전역에 promise/cache를 공유
+if (!window.__datasetStore) {
+  window.__datasetStore = { cache: null, promise: null };
+}
+const _store = window.__datasetStore;
 
 /**
  * 데이터셋 목록을 반환한다.
@@ -7,25 +11,25 @@ let _promise = null;
  * @returns {Promise<Array>}
  */
 export async function getDatasets() {
-  if (_cache) return _cache;
-  if (!_promise) {
-    _promise = fetch('/api/datasets?_t=' + Date.now())
+  if (_store.cache) return _store.cache;
+  if (!_store.promise) {
+    _store.promise = fetch('/api/datasets')
       .then(r => {
         if (!r.ok) throw new Error(`/api/datasets 응답 오류: ${r.status}`);
         return r.json();
       })
       .then(data => {
-        _cache = Array.isArray(data) ? data : [];
-        _promise = null;
-        return _cache;
+        _store.cache = Array.isArray(data) ? data : [];
+        _store.promise = null;
+        return _store.cache;
       })
       .catch(err => {
-        _promise = null;
+        _store.promise = null;
         console.error('[datasetStore] fetch 실패:', err);
         return [];
       });
   }
-  return _promise;
+  return _store.promise;
 }
 
 /**
@@ -34,7 +38,7 @@ export async function getDatasets() {
  * 아직 로드 전이면 빈 배열을 반환한다.
  */
 export function getDatasetsSync() {
-  return _cache || [];
+  return _store.cache || [];
 }
 
 // 모듈 로드 시 즉시 pre-warm (컴포넌트 렌더 전에 fetch 시작)

@@ -17,6 +17,22 @@
             }
         }
     </script>
+    <style>
+        /* [중요] 기존 레거시 디자인(content-box 기반) 충돌 방지를 위해, 
+           Tailwind 기반 신규 UI 영역에만 box-sizing: border-box를 제한적으로 적용합니다. */
+        #data-map-container *, 
+        #data-map-container ::before, 
+        #data-map-container ::after,
+        .intro-page *,
+        .intro-page ::before,
+        .intro-page ::after,
+        .sub-tab-wrap * {
+            box-sizing: border-box;
+            border-width: 0;
+            border-style: solid;
+            border-color: #e5e7eb;
+        }
+    </style>
 
     <meta http-equiv="X-UA-Compatible" id="document_mode" content="IE=edge">
     <meta name="viewport"

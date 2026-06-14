@@ -338,11 +338,11 @@ function showNodeInspector(container, nodeId, ds, onSelectDataset) {
   // 컬럼 명세 로드
   fetch('/api/query', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no='${nodeId}' ORDER BY field` })
+    body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE REPLACE(svc_no,'-','') = REPLACE('${nodeId}','-','') ORDER BY field` })
   }).then(r => r.json()).then(cols => {
     const tb = container.querySelector('#cem-schema-tbody');
     if (!tb) return;
-    const sorted = (cols || []).sort((a, b) => {
+    const sorted = (Array.isArray(cols) ? cols : []).sort((a, b) => {
       const aKey = !!KEY_EDGE_COLORS[a.field], bKey = !!KEY_EDGE_COLORS[b.field];
       return aKey === bKey ? 0 : aKey ? -1 : 1;
     });
@@ -350,7 +350,10 @@ function showNodeInspector(container, nodeId, ds, onSelectDataset) {
       const badge = KEY_EDGE_COLORS[c.field] ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
       return `<tr class="hover:bg-slate-50/50"><td class="px-3 py-1.5 font-mono font-semibold text-slate-800 whitespace-nowrap">${escapeHtml(c.field)}${badge}</td><td class="px-2 py-1.5 font-mono text-[10px] text-blue-600 whitespace-nowrap">${escapeHtml(c.sql_type || 'VARCHAR')}</td><td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${escapeHtml(c.kor_nm || '-')}</td></tr>`;
     }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
-  }).catch(() => { });
+  }).catch(() => {
+    const tb = container.querySelector('#cem-schema-tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
+  });
 
   // 샘플 데이터 로드
   fetch('/api/query', {
@@ -596,7 +599,7 @@ function ReactErdApp({ onSelectDataset, container }) {
           const kwdmData = await resAll[2].json();
           const rawMatchedTables = kwdmData.matchedTables || [];
           // tableName은 하이픈 없는 형태 (sqlite_master 기준)
-          initialMatchedIds = new Set(rawMatchedTables.map(t => String(t.tableName)));
+          initialMatchedIds = new Set(rawMatchedTables.map(t => String(t.svcNo || t.tableName)));
           setFilterIds(initialMatchedIds);
         }
 

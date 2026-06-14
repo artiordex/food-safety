@@ -1313,9 +1313,10 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       const rows = await r.json();
       if (Array.isArray(rows) && rows.length > 0) {
         rows.forEach(row => {
-          if (!allColumnsMap[row.svc_no]) allColumnsMap[row.svc_no] = [];
-          if (allColumnsMap[row.svc_no].length < 5)
-            allColumnsMap[row.svc_no].push({ field: row.field, kor_nm: row.kor_nm, sql_type: row.sql_type });
+          const normKey = (row.svc_no || '').replace(/-/g, '');
+          if (!allColumnsMap[normKey]) allColumnsMap[normKey] = [];
+          if (allColumnsMap[normKey].length < 5)
+            allColumnsMap[normKey].push({ field: row.field, kor_nm: row.kor_nm, sql_type: row.sql_type });
         });
       }
     } catch (e) { console.warn('[CombinedErd] columns bulk load failed', e); }
@@ -1346,7 +1347,10 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       relationships = loadedRels.filter(rel =>
         rel.inclusion_check && rel.inclusion_check.matched_count > 0
       );
-    } catch (e) { console.warn('[CombinedErd] relationships load failed', e); }
+    } catch (e) {
+      console.warn('[CombinedErd] relationships load failed', e);
+      relationships = [];
+    }
 
     // 데이터셋이 없으면 domainTables의 ID로 최소 구성
     if (allDatasets.length === 0) {
@@ -1461,7 +1465,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     const visNodes = allDatasets
       .filter(ds => visibleIds.has(ds.id))
       .map(ds => {
-        const cols = allColumnsMap[ds.id] || [];
+        const cols = allColumnsMap[(ds.id || '').replace(/-/g, '')] || [];
         const rows = parseCount(ds.dataCount);
         const degree = degreeMap[ds.id] || 0;
         const color = getCategoryColor(ds.subject);
@@ -1498,12 +1502,12 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           id: `e${i}`, from: r.from_table, to: r.to_table,
           label: `(${rel}) ${key}`,
           font: { size: 10, face: 'sans-serif', color: '#334155', background: '#ffffff', strokeWidth: 2, strokeColor: '#f1f5f9' },
-          color: { color: isSel ? eClr : `${eClr}80`, highlight: eClr, hover: eClr },
-          width: r.confidence === 'HIGH' ? 2.5 : 1.5,
+          color: { color: eClr, opacity: isSel ? 1.0 : 0.55, highlight: eClr, hover: eClr },
+          width: r.confidence === 'HIGH' ? 3 : 2,
           hoverWidth: 3, selectionWidth: 3,
           dashes: [4, 4],
           arrows: { to: { enabled: true, scaleFactor: 0.7 } },
-          smooth: false // 직각은 지원하지 않으므로 깔끔한 직선 점선으로 변경
+          smooth: { enabled: true, type: 'dynamic' }
         };
       });
 
@@ -1644,11 +1648,11 @@ export function renderCombinedErdMap(container, onSelectDataset) {
 
     fetch('/api/query', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE svc_no='${nodeId}'` })
+      body: JSON.stringify({ query: `SELECT field, kor_nm, sql_type FROM api_columns WHERE REPLACE(svc_no,'-','') = REPLACE('${nodeId}','-','')` })
     }).then(r => r.json()).then(cols => {
       const tb = container.querySelector('#cem-schema-tbody');
       if (!tb) return;
-      const sortedCols = (cols || []).sort((a, b) => {
+      const sortedCols = (Array.isArray(cols) ? cols : []).sort((a, b) => {
         const aKey = !!KEY_EDGE_COLORS[a.field];
         const bKey = !!KEY_EDGE_COLORS[b.field];
         if (aKey && !bKey) return -1;
@@ -1664,7 +1668,10 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           <td class="px-3 py-1.5 text-right text-slate-500">${escapeHtml(c.kor_nm || '-')}</td>
         </tr>`;
       }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
-    }).catch(() => { });
+    }).catch(() => {
+      const tb = container.querySelector('#cem-schema-tbody');
+      if (tb) tb.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
+    });
 
     fetch('/api/query', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1770,7 +1777,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const res = await fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`);
         const data = await res.json();
         const rawMatchedTables = data.matchedTables || [];
-        columnMatchedIds = new Set(rawMatchedTables.map(t => String(t.tableName)));
+        columnMatchedIds = new Set(rawMatchedTables.map(t => String(t.svcNo || t.tableName)));
         matchedNodeIds = new Set([...columnMatchedIds]);
       } catch (e) {
         console.error(e);

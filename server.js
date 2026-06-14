@@ -73,12 +73,13 @@ function applyIncludes(html, vars = {}) {
 
 const app = express();
 
-// API Rate Limiting — IP당 분당 100회 초과 시 429 반환
+// API Rate Limiting — IP당 분당 600회 초과 시 429 반환 (localhost 제외)
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,       // 1분
-  max: 100,                   // 최대 100회
+  max: 20000,                  // 최대 2000회
   standardHeaders: true,      // RateLimit-* 헤더 포함
   legacyHeaders: false,
+  skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1',
   message: { error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }
 });
 app.use('/api/', apiLimiter);
@@ -142,7 +143,7 @@ const readonlyDb = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READONLY, (err) =>
   }
 });
 
-// ── 모듈 레벨 DB 헬퍼 (라우트 핸들러에서 공통 사용) ──────────────────────────
+// 모듈 레벨 DB 헬퍼 (라우트 핸들러에서 공통 사용)
 // db.all을 Promise로 래핑 — 읽기/쓰기 가능 연결
 const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
   db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
@@ -152,13 +153,13 @@ const readonlyDbAll = (sql, params = []) => new Promise((resolve, reject) => {
   readonlyDb.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
 });
 
-// ── 라우터 마운트 ─────────────────────────────────────────────────────────────
+// 라우터 마운트
 const tablesRouter = require('./routes/tables')(db, dbAll, logger, _tableCountsMap);
 
 // 분리된 라우터 마운트
-app.use('/api', require('./routes/query')(db, dbAll, logger));
-app.use('/api', require('./routes/datasets')(db, dbAll, logger));
-app.use('/api', require('./routes/stream')(db, dbAll, logger));
+app.use('/api', require('./routes/query')(db, dbAll, logger, readonlyDb));
+app.use('/api', require('./routes/datasets')(db, dbAll, logger, _tableCountsMap, __dirname));
+app.use('/api', require('./routes/stream')(db, dbAll, logger, REAL_API_KEY));
 
 app.use('/api/tables', tablesRouter);
 const searchRouter = require('./routes/search')(db, applyIncludes, logger, __dirname);
@@ -170,7 +171,7 @@ app.use('/api', openapiRouter);
 
 
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
-// ── 워드 클라우드 API ──────────────────────────────────────────
+// 워드 클라우드 API
 // .do URL → pages/ HTML 파일 매핑
 const doRoutes = {
   '/service/serviceIntro.do': '/service/serviceIntro.html',
@@ -220,8 +221,14 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
 });
 
 // pages/ 안의 JS·CSS 등 정적 리소스도 /pages 없이 서빙
+// crawl_cache.json 전용 라우트 (crawler 디렉터리 전체 노출 방지)
+app.get('/crawler/crawl_cache.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'crawler', 'crawl_cache.json'));
+});
+
 app.use(express.static(path.join(__dirname, 'pages')));
 // app.use(express.static(__dirname)); // ⚠️ 루트 노출 제거 — view/public만 서빙
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/view', express.static(path.join(__dirname, 'view')));
 
 // 서버 구동

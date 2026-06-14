@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
-module.exports = (db, dbAll, logger) => {
+module.exports = (db, dbAll, logger, readonlyDb) => {
 router.get('/join-scenarios', (req, res) => {
   const joinSqlPath = path.join(__dirname, 'db', 'join.sql');
   try {
@@ -251,10 +251,12 @@ router.post('/query', (req, res) => {
       const catRows = await dbAll(`SELECT svc_no, svc_nm, cat FROM api_tables`);
       const domainMap = {};
       const tableLabels = {};
+      const svcNoMap = {}; // normalized → original (with hyphens)
       catRows.forEach(row => {
         const normalizedSvcNo = (row.svc_no || '').replace(/-/g, '');
         domainMap[normalizedSvcNo] = row.cat || '기타';
         tableLabels[normalizedSvcNo] = row.svc_nm;
+        svcNoMap[normalizedSvcNo] = row.svc_no;
       });
 
       const nodes = [];
@@ -337,7 +339,7 @@ router.post('/query', (req, res) => {
             color: { color: colColors.bg, highlight: colColors.border },
             smooth: { type: 'curvedCW', roundness: 0.2 }
           });
-          matchedTables.push({ tableName, tableLabel, domain, totalCount, matchingCols });
+          matchedTables.push({ tableName, tableLabel, domain, totalCount, matchingCols, svcNo: svcNoMap[tableName] || tableName });
 
           sampleRows.forEach((row, idx) => {
             const leafId = `LEAF_${tableName}_${idx}`;

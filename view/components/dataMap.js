@@ -35,12 +35,13 @@ export function renderDataMap(container, onSelectDataset) {
         body: JSON.stringify({ start_idx: 1, show_cnt: 1000 })
       });
       const data = await res.json();
-      window.currentDatasets = data.list;
+      const list = data.list || [];
+      window.currentDatasets = list;
       const subjectCounts = {};
       const instCounts = {};
       let totalCount = 0;
 
-      data.list.forEach(d => {
+      list.forEach(d => {
         const subj = d.cl_cd_nm || '기타';
         if (!subjectCounts[subj]) subjectCounts[subj] = { count: 0, items: [] };
         subjectCounts[subj].count += 1;
@@ -730,11 +731,12 @@ export function renderDataMap(container, onSelectDataset) {
 
     console.log("applyCombinedFilters called", selectedCats.length, selectedInsts.length);
     const allData = window.currentDatasets || [];
+    // 선택 없음 = 해당 축 필터 없음 (전체 허용)
     const matched = allData.filter(d => {
       const cat = d.cl_cd_nm || '기타';
       const inst = d.provd_instt_nm || '식품의약품안전처';
-      const matchCat = selectedCats.includes(cat);
-      const matchInst = selectedInsts.includes(inst);
+      const matchCat = selectedCats.length === 0 || selectedCats.includes(cat);
+      const matchInst = selectedInsts.length === 0 || selectedInsts.includes(inst);
       return matchCat && matchInst;
     });
 
@@ -742,7 +744,10 @@ export function renderDataMap(container, onSelectDataset) {
     updateTreemapForSearch(matched, '', true);
 
     // 2. Dispatch event to update ERD map
-    const matchedIds = matched.map(d => String(d.svc_no));
+    // 아무것도 선택되지 않은 경우 null(전체 표시), 아니면 매칭 ID 목록
+    const matchedIds = (selectedCats.length === 0 && selectedInsts.length === 0)
+      ? null
+      : matched.map(d => String(d.svc_no));
     window.dispatchEvent(new CustomEvent('datamap-filter-updated', { detail: { matchedIds } }));
   };
 
