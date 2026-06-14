@@ -2,6 +2,7 @@
 // 전체 데이터세트 목록을 카테고리·기관·유형별로 필터링하고 페이지네이션으로 표시합니다.
 
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
+import { escapeHtml, escapeAttr } from '../utils.js';
 
 export function renderDatasetExplorer(container, onSelectDataset) {
   // ── 상태 ──────────────────────────────────────────────────────────────────
@@ -37,32 +38,32 @@ export function renderDatasetExplorer(container, onSelectDataset) {
      ...values.map(v => `<option value="${v}" ${v === currentVal ? 'selected' : ''}>${v}</option>`)
     ].join('');
 
-  // ── 카드 HTML ─────────────────────────────────────────────────────────────
+  // ── 카드 HTML (XSS 방어 적용) ──────────────────────────────────────────────
   const cardHTML = (item) => `
     <div class="dataset-card bg-white border border-slate-200 rounded-xl p-5
                 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer
-                flex flex-col h-full group" data-id="${item.svc_no}">
+                flex flex-col h-full group" data-id="${escapeHtml(item.svc_no)}">
       <div class="flex justify-between items-start mb-3">
         <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md">
-          ${item.data_type_nm || 'OPEN API'}
+          ${escapeHtml(item.data_type_nm || 'OPEN API')}
         </span>
         <div class="flex gap-1">
           <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200">JSON</span>
           <span class="px-1.5 py-0.5 bg-slate-50 text-slate-500 text-[10px] rounded border border-slate-200">XML</span>
         </div>
       </div>
-      <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors">
-        ${item.svc_nm}
+      <h4 class="font-bold text-slate-900 text-base mb-2 line-clamp-2 leading-snug group-hover:text-blue-700 transition-colors" title="${escapeHtml(item.svc_nm)}">
+        ${escapeHtml(item.svc_nm)}
       </h4>
       <p class="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">
-        ${item.desc || (item.svc_nm + ' 공공데이터입니다.')}
+        ${escapeHtml(item.desc || (item.svc_nm + ' 공공데이터입니다.'))}
       </p>
       <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
         <div class="flex items-center gap-1.5 text-xs text-slate-500">
-          <i class="ri-building-line"></i> ${item.provd_instt_nm || '식약처'}
+          <i class="ri-building-line"></i> ${escapeHtml(item.provd_instt_nm || '식약처')}
         </div>
         <span class="text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
-          ${item.cat || ''}
+          ${escapeHtml(item.cat || '')}
         </span>
       </div>
     </div>
@@ -92,17 +93,17 @@ export function renderDatasetExplorer(container, onSelectDataset) {
     // 동적 요소 업데이트
     const selCat = view.querySelector('#sel-cat');
     if (selCat) {
-      selCat.innerHTML = `<option value="">분류별</option>` + cats.map(c => `<option value="${c}" ${c === selectedCat ? 'selected' : ''}>${c}</option>`).join('');
+      selCat.innerHTML = `<option value="">분류별</option>` + cats.map(c => `<option value="${escapeAttr(c)}" ${c === selectedCat ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
     }
 
     const selOrg = view.querySelector('#sel-org');
     if (selOrg) {
-      selOrg.innerHTML = `<option value="">제공기관별</option>` + orgs.map(o => `<option value="${o}" ${o === selectedOrg ? 'selected' : ''}>${o}</option>`).join('');
+      selOrg.innerHTML = `<option value="">제공기관별</option>` + orgs.map(o => `<option value="${escapeAttr(o)}" ${o === selectedOrg ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
     }
 
     const selType = view.querySelector('#sel-type');
     if (selType) {
-      selType.innerHTML = `<option value="">유형별</option>` + types.map(t => `<option value="${t}" ${t === selectedType ? 'selected' : ''}>${t}</option>`).join('');
+      selType.innerHTML = `<option value="">유형별</option>` + types.map(t => `<option value="${escapeAttr(t)}" ${t === selectedType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
     }
 
     const inpKeyword = view.querySelector('#inp-keyword');
@@ -130,8 +131,8 @@ export function renderDatasetExplorer(container, onSelectDataset) {
 
     const totalCount = view.querySelector('#total-count');
     if (totalCount) {
-      totalCount.innerHTML = `Total: <strong class="text-slate-900">${total}</strong>` + 
-        (total !== allData.length ? `<span class="text-blue-600 ml-1">(전체 ${allData.length}건 중 필터)</span>` : '');
+      totalCount.innerHTML = `Total: <strong class="text-slate-900">${Number(total)}</strong>` + 
+        (total !== allData.length ? `<span class="text-blue-600 ml-1">(전체 ${Number(allData.length)}건 중 필터)</span>` : '');
     }
 
     const selPageSize = view.querySelector('#sel-pagesize');
@@ -146,26 +147,8 @@ export function renderDatasetExplorer(container, onSelectDataset) {
         ? `<div class="col-span-full">${renderEmptyState('검색 결과가 없습니다.', '다른 검색어나 필터 조건을 사용해 보세요.', 'ri-search-line')}</div>`
         : paged.map(cardHTML).join('');
         
-      // 이벤트 재바인딩
-      cardsGrid.querySelectorAll('.dataset-card').forEach(card => {
-        card.addEventListener('click', e => {
-          const svc_no = e.currentTarget.getAttribute('data-id');
-          const ds = allData.find(d => d.svc_no === svc_no);
-          if (ds && onSelectDataset) {
-            onSelectDataset({
-              id:          ds.svc_no,
-              name:        ds.svc_nm,
-              subject:     ds.cat,
-              process:     ds.cat,
-              issue:       '해당없음',
-              theme:       ds.cat,
-              description: ds.desc || '',
-              includedData: ds.fields ? ds.fields.map(f => f.kor_nm || f.field) : [],
-              dataCount:   ds.sample_data_length || 0
-            });
-          }
-        });
-      });
+      // 참고: 카드 클릭 이벤트는 render()에서 매번 재바인딩하지 않고,
+      // bindEvents()에서 #cards-grid 에 이벤트 위임(Event Delegation)으로 단 1번만 등록하여 성능을 최적화함.
     }
 
     // 페이지네이션 업데이트
@@ -246,6 +229,32 @@ export function renderDatasetExplorer(container, onSelectDataset) {
       if (selPageSize) pageSize = parseInt(selPageSize.value, 10) || 10;
       currentPage = 1; render();
     });
+
+    // ── 이벤트 위임 (Event Delegation) ──
+    // 개별 카드가 아닌 그리드 부모에 이벤트를 1번만 달아 메모리 누수 방지 및 성능 최적화
+    const cardsGrid = view.querySelector('#cards-grid');
+    if (cardsGrid) {
+      cardsGrid.addEventListener('click', e => {
+        const card = e.target.closest('.dataset-card');
+        if (!card) return;
+        
+        const svc_no = card.getAttribute('data-id');
+        const ds = allData.find(d => d.svc_no === svc_no);
+        if (ds && onSelectDataset) {
+          onSelectDataset({
+            id:          ds.svc_no,
+            name:        ds.svc_nm,
+            subject:     ds.cat,
+            process:     ds.cat,
+            issue:       '해당없음',
+            theme:       ds.cat,
+            description: ds.desc || '',
+            includedData: ds.fields ? ds.fields.map(f => f.kor_nm || f.field) : [],
+            dataCount:   ds.sample_data_length || 0
+          });
+        }
+      });
+    }
   };
 
   // ── 초기 로딩 ─────────────────────────────────────────────────────────────

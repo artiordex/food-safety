@@ -17,7 +17,7 @@
     </div>
 
     <!-- Tab Content -->
-    <div class="bg-white" id="tab-content">
+    <main class="bg-white" id="tab-content" role="main" aria-label="데이터세트 탐색">
       <!-- 동적으로 생성되던 UI를 정적 HTML로 분리 -->
       <div id="dataset-explorer-view" class="static-view max-w-[1400px] mx-auto px-4 py-8" style="display: none;">
         
@@ -36,16 +36,16 @@
 
         <!-- 검색 필터 영역 -->
         <div class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-4 mb-4 flex flex-wrap items-center gap-3">
-          <select id="sel-cat" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          <select id="sel-cat" aria-label="분류별 필터" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
             <option value="">분류별</option>
           </select>
-          <select id="sel-org" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          <select id="sel-org" aria-label="제공기관별 필터" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
             <option value="">제공기관별</option>
           </select>
-          <select id="sel-type" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          <select id="sel-type" aria-label="유형별 필터" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
             <option value="">유형별</option>
           </select>
-          <input id="inp-keyword" type="text" placeholder="서비스명·코드·설명 검색" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300" />
+          <input id="inp-keyword" aria-label="키워드 검색" type="text" placeholder="서비스명·코드·설명 검색" class="h-9 px-3 border border-gray-300 rounded text-sm bg-white text-slate-700 flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-blue-300" />
           <button id="btn-search" class="h-9 px-5 bg-slate-700 text-white text-sm font-bold rounded hover:bg-slate-800 transition-colors">검색</button>
           <div id="reset-container"></div>
         </div>
@@ -254,7 +254,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script type="module" src="/view/app.js?v=50"></script>
+  <script type="module" src="/view/app.js?v=100"></script>
 </body>
 
 </html>

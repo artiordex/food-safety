@@ -66,14 +66,17 @@
 
         <div id="container" class="flex-1 relative flex flex-col">
             <!-- Ebook Tabs (Sub-Navigation) -->
-            <div class="bg-white border-b border-gray-200 shrink-0 px-6 flex justify-center space-x-8">
+            <div class="bg-white border-b border-gray-200 shrink-0 px-6 flex justify-center space-x-8" role="tablist" aria-label="서비스 이용 안내 탭">
                 <button onclick="switchTab('tab0')" id="btn-tab0"
+                    role="tab" aria-selected="false" aria-controls="tab0"
                     class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">식품안전나라
                     원안</button>
                 <button onclick="switchTab('tab1')" id="btn-tab1"
+                    role="tab" aria-selected="false" aria-controls="tab1"
                     class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none">1안: 카카오
                     디벨로퍼스형 (일반인용)</button>
                 <button onclick="switchTab('tab2')" id="btn-tab2"
+                    role="tab" aria-selected="true" aria-controls="tab2"
                     class="tab-btn px-6 py-4 text-base text-gray-500 hover:text-gray-700 focus:outline-none active">2안:
                     카카오 디벨로퍼스형 (개발자용)</button>
             </div>
@@ -82,7 +85,7 @@
             <div class="flex-1 relative">
 
                 <!-- 기존안 -->
-                <div id="tab0" class="hidden bg-white">
+                <div id="tab0" role="tabpanel" aria-labelledby="btn-tab0" class="hidden bg-white">
                     <div class="max-w-5xl mx-auto py-12 px-6 lg:px-8">
                         <div class="space-y-16">
                             <!-- 파트 1 -->
@@ -403,7 +406,7 @@
                 </div>
 
                 <!-- 1안 (일반인용) -->
-                <div id="tab1" class="hidden bg-gray-50 flex justify-center">
+                <div id="tab1" role="tabpanel" aria-labelledby="btn-tab1" class="hidden bg-gray-50 flex justify-center">
                     <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
                         <!-- Sidebar -->
                         <aside
@@ -502,7 +505,7 @@
                 </div>
 
                 <!-- 2안 (카카오 디벨로퍼스 스타일) -->
-                <div id="tab2" class="bg-gray-50 flex justify-center">
+                <div id="tab2" role="tabpanel" aria-labelledby="btn-tab2" class="bg-gray-50 flex justify-center">
                     <div class="w-full max-w-[1200px] flex bg-white border-x border-gray-200 h-full">
                         <!-- Sidebar -->
                         <aside
@@ -599,13 +602,13 @@
                                         <h2 class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b">요청 파라미터</h2>
 
                                         <div class="overflow-x-auto">
-                                            <table class="min-w-full text-left text-sm text-gray-700 border-collapse">
+                                            <table class="min-w-full text-left text-sm text-gray-700 border-collapse" aria-label="REST API 요청 파라미터">
                                                 <thead class="bg-gray-50 text-gray-600 border-b">
                                                     <tr>
-                                                        <th class="py-3 px-4 font-semibold">이름</th>
-                                                        <th class="py-3 px-4 font-semibold">타입</th>
-                                                        <th class="py-3 px-4 font-semibold">필수 여부</th>
-                                                        <th class="py-3 px-4 font-semibold">설명</th>
+                                                        <th scope="col" class="py-3 px-4 font-semibold">이름</th>
+                                                        <th scope="col" class="py-3 px-4 font-semibold">타입</th>
+                                                        <th scope="col" class="py-3 px-4 font-semibold">필수 여부</th>
+                                                        <th scope="col" class="py-3 px-4 font-semibold">설명</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-100">
@@ -679,19 +682,16 @@
 
         <script>
             function switchTab(tabId) {
-                // Hide all tabs
-                document.getElementById('tab0').classList.add('hidden');
-                document.getElementById('tab1').classList.add('hidden');
-                document.getElementById('tab2').classList.add('hidden');
-
-                // Remove active styles from buttons
-                document.getElementById('btn-tab0').classList.remove('active');
-                document.getElementById('btn-tab1').classList.remove('active');
-                document.getElementById('btn-tab2').classList.remove('active');
-
-                // Show selected tab
+                ['tab0', 'tab1', 'tab2'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                    const btn = document.getElementById('btn-' + id);
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
                 document.getElementById(tabId).classList.remove('hidden');
-                document.getElementById('btn-' + tabId).classList.add('active');
+                const activeBtn = document.getElementById('btn-' + tabId);
+                activeBtn.classList.add('active');
+                activeBtn.setAttribute('aria-selected', 'true');
             }
         </script>
 </body>

@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ReactFlow, Controls, Background, applyNodeChanges, applyEdgeChanges, addEdge, MarkerType, Handle, Position, Panel } from '@xyflow/react';
@@ -284,18 +285,22 @@ function showNodeInspector(container, nodeId, ds, onSelectDataset) {
   const subjectColors = { '식품영양정보': '#16a34a', '건강기능식품': '#2563eb', '식품안전': '#dc2626', '기타': '#64748b' };
   const subjectColor = subjectColors[ds.subject || ds.cl_cd_nm] || '#475569';
   const dsName = (ds.name || ds.svc_nm || '').split(' (')[0];
+  const descText = ds.desc || ds.description || ds.svc_desc || '';
+  const provdInstt = ds.provd_instt_nm || '';
 
   panel.innerHTML = `
-    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-      <div class="min-w-0">
-        <div class="flex items-center gap-1.5 mb-0.5">
+    <div class="px-4 py-3 border-b border-slate-100 flex items-start justify-between bg-slate-50/50 shrink-0">
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
           <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
-          <span class="font-mono text-xs font-bold text-slate-500">${nodeId}</span>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border" style="color:${subjectColor};border-color:${subjectColor}40;background:${subjectColor}18;">${ds.subject || ds.cl_cd_nm || '기타'}</span>
+          <span class="font-mono text-[11px] font-bold text-slate-500">${escapeHtml(nodeId)}</span>
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border" style="color:${escapeHtml(subjectColor)};border-color:${escapeHtml(subjectColor)}40;background:${escapeHtml(subjectColor)}18;">${escapeHtml(ds.subject || ds.cl_cd_nm || '기타')}</span>
+          ${provdInstt ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold border bg-slate-100 text-slate-600 border-slate-200"><i class="ri-government-line mr-0.5"></i>${escapeHtml(provdInstt)}</span>` : ''}
         </div>
-        <h3 class="text-sm font-bold text-slate-800 truncate">${dsName}</h3>
+        <h3 class="text-sm font-bold text-slate-800 truncate" title="${escapeAttr(dsName)}">${escapeHtml(dsName)}</h3>
+        ${descText ? `<p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed overflow-hidden break-keep" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;" title="${escapeAttr(descText)}">${escapeHtml(descText)}</p>` : ''}
       </div>
-      <button id="cem-close-insp" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 shrink-0 ml-2">
+      <button id="cem-close-insp" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 shrink-0 ml-3">
         <i class="ri-close-line text-lg"></i>
       </button>
     </div>
@@ -343,7 +348,7 @@ function showNodeInspector(container, nodeId, ds, onSelectDataset) {
     });
     tb.innerHTML = sorted.map(c => {
       const badge = KEY_EDGE_COLORS[c.field] ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
-      return `<tr class="hover:bg-slate-50/50"><td class="px-3 py-1.5 font-mono font-semibold text-slate-800 whitespace-nowrap">${c.field}${badge}</td><td class="px-2 py-1.5 font-mono text-[10px] text-blue-600 whitespace-nowrap">${c.sql_type || 'VARCHAR'}</td><td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${c.kor_nm || '-'}</td></tr>`;
+      return `<tr class="hover:bg-slate-50/50"><td class="px-3 py-1.5 font-mono font-semibold text-slate-800 whitespace-nowrap">${escapeHtml(c.field)}${badge}</td><td class="px-2 py-1.5 font-mono text-[10px] text-blue-600 whitespace-nowrap">${escapeHtml(c.sql_type || 'VARCHAR')}</td><td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${escapeHtml(c.kor_nm || '-')}</td></tr>`;
     }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
   }).catch(() => { });
 

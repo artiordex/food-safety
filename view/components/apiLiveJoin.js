@@ -36,7 +36,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
               <label class="block text-xs font-bold text-slate-700 mb-1.5">기준 테이블 (Table A)</label>
               <select id="select-table-a" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
                 <option value="">테이블을 선택하세요</option>
-                ${apiTables.map(ds => `<option value="${ds.id}">${ds.name.split(' (')[0]} [${ds.id}]</option>`).join('')}
+                ${apiTables.map(ds => `<option value="${escapeAttr(ds.id)}">${escapeHtml(ds.name.split(' (')[0])} [${escapeHtml(ds.id)}]</option>`).join('')}
               </select>
             </div>
             
@@ -49,7 +49,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
               <label class="block text-xs font-bold text-slate-700 mb-1.5">결합 대상 테이블 (Table B)</label>
               <select id="select-table-b" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white">
                 <option value="">테이블을 선택하세요</option>
-                ${apiTables.map(ds => `<option value="${ds.id}">${ds.name.split(' (')[0]} [${ds.id}]</option>`).join('')}
+                ${apiTables.map(ds => `<option value="${escapeAttr(ds.id)}">${escapeHtml(ds.name.split(' (')[0])} [${escapeHtml(ds.id)}]</option>`).join('')}
               </select>
             </div>
 
@@ -301,7 +301,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
 
       thead.innerHTML = `
         <tr>
-          ${columns.map(col => `<th class="px-3 py-2.5 font-bold text-[11px] text-slate-600 whitespace-nowrap bg-slate-100">${col}</th>`).join('')}
+          ${columns.map(col => `<th class="px-3 py-2.5 font-bold text-[11px] text-slate-600 whitespace-nowrap bg-slate-100">${escapeHtml(col)}</th>`).join('')}
         </tr>
       `;
 
@@ -309,7 +309,7 @@ export async function renderApiLiveJoin(container, onSelectDataset) {
       const renderRows = rows.slice(0, 500);
       tbody.innerHTML = renderRows.map(row => `
         <tr class="hover:bg-slate-50">
-          ${columns.map(col => `<td class="px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]" title="${row[col] || ''}">${row[col] || '-'}</td>`).join('')}
+          ${columns.map(col => `<td class="px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]" title="${escapeAttr(row[col] || '')}">${escapeHtml(row[col] || '-')}</td>`).join('')}
         </tr>
       `).join('');
     };

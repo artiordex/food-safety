@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 /**
  * DB ERD 시각화 모듈 (D3.js 물리 시뮬레이션 + Vis.js 포스 다이렉티드 네트워크)
  * 파일명: dbErdMap.js
@@ -107,7 +108,7 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
     colRows += `
       <rect x="0" y="${CARD_HEADER + i * CARD_H_COL}" width="${CARD_W}" height="${CARD_H_COL}" fill="${bg}"/>
       <text x="6" y="${CARD_HEADER + i * CARD_H_COL + 14}" font-size="8.5" fill="${nameColor}" font-family="sans-serif">${prefix}${cutName}</text>
-      <text x="${CARD_W - 6}" y="${CARD_HEADER + i * CARD_H_COL + 14}" font-size="8" fill="${c.accent}aa" text-anchor="end" font-family="monospace">${typeShort}</text>`;
+      <text x="${CARD_W - 6}" y="${CARD_HEADER + i * CARD_H_COL + 14}" font-size="8" fill="${escapeHtml(c.accent)}aa" text-anchor="end" font-family="monospace">${typeShort}</text>`;
   });
 
   const extraText = extra > 0
@@ -131,8 +132,8 @@ function getTableCardMarkup(t, isSelected, colorInfo) {
     <g class="erd-card-container">
       <rect x="3" y="3" width="${CARD_W}" height="${cardH}" rx="8" fill="rgba(0,0,0,0.04)"/>
       <rect width="${CARD_W}" height="${cardH}" rx="8" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeW}"/>
-      <rect width="${CARD_W}" height="28" rx="8" fill="${c.accent}"/>
-      <rect y="20" width="${CARD_W}" height="8" fill="${c.accent}"/>
+      <rect width="${CARD_W}" height="28" rx="8" fill="${escapeHtml(c.accent)}"/>
+      <rect y="20" width="${CARD_W}" height="8" fill="${escapeHtml(c.accent)}"/>
       <text x="8" y="21" font-size="9.5" font-weight="700" fill="#fff" font-family="sans-serif">${cutTitle}</text>
       ${colRows}
       ${extraText}
@@ -518,7 +519,7 @@ export function renderDbErdMap(container, onSelectDataset) {
         pathStr = `M${sx},${sy} L${tx},${ty}`;
       }
 
-      linkPathAndLabelCoords.set(`${sourceId}-${targetId}-${d.key}`, {
+      linkPathAndLabelCoords.set(`${sourceId}-${targetId}-${escapeHtml(d.key)}`, {
         d: pathStr,
         labelPos: labelPos
       });
@@ -529,20 +530,20 @@ export function renderDbErdMap(container, onSelectDataset) {
       .attr('d', d => {
         const sourceId = d.source.id || d.source;
         const targetId = d.target.id || d.target;
-        const info = linkPathAndLabelCoords.get(`${sourceId}-${targetId}-${d.key}`);
+        const info = linkPathAndLabelCoords.get(`${sourceId}-${targetId}-${escapeHtml(d.key)}`);
         return info ? info.d : '';
       });
 
     // 2. 테이블 노드 위치 적용
     nodesGroup.selectAll('.erd-card-node')
-      .attr('transform', d => `translate(${d.x}, ${d.y})`);
+      .attr('transform', d => `translate(${escapeHtml(d.x)}, ${escapeHtml(d.y)})`);
 
     // 3. 관계선 라벨 위치 적용
     labelsGroup.selectAll('.relation-label-group')
       .attr('transform', d => {
         const sourceId = d.source.id || d.source;
         const targetId = d.target.id || d.target;
-        const info = linkPathAndLabelCoords.get(`${sourceId}-${targetId}-${d.key}`);
+        const info = linkPathAndLabelCoords.get(`${sourceId}-${targetId}-${escapeHtml(d.key)}`);
         return info ? `translate(${info.labelPos.x}, ${info.labelPos.y})` : '';
       });
   }
@@ -582,7 +583,7 @@ export function renderDbErdMap(container, onSelectDataset) {
 
     // ── 1. 링크선 렌더링 ──
     const pathBind = linksGroup.selectAll('.relation-path')
-      .data(filteredLinks, d => `${d.source.id}-${d.target.id}-${d.key}`);
+      .data(filteredLinks, d => `${d.source.id}-${d.target.id}-${escapeHtml(d.key)}`);
 
     pathBind.exit().remove();
 
@@ -621,7 +622,7 @@ export function renderDbErdMap(container, onSelectDataset) {
 
     // ── 2. 관계선 중앙 라벨 렌더링 (모든 관계선에 상시 텍스트 표시, 활성 상태에 따라 투명도 차별화) ──
     const labelBind = labelsGroup.selectAll('.relation-label-group')
-      .data(filteredLinks, d => `${d.source.id}-${d.target.id}-${d.key}`);
+      .data(filteredLinks, d => `${d.source.id}-${d.target.id}-${escapeHtml(d.key)}`);
 
     labelBind.exit().remove();
 
@@ -676,7 +677,7 @@ export function renderDbErdMap(container, onSelectDataset) {
 
     labelMerge.select('text')
       .attr('fill', d => KEY_COLORS[d.key] || '#64748b')
-      .text(d => `(${d.relType || 'N:M'}) ${d.key}`);
+      .text(d => `(${escapeHtml(d.relType || 'N:M')}) ${escapeHtml(d.key)}`);
 
     // 3. 노드(테이블 카드) 렌더링
     const nodeBind = nodesGroup.selectAll('.erd-card-node')
@@ -743,9 +744,9 @@ export function renderDbErdMap(container, onSelectDataset) {
 
     detail.style.display = 'flex';
     detail.innerHTML = `
-      <div style="padding:14px 16px;background:${c.light};border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;shrink-0;">
+      <div style="padding:14px 16px;background:${escapeHtml(c.light)};border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;shrink-0;">
         <div>
-          <div style="font-size:13px;font-weight:700;color:${c.accent};">${t.label && t.label !== t.table ? `${t.label} (${t.table})` : t.table}</div>
+          <div style="font-size:13px;font-weight:700;color:${escapeHtml(c.accent)};">${t.label && t.label !== t.table ? `${t.label} (${t.table})` : t.table}</div>
         </div>
         <button id="detail-close" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;font-weight:700;">✕</button>
       </div>
@@ -1475,8 +1476,8 @@ export function renderCombinedErdMap(container, onSelectDataset) {
 
         const tip = document.createElement('div');
         tip.className = 'p-2 text-xs text-slate-700 max-w-xs';
-        tip.innerHTML = `<p class="font-bold text-slate-900">${ds.name} (${ds.id})</p>
-          <p class="text-slate-400">${ds.subject} · ${Number(rows).toLocaleString()} rows · 연결 ${degree}개</p>`;
+        tip.innerHTML = `<p class="font-bold text-slate-900">${escapeHtml(ds.name)} (${escapeHtml(ds.id)})</p>
+          <p class="text-slate-400">${escapeHtml(ds.subject)} · ${Number(rows).toLocaleString()} rows · 연결 ${degree}개</p>`;
 
         return { id: ds.id, label: '', shape: 'image', image: svgUrl, size: sz, mass, title: tip };
       });
@@ -1596,7 +1597,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           <div class="flex items-center gap-1.5 mb-0.5">
             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gov-100 text-gov-800 border border-gov-200">TABLE</span>
             <span class="font-mono text-xs font-bold text-slate-500">${nodeId}</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border" style="color:${subjectColor};border-color:${subjectColor}40;background:${subjectColor}18;">${ds.subject}</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold border" style="color:${subjectColor};border-color:${subjectColor}40;background:${subjectColor}18;">${escapeHtml(ds.subject)}</span>
           </div>
           <h3 class="text-sm font-bold text-slate-800 truncate">${ds.name.split(' (')[0]}</h3>
         </div>
@@ -1658,9 +1659,9 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const badge = KEY_EDGE_COLORS[c.field]
           ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
         return `<tr class="hover:bg-slate-50/50">
-          <td class="px-3 py-1.5 font-mono font-semibold text-slate-800">${c.field}${badge}</td>
-          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${c.sql_type || 'VARCHAR'}</td>
-          <td class="px-3 py-1.5 text-right text-slate-500">${c.kor_nm || '-'}</td>
+          <td class="px-3 py-1.5 font-mono font-semibold text-slate-800">${escapeHtml(c.field)}${badge}</td>
+          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${escapeHtml(c.sql_type || 'VARCHAR')}</td>
+          <td class="px-3 py-1.5 text-right text-slate-500">${escapeHtml(c.kor_nm || '-')}</td>
         </tr>`;
       }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
     }).catch(() => { });

@@ -21,7 +21,10 @@ const logger = pino({
   }
 });
 
-const REAL_API_KEY = process.env.FOOD_API_KEY || '77183c01c07d44798948'; // TODO: .env에 FOOD_API_KEY=<key> 설정 권장
+const REAL_API_KEY = process.env.FOOD_API_KEY || '';
+if (!REAL_API_KEY) {
+  logger.error('FOOD_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인해주세요.');
+}
 
 // HTML 파일에 head/header/search include를 주입하는 공통 함수
 function applyIncludes(html, vars = {}) {
@@ -151,113 +154,20 @@ const readonlyDbAll = (sql, params = []) => new Promise((resolve, reject) => {
 
 // ── 라우터 마운트 ─────────────────────────────────────────────────────────────
 const tablesRouter = require('./routes/tables')(db, dbAll, logger);
+
+// 분리된 라우터 마운트
+app.use('/api', require('./routes/query')(db, dbAll, logger));
+app.use('/api', require('./routes/datasets')(db, dbAll, logger));
+app.use('/api', require('./routes/stream')(db, dbAll, logger));
+
 app.use('/api/tables', tablesRouter);
 
 // 1. DB 테이블 목록 조회 API (뷰(View) 제외 및 논리명 매핑 추가)
 
-app.get('/api/join-scenarios', (req, res) => {
-  const joinSqlPath = path.join(__dirname, 'db', 'join.sql');
-  try {
-    // 1) 고품격 다중 (체인) 조인 시나리오 정의 (전체 데이터 연결 구조 예시)
-    const multiJoinScenarios = [
-      {
-        no: 101,
-        grade: "SUPER",
-        title: "★ [3차 JOIN] 식품 제조사 ↔ 품목제조보고 ↔ 원재료 성분 통합 분석",
-        description: "식품업체 인허가 마스터(I2500) ↔ 품목제조보고(I1250) ↔ 품목 원재료 상세(C002) 3차 연쇄 결합. 특정 제조회사 아래 어떤 제품이 등록되어 있고, 해당 제품의 실제 원재료 구성 성분이 무엇인지 정밀 분석합니다. (교집합 실존)",
-        sql: `SELECT \n    A.BSSH_NM AS "제조사명", \n    B.PRDLST_NM AS "제품명", \n    C.RAWMTRL_NM AS "원재료명"\nFROM "I2500" A\nINNER JOIN "I1250" B ON A.LCNS_NO = B.LCNS_NO\nINNER JOIN "C002" C ON B.PRDLST_REPORT_NO = C.PRDLST_REPORT_NO\nLIMIT 15;`
-      },
-      {
-        no: 102,
-        grade: "SUPER",
-        title: "★ [3차 JOIN] 위생법 위반 행정처분 업체 연락처/소재지 통합 조회",
-        description: "행정처분 통보 이력(I0470) ↔ 행정처분 상세(I0482) ↔ 업체 인허가(I2500) 3차 결합. 위생법 위반 등으로 행정처분을 받은 영업소의 실시간 주소와 연락처를 스캔하여 안전 관리에 활용합니다. (교집합 실존)",
-        sql: `SELECT \n    A.PRCSCITYPOINT_BSSHNM AS "업소명", \n    A.VILTCN AS "위반사항", \n    B.DSPSCN AS "처분내용",\n    C.ADDR AS "소재지주소",\n    C.TELNO AS "대표전화"\nFROM "I0470" A\nINNER JOIN "I0482" B ON A.DSPSDTLS_SEQ = B.DSPSDTLS_SEQ\nINNER JOIN "I2500" C ON A.PRCSCITYPOINT_BSSHNM = C.BSSH_NM\nLIMIT 10;`
-      },
-      {
-        no: 103,
-        grade: "SUPER",
-        title: "★ [5차 체인 JOIN] 시험항목 ↔ 규격 기준 ↔ 위해회수 ↔ 통관 ↔ 행정처분",
-        description: "db/chain_joins.sql의 입증된 5차 체인 조인 실데이터. 시험검사(I2530) ↔ 기준규격(I0940) ↔ 위해회수(I0490) ↔ 수입통관(C001) ↔ 행정처분(I1260)까지 전체 데이터 맵이 꼬리를 물고 유기적으로 엮인 연쇄 구조입니다.",
-        sql: `SELECT\n    A.TESTITM_CD AS "시험항목코드",\n    A.KOR_NM AS "시험항목한글명",\n    B.PRDLST_CD AS "품목코드",\n    B.PC_KOR_NM AS "품목한글명",\n    C.PRDTNM AS "위해제품명",\n    C.RTRVLPRVNS AS "회수사유",\n    D.BSSH_NM AS "수입사명",\n    E.BSSH_NM AS "처분업체명"\nFROM "I2530" A\nINNER JOIN "I0940" B ON A.TESTITM_CD = B.TESTITM_CD\nINNER JOIN "I0490" C ON B.PRDLST_CD = C.PRDLST_CD\nINNER JOIN "C001" D ON C.LCNS_NO = D.LCNS_NO\nINNER JOIN "I1260" E ON D.LCNS_NO = E.LCNS_NO\nWHERE A.TESTITM_CD IS NOT NULL AND A.TESTITM_CD != ''\nLIMIT 10;`
-      }
-    ];
 
-    // 2) 기존 join.sql 파일 파싱
-    const content = fs.readFileSync(joinSqlPath, 'utf-8');
-    const lines = content.split('\n');
-    const fileScenarios = [];
-    let currentBlock = null;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const titleMatch = line.match(/^--\s+(\d+)\.\s+\[([A-Z]+)\]\s+(.+)$/);
-      if (titleMatch) {
-        currentBlock = {
-          no: parseInt(titleMatch[1]),
-          grade: titleMatch[2],
-          relation: titleMatch[3].trim(),
-          descLines: [],
-          sqlLines: []
-        };
-        fileScenarios.push(currentBlock);
-        continue;
-      }
-      if (!currentBlock) continue;
-      if (/^--\s*[-=]{10,}/.test(line)) continue;
-
-      if (line.trim().startsWith('--')) {
-        currentBlock.descLines.push(line.replace(/^--\s*/, '').trim());
-      } else if (line.trim() !== '') {
-        currentBlock.sqlLines.push(line);
-      }
-    }
-
-    const parsedScenarios = fileScenarios.map(block => {
-      const description = block.descLines.filter(Boolean).join(' | ');
-      const sql = block.sqlLines.join('\n').trim();
-      return {
-        no: block.no,
-        grade: block.grade,
-        title: `${block.no}. ${block.relation}`,
-        description,
-        sql
-      };
-    }).filter(s => s.sql);
-
-    // 3) 다중 조인 시나리오를 맨 위에 오도록 결합하여 반환
-    const finalResult = [...multiJoinScenarios, ...parsedScenarios];
-    res.json(finalResult);
-  } catch (err) {
-    logger.error({ err }, 'join.sql 파싱 중 오류가 발생했습니다.');
-    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-  }
-});
 
 // 4. 임의의 SQL 쿼리 실행 API
-app.post('/api/query', (req, res) => {
-  const { query } = req.body;
-  if (!query || query.trim() === '') {
-    return res.status(400).json({ error: '쿼리 내용이 비어 있습니다.' });
-  }
 
-  logger.info({ query }, 'SQL 쿼리 실행 요청이 들어왔습니다.');
-
-  // SELECT 등 조회 쿼리에만 대응하도록 간단히 체크 (데이터 훼손 방지)
-  // 화이트리스트 방식: SELECT / EXPLAIN / PRAGMA 만 허용 (ATTACH 등 우회 차단)
-  const ALLOWED_SQL = /^\s*(SELECT|EXPLAIN|PRAGMA\s+(table_info|table_list|index_list|foreign_key_list|database_list|compile_options|encoding|journal_mode|page_size|user_version|schema_version|quick_check|integrity_check))/i;
-  if (!ALLOWED_SQL.test(query)) {
-    return res.status(403).json({ error: '안전을 위해 조회(SELECT, EXPLAIN, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
-  }
-
-  readonlyDb.all(query, [], (err, rows) => {
-    if (err) {
-      logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
-      return res.status(400).json({ error: 'SQL 실행 중 오류가 발생했습니다.' });
-    }
-    res.json(rows);
-  });
-});
 
 // 4.1 통합 데이터 검색 페이지 서빙 (datasetAllSearch.do)
 app.post('/api/datasetAllSearch.do', (req, res) => {
@@ -401,15 +311,20 @@ app.post('/api/searchDatasetList.do', (req, res) => {
   });
 });
 
+let _datasetTreeCache = null;
+
 // 4.2.1 전체 데이터 세트 구조(트리) API
 app.get('/api/dataset-tree', (req, res) => {
   try {
+    if (_datasetTreeCache) {
+      return res.json(_datasetTreeCache);
+    }
     const cachePath = path.join(__dirname, 'crawler', 'crawl_cache.json');
     if (!fs.existsSync(cachePath)) {
       return res.json([]);
     }
-    const data = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-    res.json(data);
+    _datasetTreeCache = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+    res.json(_datasetTreeCache);
   } catch (err) {
     logger.error({ err }, '[dataset-tree] 크롤 캐시 읽기 오류');
     res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
@@ -684,529 +599,34 @@ app.get('/api/column-search', async (req, res) => {
   }
 });
 
+let _relationshipsCache = null;
+
 app.get('/api/relationships', (req, res) => {
+  if (_relationshipsCache) {
+    return res.json(_relationshipsCache);
+  }
   const jsonPath = path.join(__dirname, 'db', 'foodsafety_key_candidates.json');
   if (fs.existsSync(jsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-      res.json(data.relationships || []);
+      _relationshipsCache = data.relationships || [];
+      res.json(_relationshipsCache);
     } catch (err) {
+      logger.error({ err: err }, '[server] 예외 발생');
       res.status(500).json({ error: '관계 데이터 파일을 읽는 중 오류가 발생했습니다.' });
     }
   } else {
     res.status(404).json({ error: '관계 데이터 분석 결과가 존재하지 않습니다.' });
   }
 });
-
 // 8. OpenAPI 실시간 전체 스캔 및 조인 기능 (SSE - Server-Sent Events)
-app.get('/api/live-join-stream', async (req, res) => {
-  const { tableA, tableB, joinKey } = req.query;
 
-  // SSE 헤더 설정
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
-  let isClosed = false;
-  req.on('close', () => { isClosed = true; });
-
-  const sendEvent = (data) => {
-    if (isClosed) return;
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-
-  try {
-    sendEvent({ type: 'status', message: `[1/4] ${tableA}, ${tableB} 데이터 총 건수 조회 중...` });
-
-    const fetchTotalCount = async (tableName) => {
-      if (tableName.startsWith('v_')) throw new Error("융합 뷰는 로컬 전용이므로 외부 실시간 조인에서 제외됩니다.");
-
-      // 1471000 테이블은 외부 OpenAPI 규격이 다르므로 로컬 DB에서 조회
-      if (tableName === '1471000') {
-        return new Promise((resolve, reject) => {
-          db.get(`SELECT COUNT(*) AS total FROM "1471000"`, [], (err, row) => {
-            if (err) reject(err);
-            else resolve(row.total);
-          });
-        });
-      }
-
-      const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/1/1`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data[tableName] && data[tableName].total_count) {
-        return parseInt(data[tableName].total_count, 10);
-      }
-      return 0;
-    };
-
-    const totalA = await fetchTotalCount(tableA);
-    const totalB = await fetchTotalCount(tableB);
-
-    if (totalA === 0 || totalB === 0) {
-      throw new Error(`데이터 건수가 0건이거나 API 호출에 실패했습니다. (${tableA}: ${totalA}, ${tableB}: ${totalB})`);
-    }
-
-    sendEvent({ type: 'status', message: `[2/4] 총 건수 확인 완료 (${tableA}: ${totalA}건, ${tableB}: ${totalB}건). 데이터 적재 시작...` });
-
-    const fetchAllData = async (tableName, totalCount) => {
-      if (tableName === '1471000') {
-        return new Promise((resolve, reject) => {
-          db.all(`SELECT * FROM "1471000" LIMIT 1000`, [], (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-          });
-        });
-      }
-
-      const allRows = [];
-      const batchSize = 1000;
-      // 외부 서버 부하 및 차단(WAF) 방지를 위해 최대 1000건까지만 제한적으로 가져오도록 수정
-      const safeTotalCount = Math.min(totalCount, 1000);
-      const parallelLimit = 8;
-
-      let promises = [];
-      for (let start = 1; start <= safeTotalCount; start += batchSize) {
-        const end = Math.min(start + batchSize - 1, safeTotalCount);
-        const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
-
-        const fetchPromise = fetch(url).then(r => r.json()).then(data => {
-          if (data[tableName] && data[tableName].row) {
-            allRows.push(...data[tableName].row);
-          }
-          sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: safeTotalCount });
-        }).catch(err => {
-          logger.error({ err, tableName }, '외부 API fetch 중 오류가 발생했습니다.');
-        });
-
-        promises.push(fetchPromise);
-
-        if (promises.length >= parallelLimit) {
-          await Promise.all(promises);
-          promises = [];
-        }
-      }
-      if (promises.length > 0) {
-        await Promise.all(promises);
-      }
-      return allRows;
-    };
-
-    sendEvent({ type: 'status', message: `[3/4] ${tableA} 및 ${tableB} 전체 데이터를 수집 중입니다. (대기 시간이 소요될 수 있습니다)` });
-
-    // 테이블 단위 순차 수집 (병렬 수집 시 서버 및 대역폭 과부하 방지)
-    const dataA = await fetchAllData(tableA, totalA);
-    const dataB = await fetchAllData(tableB, totalB);
-
-    sendEvent({ type: 'status', message: `[4/4] 수집 완료. 서버 메모리에서 '${joinKey}' 기준으로 Inner Join 연산을 수행 중...` });
-
-    // Inner Join 로직
-    const joinedData = [];
-    const mapB = new Map();
-
-    const getSynonymKeyVal = (row, requestedKey) => {
-      if (row[requestedKey] !== undefined) return row[requestedKey];
-
-      const keySynonyms = [
-        ['LCNS_NO'],
-        ['PRDLST_REPORT_NO', 'ITEM_REPORT_NO'],
-        ['BAR_CD', 'BARCODE_NO']
-      ];
-
-      for (const group of keySynonyms) {
-        if (group.includes(requestedKey)) {
-          for (const k of group) {
-            if (row[k] !== undefined) return row[k];
-          }
-        }
-      }
-      return null;
-    };
-
-    dataB.forEach(row => {
-      const keyVal = getSynonymKeyVal(row, joinKey);
-      if (keyVal) {
-        if (!mapB.has(keyVal)) mapB.set(keyVal, []);
-        mapB.get(keyVal).push(row);
-      }
-    });
-
-    dataA.forEach(rowA => {
-      const keyVal = getSynonymKeyVal(rowA, joinKey);
-      if (keyVal && mapB.has(keyVal)) {
-        const matchedRowsB = mapB.get(keyVal);
-        matchedRowsB.forEach(rowB => {
-          // 컬럼명 충돌 방지 및 A/B 테이블 직관적 구분을 위해 접두어와 테이블명 추가
-          const merged = {};
-          Object.keys(rowA).forEach(k => merged[`[A] ${k}(${tableA})`] = rowA[k]);
-          Object.keys(rowB).forEach(k => merged[`[B] ${k}(${tableB})`] = rowB[k]);
-          joinedData.push(merged);
-        });
-      }
-    });
-
-    const maxTransfer = 1000;
-    sendEvent({
-      type: 'complete',
-      totalMatched: joinedData.length,
-      result: joinedData.slice(0, maxTransfer),
-      message: `성공적으로 ${joinedData.length}건이 매칭되었습니다. (브라우저 보호를 위해 상위 ${maxTransfer}건만 화면에 전송합니다)`
-    });
-    res.end();
-
-  } catch (err) {
-    logger.error({ err }, 'SSE 조인 처리 중 오류가 발생했습니다.');
-    sendEvent({ type: 'error', message: err.message });
-    res.end();
-  }
-});
 
 // 9. OpenAPI 지역 기반 위생 안심 요식업소 실시간 분석 (SSE)
-app.get('/api/live-hygiene-stream', async (req, res) => {
-  const { region, industry, violation } = req.query;
 
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
-  let isClosed = false;
-  req.on('close', () => { isClosed = true; });
-
-  const sendEvent = (data) => {
-    if (isClosed) return;
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-
-  try {
-    sendEvent({ type: 'status', message: `[1/4] 기준 테이블 I2500(인허가업소) 및 연계 테이블 I0470(행정처분) API 호출 준비 중...` });
-
-    const fetchAllData = async (tableName) => {
-      const allRows = [];
-      const totalToFetch = 10000;
-      const batchSize = 1000;
-
-      for (let start = 1; start <= totalToFetch; start += batchSize) {
-        let end = start + batchSize - 1;
-        const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
-
-        try {
-          const response = await fetch(url, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-          });
-
-          const text = await response.text();
-          const data = JSON.parse(text);
-
-          if (data[tableName] && data[tableName].row) {
-            const rows = data[tableName].row;
-            allRows.push(...rows);
-            sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: totalToFetch });
-            if (rows.length < batchSize) break; // 데이터가 더 없으면 조기 종료
-          } else {
-            break; // 응답 구조가 이상하거나 데이터가 없을 때
-          }
-        } catch (e) {
-          throw new Error(`식약처 API 응답 파싱 실패 (${tableName} ${start}~${end}): API 호출 제한이 걸렸을 수 있습니다.`);
-        }
-
-        // 동시 접속 차단(WAF)을 방지하기 위해 0.2초 대기
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-      return allRows;
-    };
-
-    sendEvent({ type: 'status', message: `[2/4] 외부 OpenAPI에서 I2500 (최대 10000건), I0470 (최대 10000건) 1000건씩 순차 크롤링 적재 중...` });
-
-    // 식약처 서버의 "현재 접속 중인 인증키입니다" (동시접속 제한) 에러를 막기 위해
-    // I2500을 먼저 다 가져오고, 그 다음에 I0470을 순차적으로 가져오도록 수정
-    const dataI2500 = await fetchAllData('I2500');
-    const dataI0470 = await fetchAllData('I0470');
-
-    sendEvent({ type: 'status', message: `[3/4] 수집 완료. 지역('${region || '전체'}') 및 업종('${industry || '전체'}') 필터링 중...` });
-
-    // 필터링 적용 (WHERE)
-    const filteredI2500 = dataI2500.filter(row => {
-      let pass = true;
-      if (region && row.ADDR && !row.ADDR.includes(region)) pass = false;
-      if (industry && row.INDUTY_CD_NM && !row.INDUTY_CD_NM.includes(industry)) pass = false;
-      return pass;
-    });
-
-    sendEvent({ type: 'status', message: `[4/4] 서버 메모리에서 LCNS_NO 기준으로 LEFT JOIN 연산 및 위생상태 필터링 수행 중...` });
-
-    // I0470 해시맵(Index) 구성 (행정처분 정보 룩업 용도)
-    const i0470Map = new Map();
-    dataI0470.forEach(row => {
-      if (row.LCNS_NO) {
-        i0470Map.set(row.LCNS_NO, row);
-      }
-    });
-
-    // LEFT JOIN 및 SELECT 컬럼 매핑
-    const resultRows = [];
-    filteredI2500.forEach(rowE => {
-      const rowA = i0470Map.get(rowE.LCNS_NO); // LEFT JOIN
-
-      const hasViolation = rowA ? true : false;
-      if (violation === '있음' && !hasViolation) return;
-      if (violation === '없음' && hasViolation) return;
-
-      resultRows.push({
-        '인허가번호': rowE.LCNS_NO,
-        '업소명': rowE.BSSH_NM,
-        '업종': rowE.INDUTY_CD_NM,
-        '주소': rowE.ADDR,
-        '행정처분유형': rowA ? rowA.DSPS_TYPECD_NM : null,
-        '위반내용': rowA ? rowA.VILTCN : null,
-        '위생상태': rowA ? '주의이력 있음' : '주의이력 없음'
-      });
-    });
-
-    sendEvent({
-      type: 'complete',
-      result: resultRows,
-      message: `분석 완료. 외부 API를 통해 필터 조건에 부합하는 총 ${resultRows.length}건의 업소 위생상태가 조회되었습니다.`
-    });
-    res.end();
-
-  } catch (err) {
-    logger.warn({ err }, '외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동');
-    sendEvent({ type: 'status', message: `[Fallback] 외부 API 호출 오류로 인해, 내부 SQLite DB에서 조건에 맞게 SQL을 직접 실행합니다.` });
-
-    let sqlQuery = `
-      SELECT 
-          E.LCNS_NO               AS "인허가번호",
-          E.BSSH_NM               AS "업소명",
-          E.INDUTY_CD_NM          AS "업종",
-          E.ADDR                  AS "주소",
-          A.DSPS_TYPECD_NM        AS "행정처분유형",
-          A.VILTCN                AS "위반내용",
-          CASE 
-              WHEN A.LCNS_NO IS NULL THEN '주의이력 없음'
-              ELSE '주의이력 있음'
-          END                     AS "위생상태"
-      FROM I2500 E
-      LEFT JOIN I0470 A 
-          ON E.LCNS_NO = A.LCNS_NO
-      WHERE 1=1
-    `;
-    const params = [];
-
-    if (region) {
-      sqlQuery += ` AND E.ADDR LIKE ? `;
-      params.push(`%${region}%`);
-    }
-    if (industry) {
-      sqlQuery += ` AND E.INDUTY_CD_NM LIKE ? `;
-      params.push(`%${industry}%`);
-    }
-    if (violation === '있음') {
-      sqlQuery += ` AND A.LCNS_NO IS NOT NULL `;
-    } else if (violation === '없음') {
-      sqlQuery += ` AND A.LCNS_NO IS NULL `;
-    }
-
-    // 최대 10000건까지 조회 허용
-    sqlQuery += ` LIMIT 10000;`;
-
-    db.all(sqlQuery, params, (dbErr, rows) => {
-      if (dbErr) {
-        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 실행 중 오류: ' + dbErr.message });
-      } else {
-        sendEvent({
-          type: 'complete',
-          result: rows || [],
-          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 조회되었습니다.`
-        });
-      }
-      res.end();
-    });
-  }
-});
 
 // 10. 바코드 기반 안전 식품 조회 실시간 스트림 (5개 테이블 연계)
-app.get('/api/live-barcode-stream', async (req, res) => {
-  const { barcode, barcodeExist, haccp, safeStatus } = req.query;
 
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  // 클라이언트 연결 종료 감지 — 이후 sendEvent 호출을 무시하여 EPIPE 방지
-  let isClosed = false;
-  req.on('close', () => { isClosed = true; });
-
-  const sendEvent = (data) => {
-    if (isClosed) return;
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-
-  try {
-    sendEvent({ type: 'status', message: `[1/4] 5개 테이블 (I1250, C005, I2500, I0580, I0490) API 호출 준비 중...` });
-
-    const fetchAllData = async (tableName) => {
-      const allRows = [];
-      const totalToFetch = 10000;
-      const batchSize = 1000;
-      for (let start = 1; start <= totalToFetch; start += batchSize) {
-        let end = start + batchSize - 1;
-        const url = `http://openapi.foodsafetykorea.go.kr/api/${REAL_API_KEY}/${tableName}/json/${start}/${end}`;
-        try {
-          const response = await fetch(url, {
-            headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' }
-          });
-          const text = await response.text();
-          const data = JSON.parse(text);
-          if (data[tableName] && data[tableName].row) {
-            allRows.push(...data[tableName].row);
-            sendEvent({ type: 'progress', table: tableName, fetched: allRows.length, total: totalToFetch });
-            if (data[tableName].row.length < batchSize) break;
-          } else break;
-        } catch (e) {
-          throw new Error(`식약처 API 응답 파싱 실패 (${tableName} ${start}~${end})`);
-        }
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-      return allRows;
-    };
-
-    sendEvent({ type: 'status', message: `[2/4] 외부 OpenAPI에서 5개 테이블 (각 최대 10000건) 1000건씩 순차 크롤링 적재 중...` });
-
-    const dataI1250 = await fetchAllData('I1250');
-    const dataC005 = await fetchAllData('C005');
-    const dataI2500 = await fetchAllData('I2500');
-    const dataI0580 = await fetchAllData('I0580');
-    const dataI0490 = await fetchAllData('I0490');
-
-    sendEvent({ type: 'status', message: `[3/4] 수집 완료. 서버 메모리에서 5개 테이블 Left Join 연산 수행 중...` });
-
-    // HashMaps for fast lookup
-    const mapB = new Map(); dataC005.forEach(r => { if (r.PRDLST_REPORT_NO) mapB.set(r.PRDLST_REPORT_NO, r) });
-    const mapE = new Map(); dataI2500.forEach(r => { if (r.LCNS_NO) mapE.set(r.LCNS_NO, r) });
-    const mapH = new Map(); dataI0580.forEach(r => { if (r.LCNS_NO) mapH.set(r.LCNS_NO, r) });
-    const mapC = new Map(); dataI0490.forEach(r => { if (r.PRDLST_REPORT_NO) mapC.set(r.PRDLST_REPORT_NO, r) });
-
-    const resultRows = [];
-    dataI1250.forEach(rowP => {
-      const rowB = mapB.get(rowP.PRDLST_REPORT_NO);
-      const rowE = mapE.get(rowP.LCNS_NO);
-      const rowH = mapH.get(rowP.LCNS_NO);
-      const rowC = mapC.get(rowP.PRDLST_REPORT_NO);
-
-      const hasHaccp = rowH && rowH.HACCP_APPN_NO ? 'Y' : 'N';
-      const safeStatusValue = (rowC && rowC.PRDLST_REPORT_NO) ? '위험' : '안전';
-      const barcodeValue = rowB ? rowB.BAR_CD : null;
-
-      // 필터링 적용
-      if (barcode && barcodeValue !== barcode) return;
-      if (barcodeExist === 'Y' && !barcodeValue) return;
-      if (barcodeExist === 'N' && barcodeValue) return;
-      if (haccp && haccp !== '' && hasHaccp !== haccp) return;
-      if (safeStatus && safeStatus !== '' && safeStatusValue !== safeStatus) return;
-
-      resultRows.push({
-        '바코드': barcodeValue,
-        '품목제조보고번호': rowP.PRDLST_REPORT_NO,
-        '제품명': rowP.PRDLST_NM,
-        '식품유형': rowP.PRDLST_DCNM,
-        '제조업체명': rowE ? rowE.BSSH_NM : null,
-        '주소': rowE ? rowE.ADDR : null,
-        '인허가번호': rowP.LCNS_NO,
-        'HACCP_적용여부': hasHaccp,
-        'HACCP_지정번호': rowH ? rowH.HACCP_APPN_NO : null,
-        '회수_판매중지_일련번호': rowC ? rowC.RTRVLDSUSE_SEQ : null,
-        '회수사유': rowC ? rowC.RTRVLPRVNS : null,
-        '안전상태': safeStatusValue
-      });
-    });
-
-    sendEvent({
-      type: 'complete',
-      result: resultRows,
-      message: `분석 완료. 필터 조건에 부합하는 총 ${resultRows.length}건이 조회되었습니다.`
-    });
-    res.end();
-
-  } catch (err) {
-    logger.warn({ err }, '외부 API 실시간 호출 실패 -> 로컬 DB SQL Fallback 작동');
-    sendEvent({ type: 'status', message: `[Fallback] 외부 API 호출 오류로 인해 내부 SQLite DB에서 5개 테이블 조인 SQL 쿼리를 직접 실행합니다.` });
-
-    let sqlQuery = `
-      SELECT 
-          B.BAR_CD                AS "바코드",
-          P.PRDLST_REPORT_NO      AS "품목제조보고번호",
-          P.PRDLST_NM             AS "제품명",
-          P.PRDLST_DCNM           AS "식품유형",
-          E.BSSH_NM               AS "제조업체명",
-          E.ADDR                  AS "주소",
-          P.LCNS_NO               AS "인허가번호",
-          CASE 
-              WHEN H.HACCP_APPN_NO IS NOT NULL THEN 'Y'
-              ELSE 'N'
-          END                     AS "HACCP_적용여부",
-          H.HACCP_APPN_NO         AS "HACCP_지정번호",
-          C.RTRVLDSUSE_SEQ        AS "회수_판매중지_일련번호",
-          C.RTRVLPRVNS            AS "회수사유",
-          CASE 
-              WHEN C.PRDLST_REPORT_NO IS NOT NULL THEN '위험'
-              ELSE '안전'
-          END                     AS "안전상태"
-      FROM I1250 P
-      LEFT JOIN C005 B ON P.PRDLST_REPORT_NO = B.PRDLST_REPORT_NO
-      LEFT JOIN I2500 E ON P.LCNS_NO = E.LCNS_NO
-      LEFT JOIN I0580 H ON P.LCNS_NO = H.LCNS_NO
-      LEFT JOIN I0490 C ON P.PRDLST_REPORT_NO = C.PRDLST_REPORT_NO
-      WHERE 1=1
-    `;
-    const params = [];
-
-    if (barcode) {
-      sqlQuery += ` AND B.BAR_CD = ? `;
-      params.push(barcode);
-    }
-
-    if (barcodeExist === 'Y') {
-      sqlQuery += ` AND B.BAR_CD IS NOT NULL `;
-    } else if (barcodeExist === 'N') {
-      sqlQuery += ` AND B.BAR_CD IS NULL `;
-    }
-
-    if (haccp === 'Y') {
-      sqlQuery += ` AND H.HACCP_APPN_NO IS NOT NULL `;
-    } else if (haccp === 'N') {
-      sqlQuery += ` AND H.HACCP_APPN_NO IS NULL `;
-    }
-
-    if (safeStatus === '위험') {
-      sqlQuery += ` AND C.PRDLST_REPORT_NO IS NOT NULL `;
-    } else if (safeStatus === '안전') {
-      sqlQuery += ` AND C.PRDLST_REPORT_NO IS NULL `;
-    }
-
-    sqlQuery += ` LIMIT 10000;`;
-
-    db.all(sqlQuery, params, (dbErr, rows) => {
-      if (dbErr) {
-        sendEvent({ type: 'error', message: 'SQLite 폴백 쿼리 오류: ' + dbErr.message });
-      } else {
-        sendEvent({
-          type: 'complete',
-          result: rows || [],
-          message: `[SQL Fallback 결과] 로컬 DB에서 조건에 부합하는 총 ${(rows || []).length}건이 5개 테이블 조인으로 조회되었습니다.`
-        });
-      }
-      res.end();
-    });
-  }
-});
 
 // 11. 핵심 공공-민간 초융합형 ERD 검색 API
 app.get('/api/super-converge-search', (req, res) => {
@@ -1502,6 +922,12 @@ app.get('/api/wordcloud', (req, res) => {
   const tableName = (req.query.tableName || 'ALL').trim();
   const now = Date.now();
 
+  // [보안 검증] tableName이 'ALL'이 아니면 실제 존재하는 테이블인지 확인 (SQL 인젝션 방지)
+  if (tableName !== 'ALL' && Object.keys(_tableCountsMap).length > 0 && !Object.prototype.hasOwnProperty.call(_tableCountsMap, tableName)) {
+    logger.warn({ tableName }, '유효하지 않은 테이블명 파라미터 접근 차단');
+    return res.status(400).json({ error: '유효하지 않은 테이블명입니다.' });
+  }
+
   if (_wcCache[tableName] && (now - _wcCache[tableName].ts) < WC_TTL) {
     return res.json(_wcCache[tableName].words);
   }
@@ -1595,6 +1021,7 @@ app.get('/api/wordcloud', (req, res) => {
       _wcCache[tableName] = { words, ts: now };
       res.json(words);
     } catch (e) {
+      logger.error({ err: e }, '[server] 예외 발생');
       console.error('wordcloud error:', e);
       res.status(500).json({ error: e.message });
     }
@@ -1766,81 +1193,12 @@ function buildDatasetEntry(row, cacheItem, fieldNames) {
 }
 
 // 특정 테이블 내 키워드 매칭 건수 조회
-app.get('/api/datasets', (req, res) => {
-  const cacheMap = getCacheMap();
 
-  db.all(
-    `SELECT t.svc_no, t.svc_nm, t.cat, t.description, t.sample_data_length,
-            GROUP_CONCAT(c.field, '||') AS fields_concat
-     FROM api_tables t
-     LEFT JOIN api_columns c ON t.svc_no = c.svc_no
-     GROUP BY t.svc_no
-     ORDER BY t.svc_no`,
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-
-      const datasets = rows.map(row => {
-        const fieldNames = row.fields_concat ? row.fields_concat.split('||') : [];
-        const cacheItem = cacheMap[String(row.svc_no)];
-        return buildDatasetEntry(row, cacheItem, fieldNames);
-      });
-
-      res.json(datasets);
-    }
-  );
-});
 
 // [서버 기동 — 파일 하단으로 이동됨]
 
 // ── DB ERD 스키마 API: 모든 테이블의 컬럼 정보를 일괄 반환 ──────────────────
-app.get('/api/db-schema', (req, res) => {
-  (async () => {
-    try {
-      // 1) 모든 base 테이블 목록 (뷰, sqlite 내부 테이블 제외)
-      const tables = await dbAll(
-        `SELECT m.name, a.svc_nm, a.cat
-         FROM sqlite_master m
-         LEFT JOIN api_tables a ON m.name = a.svc_no
-         WHERE m.type = 'table'
-           AND m.name NOT LIKE 'sqlite_%'
-           AND m.name NOT LIKE 'v_%'
-           AND m.name NOT IN ('api_tables', 'api_columns')
-         ORDER BY a.cat, m.name`
-      );
 
-      // 2) 각 테이블별 컬럼 정보 + 한글명 병합
-      const result = [];
-      for (const tbl of tables) {
-        const cols = await dbAll(`PRAGMA table_info("${tbl.name}")`);
-        const korNames = await dbAll(
-          `SELECT field, kor_nm FROM api_columns WHERE replace(svc_no,'-','') = replace(?,'-','')`,
-          [tbl.name]
-        );
-        const korMap = {};
-        korNames.forEach(r => { korMap[r.field] = r.kor_nm; });
-
-        result.push({
-          table: tbl.name,
-          label: tbl.svc_nm || tbl.name,
-          category: tbl.cat || '기타',
-          columns: cols.map(c => ({
-            name: c.name,
-            type: c.type || 'TEXT',
-            pk: c.pk > 0,
-            notNull: c.notnull > 0,
-            kor: korMap[c.name] || ''
-          }))
-        });
-      }
-
-      res.json(result);
-    } catch (err) {
-      logger.error({ err }, '[db-schema] 스키마 조회 중 오류가 발생했습니다.');
-      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-    }
-  })();
-});
 
 // ── 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱) ─────────────────────────
 let cachedRelationships = null;
@@ -1852,129 +1210,7 @@ let cachedRelationships = null;
 // =============================================================================
 
 
-app.get('/api/db-relationships', (req, res) => {
-  if (cachedRelationships) {
-    return res.json(cachedRelationships);
-  }
 
-  (async () => {
-    try {
-      // 1. 공통 컬럼 메타 데이터 조회
-      const colRows = await dbAll(
-        `SELECT replace(svc_no,'-','') as tbl, field, kor_nm FROM api_columns
-         WHERE field IS NOT NULL AND field != '' AND length(field) > 2`
-      );
-      // 2. 실제 SQLite에 적재된 전체 테이블 리스트 조회
-      const tables = await dbAll(
-        `SELECT name FROM sqlite_master WHERE type='table'
-         AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'v_%'
-         AND name NOT IN ('api_tables','api_columns')`
-      );
-      const validSet = new Set(tables.map(t => t.name));
-
-      // 약한 식별자(공통 키로 보기 어렵고 값이 무의미하게 같을 수 있는 날짜, 여부 등 필터링)
-      const isWeak = (f) =>
-        /_NM$/i.test(f) || /_NAME$/i.test(f) || /_CD_NM$/i.test(f) ||
-        /ADDR$/i.test(f) || /TEL/i.test(f) || /FAX/i.test(f) ||
-        /_DT$/i.test(f) || /DTM$/i.test(f) || /DATE$/i.test(f) ||
-        /_CN$/i.test(f) || /_DESC$/i.test(f) || /_MEMO$/i.test(f) ||
-        /^AMT_NUM\d+$/.test(f) || /^(SEQ|NUM|CNT|QTY|YN)$/.test(f);
-
-      const fieldMap = {};
-      colRows.forEach(r => {
-        if (!validSet.has(r.tbl) || isWeak(r.field)) return;
-        if (!fieldMap[r.field]) fieldMap[r.field] = { tables: [], kor: r.kor_nm || r.field };
-        if (!fieldMap[r.field].tables.includes(r.tbl)) fieldMap[r.field].tables.push(r.tbl);
-      });
-
-      // 3. 공통 필드별로 두 테이블 간의 실제 매치 여부를 검사할 태스크 생성
-      const checkTasks = [];
-      const rawRelationships = Object.entries(fieldMap)
-        .filter(([, v]) => v.tables.length >= 2)
-        .map(([key, v]) => ({ key, kor: v.kor, tables: v.tables }));
-
-      rawRelationships.forEach(rel => {
-        const tbls = rel.tables;
-        // 각 공통키 필드에 대해 모든 가능한 테이블 쌍(T1, T2) 생성
-        for (let i = 0; i < tbls.length; i++) {
-          for (let j = i + 1; j < tbls.length; j++) {
-            const tA = tbls[i];
-            const tB = tbls[j];
-            checkTasks.push({
-              key: rel.key,
-              kor: rel.kor,
-              tA,
-              tB,
-              fn: async () => {
-                try {
-                  // SQLite EXISTS 쿼리로 실제 교집합 데이터가 최소 1건 이상 존재하는지 체크
-                  // 빈 값이나 공백, 하이픈(-)은 조인 키 매칭에서 제외
-                  const query = `
-                    SELECT EXISTS(
-                      SELECT 1 FROM "${tA}" a
-                      INNER JOIN "${tB}" b ON a."${rel.key}" = b."${rel.key}"
-                      WHERE a."${rel.key}" IS NOT NULL 
-                        AND a."${rel.key}" != '' 
-                        AND a."${rel.key}" != '-'
-                    ) AS has_match
-                  `;
-                  const rows = await dbAll(query);
-                  const matched = rows[0]?.has_match === 1;
-                  return matched ? { tA, tB } : null;
-                } catch (e) {
-                  // 테이블이나 컬럼이 실제 DB에 불일치하거나 깨져 있는 경우 매칭 무시
-                  return null;
-                }
-              }
-            });
-          }
-        }
-      });
-
-      // 4. 동시 실행 부하 제어를 위한 청크 비동기 병렬 검증 (청크당 30개 실행)
-      const verifiedEdgesMap = {};
-      const chunkSize = 30;
-      for (let i = 0; i < checkTasks.length; i += chunkSize) {
-        const chunk = checkTasks.slice(i, i + chunkSize);
-        const chunkResults = await Promise.all(chunk.map(task => task.fn()));
-
-        chunk.forEach((task, idx) => {
-          const edge = chunkResults[idx];
-          if (edge) {
-            if (!verifiedEdgesMap[task.key]) {
-              verifiedEdgesMap[task.key] = {
-                key: task.key,
-                kor: task.kor,
-                edges: [],
-                tablesSet: new Set()
-              };
-            }
-            verifiedEdgesMap[task.key].edges.push({ from: edge.tA, to: edge.tB });
-            verifiedEdgesMap[task.key].tablesSet.add(edge.tA);
-            verifiedEdgesMap[task.key].tablesSet.add(edge.tB);
-          }
-        });
-      }
-
-      // 5. 실제 데이터 매칭 엣지가 존재하는 공통키 연관관계 최종 데이터 구축
-      const result = Object.values(verifiedEdgesMap)
-        .map(item => ({
-          key: item.key,
-          kor: item.kor,
-          count: item.tablesSet.size,
-          tables: Array.from(item.tablesSet),
-          edges: item.edges
-        }))
-        .sort((a, b) => b.edges.length - a.edges.length); // 실제 매칭 연결선 수 기준으로 정렬
-
-      cachedRelationships = result;
-      res.json(result);
-    } catch (err) {
-      logger.error({ err }, '[db-relationships] 관계 분석 중 오류가 발생했습니다.');
-      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-    }
-  })();
-});
 
 // 프로세스 종료 시 DB 연결 해제
 process.on('SIGINT', () => {

@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 /**
  * keywordGraph.js
  * 순수 D3.js로 키워드 데이터맵 그래프를 렌더링합니다.
@@ -377,7 +378,7 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
     if (d.type === 'center') return;
     d3.select(this).select('circle').attr('stroke', '#fbbf24').attr('stroke-width', 3);
     tooltip.style('visibility', 'visible').text(
-      d.type === 'domain' ? `${d.label} (${d.count}개 데이터셋)` :
+      d.type === 'domain' ? `${escapeHtml(d.label)} (${escapeHtml(d.count)}개 데이터셋)` :
       d.type === 'table' ? d.label : d.leaf?.label || d.label
     );
   })
@@ -425,7 +426,7 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
     linkSel
       .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-    nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
+    nodeG.attr('transform', d => `translate(${escapeHtml(d.x)},${escapeHtml(d.y)})`);
   };
 
   // Stop old sim
@@ -455,8 +456,8 @@ function updateDetailPanel(d) {
   if (d.type === 'domain') {
     panel.innerHTML = `
       <div style="padding:4px 0;">
-        <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${d.color};color:#fff;font-size:12px;font-weight:700;margin-bottom:12px;">${d.label}</div>
-        <p style="font-size:13px;color:#475569;margin:0 0 8px;">이 분야에 <strong style="color:#1e293b;">${d.count}개</strong>의 데이터세트가 연결되어 있습니다.</p>
+        <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${escapeHtml(d.color)};color:#fff;font-size:12px;font-weight:700;margin-bottom:12px;">${escapeHtml(d.label)}</div>
+        <p style="font-size:13px;color:#475569;margin:0 0 8px;">이 분야에 <strong style="color:#1e293b;">${escapeHtml(d.count)}개</strong>의 데이터세트가 연결되어 있습니다.</p>
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;">
           ${(d.tables || []).map(t => `
             <div style="padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;color:#334155;">
@@ -468,7 +469,7 @@ function updateDetailPanel(d) {
     const t = d.table || {};
     panel.innerHTML = `
       <div>
-        <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${d.color};color:#fff;font-size:12px;font-weight:700;margin-bottom:10px;">${d.domain || ''}</div>
+        <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${escapeHtml(d.color)};color:#fff;font-size:12px;font-weight:700;margin-bottom:10px;">${escapeHtml(d.domain || '')}</div>
         <p style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 6px;">${t.tableLabel || t.tableName}</p>
         <p style="font-size:12px;color:#64748b;margin:0 0 16px;">테이블 ID: ${t.tableName}</p>
         <div id="kwmap-meta-loading" style="color:#94a3b8;font-size:13px;">컬럼 정보 불러오는 중...</div>
@@ -486,9 +487,9 @@ function updateDetailPanel(d) {
         listEl.innerHTML = `<p style="font-size:12px;font-weight:600;color:#475569;margin:0 0 8px;">컬럼 (${cols.length}개)</p>
           <div style="display:flex;flex-direction:column;gap:4px;">
             ${cols.map(c => `<div style="padding:6px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;color:#334155;display:flex;align-items:center;gap:8px;">
-              <span style="font-weight:600;color:#1e293b;min-width:80px;">${c.kor_nm || c.field || ''}</span>
-              <span style="color:#94a3b8;font-family:monospace;font-size:10px;">${c.field || ''}</span>
-              ${c.sql_type ? `<span style="margin-left:auto;color:#64748b;font-size:10px;">${c.sql_type}</span>` : ''}
+              <span style="font-weight:600;color:#1e293b;min-width:80px;">${escapeHtml(c.kor_nm || c.field || '')}</span>
+              <span style="color:#94a3b8;font-family:monospace;font-size:10px;">${escapeHtml(c.field || '')}</span>
+              ${c.sql_type ? `<span style="margin-left:auto;color:#64748b;font-size:10px;">${escapeHtml(c.sql_type)}</span>` : ''}
             </div>`).join('')}
           </div>`;
       }).catch(() => {});
@@ -496,7 +497,7 @@ function updateDetailPanel(d) {
     panel.innerHTML = `
       <div>
         <p style="font-size:14px;font-weight:600;color:#1e293b;margin:0 0 8px;">${d.leaf?.label || d.label}</p>
-        <p style="font-size:12px;color:#64748b;margin:0;">테이블: ${d.tableName}</p>
+        <p style="font-size:12px;color:#64748b;margin:0;">테이블: ${escapeHtml(d.tableName)}</p>
       </div>`;
   }
 }

@@ -39,39 +39,39 @@ export function renderDetailPanel(dataset, onClose) {
       <span class="w-5 h-5 rounded-full bg-gov-50 text-gov-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
         ${i + 1}
       </span>
-      ${item}
+      ${escapeHtml(item)}
     </li>
   `).join('');
 
   const joinKeysHTML = (dataset.detail?.joinKeys || []).map(key => `
     <div class="flex items-center gap-2 text-sm text-slate-700 bg-teal-50 border border-teal-100 rounded-lg px-4 py-2.5">
       <i class="ri-key-2-line text-teal-600"></i>
-      ${key}
+      ${escapeHtml(key)}
     </div>
   `).join('');
 
   const scenariosHTML = (dataset.detail?.scenarios || []).map(scenario => `
     <li class="text-sm text-slate-700 flex items-start gap-2">
       <i class="ri-check-double-line text-emerald-500 mt-0.5 shrink-0"></i>
-      ${scenario}
+      ${escapeHtml(scenario)}
     </li>
   `).join('');
 
   const recommendedUsersHTML = (dataset.detail?.recommendedUsers || []).map(u => `
-    <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">${u}</span>
+    <span class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">${escapeHtml(u)}</span>
   `).join('');
 
   const guideLinksHTML = (dataset.detail?.guideLinks || []).map(link => `
-    <a href="${link.url}" class="flex items-center gap-2 text-sm text-gov-700 hover:text-gov-900 bg-gov-50 hover:bg-gov-100 border border-gov-100 rounded-lg px-4 py-2.5 transition-colors">
+    <a href="${escapeAttr(link.url)}" class="flex items-center gap-2 text-sm text-gov-700 hover:text-gov-900 bg-gov-50 hover:bg-gov-100 border border-gov-100 rounded-lg px-4 py-2.5 transition-colors">
       <i class="ri-external-link-line text-xs"></i>
-      ${link.label}
+      ${escapeHtml(link.label)}
     </a>
   `).join('');
 
   const examplesHTML = (dataset.detail?.examples || []).map((ex, i) => `
     <div class="mb-2 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
       <span class="text-gov-600 font-semibold text-xs mr-1.5">예시 ${i + 1}</span>
-      ${ex}
+      ${escapeHtml(ex)}
     </div>
   `).join('');
 
@@ -82,7 +82,7 @@ export function renderDetailPanel(dataset, onClose) {
     <!-- Panel -->
     <div class="fixed top-0 right-0 h-full w-full md:w-[560px] lg:w-[640px] bg-white z-[70] shadow-2xl overflow-y-auto animate-slide-right">
       <div class="sticky top-0 bg-white border-b border-slate-200 px-5 md:px-8 py-4 flex items-center justify-between z-10">
-        <h2 class="text-base md:text-lg font-bold text-slate-900 truncate pr-4">${dataset.name}</h2>
+        <h2 class="text-base md:text-lg font-bold text-slate-900 truncate pr-4" title="${escapeAttr(dataset.name)}">${escapeHtml(dataset.name)}</h2>
         <button id="close-panel-btn" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors shrink-0">
           <i class="ri-close-line"></i>
         </button>
@@ -91,20 +91,20 @@ export function renderDetailPanel(dataset, onClose) {
       <div class="px-5 md:px-8 py-6">
         <!-- Tags -->
         <div class="flex items-center gap-2 mb-4 flex-wrap">
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border ${subjectColorMap[dataset.subject] || 'bg-slate-100 text-slate-600 border-slate-200'}">
-            ${dataset.subject}
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
+            <i class="ri-government-line"></i> ${escapeHtml(dataset.provd_instt_nm || '제공 기관 미상')}
           </span>
           <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-            ${dataset.process}
+            ${escapeHtml(dataset.process)}
           </span>
           <span id="detail-dataset-size-badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gov-50 text-gov-700 border border-gov-100">
-            데이터 ${dataset.dataCount}개 포함
+            데이터 ${escapeHtml(dataset.dataCount)}개 포함
           </span>
         </div>
 
         <!-- Description -->
         <p class="text-sm text-slate-600 leading-relaxed mb-6">
-          ${dataset.description}
+          ${escapeHtml(dataset.description)}
         </p>
 
         <!-- Overview -->
@@ -113,7 +113,7 @@ export function renderDetailPanel(dataset, onClose) {
             <i class="ri-file-list-3-line text-gov-600"></i> 데이터세트 개요
           </h3>
           <p class="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-lg p-4 border border-slate-100">
-            ${dataset.detail?.overview || dataset.description || ""}
+            ${escapeHtml(dataset.detail?.overview || dataset.description || "")}
           </p>
         </div>
 
@@ -307,20 +307,20 @@ export function renderDetailPanel(dataset, onClose) {
         ${isFallback ? `
           <div class="bg-amber-50 border-b border-amber-100 px-4 py-2 text-[10px] text-amber-800 text-left flex items-start gap-1.5">
             <i class="ri-alert-line text-amber-600 mt-0.5 shrink-0"></i>
-            <span>${fallbackMessage}</span>
+            <span>${escapeHtml(fallbackMessage)}</span>
           </div>
         ` : ''}
         <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
           <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold sticky top-0 z-10">
-                ${keys.map(k => `<th class="px-3 py-2 bg-slate-50">${k}</th>`).join('')}
+                ${keys.map(k => `<th class="px-3 py-2 bg-slate-50">${escapeHtml(k)}</th>`).join('')}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700">
               ${rows.map(row => `
                 <tr class="hover:bg-slate-50/50">
-                  ${keys.map(k => `<td class="px-3 py-2 max-w-[200px] truncate" title="${row[k] !== null ? row[k] : ''}">${row[k] !== null ? row[k] : '<span class="text-slate-300">null</span>'}</td>`).join('')}
+                  ${keys.map(k => `<td class="px-3 py-2 max-w-[200px] truncate" title="${escapeAttr(row[k] !== null ? row[k] : '')}">${row[k] !== null ? escapeHtml(row[k]) : '<span class="text-slate-300">null</span>'}</td>`).join('')}
                 </tr>
               `).join('')}
             </tbody>
@@ -407,7 +407,7 @@ export function renderDetailPanel(dataset, onClose) {
         if (badgeContainer) {
           const kwBadge = document.createElement('span');
           kwBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-yellow-50 text-yellow-700 border border-yellow-200 animate-pulse';
-          kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> "${kw}" 매칭 건수 계산 중...`;
+          kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> "${escapeHtml(kw)}" 매칭 건수 계산 중...`;
           
           // "데이터 N개 포함" 뱃지 앞에 삽입
           const sizeBadge = badgeContainer.querySelector('#detail-dataset-size-badge');
@@ -549,9 +549,9 @@ export function renderDetailPanel(dataset, onClose) {
             <tbody class="divide-y divide-slate-100 text-slate-700">
               ${cols.map((c, i) => `
                 <tr class="hover:bg-slate-50/50">
-                  <td class="px-3 py-2 font-mono text-gov-700">${c.field || '-'}</td>
-                  <td class="px-3 py-2">${c.kor_nm || '-'}</td>
-                  <td class="px-3 py-2 text-slate-500 font-mono text-[11px]">${c.sql_type || c.data_type || '-'}</td>
+                  <td class="px-3 py-2 font-mono text-gov-700">${escapeHtml(c.field || '-')}</td>
+                  <td class="px-3 py-2">${escapeHtml(c.kor_nm || '-')}</td>
+                  <td class="px-3 py-2 text-slate-500 font-mono text-[11px]">${escapeHtml(c.sql_type || c.data_type || '-')}</td>
                 </tr>
               `).join('')}
             </tbody>

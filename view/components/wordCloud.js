@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 // 워드 클라우드 컴포넌트
 // 선택한 데이터세트의 컬럼값 빈도를 분석하여 d3-cloud로 시각화합니다.
 
@@ -16,7 +17,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
         )
       : sortedDatasets;
     return filtered.map(ds =>
-      `<option value="${ds.id}">${ds.name} (${ds.id})</option>`
+      `<option value="${escapeHtml(ds.id)}">${escapeHtml(ds.name)} (${escapeHtml(ds.id)})</option>`
     ).join('');
   };
 
@@ -157,7 +158,7 @@ export async function renderWordCloud(container, onSelectDataset, keyword = '') 
                 .on("mouseover", function(event, d) {
                   d3.select(this).style("opacity", 0.7);
                   tooltip.style("visibility", "visible")
-                         .text(`'${d.text}' (해당 DB 내 ${d.actualCount || '다수'}회 출현)`);
+                         .text(`'${escapeHtml(d.text)}' (해당 DB 내 ${escapeHtml(d.actualCount || '다수')}회 출현)`);
                 })
                 .on("mousemove", function(event) {
                   tooltip.style("top", (event.pageY - 35) + "px")

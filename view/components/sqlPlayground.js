@@ -3,23 +3,7 @@
 // join.sql 시나리오 기반의 JOIN 쿼리 가이드도 제공합니다.
 
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
-function escapeHtml(value) {
-  if (value == null) return '';
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function escapeAttr(value) {
-  if (value == null) return '';
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+import { escapeHtml, escapeAttr } from '../utils.js';
 
 // join.sql에서 동적 로드되는 JOIN 시나리오 목록 (서버에서 파싱)
 let joinScenarios = [];
@@ -470,13 +454,17 @@ export function renderSqlPlayground(container, onSelectDataset) {
 
   // 렌더링된 DOM 요소에 이벤트 리스너를 바인딩하는 함수
   const bindEvents = () => {
-    // 테이블 브라우저 선택 이벤트
-    container.querySelectorAll('.table-select-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tbl = e.currentTarget.dataset.table;
+    // 테이블 브라우저 선택 이벤트 위임 (Event Delegation)
+    // 169개의 테이블 버튼마다 각각 달던 이벤트를 컨테이너에 단 1번만 달아 메모리 최적화
+    if (!container.dataset.boundTableSelect) {
+      container.dataset.boundTableSelect = 'true';
+      container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.table-select-btn');
+        if (!btn) return;
+        const tbl = btn.dataset.table;
         loadTableDetails(tbl);
       });
-    });
+    }
 
     // 시나리오 검색 이벤트
     const scenarioSearch = container.querySelector('#scenario-search');

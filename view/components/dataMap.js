@@ -369,7 +369,7 @@ export function renderDataMap(container, onSelectDataset) {
         return d;
       });
       if (summary) summary.innerHTML = kw
-        ? `검색어 <strong style="color:#1e293b;">"${kw}"</strong> 포함 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
+        ? `검색어 <strong style="color:#1e293b;">"${escapeHtml(kw)}"</strong> 포함 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
         : `전체 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`;
       updateTreemapForSearch(matched, kw);
 
@@ -380,7 +380,7 @@ export function renderDataMap(container, onSelectDataset) {
       if (matched.length === 0) {
         cardsEl.innerHTML = `<div style="padding:40px;text-align:center;color:#94a3b8;">
           <i class="ri-search-line" style="font-size:32px;display:block;margin-bottom:8px;"></i>
-          ${kw ? `"<strong>${kw}</strong>"에 해당하는 데이터세트가 없습니다.` : '표시할 데이터세트가 없습니다.'}
+          ${kw ? `"<strong>${escapeHtml(kw)}</strong>"에 해당하는 데이터세트가 없습니다.` : '표시할 데이터세트가 없습니다.'}
         </div>`;
         const pg = view.querySelector('#keyword-pagination');
         if (pg) pg.innerHTML = '';
@@ -394,15 +394,20 @@ export function renderDataMap(container, onSelectDataset) {
           const catColor = getColor(cat, idx);
           const catBg = getSoftColor(cat, idx);
           const fmt = d.link_yn === 'Y' ? 'LINK' : 'API';
-          const title = kw ? (d.svc_nm || '').replace(new RegExp(kw, 'gi'), m => `<mark style="background:#fef08a;padding:0 1px;">${m}</mark>`) : (d.svc_nm || '');
-          const desc = d.desc || d.description || '';
-          const keywords = [cat, d.provd_instt_nm || '식품의약품안전처'].filter(Boolean);
+          const safeTitle = escapeHtml(d.svc_nm || '');
+          const safeKw = escapeHtml(kw || '');
+          // XSS 방어 후 검색어 하이라이팅 적용
+          const title = kw && safeKw ? safeTitle.replace(new RegExp(safeKw, 'gi'), m => `<mark style="background:#fef08a;padding:0 1px;">${m}</mark>`) : safeTitle;
+          const desc = escapeHtml(d.desc || d.description || '');
+          const inst = escapeHtml(d.provd_instt_nm || '식품의약품안전처');
+          const safeCat = escapeHtml(cat);
+          const keywords = [safeCat, inst].filter(Boolean);
           const fmtColor = d.link_yn === 'Y' ? '#14b8a6' : '#f97316';
           return `
-          <div data-svc-no="${d.svc_no}" style="padding:20px;cursor:pointer;background:#fff;border-bottom:1px solid #e5e7eb;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
+          <div data-svc-no="${escapeAttr(d.svc_no)}" style="padding:20px;cursor:pointer;background:#fff;border-bottom:1px solid #e5e7eb;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${cat}</span>
-              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${d.provd_instt_nm || '식품의약품안전처'}</span>
+              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${safeCat}</span>
+              <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${inst}</span>
               <span style="font-size:12px;font-weight:500;padding:1px 6px;color:${fmtColor};border:1px solid ${fmtColor};">${fmt}</span>
             </div>
             <p style="font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.4;">${title}</p>
@@ -435,12 +440,13 @@ export function renderDataMap(container, onSelectDataset) {
           const start = (currentPage - 1) * PAGE_SIZE;
           const paged = matched.slice(start, start + PAGE_SIZE);
           cardsEl.innerHTML = paged.map((d, i) => renderListItem(d, start + i)).join('');
-          cardsEl.querySelectorAll('[data-svc-no]').forEach(card => {
-            card.addEventListener('click', () => {
-              const ds = matched.find(d => String(d.svc_no) === card.dataset.svcNo);
-              if (ds) openDatasetDetail(ds, view);
-            });
-          });
+          cardsEl.innerHTML = paged.map((d, i) => renderListItem(d, start + i)).join('');
+          cardsEl.onclick = (e) => {
+            const card = e.target.closest('[data-svc-no]');
+            if (!card) return;
+            const ds = matched.find(d => String(d.svc_no) === card.dataset.svcNo);
+            if (ds) openDatasetDetail(ds, view);
+          };
           renderPagination();
         };
 
@@ -1081,7 +1087,7 @@ export function renderDataMap(container, onSelectDataset) {
       activeBtn.style.color = '#2563eb';
     }
     if (summary) {
-      summary.innerHTML = `<strong style="color:#1e293b;">${categoryData.subject}</strong> 분야 데이터세트 — 총 <strong style="color:#2563eb;">${categoryData.count}개</strong>`;
+      summary.innerHTML = `<strong style="color:#1e293b;">${escapeHtml(categoryData.subject)}</strong> 분야 데이터세트 — 총 <strong style="color:#2563eb;">${Number(categoryData.count)}개</strong>`;
     }
 
     const categoryColor = getColor(categoryData.subject, 0);
@@ -1092,24 +1098,25 @@ export function renderDataMap(container, onSelectDataset) {
         <div class="flex justify-between items-start mb-2">
           <span class="px-2 py-1 text-[10px] font-bold rounded" style="background:${categoryBg};color:${categoryColor};">${categoryData.subject}</span>
           <div class="flex gap-1">
-            ${ds.formats.map(f => `<span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded border border-slate-200">${f}</span>`).join('')}
+            ${ds.formats.map(f => `<span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded border border-slate-200">${escapeHtml(f)}</span>`).join('')}
           </div>
         </div>
-        <h4 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2 leading-snug">${ds.name}</h4>
-        <p class="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">${ds.description}</p>
+        <h4 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2 leading-snug" title="${escapeAttr(ds.name)}">${escapeHtml(ds.name)}</h4>
+        <p class="text-xs text-slate-500 line-clamp-2 mb-4 flex-1" title="${escapeAttr(ds.description)}">${escapeHtml(ds.description)}</p>
         <div class="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
           <div class="flex items-center gap-1 text-[11px] text-slate-500">
-            <i class="ri-building-line"></i> ${ds.users[0] || '식품의약품안전처'}
+            <i class="ri-building-line"></i> ${escapeHtml(ds.users[0] || '식품의약품안전처')}
           </div>
         </div>
       </div>
     `).join('');
 
-    // 카드 클릭 이벤트 (상세 패널 등)
-    cardsContainer.querySelectorAll('.dataset-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const dsId = card.dataset.id;
-        let ds = getDatasetsSync().find(i => i.id === dsId);
+    // 이벤트 위임(Event Delegation)으로 단일 리스너 등록 (메모리 누수 방지)
+    cardsContainer.onclick = (e) => {
+      const card = e.target.closest('.dataset-card');
+      if (!card) return;
+      const dsId = card.dataset.id;
+      let ds = getDatasetsSync().find(i => i.id === dsId);
         if (!ds) {
           const rawDs = categoryData.items.find(i => i.id === dsId);
           if (rawDs) {
@@ -1148,8 +1155,7 @@ export function renderDataMap(container, onSelectDataset) {
           }
         }
         if (ds && onSelectDataset) onSelectDataset(ds);
-      });
-    });
+    };
 
     resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -1222,22 +1228,23 @@ export function renderDataMap(container, onSelectDataset) {
         return `
         <div class="dataset-card cursor-pointer" data-id="${ds.id}" style="padding:20px;background:#fff;border-bottom:1px solid #e5e7eb;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='#fff'">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${categoryData.subject}</span>
-            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${institution}</span>
+            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#b45309;border:1px solid #d97706;">${escapeHtml(categoryData.subject)}</span>
+            <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#ef4444;border:1px solid #ef4444;">${escapeHtml(institution)}</span>
             <span style="font-size:12px;font-weight:500;padding:1px 6px;color:#14b8a6;border:1px solid #14b8a6;">API</span>
           </div>
-          <h4 style="font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.4;">${ds.name}</h4>
-          <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ds.description}</p>
-          <p style="font-size:13px;color:#4b5563;margin:0;">키워드 : ${keywords.join(',')}</p>
+          <h4 style="font-size:18px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.4;">${escapeHtml(ds.name)}</h4>
+          <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(ds.description)}</p>
+          <p style="font-size:13px;color:#4b5563;margin:0;">키워드 : ${escapeHtml(keywords.join(','))}</p>
         </div>`;
       }).join('');
 
-      listEl.querySelectorAll('.dataset-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const dataset = items.find(i => String(i.id) === String(card.dataset.id));
-          if (dataset) showTreemapDatasetDetail(dataset, categoryData);
-        });
-      });
+      // 이벤트 위임 방식으로 리스너 1개만 바인딩
+      listEl.onclick = (e) => {
+        const card = e.target.closest('.dataset-card');
+        if (!card) return;
+        const dataset = items.find(i => String(i.id) === String(card.dataset.id));
+        if (dataset) showTreemapDatasetDetail(dataset, categoryData);
+      };
 
 
       // 페이지네이션 렌더

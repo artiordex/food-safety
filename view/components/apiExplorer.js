@@ -3,6 +3,7 @@
 // 데이터셋 목록을 검색·선택하고 로컬 에뮬레이터 또는 실제 외부 API로 테스트 호출합니다.
 import { getDatasets } from '../datasetStore.js';
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
+import { escapeHtml } from '../utils.js';
 
 export async function renderApiExplorer(container, onSelectDataset) {
   const datasets = await getDatasets();
@@ -86,13 +87,13 @@ export async function renderApiExplorer(container, onSelectDataset) {
       const border = isSelected ? '1px solid #0168c1' : '1px solid #dde1e7';
       const color = isSelected ? '#0168c1' : '#444';
       return `
-        <button data-api-id="${ds.id}" class="api-select-btn"
+        <button data-api-id="${escapeHtml(ds.id)}" class="api-select-btn"
           style="width:100%; text-align:left; padding:8px 10px; border-radius:4px; border:${border}; background:${bg}; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px;">
           <div style="overflow:hidden; flex:1;">
-            <span style="font-size:12px; font-weight:${isSelected ? '700' : '500'}; color:${color}; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ds.name}</span>
-            <span style="font-size:10px; color:#aaa; font-family:monospace;">/api/sample/${ds.id}/json</span>
+            <span style="font-size:12px; font-weight:${isSelected ? '700' : '500'}; color:${color}; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(ds.name)}</span>
+            <span style="font-size:10px; color:#aaa; font-family:monospace;">/api/sample/${escapeHtml(ds.id)}/json</span>
           </div>
-          <span style="padding:2px 6px; border-radius:3px; background:#eef5ff; color:#0168c1; font-size:10px; font-family:monospace; flex-shrink:0;">${ds.id}</span>
+          <span style="padding:2px 6px; border-radius:3px; background:#eef5ff; color:#0168c1; font-size:10px; font-family:monospace; flex-shrink:0;">${escapeHtml(ds.id)}</span>
         </button>
       `;
     }).join('');
@@ -100,36 +101,23 @@ export async function renderApiExplorer(container, onSelectDataset) {
     const apisContainer = view.querySelector('#apis-container');
     if (apisContainer) {
       apisContainer.innerHTML = apiListHTML + (filteredApis.length === 0 ? `<p style="text-align:center; color:#bbb; font-size:12px; padding:20px 0;">일치하는 API가 없습니다.</p>` : '');
-      
-      // 재바인딩
-      apisContainer.querySelectorAll('.api-select-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.apiId;
-          const ds = datasets.find(d => d.id === id);
-          if (ds) {
-            selectedApi = ds;
-            apiResponse = null;
-            apiError = null;
-            render();
-          }
-        });
-      });
+      // 참고: 카드 클릭 이벤트는 bindEvents()에서 이벤트 위임(Event Delegation)으로 1번만 등록하여 성능을 최적화함.
     }
 
     const summaryCard = view.querySelector('#api-summary-card');
     if (summaryCard) {
       summaryCard.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
-          <span style="padding:3px 10px; border-radius:4px; background:rgba(255,255,255,.15); font-size:11px; font-family:monospace;">Service ID: ${selectedApi.id}</span>
+          <span style="padding:3px 10px; border-radius:4px; background:rgba(255,255,255,.15); font-size:11px; font-family:monospace;">Service ID: ${escapeHtml(selectedApi.id)}</span>
           <span style="padding:3px 10px; border-radius:4px; background:#27ae60; font-size:11px; font-weight:700;">168종 실시간 외부 연동 지원</span>
         </div>
-        <h3 style="font-size:16px; font-weight:700; margin:0 0 6px 0;">${selectedApi.name}</h3>
-        <p style="font-size:12px; color:#cdd; line-height:1.6; margin:0 0 12px 0;">${selectedApi.description}</p>
+        <h3 style="font-size:16px; font-weight:700; margin:0 0 6px 0;">${escapeHtml(selectedApi.name)}</h3>
+        <p style="font-size:12px; color:#cdd; line-height:1.6; margin:0 0 12px 0;">${escapeHtml(selectedApi.description)}</p>
         <div style="border-top:1px solid rgba(255,255,255,.15); padding-top:10px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
           <span style="font-size:11px; color:#aab;">추천 테마:</span>
-          <span style="padding:2px 8px; border-radius:3px; background:rgba(255,255,255,.1); font-size:11px;">${selectedApi.theme}</span>
+          <span style="padding:2px 8px; border-radius:3px; background:rgba(255,255,255,.1); font-size:11px;">${escapeHtml(selectedApi.theme)}</span>
           <span style="font-size:11px; color:#aab;">분류:</span>
-          <span style="padding:2px 8px; border-radius:3px; background:rgba(255,255,255,.1); font-size:11px;">${selectedApi.subject}</span>
+          <span style="padding:2px 8px; border-radius:3px; background:rgba(255,255,255,.1); font-size:11px;">${escapeHtml(selectedApi.subject)}</span>
         </div>
       `;
     }
@@ -311,14 +299,15 @@ export async function renderApiExplorer(container, onSelectDataset) {
     }
   };
 
-  // API 목록 검색 입력 이벤트를 바인딩하는 함수
+  // API 목록 검색 입력 이벤트 및 클릭 위임을 바인딩하는 함수 (단 1번 실행)
   const bindEvents = () => {
     const view = document.getElementById('api-explorer-view');
     if (!view) return;
 
     // API 리스트 검색 이벤트
     const searchInput = view.querySelector('#api-search-input');
-    if (searchInput) {
+    if (searchInput && !searchInput.dataset.bound) {
+      searchInput.dataset.bound = 'true';
       searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value;
         render();
@@ -331,7 +320,32 @@ export async function renderApiExplorer(container, onSelectDataset) {
         }
       });
     }
+
+    // API 목록 항목(Card) 클릭에 대한 이벤트 위임 (메모리 절약)
+    const apisContainer = view.querySelector('#apis-container');
+    if (apisContainer && !apisContainer.dataset.bound) {
+      apisContainer.dataset.bound = 'true';
+      apisContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.api-select-btn');
+        if (!btn) return;
+
+        const id = btn.dataset.apiId;
+        const ds = datasets.find(d => d.id === id);
+        if (ds) {
+          selectedApi = ds;
+          apiResponse = null;
+          apiError = null;
+          render();
+        }
+      });
+    }
   };
+
+  // 아직 바인딩되지 않았다면 최초 1회 바인딩
+  if (!container._apiExplorerBound) {
+    bindEvents();
+    container._apiExplorerBound = true;
+  }
 
   render();
 }

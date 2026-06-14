@@ -1,3 +1,4 @@
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 // 소스 데이터맵 컴포넌트
 // 8대 주제 도메인별로 데이터세트를 분류하고 관계도를 시각화합니다.
 

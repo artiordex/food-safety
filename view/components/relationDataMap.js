@@ -682,7 +682,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
       const tooltipEl = document.createElement('div');
       tooltipEl.className = 'p-2.5 text-xs font-sans text-slate-700 leading-relaxed max-w-xs';
       tooltipEl.innerHTML = `
-        <p class="font-bold text-slate-900 mb-1">${logicalLabel} (${node.id})</p>
+        <p class="font-bold text-slate-900 mb-1">${logicalLabel} (${escapeHtml(node.id)})</p>
         <p class="mb-1"><span class="text-slate-400">도메인:</span> <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">${subject}</span></p>
         <p class="mb-1"><span class="text-slate-400">보존 레코드:</span> <strong class="text-gov-700">${Number(dataCount).toLocaleString()} 건</strong></p>
         <p class="text-[10px] text-slate-400 border-t border-slate-100 pt-1 mt-1">💡 더블클릭 시 데이터 탐색기로 연결</p>
@@ -714,7 +714,7 @@ export async function renderRelationDataMap(container, onSelectDataset) {
         // [폴백 버블 노드]
         const size = Math.log10(dataCount || 10) * 12 + 10;
         const themeColors = subjectColors[subject] || subjectColors['기타'];
-        const displayLabel = `${node.id}\n${logicalLabel}`;
+        const displayLabel = `${escapeHtml(node.id)}\n${logicalLabel}`;
         return {
           id: node.id,
           label: displayLabel,
@@ -1414,8 +1414,8 @@ export async function renderRelationDataMap(container, onSelectDataset) {
 
           return `
             <tr class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${row.name}${keyBadge}</td>
-              <td class="px-3 py-2 font-mono text-[10px] text-slate-500">${row.type || 'TEXT'}</td>
+              <td class="px-3 py-2 font-mono font-semibold text-slate-800 select-all">${escapeHtml(row.name)}${keyBadge}</td>
+              <td class="px-3 py-2 font-mono text-[10px] text-slate-500">${escapeHtml(row.type || 'TEXT')}</td>
               <td class="px-3 py-2 text-right text-slate-400 italic">-</td>
             </tr>
           `;

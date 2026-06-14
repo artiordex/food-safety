@@ -287,7 +287,7 @@
             <input type="hidden" id="ntctxt_no" name="ntctxt_no">
             <input type="hidden" id="bbs_no" name="bbs_no">
             <!--본문-->
-            <div id="container">
+            <main id="container" role="main" aria-label="메인 콘텐츠">
                 <!-- INCLUDE_HERO -->
                 <!-- 데이터검색 -->
                 <div class="data_search_wrap">
@@ -298,7 +298,7 @@
                         </div>
                         <div class="data_search_box">
                             <!-- <label for="data_search_input">검색어를 입력하세요.</label> -->
-                            <input type="text" id="search_keyword" name="search_keyword" placeholder="검색어를 입력하세요"
+                            <input type="text" id="search_keyword" name="search_keyword" aria-label="공공데이터 검색어 입력" placeholder="검색어를 입력하세요"
                                 onkeypress="if(event.keyCode===13){ datasetAllSearch('661', 'MENU_GRP31'); return false; }">
                             <!--data_search_input-->
                             <button type="button" onclick="datasetAllSearch('661', 'MENU_GRP31');">검색</button>
@@ -482,7 +482,7 @@
             <!-- 데이터구조검색 보기 end -->
             <!-- jstree -->
     <!-- jstree 제거됨: 커스텀 CSS 트리 사용 -->
-    <script src="/view/index_app.js"></script>
+    <script src="/view/index_app.js" defer></script>
         </div>
     </form>
 </body>

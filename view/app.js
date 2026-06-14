@@ -1,15 +1,14 @@
-import { renderDatasetExplorer } from './components/datasetExplorer.js?v=3';
-import { renderDataMap } from './components/dataMap.js?v=39';
-import { renderErdMap } from './components/erdMap.js?v=4';
-import { renderRelationDataMap } from './components/relationDataMap.js?v=6';
-import { renderDetailPanel } from './components/detailDataset.js?v=5';
-import { renderSqlPlayground } from './components/sqlPlayground.js?v=3';
-import { renderApiExplorer } from './components/apiExplorer.js?v=3';
-import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=3';
-import { renderSauceDataMap } from './components/sauceDataMap.js?v=3';
-import { renderDbErdMap } from './components/dbErdMap.js?v=11';
-import { renderWordCloud } from './components/wordCloud.js?v=3';
-import { getDatasetsSync } from './datasetStore.js?v=2';
+import { renderDatasetExplorer } from './components/datasetExplorer.js?v=100';
+import { renderDataMap } from './components/dataMap.js?v=100';
+import { renderRelationDataMap } from './components/relationDataMap.js?v=100';
+import { renderDetailPanel } from './components/detailDataset.js?v=100';
+import { renderSqlPlayground } from './components/sqlPlayground.js?v=100';
+import { renderApiExplorer } from './components/apiExplorer.js?v=100';
+import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=100';
+import { renderSauceDataMap } from './components/sauceDataMap.js?v=100';
+import { renderDbErdMap } from './components/dbErdMap.js?v=100';
+import { renderWordCloud } from './components/wordCloud.js?v=100';
+import { getDatasetsSync } from './datasetStore.js?v=100';
 
 const urlParams = new URLSearchParams(window.location.search);
 let activeTab = 'explorer'; // fallback default
@@ -65,7 +64,6 @@ const renderTabContent = () => {
       'datamap': 'datamap-view',
       'keyword-datamap': 'keyword-datamap-view',
       'erdmap': 'erdmap-view',
-      'erd-inquiry': 'erd-inquiry-view',
       'sql-playground': 'sql-playground-view',
       'api-live-join': 'api-live-join-view',
       'api-hygiene': 'api-hygiene-view',
@@ -96,8 +94,6 @@ const renderTabContent = () => {
     renderDataMap(currentView, onSelectDataset);
   } else if (activeTab === 'erdmap') {
     renderRelationDataMap(currentView, onSelectDataset);
-  } else if (activeTab === 'erd-inquiry') {
-    renderErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'sql-playground') {
     renderSqlPlayground(currentView, onSelectDataset);
   } else if (activeTab === 'api-explorer') {
@@ -522,7 +518,7 @@ async function renderScenarioTabs(container, mode) {
   } catch (err) {
     console.error(err);
     const contentEl = view.querySelector('#scenario-content');
-    if (contentEl) contentEl.innerHTML = `<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다: ${err.message}</div>`;
+    if (contentEl) contentEl.innerHTML = '<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>';
   }
 }
 

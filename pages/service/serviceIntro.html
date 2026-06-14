@@ -416,7 +416,7 @@
     <div id="wrap">
         <!-- INCLUDE_HEADER -->
         <div id="container">
-            <main class="intro-page">
+            <main class="intro-page" aria-label="서비스 소개">
                 <section class="intro-hero" aria-labelledby="intro-title">
                     <div>
                         <div class="intro-eyebrow">식품의약품안전처 데이터활용서비스</div>
@@ -427,8 +427,8 @@
                             서비스에 연결할 수 있도록 구성했습니다.
                         </p>
                         <div class="hero-actions">
-                            <a class="primary" href="/data/dataset.do">데이터 찾아보기</a>
-                            <a class="secondary" href="/service/serviceUse.do">이용방법 보기</a>
+                            <a class="primary" href="/data/dataset.do" aria-label="식품안전 공공데이터 찾아보기">데이터 찾아보기</a>
+                            <a class="secondary" href="/service/serviceUse.do" aria-label="Open API 이용방법 자세히 보기">이용방법 보기</a>
                         </div>
                     </div>
                     <aside class="hero-panel" aria-label="서비스 요약">
@@ -514,28 +514,28 @@
                         <h2 id="flow-title">이용 절차</h2>
                         <p>공공데이터포털의 제공신청 흐름처럼 찾는 데이터가 없을 때의 요청 경로까지 함께 안내합니다.</p>
                     </div>
-                    <div class="flow">
-                        <div class="flow-item">
+                    <ol class="flow" aria-label="이용 절차 5단계">
+                        <li class="flow-item">
                             <strong>데이터 검색</strong>
                             <p>분류별, 제공기관별, 유형별 메뉴에서 필요한 데이터와 서비스 ID를 찾습니다.</p>
-                        </div>
-                        <div class="flow-item">
+                        </li>
+                        <li class="flow-item">
                             <strong>상세 구조 확인</strong>
                             <p>요청 주소, 필수 파라미터, 응답 항목, 샘플 데이터를 확인합니다.</p>
-                        </div>
-                        <div class="flow-item">
+                        </li>
+                        <li class="flow-item">
                             <strong>인증키 신청</strong>
                             <p>회원 로그인 후 Open API 이용 신청을 진행하고 인증키를 발급받습니다.</p>
-                        </div>
-                        <div class="flow-item">
+                        </li>
+                        <li class="flow-item">
                             <strong>서비스 연동</strong>
                             <p>JSON 또는 XML 응답을 애플리케이션, 분석 도구, 업무 시스템에 연결합니다.</p>
-                        </div>
-                        <div class="flow-item">
+                        </li>
+                        <li class="flow-item">
                             <strong>활용 공유</strong>
                             <p>개발 결과와 활용 사례를 갤러리·사례 페이지에 등록해 재사용 가능성을 높입니다.</p>
-                        </div>
-                    </div>
+                        </li>
+                    </ol>
                 </section>
 
                 <section class="intro-section" aria-labelledby="api-title">
@@ -543,7 +543,7 @@
                         <h2 id="api-title">Open API 기본 형식</h2>
                         <p>식품안전나라 Open API 호출 규칙을 개발자가 바로 이해할 수 있도록 핵심만 정리했습니다.</p>
                     </div>
-                    <div class="api-box">
+                    <div class="api-box" role="region" aria-label="API 요청 형식 예시">
                         <div class="api-url-block">
                             <span class="method-badge">GET</span>
                             <code>http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}</code>
