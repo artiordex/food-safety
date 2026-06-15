@@ -618,7 +618,8 @@ function ReactErdApp({ onSelectDataset, container }) {
         // 컬럼 정보 로드
         const colsRes = await fetch('/api/query', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field` })
+          // LIMIT 명시로 자동 LIMIT 1000 우회 (api_columns 2000행 이상)
+          body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field LIMIT 10000` })
         });
         const colsRows = await colsRes.json();
         const allColumnsMap = {};

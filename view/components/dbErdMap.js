@@ -1213,9 +1213,11 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       return 0;
     });
 
-    const displayCols = sortedCols.slice(0, 5);
-    const extra = sortedCols.length - 5;
-    const H = HEADER_H + displayCols.length * ROW_H + (extra > 0 ? 14 : 4) + 2;
+    const MAX_DISPLAY = 5;
+    const displayCols = sortedCols.slice(0, MAX_DISPLAY);
+    const extra = sortedCols.length - MAX_DISPLAY;
+    const MORE_H = extra > 0 ? 26 : 0;
+    const H = HEADER_H + displayCols.length * ROW_H + MORE_H + 4;
     const stroke = isSelected ? '#fbbf24' : `${accentColor}70`;
     const strokeW = isSelected ? 3 : 1.5;
 
@@ -1232,14 +1234,21 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         `<text x="${W - 5}" y="${HEADER_H + i * ROW_H + 13}" font-size="8" fill="${accentColor}aa" text-anchor="end" font-family="monospace">${tp}</text>`;
     }).join('');
 
-    const extraTxt = extra > 0
-      ? `<text x="${W / 2}" y="${H - 4}" font-size="8.5" fill="#94a3b8" text-anchor="middle">+${extra}개 더</text>` : '';
+    // "+N개 컬럼 더보기" 버튼 영역 (클릭 시 inspector 패널에서 전체 컬럼 확인)
+    const moreY = HEADER_H + displayCols.length * ROW_H;
+    const extraTxt = extra > 0 ? (
+      `<rect x="0" y="${moreY}" width="${W}" height="${MORE_H}" fill="#f8fafc" rx="0"/>` +
+      `<rect x="0" y="${moreY}" width="${W}" height="1" fill="#e2e8f0"/>` +
+      `<text x="${W / 2}" y="${moreY + MORE_H / 2 + 4}" font-size="11" fill="#94a3b8" text-anchor="middle" font-weight="700">` +
+      `+${extra}개 컬럼 더 보기</text>`
+    ) : '';
     const rowLabel = rowCount > 0 ? `${Number(rowCount).toLocaleString()}rows` : '';
     const lbl = escX(label.split(' (')[0]).slice(0, 22);
     const tid = escX(tableId).slice(0, 14);
 
     const opacity = isNeighbor ? 'opacity="0.38"' : '';
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" ${opacity}>` +
+    // viewBox 필수: Vis.js가 노드 크기 조정 시 SVG 내용이 비례 스케일되도록 함
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" ${opacity}>` +
       `<rect x="3" y="3" width="${W}" height="${H}" rx="7" fill="rgba(0,0,0,0.05)"/>` +
       `<rect width="${W}" height="${H}" rx="7" fill="#fff" stroke="${stroke}" stroke-width="${strokeW}"/>` +
       `<rect width="${W}" height="${HEADER_H}" rx="7" fill="${accentColor}"/>` +
@@ -1312,14 +1321,15 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     try {
       const r = await fetch('/api/query', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field` })
+        // LIMIT을 명시해 자동 LIMIT 1000 우회 (api_columns는 2000행 이상)
+        body: JSON.stringify({ query: `SELECT svc_no, field, kor_nm, sql_type FROM api_columns ORDER BY svc_no, field LIMIT 10000` })
       });
       const rows = await r.json();
       if (Array.isArray(rows) && rows.length > 0) {
         rows.forEach(row => {
           const normKey = (row.svc_no || '').replace(/-/g, '');
           if (!allColumnsMap[normKey]) allColumnsMap[normKey] = [];
-          if (allColumnsMap[normKey].length < 5)
+          if (allColumnsMap[normKey].length < 10)  // 5 → 10: SVG 카드 표시 수와 일치
             allColumnsMap[normKey].push({ field: row.field, kor_nm: row.kor_nm, sql_type: row.sql_type });
         });
       }
@@ -1333,7 +1343,7 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           const r = await fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(id)}`);
           const cols = await r.json();
           if (Array.isArray(cols) && cols.length > 0) {
-            allColumnsMap[id] = cols.slice(0, 5).map(c => ({
+            allColumnsMap[id] = cols.slice(0, 10).map(c => ({  // 5 → 10
               field: c.field, kor_nm: c.kor_nm, sql_type: c.sql_type || c.data_type
             }));
           }
@@ -1477,8 +1487,8 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const isNeighbor = activeKeyword && matchedNodeIds.size > 0 && !matchedNodeIds.has(ds.id);
         const svgUrl = createCardSvg(ds.id, ds.name, cols, rows, color, selectedNodeId === ds.id, isNeighbor);
 
-        // 크기: log 스케일, 70~130px
-        const sz = Math.min(150, Math.max(42, 42 + Math.log10(rows + 1) * 22));
+        // 크기: log 스케일, 최소 90px 확보 → 컬럼 텍스트가 항상 읽힘
+        const sz = Math.min(180, Math.max(90, 90 + Math.log10(rows + 1) * 20));
         // mass: 연결 많을수록 중앙으로 → sqrt(degree) 비례
         const mass = Math.max(1, Math.sqrt(degree + 1) + Math.log10(rows + 1) * 0.18);
 
@@ -1558,25 +1568,37 @@ export function renderCombinedErdMap(container, onSelectDataset) {
     networkInstance = new vis.Network(canvasEl,
       { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(visEdges) },
       {
-        nodes: { borderWidthSelected: 4, scaling: { min: 60, max: 140 } },
-        interaction: { hover: true, tooltipDelay: 150, selectable: true, selectConnectedEdges: true },
+        nodes: { borderWidthSelected: 4, scaling: { min: 90, max: 180 } },
+        interaction: { hover: true, tooltipDelay: 150, selectable: true, selectConnectedEdges: true, dragNodes: true },
+        layout: { improvedLayout: true, randomSeed: 42 },
         physics: {
-          enabled: activePhysics,
-          barnesHut: {
-            gravitationalConstant: -3500,
-            centralGravity: 0.28,
-            springLength: 240,
-            springConstant: 0.04,
-            damping: 0.45,
-            avoidOverlap: 0.9
+          enabled: true,
+          solver: 'repulsion',
+          repulsion: {
+            nodeDistance: 400,       // 카드 간 최소 거리 (겹침 방지 핵심)
+            centralGravity: 0.05,
+            springLength: 350,
+            springConstant: 0.02,
+            damping: 0.9             // 0.9 = 진동 매우 빠르게 감쇠
           },
-          maxVelocity: 50,
-          stabilization: { enabled: true, iterations: 600, updateInterval: 50 }
+          maxVelocity: 8,
+          minVelocity: 0.5,
+          stabilization: { enabled: true, iterations: 1000, updateInterval: 25, fit: true }
         }
       }
     );
 
-    networkInstance.on('stabilizationIterationsDone', () => {
+    // 초기 배치 완료 후 속도만 낮춰 잔잔한 움직임 유지
+    networkInstance.once('stabilizationIterationsDone', () => {
+      networkInstance.setOptions({
+        physics: {
+          enabled: true,
+          repulsion: { damping: 0.97, nodeDistance: 400, centralGravity: 0.02, springConstant: 0.005 },
+          maxVelocity: 3,    // 매우 느리게 — 잔잔히 흔들리는 수준
+          minVelocity: 0.1
+        }
+      });
+      activePhysics = true;
       if (loadingEl) loadingEl.classList.add('hidden');
     });
 
@@ -1614,28 +1636,30 @@ export function renderCombinedErdMap(container, onSelectDataset) {
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
-      <div class="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
-        <div class="flex flex-col flex-1 min-h-0">
-          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5 shrink-0">
+      <div class="flex-1 flex flex-col overflow-hidden p-4 gap-4">
+        <!-- 컬럼 명세: flex:2 → 데이터 샘플의 2배 높이 -->
+        <div class="flex flex-col min-h-0" style="flex:2">
+          <h4 class="text-[12px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5 shrink-0">
             <i class="ri-article-line text-gov-600"></i> 컬럼 명세 (Schema)
           </h4>
           <div class="border border-slate-200 rounded-xl overflow-auto bg-white flex-1 min-h-0">
-            <table class="w-full text-left text-[11px] border-collapse">
+            <table class="text-left text-[12px] border-collapse">
               <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold sticky top-0 z-10">
-                <th class="px-3 py-2 bg-slate-50">컬럼명</th>
-                <th class="px-2 py-2 bg-slate-50">타입</th>
-                <th class="px-3 py-2 bg-slate-50 text-right">한글명</th>
+                <th class="px-3 py-2.5 bg-slate-50 text-[12px] whitespace-nowrap">컬럼명</th>
+                <th class="px-2 py-2.5 bg-slate-50 text-[12px] whitespace-nowrap">타입</th>
+                <th class="px-3 py-2.5 bg-slate-50 text-right text-[12px] whitespace-nowrap">한글명</th>
               </tr></thead>
               <tbody id="cem-schema-tbody" class="divide-y divide-slate-100">
-                <tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">
+                <tr><td colspan="3" class="px-3 py-5 text-center text-slate-400">
                   <div class="inline-block w-3 h-3 rounded-full border-2 border-slate-200 border-t-gov-600 animate-spin mr-1 align-middle"></div>로딩 중...
                 </td></tr>
               </tbody>
             </table>
           </div>
         </div>
-        <div class="flex flex-col flex-1 min-h-0">
-          <h4 class="text-[11px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5 shrink-0">
+        <!-- 데이터 샘플: flex:1 -->
+        <div class="flex flex-col min-h-0" style="flex:1">
+          <h4 class="text-[12px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5 shrink-0">
             <i class="ri-database-2-line text-gov-600"></i> 데이터 샘플 (상위 30행)
           </h4>
           <div id="cem-sample-wrap" class="border border-slate-200 rounded-xl overflow-auto bg-white flex-1 min-h-0">
@@ -1666,13 +1690,13 @@ export function renderCombinedErdMap(container, onSelectDataset) {
       });
       tb.innerHTML = sortedCols.map(c => {
         const badge = KEY_EDGE_COLORS[c.field]
-          ? `<span class="px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
+          ? `<span class="px-1 py-0.5 text-[9px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-200 ml-1">KEY</span>` : '';
         return `<tr class="hover:bg-slate-50/50">
-          <td class="px-3 py-1.5 font-mono font-semibold text-slate-800">${escapeHtml(c.field)}${badge}</td>
-          <td class="px-2 py-1.5 font-mono text-[10px] text-blue-600">${escapeHtml(c.sql_type || 'VARCHAR')}</td>
-          <td class="px-3 py-1.5 text-right text-slate-500">${escapeHtml(c.kor_nm || '-')}</td>
+          <td class="px-3 py-2.5 font-mono font-semibold text-[13px] text-slate-800 whitespace-nowrap">${escapeHtml(c.field)}${badge}</td>
+          <td class="px-2 py-2.5 font-mono text-[12px] text-blue-600 whitespace-nowrap">${escapeHtml(c.sql_type || 'VARCHAR')}</td>
+          <td class="px-3 py-2.5 text-right text-[12px] text-slate-500 whitespace-nowrap">${escapeHtml(c.kor_nm || '-')}</td>
         </tr>`;
-      }).join('') || '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
+      }).join('') || '<tr><td colspan="3" class="px-3 py-5 text-center text-slate-400">없음</td></tr>';
     }).catch(() => {
       const tb = container.querySelector('#cem-schema-tbody');
       if (tb) tb.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-400">없음</td></tr>';
