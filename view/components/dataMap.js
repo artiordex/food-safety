@@ -403,9 +403,20 @@ export function renderDataMap(container, onSelectDataset) {
 
           allDatasets = metaData.list || [];
 
-          // matchedTables의 tableName(하이픈 없음)을 집합으로 구성
+          // keyword-datamap: 컬럼 값 기반 매칭 테이블
           const rawMatchedTables = kwdmData.matchedTables || [];
           matchedIdSet = new Set(rawMatchedTables.map(t => String(t.tableName)));
+
+          // 데이터세트 이름(svc_nm)에 키워드가 포함된 경우도 함께 매칭
+          const kwLower = kw.toLowerCase();
+          allDatasets.forEach(d => {
+            const normalizedId = String(d.svc_no || '').replace(/-/g, '');
+            if ((d.svc_nm || '').toLowerCase().includes(kwLower) ||
+                (d.desc || d.description || '').toLowerCase().includes(kwLower)) {
+              d._match_inName = true;
+              matchedIdSet.add(normalizedId);
+            }
+          });
 
         } else {
           const metaDataRes = await metaRequest;

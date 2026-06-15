@@ -1,11 +1,11 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=100';
-import { renderDataMap } from './components/dataMap.js?v=101';
+import { renderDataMap } from './components/dataMap.js?v=102';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=100';
 import { renderDetailPanel } from './components/detailDataset.js?v=100';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=100';
 import { renderApiExplorer } from './components/apiExplorer.js?v=100';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=100';
-import { renderSauceDataMap } from './components/sauceDataMap.js?v=100';
+import { renderSauceDataMap } from './components/sauceDataMap.js?v=101';
 import { renderDbErdMap } from './components/dbErdMap.js?v=100';
 import { renderWordCloud } from './components/wordCloud.js?v=100';
 import { getDatasetsSync } from './datasetStore.js?v=100';

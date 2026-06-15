@@ -1808,6 +1808,15 @@ export function renderCombinedErdMap(container, onSelectDataset) {
         const rawMatchedTables = data.matchedTables || [];
         columnMatchedIds = new Set(rawMatchedTables.map(t => String(t.svcNo || t.tableName)));
         matchedNodeIds = new Set([...columnMatchedIds]);
+        // 데이터세트 이름(svc_nm)에 키워드가 포함된 경우도 매칭
+        const kwLower = kw.toLowerCase();
+        allDatasets.forEach(d => {
+          if ((d.name || '').toLowerCase().includes(kwLower)) {
+            const normId = String(d.id || '').replace(/-/g, '');
+            columnMatchedIds.add(normId);
+            matchedNodeIds.add(d.id);
+          }
+        });
       } catch (e) {
         console.error(e);
         columnMatchedIds = new Set();

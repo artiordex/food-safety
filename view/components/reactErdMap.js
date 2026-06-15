@@ -595,18 +595,26 @@ function ReactErdApp({ onSelectDataset, container }) {
         const resAll = await Promise.all(requests);
         const [dsRes, relRes] = resAll;
 
+        const dsJson = await dsRes.json();
+        let allDatasets = (dsJson.list || []).map(d => ({
+          ...d, id: d.svc_no, name: d.svc_nm || d.svc_no, subject: d.cl_cd_nm || '기타', dataCount: d.data_cnt || d.sample_data_length
+        }));
+
         if (kw && resAll[2]) {
           const kwdmData = await resAll[2].json();
           const rawMatchedTables = kwdmData.matchedTables || [];
           // tableName은 하이픈 없는 형태 (sqlite_master 기준)
           initialMatchedIds = new Set(rawMatchedTables.map(t => String(t.svcNo || t.tableName)));
+          // 데이터세트 이름(svc_nm)에 키워드가 포함된 경우도 매칭
+          const kwLower = kw.toLowerCase();
+          allDatasets.forEach(d => {
+            if ((d.name || '').toLowerCase().includes(kwLower)) {
+              initialMatchedIds.add(String(d.id || '').replace(/-/g, ''));
+              initialMatchedIds.add(String(d.id || ''));
+            }
+          });
           setFilterIds(initialMatchedIds);
         }
-
-        const dsJson = await dsRes.json();
-        let allDatasets = (dsJson.list || []).map(d => ({
-          ...d, id: d.svc_no, name: d.svc_nm || d.svc_no, subject: d.cl_cd_nm || '기타', dataCount: d.data_cnt || d.sample_data_length
-        }));
 
         let loadedRels = await relRes.json() || [];
         if (!Array.isArray(loadedRels)) loadedRels = [];

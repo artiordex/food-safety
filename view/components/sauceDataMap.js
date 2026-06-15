@@ -127,9 +127,33 @@ function KeywordDataMap({ initialKeyword, onSelectDataset }) {
     if (simRef.current) { simRef.current.stop(); simRef.current = null; }
 
     try {
-      const r = await fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}`);
+      const [r, dsRes] = await Promise.all([
+        fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}`),
+        fetch('/api/searchDatasetList.do', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start_idx: 1, show_cnt: 1000 }) })
+      ]);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
+
+      // 데이터세트 이름(svc_nm)에 키워드가 포함된 항목을 노드에 추가
+      if (dsRes.ok) {
+        const dsJson = await dsRes.json();
+        const kwLower = kw.toLowerCase();
+        const existingIds = new Set((j.matchedTables || []).map(t => String(t.tableName)));
+        (dsJson.list || []).forEach(d => {
+          if ((d.svc_nm || '').toLowerCase().includes(kwLower)) {
+            const normId = String(d.svc_no || '').replace(/-/g, '');
+            if (!existingIds.has(normId)) {
+              existingIds.add(normId);
+              (j.matchedTables = j.matchedTables || []).push({
+                tableName: normId, svcNo: d.svc_no,
+                tableLabel: d.svc_nm, domain: d.cl_cd_nm || '기타',
+                totalCount: 0, matchingCols: [], sampleRows: []
+              });
+            }
+          }
+        });
+      }
+
       setData(j);
 
       const tables = j.matchedTables || [];
