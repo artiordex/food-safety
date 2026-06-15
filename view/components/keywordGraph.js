@@ -581,15 +581,34 @@ export function renderKeywordGraph(keyword) {
   }
 
   const op = document.getElementById('datamap-keyword-operator')?.value || 'AND';
-  fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(keyword)}&op=${op}`)
-    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(data => {
+  Promise.all([
+    fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(keyword)}&op=${op}`).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+    fetch('/api/searchDatasetList.do', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start_idx: 1, show_cnt: 1000 }) }).then(r => r.ok ? r.json() : { list: [] })
+  ])
+    .then(([data, dsJson]) => {
+      // 데이터세트 이름(svc_nm)에 키워드가 포함된 항목을 matchedTables에 추가
+      const kwLower = keyword.toLowerCase();
+      const existingIds = new Set((data.matchedTables || []).map(t => String(t.tableName)));
+      (dsJson.list || []).forEach(d => {
+        if ((d.svc_nm || '').toLowerCase().includes(kwLower)) {
+          const normId = String(d.svc_no || '').replace(/-/g, '');
+          if (!existingIds.has(normId)) {
+            existingIds.add(normId);
+            (data.matchedTables = data.matchedTables || []).push({
+              tableName: normId, svcNo: d.svc_no,
+              tableLabel: d.svc_nm, domain: d.cl_cd_nm || '기타',
+              totalCount: 0, matchingCols: [], sampleRows: []
+            });
+          }
+        }
+      });
+
       _lastData = data;
       if (!data.matchedTables || data.matchedTables.length === 0) {
         showError('일치하는 데이터가 없습니다.');
         return;
       }
-      
+
       // 검색 결과가 있으면 에러창 숨김
       const errEl = document.getElementById('kwmap-error');
       if (errEl) errEl.style.display = 'none';

@@ -53,7 +53,7 @@ let _currentDatasets = [];
  * 5. 화면 캡처(html2canvas / React Flow 자체 캡처)를 수행함
  */
 import { getDatasetsSync } from '../datasetStore.js';
-import { renderKeywordGraph } from './keywordGraph.js?v=4';
+import { renderKeywordGraph } from './keywordGraph.js?v=5';
 import { renderDetailPanel } from './detailDataset.js?v=4';
 import { renderCombinedErdMap as renderReactErdMap } from './reactErdMap.js?v=49';
 import { renderCombinedErdMap as renderVisErdMap } from './dbErdMap.js?v=24';
