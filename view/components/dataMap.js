@@ -381,6 +381,7 @@ export function renderDataMap(container, onSelectDataset) {
 
       let allDatasets = [];
       let matchedIdSet = null; // keyword-datamap에서 받은 정확한 매칭 ID 집합
+      let perKwCounts = null;  // 다중 키워드일 때 개별 키워드별 개수
 
       try {
         const metaRequest = fetch('/api/searchDatasetList.do', {
@@ -392,21 +393,20 @@ export function renderDataMap(container, onSelectDataset) {
         if (kw) {
           const op = view.querySelector('#datamap-keyword-operator')?.value || 'AND';
           const individualKws = kw.split(';').map(k => k.trim()).filter(Boolean);
+          const isMulti = individualKws.length > 1;
 
-          // 조합 결과(필터용) + 개별 키워드별 결과(개수 표시용) + 메타데이터 병렬 조회
-          const requests = [
+          // 조합 결과(필터용) + 메타데이터 + 개별 키워드별 결과(개수 표시용) 병렬 조회
+          const [kwdmRes, metaDataRes, ...perKwRes] = await Promise.all([
             fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`),
             metaRequest,
-            ...individualKws.length > 1
-              ? individualKws.map(k => fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(k)}`))
-              : []
-          ];
-          const responses = await Promise.all(requests);
-          const kwdmData = await responses[0].json();
-          const metaData = await responses[1].json();
-          const perKwData = individualKws.length > 1
-            ? await Promise.all(responses.slice(2).map(r => r.json()))
-            : [];
+            ...(isMulti ? individualKws.map(k => fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(k)}`)) : [])
+          ]);
+
+          const [kwdmData, metaData, ...perKwDataArr] = await Promise.all([
+            kwdmRes.json(),
+            metaDataRes.json(),
+            ...(isMulti ? perKwRes.map(r => r.json()) : [])
+          ]);
 
           allDatasets = metaData.list || [];
 
@@ -425,9 +425,9 @@ export function renderDataMap(container, onSelectDataset) {
             }
           });
 
-          // 개별 키워드 개수를 계산해서 view에 저장 (summary 렌더링에 사용)
-          window._kwPerCount = individualKws.length > 1 ? individualKws.map((k, i) => {
-            const ids = new Set((perKwData[i]?.matchedTables || []).map(t => String(t.tableName)));
+          // 개별 키워드별 개수 계산 (로컬 변수로 summary 렌더에 직접 전달)
+          perKwCounts = isMulti ? individualKws.map((k, i) => {
+            const ids = new Set((perKwDataArr[i]?.matchedTables || []).map(t => String(t.tableName)));
             const kLower = k.toLowerCase();
             allDatasets.forEach(d => {
               const nId = String(d.svc_no || '').replace(/-/g, '');
@@ -456,8 +456,8 @@ export function renderDataMap(container, onSelectDataset) {
         return d;
       });
       if (summary) {
-        if (kw && window._kwPerCount) {
-          const parts = window._kwPerCount.filter(x => x.count > 0)
+        if (kw && perKwCounts) {
+          const parts = perKwCounts.filter(x => x.count > 0)
             .map(x => `"<strong style="color:#1e293b;">${escapeHtml(x.k)}</strong>" ${x.count}개`);
           summary.innerHTML = parts.length > 0
             ? parts.join(' / ') + ` 포함 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
