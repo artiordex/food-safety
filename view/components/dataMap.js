@@ -391,15 +391,22 @@ export function renderDataMap(container, onSelectDataset) {
 
         if (kw) {
           const op = view.querySelector('#datamap-keyword-operator')?.value || 'AND';
+          const individualKws = kw.split(';').map(k => k.trim()).filter(Boolean);
 
-          // keyword-datamap: 서버에서 AND/OR 조건을 컬럼 단위로 정확하게 평가 (키워드 시각화와 동일)
-          const [kwdmRes, metaDataRes] = await Promise.all([
+          // 조합 결과(필터용) + 개별 키워드별 결과(개수 표시용) + 메타데이터 병렬 조회
+          const requests = [
             fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(kw)}&op=${op}`),
-            metaRequest
-          ]);
-
-          const kwdmData = await kwdmRes.json();
-          const metaData = await metaDataRes.json();
+            metaRequest,
+            ...individualKws.length > 1
+              ? individualKws.map(k => fetch(`/api/keyword-datamap?keyword=${encodeURIComponent(k)}`))
+              : []
+          ];
+          const responses = await Promise.all(requests);
+          const kwdmData = await responses[0].json();
+          const metaData = await responses[1].json();
+          const perKwData = individualKws.length > 1
+            ? await Promise.all(responses.slice(2).map(r => r.json()))
+            : [];
 
           allDatasets = metaData.list || [];
 
@@ -417,6 +424,18 @@ export function renderDataMap(container, onSelectDataset) {
               matchedIdSet.add(normalizedId);
             }
           });
+
+          // 개별 키워드 개수를 계산해서 view에 저장 (summary 렌더링에 사용)
+          window._kwPerCount = individualKws.length > 1 ? individualKws.map((k, i) => {
+            const ids = new Set((perKwData[i]?.matchedTables || []).map(t => String(t.tableName)));
+            const kLower = k.toLowerCase();
+            allDatasets.forEach(d => {
+              const nId = String(d.svc_no || '').replace(/-/g, '');
+              if ((d.svc_nm || '').toLowerCase().includes(kLower) ||
+                  (d.desc || d.description || '').toLowerCase().includes(kLower)) ids.add(nId);
+            });
+            return { k, count: ids.size };
+          }) : null;
 
         } else {
           const metaDataRes = await metaRequest;
@@ -436,9 +455,19 @@ export function renderDataMap(container, onSelectDataset) {
         d._match_inName = false;
         return d;
       });
-      if (summary) summary.innerHTML = kw
-        ? `검색어 <strong style="color:#1e293b;">"${escapeHtml(kw)}"</strong> 포함 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
-        : `전체 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`;
+      if (summary) {
+        if (kw && window._kwPerCount) {
+          const parts = window._kwPerCount.filter(x => x.count > 0)
+            .map(x => `"<strong style="color:#1e293b;">${escapeHtml(x.k)}</strong>" ${x.count}개`);
+          summary.innerHTML = parts.length > 0
+            ? parts.join(' / ') + ` 포함 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
+            : `일치하는 데이터세트가 없습니다.`;
+        } else {
+          summary.innerHTML = kw
+            ? `검색어 <strong style="color:#1e293b;">"${escapeHtml(kw)}"</strong> 포함 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`
+            : `전체 데이터세트 — 총 <strong style="color:#2563eb;">${matched.length}개</strong>`;
+        }
+      }
       updateTreemapForSearch(matched, kw);
 
       // 검색 결과로 필터 업데이트 이벤트 발행 (ERD 연동용)
