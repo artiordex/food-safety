@@ -1,7 +1,7 @@
 import { renderDatasetExplorer } from './components/datasetExplorer.js?v=100';
 import { renderDataMap } from './components/dataMap.js?v=104';
 import { renderRelationDataMap } from './components/relationDataMap.js?v=100';
-import { renderDetailPanel } from './components/detailDataset.js?v=101';
+import { renderDetailPanel } from './components/detailDataset.js?v=102';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=100';
 import { renderApiExplorer } from './components/apiExplorer.js?v=100';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=100';

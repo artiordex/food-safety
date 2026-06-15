@@ -417,22 +417,24 @@ export function renderDetailPanel(dataset, onClose) {
             badgeContainer.appendChild(kwBadge);
           }
 
-          // 단일 키워드나 AND/OR 중 첫 번째 의미 있는 단어를 사용하거나 전체 kw를 넘겨 서버에서 처리
-          // 여기서는 /api/tables/:tableName/keyword-count?keyword=xxx 로 호출
-          const primaryKw = kw.split(';')[0].trim().replace(/AND|OR/gi, '').trim();
-          fetch(`/api/tables/${dataset.id}/keyword-count?keyword=${encodeURIComponent(primaryKw)}`)
-            .then(r => r.json())
-            .then(data => {
-              kwBadge.classList.remove('animate-pulse');
-              if (data.count > 0) {
-                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${escapeHtml(primaryKw)}" <strong>${escapeHtml(data.count)}개</strong> 포함`;
-              } else {
-                kwBadge.remove();
-              }
-            })
-            .catch(() => {
-              kwBadge.remove(); // 실패 시 숨김
-            });
+          const individualKws = kw.split(';').map(k => k.trim()).filter(Boolean);
+          Promise.all(
+            individualKws.map(k =>
+              fetch(`/api/tables/${dataset.id}/keyword-count?keyword=${encodeURIComponent(k)}`)
+                .then(r => r.json())
+                .then(data => ({ k, count: data.count || 0 }))
+                .catch(() => ({ k, count: 0 }))
+            )
+          ).then(results => {
+            kwBadge.classList.remove('animate-pulse');
+            const parts = results.filter(x => x.count > 0)
+              .map(x => `"${escapeHtml(x.k)}" <strong>${x.count}개</strong>`);
+            if (parts.length > 0) {
+              kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 ${parts.join(' / ')} 포함`;
+            } else {
+              kwBadge.remove();
+            }
+          });
         }
       }
     }
