@@ -427,8 +427,7 @@ export function renderDetailPanel(dataset, onClose) {
               if (data.count > 0) {
                 kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${escapeHtml(primaryKw)}" <strong>${escapeHtml(data.count)}개</strong> 포함`;
               } else {
-                kwBadge.innerHTML = `<i class="ri-search-line mr-1"></i> 키워드 "${escapeHtml(primaryKw)}" 포함 안 됨`;
-                kwBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200';
+                kwBadge.remove();
               }
             })
             .catch(() => {
