@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-12T05:08:47.719Z",
+  "generatedAt": "2026-06-15T07:04:30.208Z",
   "summary": {
     "totalScenarios": 12,
     "totalRelations": 124,
-    "highConfidence": 2
+    "highConfidence": 1
   },
   "scenarios": [
     {
@@ -442,7 +442,7 @@
         }
       ],
       "score": 37,
-      "confidence": "MEDIUM",
+      "confidence": "LOW",
       "sql": "SELECT A.\"PRDLST_DCNM\", B.\"PRDLST_DCNM\", C.\"PRDLST_DCNM\", A.*, B.*, C.*\nFROM \"C002\" A\nLEFT JOIN \"C005\" B\n  ON A.\"PRDLST_DCNM\" = B.\"PRDLST_DCNM\"\nLEFT JOIN \"I2852\" C\n  ON B.\"PRDLST_DCNM\" = C.\"PRDLST_DCNM\"\nWHERE A.\"PRDLST_DCNM\" IS NOT NULL AND A.\"PRDLST_DCNM\" != ''\nLIMIT 100;"
     },
     {
@@ -1600,7 +1600,7 @@
         }
       ],
       "score": 33,
-      "confidence": "HIGH",
+      "confidence": "LOW",
       "sql": "SELECT A.\"LCNS_NO\", B.\"LCNS_NO\", A.*, B.*\nFROM \"C001\" A\nINNER JOIN \"I1260\" B\n  ON A.\"LCNS_NO\" = B.\"LCNS_NO\"\nWHERE A.\"LCNS_NO\" IS NOT NULL AND A.\"LCNS_NO\" != ''\nLIMIT 100;"
     },
     {
@@ -1682,7 +1682,7 @@
         }
       ],
       "score": 32,
-      "confidence": "MEDIUM",
+      "confidence": "LOW",
       "sql": "SELECT A.\"DSPS_BGNDT\", B.\"DSPS_BGNDT\", C.\"DSPS_BGNDT\", A.*, B.*, C.*, D.*\nFROM \"I0480\" A\nLEFT JOIN \"I0481\" B\n  ON A.\"DSPS_BGNDT\" = B.\"DSPS_BGNDT\"\nLEFT JOIN \"I0482\" C\n  ON B.\"DSPS_BGNDT\" = C.\"DSPS_BGNDT\"\nLEFT JOIN \"I0470\" D\n  ON A.\"DSPS_BGNDT\" = D.\"DSPS_BGNDT\"\nWHERE A.\"DSPS_BGNDT\" IS NOT NULL AND A.\"DSPS_BGNDT\" != ''\nLIMIT 100;"
     },
     {
@@ -2062,7 +2062,7 @@
         }
       ],
       "score": 21,
-      "confidence": "MEDIUM",
+      "confidence": "LOW",
       "sql": "SELECT A.\"TESTITM_CD\", B.\"TESTITM_CD\", C.\"TESTITM_CD\", A.*, B.*, C.*\nFROM \"I2580\" A\nLEFT JOIN \"I2610\" B\n  ON A.\"TESTITM_CD\" = B.\"TESTITM_CD\"\nLEFT JOIN \"I2530\" C\n  ON A.\"TESTITM_CD\" = C.\"TESTITM_CD\"\nWHERE A.\"TESTITM_CD\" IS NOT NULL AND A.\"TESTITM_CD\" != ''\nLIMIT 100;"
     },
     {
@@ -2299,7 +2299,7 @@
         }
       ],
       "score": 20,
-      "confidence": "MEDIUM",
+      "confidence": "LOW",
       "sql": "SELECT A.\"PRDLST_CD\", B.\"PRDLST_CD\", C.\"PRDLST_CD\", A.*, B.*, C.*\nFROM \"I0940\" A\nLEFT JOIN \"I2580\" B\n  ON A.\"PRDLST_CD\" = B.\"PRDLST_CD\"\nLEFT JOIN \"I0960\" C\n  ON B.\"PRDLST_CD\" = C.\"PRDLST_CD\"\nWHERE A.\"PRDLST_CD\" IS NOT NULL AND A.\"PRDLST_CD\" != ''\nLIMIT 100;"
     },
     {

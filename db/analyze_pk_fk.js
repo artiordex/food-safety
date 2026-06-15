@@ -88,7 +88,7 @@ const FK_DOMAIN_PARENT_CHILD_RULES = [
     // 인허가 대장(개별업종) → 인허가 업소 정보(통합마스터)
     { childKeywords: ['인허가 대장', '인허가대장'], parentKeywords: ['인허가 업소 정보'] },
     // 품목제조보고(원재료) → 품목제조보고(마스터)
-    { childKeywords: ['품목제조보고(원재료)', '품목제조신고(원재료)', '품목제조보고(원재료)', '축산물품목제조보고(원재료)'], parentKeywords: ['품목제조보고', '품목제조 신고사항', '품목제조정보'] },
+    { childKeywords: ['품목제조보고(원재료)', '품목제조신고(원재료)', '축산물품목제조보고(원재료)'], parentKeywords: ['품목제조보고', '품목제조 신고사항', '품목제조정보'] },
     // 생산실적 → 품목제조보고 / 영업(인허가) 마스터
     { childKeywords: ['생산실적'], parentKeywords: ['품목제조보고', '품목제조정보', '영업정보', '허가정보'] },
     // HACCP 지정 → 영업(인허가) 마스터
@@ -2015,7 +2015,90 @@ function generateMarkdownReport(analysis, outputPath) {
     }
 
     lines.push('');
-    lines.push('## 4. 테이블별 상세');
+    lines.push('## 4. 네트워크(관계) 지표 분석');
+    lines.push('');
+
+    const inDegRanking = analysis.graph_analysis?.in_degree_ranking || [];
+    
+    const sortedByConnections = [...inDegRanking].sort((a, b) => {
+        const connA = a.in_degree + a.out_degree;
+        const connB = b.in_degree + b.out_degree;
+        return connB - connA;
+    });
+
+    const top10Central = sortedByConnections.slice(0, 10).filter(t => (t.in_degree + t.out_degree) > 0);
+    const isolatedTables = sortedByConnections.filter(t => (t.in_degree + t.out_degree) === 0);
+
+    lines.push('### 4.1. 중심 테이블 Top 10 (연결 수가 많은 순)');
+    lines.push('');
+    lines.push('| 순위 | 서비스번호 | 데이터셋명 | 연결 수(In+Out) | In-Degree(참조받음) | Out-Degree(참조함) |');
+    lines.push('|---|---|---|---:|---:|---:|');
+    if (top10Central.length === 0) {
+        lines.push('| - | - | - | - | - | - |');
+    } else {
+        top10Central.forEach((t, i) => {
+            lines.push(`| ${i + 1} | ${t.svc_no} | ${escapeMd(t.svc_nm)} | ${t.in_degree + t.out_degree} | ${t.in_degree} | ${t.out_degree} |`);
+        });
+    }
+    lines.push('');
+
+    lines.push('### 4.2. 고립 테이블 목록 (연결이 없는 테이블)');
+    lines.push('');
+    lines.push('| 서비스번호 | 데이터셋명 |');
+    lines.push('|---|---|');
+    if (isolatedTables.length === 0) {
+        lines.push('| - | 고립된 테이블 없음 |');
+    } else {
+        isolatedTables.forEach(t => {
+            lines.push(`| ${t.svc_no} | ${escapeMd(t.svc_nm)} |`);
+        });
+    }
+    lines.push('');
+
+    lines.push('### 4.3. 순환 참조(Cycle) 후보');
+    lines.push('');
+    const cycles = analysis.graph_analysis?.cycles || [];
+    if (cycles.length === 0) {
+        lines.push('- 발견된 순환 참조 사이클이 없습니다.');
+    } else {
+        lines.push('| 사이클 순번 | 순환 경로 (-> 방향으로 참조) |');
+        lines.push('|---|---|');
+        cycles.forEach((cycle, i) => {
+            lines.push(`| Cycle ${i + 1} | ${cycle.join(' -> ')} -> ${cycle[0]} |`);
+        });
+    }
+    lines.push('');
+
+    const keyGroups = new Map();
+    for (const rel of analysis.relationships) {
+        const key = rel.to_field.toUpperCase();
+        if (!keyGroups.has(key)) {
+            keyGroups.set(key, { relations: 0, tables: new Set(), masters: new Set() });
+        }
+        const g = keyGroups.get(key);
+        g.relations++;
+        g.tables.add(rel.from_table);
+        g.tables.add(rel.to_table);
+        g.masters.add(rel.to_table_name || rel.to_table);
+    }
+    const sortedKeyGroups = Array.from(keyGroups.entries())
+        .map(([key, data]) => ({ key, relations: data.relations, tableCount: data.tables.size, masters: Array.from(data.masters).slice(0, 3).join(', ') }))
+        .sort((a, b) => b.relations - a.relations);
+
+    lines.push('### 4.4. 공통키별 관계 그룹 (가장 많이 연결된 키 Top 10)');
+    lines.push('');
+    lines.push('| 공통키(필드명) | 관계 수 | 연결된 테이블 수 | 주요 참조 대상(Master 등) |');
+    lines.push('|---|---:|---:|---|');
+    if (sortedKeyGroups.length === 0) {
+        lines.push('| - | - | - | - |');
+    } else {
+        sortedKeyGroups.slice(0, 10).forEach(g => {
+            lines.push(`| ${g.key} | ${g.relations} | ${g.tableCount} | ${escapeMd(g.masters)} 등 |`);
+        });
+    }
+    lines.push('');
+
+    lines.push('## 5. 테이블별 상세');
     lines.push('');
 
     for (const table of analysis.tables) {
