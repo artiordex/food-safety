@@ -26,9 +26,22 @@ if (!REAL_API_KEY) {
   logger.error('FOOD_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인해주세요.');
 }
 
-// HTML 파일에 head/header/search include를 주입하는 공통 함수
-function applyIncludes(html, vars = {}) {
+// 서버 기동 시 include 파일을 메모리에 캐싱 (요청마다 readFileSync 방지)
+const _includesCache = {};
+(function preloadIncludes() {
   const includesDir = path.join(__dirname, 'public/includes');
+  const files = ['head.html', 'head_search.html', 'header.html', 'hero.html',
+    'mainBoard.html', 'footer.html', 'search.html', 'menu_modal.html'];
+  for (const file of files) {
+    const filePath = path.join(includesDir, file);
+    if (fs.existsSync(filePath)) {
+      _includesCache[file] = fs.readFileSync(filePath, 'utf8');
+    }
+  }
+})();
+
+// HTML 파일에 head/header/search include를 주입하는 공통 함수 (캐시 사용)
+function applyIncludes(html, vars = {}) {
   // 치환 전 플레이스홀더 존재 여부를 미리 기록
   const hadFooter = html.includes('<!-- INCLUDE_FOOTER -->');
   const hadMenuModal = html.includes('<!-- INCLUDE_MENU_MODAL -->');
@@ -43,28 +56,19 @@ function applyIncludes(html, vars = {}) {
     { placeholder: '<!-- INCLUDE_MENU_MODAL -->', file: 'menu_modal.html', transform: c => c },
   ];
   for (const { placeholder, file, transform } of replacements) {
-    if (html.includes(placeholder)) {
-      const filePath = path.join(includesDir, file);
-      if (fs.existsSync(filePath)) {
-        html = html.replace(placeholder, transform(fs.readFileSync(filePath, 'utf8')));
-      }
+    if (html.includes(placeholder) && _includesCache[file]) {
+      html = html.replace(placeholder, transform(_includesCache[file]));
     }
   }
   // INCLUDE_FOOTER 미선언 페이지에도 자동 주입 (</body> 직전, NO_FOOTER 마커 제외)
   const noFooter = html.includes('<!-- NO_FOOTER -->');
   html = html.replace('<!-- NO_FOOTER -->', '');
-  if (!hadFooter && !noFooter && html.includes('</body>')) {
-    const footerPath = path.join(includesDir, 'footer.html');
-    if (fs.existsSync(footerPath)) {
-      html = html.replace('</body>', fs.readFileSync(footerPath, 'utf8') + '\n</body>');
-    }
+  if (!hadFooter && !noFooter && html.includes('</body>') && _includesCache['footer.html']) {
+    html = html.replace('</body>', _includesCache['footer.html'] + '\n</body>');
   }
   // INCLUDE_MENU_MODAL 미선언 페이지에도 자동 주입 (</body> 직전)
-  if (!hadMenuModal && html.includes('</body>')) {
-    const menuModalPath = path.join(includesDir, 'menu_modal.html');
-    if (fs.existsSync(menuModalPath)) {
-      html = html.replace('</body>', fs.readFileSync(menuModalPath, 'utf8') + '\n</body>');
-    }
+  if (!hadMenuModal && html.includes('</body>') && _includesCache['menu_modal.html']) {
+    html = html.replace('</body>', _includesCache['menu_modal.html'] + '\n</body>');
   }
   // 템플릿 변수 치환 (미지정 변수는 빈 문자열로)
   html = html.replace(/\[\[KEYWORD\]\]/g, vars.keyword || '');
@@ -76,7 +80,7 @@ const app = express();
 // API Rate Limiting — IP당 분당 600회 초과 시 429 반환 (localhost 제외)
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,       // 1분
-  max: 20000,                  // 최대 2000회
+  max: 600,                    // IP당 분당 최대 600회
   standardHeaders: true,      // RateLimit-* 헤더 포함
   legacyHeaders: false,
   skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1',
@@ -97,12 +101,20 @@ app.use(cors({
 }));
 
 let _tableCountsMap = {};
+let _dbReady = false; // DB 초기화 완료 여부
+
 function initTableCounts() {
   db.all("SELECT name FROM sqlite_master WHERE type IN ('table', 'view')", [], (err, tables) => {
-    if (err) return;
+    if (err) { _dbReady = true; return; } // 실패해도 서버는 기동
+    let pending = tables.length;
+    if (pending === 0) { _dbReady = true; return; }
     tables.forEach(t => {
       db.get(`SELECT COUNT(*) as cnt FROM "${t.name}"`, [], (err, row) => {
         if (!err && row) _tableCountsMap[t.name] = row.cnt;
+        if (--pending === 0) {
+          _dbReady = true;
+          logger.info(`테이블 카운트 초기화 완료 (${Object.keys(_tableCountsMap).length}개 테이블)`);
+        }
       });
     });
   });
@@ -114,6 +126,12 @@ const DB_PATH = path.join(__dirname, 'db', 'foodsafety.db');
 // 미들웨어 설정
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// DB 초기화 완료 전 API 요청 차단 (테이블 카운트 레이스 컨디션 방지)
+app.use('/api', (req, res, next) => {
+  if (!_dbReady) return res.status(503).json({ error: '서버가 초기화 중입니다. 잠시 후 다시 시도해 주세요.' });
+  next();
+});
 
 // DB 연결
 const db = new sqlite3.Database(DB_PATH, sqlite3.OPEN_READWRITE, (err) => {
@@ -188,8 +206,13 @@ Object.entries(doRoutes).forEach(([doUrl, htmlPath]) => {
   app.get(doUrl, (req, res) => {
     const filePath = path.join(__dirname, 'pages', htmlPath);
     const keyword = req.query.search_keyword || '';
-    const html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
-    res.send(html);
+    try {
+      const html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
+      res.send(html);
+    } catch (err) {
+      logger.error({ err, filePath }, '.do 라우트 페이지 렌더링 오류');
+      res.status(500).send('<h1>페이지를 불러올 수 없습니다.</h1>');
+    }
   });
 });
 
@@ -202,16 +225,27 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
   }
 
   // 1) 루트에서 먼저 탐색
-  let filePath = path.join(__dirname, requestPath);
+  let filePath = path.resolve(__dirname, '.' + requestPath);
+
+  // Path Traversal 방어: 해결된 경로가 프로젝트 루트를 벗어나면 차단
+  if (!filePath.startsWith(__dirname + path.sep) && filePath !== __dirname) {
+    return res.status(400).send('잘못된 요청입니다.');
+  }
 
   // 2) 없으면 pages/ 하위에서 탐색
   if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'pages', requestPath);
+    filePath = path.resolve(path.join(__dirname, 'pages', requestPath));
+    if (!filePath.startsWith(path.join(__dirname, 'pages'))) {
+      return res.status(400).send('잘못된 요청입니다.');
+    }
   }
 
   // 3) 없으면 public/includes/ 하위에서 탐색
   if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'public', 'includes', requestPath);
+    filePath = path.resolve(path.join(__dirname, 'public', 'includes', requestPath));
+    if (!filePath.startsWith(path.join(__dirname, 'public', 'includes'))) {
+      return res.status(400).send('잘못된 요청입니다.');
+    }
   }
 
   if (!fs.existsSync(filePath)) {
@@ -219,8 +253,13 @@ app.get(/^\/(.*\.html)?$/, (req, res, next) => {
   }
 
   const keyword = req.query.search_keyword || '';
-  let html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
-  res.send(html);
+  try {
+    const html = applyIncludes(fs.readFileSync(filePath, 'utf8'), { keyword });
+    res.send(html);
+  } catch (err) {
+    logger.error({ err, filePath }, 'HTML 페이지 렌더링 오류');
+    res.status(500).send('<h1>페이지를 불러올 수 없습니다.</h1>');
+  }
 });
 
 // pages/ 안의 JS·CSS 등 정적 리소스도 /pages 없이 서빙
@@ -349,17 +388,17 @@ function buildDatasetEntry(row, cacheItem, fieldNames) {
 // 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱)
 let cachedRelationships = null;
 
-// 프로세스 종료 시 DB 연결 해제
-process.on('SIGINT', () => {
+// 프로세스 종료 시 DB 연결 해제 (SIGINT: Ctrl+C, SIGTERM: 클라우드/Docker 종료)
+function gracefulShutdown(signal) {
+  logger.info(`${signal} 수신 — DB 연결을 종료합니다.`);
   db.close((err) => {
-    if (err) {
-      logger.error({ err }, 'DB 연결 종료 중 오류가 발생했습니다.');
-    } else {
-      logger.info('SQLite DB 연결이 성공적으로 닫혔습니다.');
-    }
+    if (err) logger.error({ err }, 'DB 연결 종료 중 오류가 발생했습니다.');
+    else logger.info('SQLite DB 연결이 성공적으로 닫혔습니다.');
     process.exit(0);
   });
-});
+}
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 app.listen(PORT, () => {
   logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);

@@ -38,17 +38,24 @@ module.exports = (db, applyIncludes, logger, appDir) => {
 
   let _datasetTreeCache = null;
 
+  // search.html을 최초 요청 시 한 번만 읽어 캐싱 (요청마다 readFileSync 방지)
+  let _searchHtmlCache = null;
+  function getSearchHtml() {
+    if (!_searchHtmlCache) {
+      _searchHtmlCache = fs.readFileSync(path.join(appDir, 'public/includes/search.html'), 'utf8');
+    }
+    return _searchHtmlCache;
+  }
+
   // 4.1 통합 데이터 검색 페이지 서빙
   router.post('/datasetAllSearch.do', (req, res) => {
     const keyword = req.body.search_keyword || '';
-    const html = fs.readFileSync(path.join(appDir, 'public/includes/search.html'), 'utf8');
-    res.send(applyIncludes(html, { keyword }));
+    res.send(applyIncludes(getSearchHtml(), { keyword }));
   });
 
   router.get('/datasetAllSearch.do', (req, res) => {
     const keyword = req.query.search_keyword || '';
-    const html = fs.readFileSync(path.join(appDir, 'public/includes/search.html'), 'utf8');
-    res.send(applyIncludes(html, { keyword }));
+    res.send(applyIncludes(getSearchHtml(), { keyword }));
   });
 
   // 4.2a 카테고리 목록 API
@@ -117,7 +124,19 @@ module.exports = (db, applyIncludes, logger, appDir) => {
     const typeFilter = (req.body.search_svcTypeCode || '').trim();
     const provdFilter = (req.body.search_provdInsttCode || '').trim();
 
-    db.all('SELECT svc_no, svc_nm, cat, description FROM api_tables', [], (err, rows) => {
+    // keyword·cat 필터를 SQL WHERE로 처리해 DB 풀스캔 방지
+    let query = 'SELECT svc_no, svc_nm, cat, description FROM api_tables WHERE 1=1';
+    const params = [];
+    if (catFilter) {
+      query += ' AND cat = ?';
+      params.push(catFilter);
+    }
+    if (keyword) {
+      query += ' AND (svc_nm LIKE ? OR svc_no LIKE ? OR cat LIKE ? OR description LIKE ?)';
+      params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`);
+    }
+
+    db.all(query, params, (err, rows) => {
       if (err) return res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
 
       const cacheMap = getCacheMap();
@@ -133,12 +152,11 @@ module.exports = (db, applyIncludes, logger, appDir) => {
         const typeNm = info.data_type_nm || 'XML/JSON';
         const provdNm = info.provd_instt_nm || '식품의약품안전처';
 
-        if (catFilter && cat !== catFilter) return;
+        // typeFilter·provdFilter는 crawl_cache 기반이므로 JS에서 처리
         if (typeFilter === 'API_TYPE05' && typeNm !== 'LINK') return;
         if (typeFilter === 'API_TYPE06' && typeNm !== 'XML/JSON') return;
         if (typeFilter === 'API_TYPE03') return;
         if (provdFilter && provdNm !== provdFilter) return;
-        if (keyword && !svc_nm.includes(keyword) && !svc_no.includes(keyword) && !cat.includes(keyword) && !desc.includes(keyword)) return;
 
         list.push({
           no: index++,

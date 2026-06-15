@@ -25,6 +25,9 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
     return true;
   };
 
+  // 컬럼명의 큰따옴표를 이스케이프하여 SQL 식별자로 안전하게 감쌈
+  const escapeCol = (colName) => colName.replace(/"/g, '""');
+
   // =============================================================================
   // 리터럴 라우트 (파람 라우트보다 반드시 먼저 선언)
   // =============================================================================
@@ -77,7 +80,7 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
         const colResults = await Promise.all(columns.map(async col => {
           try {
             const rows = await dbAll(
-              `SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ?`,
+              `SELECT COUNT(*) as cnt FROM "${tableName}" WHERE CAST("${escapeCol(col.name)}" AS TEXT) LIKE ?`,
               [`%${keyword}%`]
             );
             return (rows[0] && rows[0].cnt > 0);
@@ -132,7 +135,7 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
           const colResults = await Promise.all(columns.map(async col => {
             try {
               const rows = await dbAll(
-                `SELECT 1 FROM "${tableName}" WHERE CAST("${col.name}" AS TEXT) LIKE ? LIMIT 1`,
+                `SELECT 1 FROM "${tableName}" WHERE CAST("${escapeCol(col.name)}" AS TEXT) LIKE ? LIMIT 1`,
                 [`%${w}%`]
               );
               return rows.length > 0;
@@ -183,13 +186,17 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
     const { tableName } = req.params;
     if (!validateTableName(tableName, res)) return;
 
-    const limit = req.query.limit;
+    const rawLimit = req.query.limit;
     let query = `SELECT * FROM "${tableName}"`;
     const params = [];
 
-    if (limit && limit !== 'all') {
+    if (rawLimit && rawLimit !== 'all') {
+      const parsedLimit = parseInt(rawLimit, 10);
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 50000) {
+        return res.status(400).json({ error: 'limit은 1~50000 사이의 정수여야 합니다.' });
+      }
       query += ' LIMIT ?;';
-      params.push(parseInt(limit, 10));
+      params.push(parsedLimit);
     } else {
       query += ';';
     }
@@ -214,7 +221,7 @@ module.exports = (db, dbAll, logger, _tableCountsMap) => {
       const columns = await dbAll(`PRAGMA table_info("${tableName}")`);
       if (!columns.length) return res.json({ count: 0 });
 
-      const conditions = columns.map(c => `CAST("${c.name}" AS TEXT) LIKE ?`).join(' OR ');
+      const conditions = columns.map(c => `CAST("${escapeCol(c.name)}" AS TEXT) LIKE ?`).join(' OR ');
       const params = columns.map(() => `%${keyword}%`);
       const sql = `SELECT COUNT(*) AS cnt FROM "${tableName}" WHERE ${conditions}`;
 

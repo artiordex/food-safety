@@ -1,4 +1,46 @@
 import { escapeHtml, escapeAttr } from '/view/utils.js';
+
+// =============================================================================
+// 모듈 레벨 색상 상수 및 유틸리티 (renderDataMap 내부에서 분리)
+// =============================================================================
+const COLOR_SCALE = [
+  '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
+  '#0891b2', '#ea580c', '#4f46e5', '#db2777', '#0d9488',
+  '#65a30d', '#9333ea', '#e11d48', '#0284c7', '#ca8a04',
+  '#059669', '#be123c', '#475569'
+];
+
+const CATEGORY_COLOR_MAP = {
+  '식품영양정보': '#16a34a', '기준규격정보': '#2563eb', '코드정보': '#7c3aed',
+  '수질환경정보': '#0284c7', '검사기관정보': '#475569', '식품위해관리': '#dc2626',
+  '식품안전관리': '#0d9488', '이력추적관리': '#4f46e5', '어린이식품안전관리': '#db2777',
+  'HACCP지정현황': '#0891b2', '업체인허가현황': '#ea580c', '위생용품': '#e11d48',
+  '축산물': '#9333ea', '건강기능식품': '#65a30d', '수입식품 등': '#f59e0b',
+  '식품 등': '#059669', '폐업정보': '#be123c', '용어사전': '#ca8a04'
+};
+
+/** 분야명에 해당하는 브랜드 색상 반환 (없으면 colorScale fallback) */
+function getCategoryColor(subject, idx) {
+  return CATEGORY_COLOR_MAP[subject] || COLOR_SCALE[idx % COLOR_SCALE.length];
+}
+
+/** HEX 색상 → { r, g, b } 변환 */
+function hexToRgb(hex) {
+  const raw = String(hex || '').replace('#', '');
+  const value = raw.length === 3 ? raw.split('').map(ch => ch + ch).join('') : raw;
+  const n = Number.parseInt(value, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+/** 분야 색상의 12% 투명도 rgba 반환 (배경 칩 등에 사용) */
+function getSoftColor(subject, idx) {
+  const rgb = hexToRgb(getCategoryColor(subject, idx));
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
+}
+
+// 전역 window 오염 없이 데이터세트 목록을 모듈 스코프에 보관
+let _currentDatasets = [];
+
 /**
  * 데이터맵 메인 렌더러
  * 파일명: dataMap.js
@@ -29,6 +71,18 @@ export function renderDataMap(container, onSelectDataset) {
   if (container._datamapInitialized) return;
   container._datamapInitialized = true;
 
+  // 컨테이너 제거 시 ResizeObserver 자동 해제 (메모리 누수 방지)
+  const _cleanupObserver = new MutationObserver(() => {
+    if (!document.contains(container)) {
+      if (container._treemapObserver) {
+        container._treemapObserver.disconnect();
+        container._treemapObserver = null;
+      }
+      _cleanupObserver.disconnect();
+    }
+  });
+  _cleanupObserver.observe(document.body, { childList: true, subtree: true });
+
   // 1-1. 데이터 fetch 및 렌더 트리거
   // API에서 전체 데이터세트를 받아 분야별·기관별 집계 후 renderUI를 호출함
   const fetchDataAndRender = async () => {
@@ -40,7 +94,7 @@ export function renderDataMap(container, onSelectDataset) {
       });
       const data = await res.json();
       const list = data.list || [];
-      window.currentDatasets = list;
+      _currentDatasets = list;
       const subjectCounts = {};
       const instCounts = {};
       let totalCount = 0;
@@ -596,56 +650,9 @@ export function renderDataMap(container, onSelectDataset) {
   };
 
   // =============================================================================
-  // 2. 색상 유틸리티
+  // 2. 색상 유틸리티 (모듈 레벨로 분리됨 — 위 getCategoryColor / getSoftColor 사용)
   // =============================================================================
-  // 카테고리 미매핑 시 사용하는 fallback 색상 팔레트
-  const colorScale = [
-    '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
-    '#0891b2', '#ea580c', '#4f46e5', '#db2777', '#0d9488',
-    '#65a30d', '#9333ea', '#e11d48', '#0284c7', '#ca8a04',
-    '#059669', '#be123c', '#475569'
-  ];
-
-  // 분야명 → 고정 브랜드 색상 맵
-  const categoryColorMap = {
-    '식품영양정보': '#16a34a',
-    '기준규격정보': '#2563eb',
-    '코드정보': '#7c3aed',
-    '수질환경정보': '#0284c7',
-    '검사기관정보': '#475569',
-    '식품위해관리': '#dc2626',
-    '식품안전관리': '#0d9488',
-    '이력추적관리': '#4f46e5',
-    '어린이식품안전관리': '#db2777',
-    'HACCP지정현황': '#0891b2',
-    '업체인허가현황': '#ea580c',
-    '위생용품': '#e11d48',
-    '축산물': '#9333ea',
-    '건강기능식품': '#65a30d',
-    '수입식품 등': '#f59e0b',
-    '식품 등': '#059669',
-    '폐업정보': '#be123c',
-    '용어사전': '#ca8a04'
-  };
-
-  // 분야명에 해당하는 색상을 반환함 (없으면 colorScale fallback)
-  const getColor = (subject, idx) => categoryColorMap[subject] || colorScale[idx % colorScale.length];
-  // HEX 색상 문자열을 { r, g, b } 객체로 변환함
-  const hexToRgb = (hex) => {
-    const raw = String(hex || '').replace('#', '');
-    const value = raw.length === 3 ? raw.split('').map(ch => ch + ch).join('') : raw;
-    const n = Number.parseInt(value, 16);
-    return {
-      r: (n >> 16) & 255,
-      g: (n >> 8) & 255,
-      b: n & 255
-    };
-  };
-  // 분야 색상의 12% 투명도 rgba 문자열을 반환함 (배경 칩 등에 사용)
-  const getSoftColor = (subject, idx) => {
-    const rgb = hexToRgb(getColor(subject, idx));
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
-  };
+  const getColor = (subject, idx) => getCategoryColor(subject, idx);
 
   // =============================================================================
   // 3. 데이터 변환 유틸리티
@@ -730,14 +737,13 @@ export function renderDataMap(container, onSelectDataset) {
     const selectedCats = Array.from(view.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
     const selectedInsts = Array.from(view.querySelectorAll('.institution-checkbox:checked')).map(cb => cb.value);
 
-    console.log("applyCombinedFilters called", selectedCats.length, selectedInsts.length);
-    const allData = window.currentDatasets || [];
+    const allData = _currentDatasets;
     // 선택 없음 = 해당 축 필터 없음 (전체 허용)
     const matched = allData.filter(d => {
       const cat = d.cl_cd_nm || '기타';
       const inst = d.provd_instt_nm || '식품의약품안전처';
-      const matchCat = selectedCats.length === 0 || selectedCats.includes(cat);
-      const matchInst = selectedInsts.length === 0 || selectedInsts.includes(inst);
+      const matchCat = selectedCats.includes(cat);
+      const matchInst = selectedInsts.includes(inst);
       return matchCat && matchInst;
     });
 
@@ -745,10 +751,7 @@ export function renderDataMap(container, onSelectDataset) {
     updateTreemapForSearch(matched, '', true);
 
     // 2. Dispatch event to update ERD map
-    // 아무것도 선택되지 않은 경우 null(전체 표시), 아니면 매칭 ID 목록
-    const matchedIds = (selectedCats.length === 0 && selectedInsts.length === 0)
-      ? null
-      : matched.map(d => String(d.svc_no));
+    const matchedIds = matched.map(d => String(d.svc_no));
     window.dispatchEvent(new CustomEvent('datamap-filter-updated', { detail: { matchedIds } }));
   };
 
@@ -762,12 +765,18 @@ export function renderDataMap(container, onSelectDataset) {
     const listContainer = view.querySelector('#category-list-container');
     if (!listContainer) return;
 
+    const existingCheckboxes = listContainer.querySelectorAll('.category-checkbox');
+    const hasExisting = existingCheckboxes.length > 0;
+    const checkedSet = new Set(Array.from(existingCheckboxes).filter(cb => cb.checked).map(cb => cb.value));
+
     listContainer.innerHTML = subjectArray.map((item, idx) => {
       const color = getColor(item.subject, idx);
+      const isChecked = hasExisting ? checkedSet.has(item.subject) : true;
+      const checkedAttr = isChecked ? 'checked' : '';
       return `
         <label class="category-item cursor-pointer group py-1.5 px-2 rounded-md transition-colors border border-transparent hover:border-slate-200 hover:bg-slate-50 flex justify-between items-center w-full m-0">
           <div class="flex items-center gap-2 max-w-[70%]">
-            <input type="checkbox" class="category-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" checked>
+            <input type="checkbox" class="category-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" ${checkedAttr}>
             <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color}"></div>
             <span class="font-medium text-slate-700 text-[13px] truncate group-hover:text-gov-700" title="${item.subject}">${item.subject}</span>
           </div>
@@ -788,11 +797,17 @@ export function renderDataMap(container, onSelectDataset) {
     const listContainer = view.querySelector('#institution-list-container');
     if (!listContainer) return;
 
+    const existingCheckboxes = listContainer.querySelectorAll('.institution-checkbox');
+    const hasExisting = existingCheckboxes.length > 0;
+    const checkedSet = new Set(Array.from(existingCheckboxes).filter(cb => cb.checked).map(cb => cb.value));
+
     listContainer.innerHTML = instArray.map((item, idx) => {
+      const isChecked = hasExisting ? checkedSet.has(item.subject) : true;
+      const checkedAttr = isChecked ? 'checked' : '';
       return `
         <label class="institution-item cursor-pointer group py-1.5 px-2 rounded-md transition-colors border border-transparent hover:border-slate-200 hover:bg-slate-50 flex justify-between items-center w-full m-0">
           <div class="flex items-center gap-2 max-w-[70%]">
-            <input type="checkbox" class="institution-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" checked>
+            <input type="checkbox" class="institution-checkbox w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" value="${item.subject}" ${checkedAttr}>
             <i class="ri-building-4-line text-slate-400 group-hover:text-gov-600 shrink-0 text-[13px]"></i>
             <span class="font-medium text-slate-700 text-[13px] truncate group-hover:text-gov-700" title="${item.subject}">${item.subject}</span>
           </div>
@@ -835,11 +850,12 @@ export function renderDataMap(container, onSelectDataset) {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
               if (lastTreemapData) renderTreemap(lastTreemapData);
-            }, 320); // wait for css transition
+            }, 320);
           }
         }
       });
       treemapResizeObserver.observe(containerEl);
+      container._treemapObserver = treemapResizeObserver;
     }
 
     lastTreemapWidth = width;
@@ -1029,12 +1045,19 @@ export function renderDataMap(container, onSelectDataset) {
       tryDraw();
     };
 
+    let _wcRetryCount = 0;
+    const WC_MAX_RETRY = 10; // 최대 10회(20초) 재시도 후 포기
     const fetchAndDraw = () => {
       fetch(`/api/tables/${tableName}/wordcloud`)
         .then(res => {
           if (res.status === 202) {
             const label = wrap.querySelector('[data-wordcloud-loading-text]');
-            if (label) label.textContent = '데이터 분석 중... 잠시만 기다려주세요.';
+            if (_wcRetryCount >= WC_MAX_RETRY) {
+              if (label) label.textContent = '워드클라우드 데이터를 불러오지 못했습니다.';
+              return;
+            }
+            if (label) label.textContent = `데이터 분석 중... (${_wcRetryCount + 1}/${WC_MAX_RETRY})`;
+            _wcRetryCount++;
             setTimeout(fetchAndDraw, 2000);
             throw new Error('BUILDING');
           }

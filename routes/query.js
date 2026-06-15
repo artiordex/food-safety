@@ -4,7 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = (db, dbAll, logger, readonlyDb) => {
+let _joinScenariosCache = null;
 router.get('/join-scenarios', (req, res) => {
+  if (_joinScenariosCache) {
+    return res.json(_joinScenariosCache);
+  }
   const joinSqlPath = path.join(__dirname, '..', 'db', 'join.sql');
   try {
     // join.sql 파일 파싱
@@ -50,6 +54,7 @@ router.get('/join-scenarios', (req, res) => {
     }).filter(s => s.sql);
 
     const finalResult = parsedScenarios;
+    _joinScenariosCache = finalResult;
     res.json(finalResult);
   } catch (err) {
     logger.error({ err }, 'join.sql 파싱 중 오류가 발생했습니다.');
@@ -64,14 +69,20 @@ router.post('/query', (req, res) => {
 
   logger.info({ query }, 'SQL 쿼리 실행 요청이 들어왔습니다.');
 
-  // SELECT 등 조회 쿼리에만 대응하도록 간단히 체크 (데이터 훼손 방지)
   // 화이트리스트 방식: SELECT / EXPLAIN / PRAGMA 만 허용 (ATTACH 등 우회 차단)
   const ALLOWED_SQL = /^\s*(SELECT|EXPLAIN|PRAGMA\s+(table_info|table_list|index_list|foreign_key_list|database_list|compile_options|encoding|journal_mode|page_size|user_version|schema_version|quick_check|integrity_check))/i;
   if (!ALLOWED_SQL.test(query)) {
     return res.status(403).json({ error: '안전을 위해 조회(SELECT, EXPLAIN, PRAGMA) 목적의 쿼리만 실행이 허용됩니다.' });
   }
 
-  readonlyDb.all(query, [], (err, rows) => {
+  // LIMIT 미포함 SELECT 쿼리는 최대 1000행으로 자동 제한 (전체 풀스캔 방지)
+  const MAX_ROWS = 1000;
+  const hasLimit = /\bLIMIT\b/i.test(query);
+  const safeQuery = (!hasLimit && /^\s*SELECT/i.test(query))
+    ? query.replace(/;?\s*$/, '') + ` LIMIT ${MAX_ROWS}`
+    : query;
+
+  readonlyDb.all(safeQuery, [], (err, rows) => {
     if (err) {
       logger.error({ err }, 'SQL 실행 중 오류가 발생했습니다.');
       return res.status(400).json({ error: 'SQL 실행 중 오류가 발생했습니다.' });
