@@ -5,35 +5,35 @@
 @import url('slick.css');
 
 /*메인 비주얼*/
-.main_slider_wrap {position:relative; padding:40px 0; width:100%; background:url("https://www.foodsafetykorea.go.kr/images/api/main/bg_main_slider_pattern.jpg");}
+.main_slider_wrap {position:relative; padding:40px 0; width:100%; background:url("img/bg_main_slider_pattern.jpg");}
 .main_slider_wrap h2 {margin:0 auto; margin-bottom:40px; width:1220px; line-height:30px; font-size:26px; font-weight:bold; font-family:'Nanum Square';}
 .main_slider_wrap .main_slider {position:relative; margin:0 auto; padding:0 50px; width:1220px;}
 .main_slider_wrap .main_slider .slick-arrow {position:absolute; margin-top:-23px; top:50%; transform:translateY(-50%); width:17px; height:33px; text-indent:-9999px; background-repeat:no-repeat; background-position:center;}
-.main_slider_wrap .main_slider .slick-arrow.slick-prev {left:0; background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_slider_prev.png"); }
-.main_slider_wrap .main_slider .slick-arrow.slick-next {right:0; background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_slider_next.png");}
+.main_slider_wrap .main_slider .slick-arrow.slick-prev {left:0; background-image:url("img/btn_main_slider_prev.png"); }
+.main_slider_wrap .main_slider .slick-arrow.slick-next {right:0; background-image:url("img/btn_main_slider_next.png");}
 .main_slider_wrap .main_slider .item {position:relative; text-align:center;}
 .main_slider_wrap .main_slider .item a {display:inline-block; padding-top:135px;}
 .main_slider_wrap .main_slider .item a:before {content:''; display:block; position:absolute; top:0; left:50%; transform:translateX(-50%); width:115px; height:115px; border-radius:100px; background-color:#fff; background-repeat:no-repeat; background-position:center; transition:all 0.3s;}
 
-.main_slider_wrap .main_slider .item.icon_01 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_01.png");} /* 기준규격정보 */
-.main_slider_wrap .main_slider .item.icon_02 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_02.png");} /* 코드정보 */
-.main_slider_wrap .main_slider .item.icon_03 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_03.png");} /* 식품영양정보 */
-.main_slider_wrap .main_slider .item.icon_04 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_04.png");} /* 수질환경정보 */
-.main_slider_wrap .main_slider .item.icon_05 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_05.png");} /* 검사기관정보 */
-.main_slider_wrap .main_slider .item.icon_06 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_06.png");} /* 식품위해관리 */
-.main_slider_wrap .main_slider .item.icon_07 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_07.png");} /* 식품안전관리 */
-.main_slider_wrap .main_slider .item.icon_08 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_08.png");} /* 이력추적관리 */
-.main_slider_wrap .main_slider .item.icon_09 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_09.png");} /* 어린이식품안전관리 */
-.main_slider_wrap .main_slider .item.icon_10 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_10.png");} /* HACCP지정현황 */
-.main_slider_wrap .main_slider .item.icon_11 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_11.png");} /* 업체인허가현황 */
-.main_slider_wrap .main_slider .item.icon_12 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_12.png");} /* 위생요품 */
-.main_slider_wrap .main_slider .item.icon_13 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_13.png");} /* 측산물 */
-.main_slider_wrap .main_slider .item.icon_14 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_14.png");} /* 건강기능식품 */
-.main_slider_wrap .main_slider .item.icon_15 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_15.png");} /* 수입식품 */
-.main_slider_wrap .main_slider .item.icon_16 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_16.png");} /* 식품 등 */
-.main_slider_wrap .main_slider .item.icon_17 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_17.png");} /* 자료실 */
-.main_slider_wrap .main_slider .item.icon_18 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_18.png");} /* 폐업정보 */
-.main_slider_wrap .main_slider .item.icon_19 a:before {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/icon_main_slider_19.png");} /* 용어사전 */
+.main_slider_wrap .main_slider .item.icon_01 a:before {background-image:url("img/icon_main_slider_01.png");} /* 기준규격정보 */
+.main_slider_wrap .main_slider .item.icon_02 a:before {background-image:url("img/icon_main_slider_02.png");} /* 코드정보 */
+.main_slider_wrap .main_slider .item.icon_03 a:before {background-image:url("img/icon_main_slider_03.png");} /* 식품영양정보 */
+.main_slider_wrap .main_slider .item.icon_04 a:before {background-image:url("img/icon_main_slider_04.png");} /* 수질환경정보 */
+.main_slider_wrap .main_slider .item.icon_05 a:before {background-image:url("img/icon_main_slider_05.png");} /* 검사기관정보 */
+.main_slider_wrap .main_slider .item.icon_06 a:before {background-image:url("img/icon_main_slider_06.png");} /* 식품위해관리 */
+.main_slider_wrap .main_slider .item.icon_07 a:before {background-image:url("img/icon_main_slider_07.png");} /* 식품안전관리 */
+.main_slider_wrap .main_slider .item.icon_08 a:before {background-image:url("img/icon_main_slider_08.png");} /* 이력추적관리 */
+.main_slider_wrap .main_slider .item.icon_09 a:before {background-image:url("img/icon_main_slider_09.png");} /* 어린이식품안전관리 */
+.main_slider_wrap .main_slider .item.icon_10 a:before {background-image:url("img/icon_main_slider_10.png");} /* HACCP지정현황 */
+.main_slider_wrap .main_slider .item.icon_11 a:before {background-image:url("img/icon_main_slider_11.png");} /* 업체인허가현황 */
+.main_slider_wrap .main_slider .item.icon_12 a:before {background-image:url("img/icon_main_slider_12.png");} /* 위생요품 */
+.main_slider_wrap .main_slider .item.icon_13 a:before {background-image:url("img/icon_main_slider_13.png");} /* 측산물 */
+.main_slider_wrap .main_slider .item.icon_14 a:before {background-image:url("img/icon_main_slider_14.png");} /* 건강기능식품 */
+.main_slider_wrap .main_slider .item.icon_15 a:before {background-image:url("img/icon_main_slider_15.png");} /* 수입식품 */
+.main_slider_wrap .main_slider .item.icon_16 a:before {background-image:url("img/icon_main_slider_16.png");} /* 식품 등 */
+.main_slider_wrap .main_slider .item.icon_17 a:before {background-image:url("img/icon_main_slider_17.png");} /* 자료실 */
+.main_slider_wrap .main_slider .item.icon_18 a:before {background-image:url("img/icon_main_slider_18.png");} /* 폐업정보 */
+.main_slider_wrap .main_slider .item.icon_19 a:before {background-image:url("img/icon_main_slider_19.png");} /* 용어사전 */
 
 .main_slider_wrap .main_slider .item a .txt {color:#222; font-size:14px;}
 .main_slider_wrap .main_slider .item a:hover:before {box-shadow:3px 2px 3px #00000038;}
@@ -50,7 +50,7 @@
 .data_search_box input[type="text"] {padding:5px 70px 5px 20px; width:100%; line-height:25px; height:45px; font-size:16px; font-family:'Nanum Square'; background:#eeeff0; border:3px solid #0168c1; border-radius:50px; box-sizing:border-box; overflow:hidden;}
 .data_search_box input[type="text"]::placeholder {color:#989898;}
 .data_search_box input[type="text"]:focus {background:#fff;}
-.data_search_box button {position:absolute; top:0; right:0; width:50px; height:45px; text-indent:-9999px; background:#0168c1 url('https://www.foodsafetykorea.go.kr/images/api/main/btn_data_search.png') no-repeat center; border-top-right-radius:25px; border-bottom-right-radius:25px;}
+.data_search_box button {position:absolute; top:0; right:0; width:50px; height:45px; text-indent:-9999px; background:#0168c1 url('img/btn_data_search.png') no-repeat center; border-top-right-radius:25px; border-bottom-right-radius:25px;}
 .data_structure_search_box {position:absolute; top:37px; right:0; width:230px;}
 .data_structure_search_box button {width:100%; height:45px; line-height:45px; font-size:16px; color:#fff; font-family:'Nanum Square'; background:#68727f; border-radius:50px; transition:all 0.5s;}
 .data_structure_search_box button:hover {background:#525b66;}
@@ -61,7 +61,7 @@
 .main_cont .box {position:relative; float:left; margin-right:30px; height:300px; border:1px solid #d8d8d8; box-sizing:border-box;}
 .main_cont .box.notice {width:390px;}
 .main_cont .box.notice .tit {display:block; padding-left:25px; width:100%; line-height:54px; height:55px; font-size:20px; color:#262626; font-weight:bold; font-family:'Nanum Square'; border-bottom:1px solid #d8d8d8; box-sizing:border-box;}
-.main_cont .box.notice .more {display:block; position:absolute; top:-1px; right:-1px; width:30px; height:30px; text-indent:-99999px; background:#0168c1 url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_notice_more.png") no-repeat center;}
+.main_cont .box.notice .more {display:block; position:absolute; top:-1px; right:-1px; width:30px; height:30px; text-indent:-99999px; background:#0168c1 url("img/btn_main_notice_more.png") no-repeat center;}
 .main_cont .box.notice .list {padding:45px 25px 0;}
 .main_cont .box.notice .list li {margin-bottom:12px;}
 .main_cont .box.notice .list li:last-child {margin:0;}
@@ -98,9 +98,9 @@
 .main_cont .box.button {margin:0; width:190px;}
 .main_cont .box.button button {display:block; padding-left:70px; width:100%; height:99px; text-align:left; border-bottom:1px solid #d8d8d8; background-color:#f6f7f7; background-repeat:no-repeat; background-position:center left 13px; box-sizing:border-box; transition:all .3s ease;}
 .main_cont .box.button button:last-child {border-bottom:0;}
-.main_cont .box.button button.application {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_application.png");}
-.main_cont .box.button button.revise {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_revise.png");}
-.main_cont .box.button button.guide {background-image:url("https://www.foodsafetykorea.go.kr/images/api/main/btn_main_guide.png");}
+.main_cont .box.button button.application {background-image:url("img/btn_main_application.png");}
+.main_cont .box.button button.revise {background-image:url("img/btn_main_revise.png");}
+.main_cont .box.button button.guide {background-image:url("img/btn_main_guide.png");}
 .main_cont .box.button button span {font-size:17px; font-weight:bold; color:#262626; letter-spacing:-1.5px;}
 .main_cont .box.button button:hover {text-decoration:underline;}
 

@@ -3,596 +3,294 @@
 
 <head>
     <!-- INCLUDE_HEAD -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="/public/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        html,
-        body,
-        #wrap {
-            height: auto !important;
-            overflow: visible !important;
-        }
-
-        body,
-        .intro-page {
+        /* Base styles matching the platform.do */
+        html, body { 
+            height: auto !important; 
+            overflow: visible !important; 
             font-family: 'Noto Sans KR', sans-serif;
+            margin: 0; padding: 0;
+            background-color: #f9fafb;
         }
 
-        .intro-page {
+        .fc-green { color: #00b050 !important; }
+        .mt30 { margin-top: 30px; }
+        .mt80 { margin-top: 80px; }
+        .mt20 { margin-top: 20px; }
+        .mt10 { margin-top: 10px; }
+        .ml8 { margin-left: 8px; }
+
+        /* Container added as requested for proper margins */
+        .container {
             max-width: 1180px;
             margin: 0 auto;
-            padding: 48px 24px 72px;
-            color: #1f2937;
+            padding: 40px 24px 80px; 
         }
 
-        .intro-hero {
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) 380px;
-            gap: 32px;
-            align-items: stretch;
-            padding: 38px;
-            border: 1px solid #dbe5ef;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #f8fbff 0%, #eef7f5 100%);
-        }
-
-        .intro-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
-            color: #0f766e;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .intro-eyebrow::before {
-            content: "";
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #0f766e;
-        }
-
-        .page-title {
-            margin: 0;
-            color: #10233f;
+        .section-title h1 {
             font-size: 38px;
-            line-height: 1.25;
-            letter-spacing: 0;
             font-weight: 800;
+            color: #111;
+            text-align: center;
+            margin: 0 0 40px 0;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #222;
         }
 
-        .page-sub {
-            margin: 18px 0 0;
-            color: #405167;
-            font-size: 17px;
-            line-height: 1.8;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 28px;
-        }
-
-        .hero-actions a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            padding: 0 18px;
-            border-radius: 6px;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .hero-actions .primary {
-            background: #155eef;
-            color: #fff;
-        }
-
-        .hero-actions .secondary {
-            border: 1px solid #b9c7d8;
-            background: #fff;
-            color: #233a5a;
-        }
-
-        .hero-panel {
-            display: grid;
-            gap: 12px;
-            align-content: start;
-            padding: 24px;
-            border: 1px solid rgba(21, 94, 239, .14);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, .82);
-        }
-
-        .hero-stat {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 14px 0;
-            border-bottom: 1px solid #e4eaf1;
-        }
-
-        .hero-stat:last-child {
-            border-bottom: 0;
-        }
-
-        .hero-stat span {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .hero-stat strong {
-            color: #10233f;
-            font-size: 18px;
-            text-align: right;
-        }
-
-        .intro-section {
-            margin-top: 44px;
-        }
-
-        .section-head {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            align-items: flex-end;
-            margin-bottom: 18px;
-        }
-
-        .section-head h2 {
-            margin: 0;
-            color: #10233f;
+        .platform-intro .hub-intro {
             font-size: 26px;
-            line-height: 1.35;
-            font-weight: 800;
-        }
-
-        .section-head p {
-            max-width: 560px;
-            margin: 0;
-            color: #64748b;
-            line-height: 1.7;
-        }
-
-        .feature-grid,
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .feature-card,
-        .data-card,
-        .guide-card {
-            border: 1px solid #dbe5ef;
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
-        }
-
-        .feature-card {
-            padding: 22px;
-        }
-
-        .feature-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 42px;
-            margin-bottom: 16px;
-            border-radius: 8px;
-            background: #eef6ff;
-            color: #155eef;
-            font-size: 22px;
-            font-weight: 800;
-        }
-
-        .feature-card h3,
-        .data-card h3,
-        .guide-card h3 {
-            margin: 0 0 10px;
-            color: #1e293b;
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .feature-card p,
-        .data-card p,
-        .guide-card p {
-            margin: 0;
-            color: #596579;
-            line-height: 1.65;
-        }
-
-        .data-card {
-            padding: 20px;
-        }
-
-        .data-card .tag {
-            display: inline-flex;
-            margin-bottom: 12px;
-            padding: 4px 9px;
-            border-radius: 999px;
-            background: #f1f5f9;
-            color: #475569;
-            font-size: 12px;
             font-weight: 700;
+            text-align: center;
+            color: #222;
         }
 
-        .flow {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 12px;
-            counter-reset: step;
+        .platform-intro .hub-intro02 {
+            font-size: 18px;
+            line-height: 1.65;
+            color: #555;
+            text-align: center;
+            margin-top: 20px;
         }
 
-        .flow-item {
-            position: relative;
-            min-height: 162px;
-            padding: 20px;
-            border: 1px solid #dbe5ef;
-            border-radius: 8px;
-            background: #fff;
-        }
-
-        .flow-item::before {
-            counter-increment: step;
-            content: counter(step);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            margin-bottom: 14px;
-            border-radius: 50%;
-            background: #155eef;
-            color: #fff;
+        .platform-intro h2 {
+            font-size: 32px;
             font-weight: 800;
+            color: #111;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        .flow-item strong {
-            display: block;
-            margin-bottom: 8px;
-            color: #1e293b;
-            font-size: 16px;
+        .hub-container {
+            display: flex;
+            gap: 24px;
+            justify-content: space-between;
         }
 
-        .flow-item p {
+        .hub-container dl {
+            flex: 1;
+            background: #fff;
+            padding: 40px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            text-align: center;
             margin: 0;
-            color: #64748b;
+            transition: transform 0.3s;
+        }
+
+        .hub-container dl:hover {
+            transform: translateY(-5px);
+        }
+
+        .hub-container dt {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 16px;
+        }
+
+        .hub-container dd {
+            font-size: 16px;
+            color: #666;
+            margin: 0;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        .service-txt p {
+            font-size: 18px;
+            text-align: center;
+            color: #555;
             line-height: 1.6;
         }
 
-        .api-box {
-            display: grid;
-            gap: 16px;
-            padding: 24px;
-            border: 1px solid #dbe5ef;
-            border-radius: 8px;
-            background: #0f172a;
-            color: #e2e8f0;
-        }
-
-        .api-url-block {
+        .platform-intro h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 24px;
             display: flex;
-            gap: 12px;
             align-items: center;
-            min-width: 0;
         }
 
-        .method-badge {
-            flex: 0 0 auto;
-            padding: 6px 10px;
-            border-radius: 5px;
-            background: #14b8a6;
-            color: #052e2b;
-            font-size: 12px;
+        .service-num {
+            font-size: 40px;
             font-weight: 800;
+            color: #00b050;
+            margin-right: 12px;
+            line-height: 1;
         }
 
-        .api-url-block code {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            color: #f8fafc;
-            font-size: 15px;
-        }
-
-        .api-meta {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .api-meta div {
-            padding: 14px;
-            border: 1px solid rgba(226, 232, 240, .16);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, .05);
-        }
-
-        .api-meta span {
-            display: block;
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        .api-meta strong {
-            display: block;
-            margin-top: 5px;
-            color: #fff;
+        .platform-intro h3 span.ml8 {
             font-size: 16px;
+            font-weight: 400;
+            color: #666;
+            margin-top: 6px;
         }
 
-        .guide-grid {
-            display: grid;
-            grid-template-columns: 1.1fr .9fr;
-            gap: 18px;
+        .hub-service-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
         }
 
-        .guide-card {
-            padding: 24px;
+        .hub-service-container h4 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .notice-list {
-            display: grid;
-            gap: 10px;
-            margin: 14px 0 0;
-            padding: 0;
-            list-style: none;
+        .hub-service-container h4 a {
+            font-size: 14px;
+            color: #fff;
+            background: #00b050;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
         }
 
-        .notice-list li {
-            position: relative;
-            padding-left: 24px;
-            color: #475569;
-            line-height: 1.65;
+        .hub-service-container h4 a:hover {
+            opacity: 0.8;
         }
 
-        .notice-list li::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 10px;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #155eef;
+        .hub-service-container p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin: 0;
         }
 
-        @media (max-width: 1024px) {
-            .intro-hero,
-            .guide-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .feature-grid,
-            .data-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .flow {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 640px) {
-            .intro-page {
-                padding: 28px 16px 52px;
-            }
-
-            .intro-hero {
-                padding: 24px;
-            }
-
-            .page-title {
-                font-size: 30px;
-            }
-
-            .section-head {
-                display: block;
-            }
-
-            .section-head p {
-                margin-top: 8px;
-            }
-
-            .feature-grid,
-            .data-grid,
-            .flow,
-            .api-meta {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 900px) {
+            .hub-container { flex-direction: column; }
+            .platform-intro h3 { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .platform-intro h3 span.ml8 { margin-left: 0; }
+            .hub-service-container h4 { flex-direction: column; align-items: flex-start; gap: 16px; }
         }
     </style>
 </head>
 
-<body>
-    <div id="wrap">
+<body class="bg-white flex flex-col min-h-screen">
+    <div id="wrap" class="flex flex-col min-h-screen">
         <!-- INCLUDE_HEADER -->
-        <div id="container">
-            <main class="intro-page" aria-label="서비스 소개">
-                <section class="intro-hero" aria-labelledby="intro-title">
-                    <div>
-                        <div class="intro-eyebrow">식품의약품안전처 데이터활용서비스</div>
-                        <h1 id="intro-title" class="page-title">식품안전 공공데이터를 찾고, 연결하고, 활용하는 통합 안내</h1>
-                        <p class="page-sub">
-                            식품안전나라와 연계기관이 개방한 식품·건강 데이터를 Open API와 파일 형태로 제공합니다.
-                            공공데이터포털의 검색·활용·제공신청 흐름을 참고해, 필요한 데이터를 빠르게 탐색하고 인증키 기반으로
-                            서비스에 연결할 수 있도록 구성했습니다.
-                        </p>
-                        <div class="hero-actions">
-                            <a class="primary" href="/data/dataset.do" aria-label="식품안전 공공데이터 찾아보기">데이터 찾아보기</a>
-                            <a class="secondary" href="/service/serviceUse.do" aria-label="Open API 이용방법 자세히 보기">이용방법 보기</a>
-                        </div>
-                    </div>
-                    <aside class="hero-panel" aria-label="서비스 요약">
-                        <div class="hero-stat">
-                            <span>제공 방식</span>
-                            <strong>OPEN API · FILE</strong>
-                        </div>
-                        <div class="hero-stat">
-                            <span>응답 포맷</span>
-                            <strong>JSON · XML</strong>
-                        </div>
-                        <div class="hero-stat">
-                            <span>탐색 기준</span>
-                            <strong>분류별 · 기관별 · 유형별</strong>
-                        </div>
-                        <div class="hero-stat">
-                            <span>주요 절차</span>
-                            <strong>검색 → 신청 → 활용</strong>
-                        </div>
-                    </aside>
-                </section>
-
-                <section class="intro-section" aria-labelledby="feature-title">
-                    <div class="section-head">
-                        <h2 id="feature-title">공공데이터 포털형 핵심 기능</h2>
-                        <p>데이터를 단순 나열하지 않고, 검색부터 신청·활용·공유까지 이어지는 이용 흐름을 한 화면에서 이해할 수 있습니다.</p>
-                    </div>
-                    <div class="feature-grid">
-                        <article class="feature-card">
-                            <div class="feature-icon">D</div>
-                            <h3>데이터 통합 탐색</h3>
-                            <p>식품영양, 위해관리, HACCP, 수입식품, 업체 인허가 등 식품안전 분야 데이터를 주제별로 탐색합니다.</p>
-                        </article>
-                        <article class="feature-card">
-                            <div class="feature-icon">M</div>
-                            <h3>데이터 구조 확인</h3>
-                            <p>서비스 ID, 컬럼, 요청 URL, 샘플 응답을 함께 확인해 개발 전에 데이터 구조를 먼저 파악합니다.</p>
-                        </article>
-                        <article class="feature-card">
-                            <div class="feature-icon">K</div>
-                            <h3>인증키 기반 이용</h3>
-                            <p>회원가입 후 인증키를 발급받고, 필요한 Open API 서비스에 이용 신청해 애플리케이션에 연결합니다.</p>
-                        </article>
-                        <article class="feature-card">
-                            <div class="feature-icon">U</div>
-                            <h3>활용 사례 확장</h3>
-                            <p>데이터활용 갤러리와 활용사례처럼 실제 서비스 아이디어를 축적하고 공유할 수 있는 구조를 지향합니다.</p>
-                        </article>
+        <!-- Added container class as requested -->
+        <div class="bg-white flex-1" id="tab-content"><div id="container" class="static-view" style="display: block;">
+            <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-12 animate-fade-in" aria-label="서비스 소개">
+                <section>
+                    <div class="section-title">
+                        <h1>식품안전 데이터 플랫폼 소개</h1>
                     </div>
                 </section>
 
-                <section class="intro-section" aria-labelledby="category-title">
-                    <div class="section-head">
-                        <h2 id="category-title">주요 데이터 분류</h2>
-                        <p>식품안전나라 데이터활용서비스의 분류 체계를 참고해 현장에서 자주 찾는 데이터 묶음을 먼저 보여줍니다.</p>
-                    </div>
-                    <div class="data-grid">
-                        <article class="data-card">
-                            <span class="tag">식품정보</span>
-                            <h3>식품영양·기준규격</h3>
-                            <p>영양성분, 식품첨가물, 기준규격, 코드정보처럼 제품·성분 분석에 필요한 기초 데이터를 제공합니다.</p>
-                        </article>
-                        <article class="data-card">
-                            <span class="tag">안전관리</span>
-                            <h3>회수·판매중지·위해관리</h3>
-                            <p>부적합, 회수, 판매중지, 위해 식품 관련 정보를 활용해 소비자 알림과 모니터링 서비스를 만들 수 있습니다.</p>
-                        </article>
-                        <article class="data-card">
-                            <span class="tag">업체현황</span>
-                            <h3>인허가·HACCP·검사기관</h3>
-                            <p>업소 인허가, HACCP 지정, 검사기관 현황 등 기관·업체 기반의 관리 데이터를 확인합니다.</p>
-                        </article>
-                        <article class="data-card">
-                            <span class="tag">연계데이터</span>
-                            <h3>수입식품·축산물·위생용품</h3>
-                            <p>연계기관 데이터를 포함해 식품 공급망과 생활 안전 전반으로 활용 범위를 넓힙니다.</p>
-                        </article>
-                    </div>
-                </section>
+                <section class="platform-intro">
+                    <p class="hub-intro mt30">
+                        <span class="fc-green">'허브'</span>는 중심점과 연결의 의미를 담고 있습니다.
+                    </p>
+                    <p class="hub-intro02">
+                        <span class="fc-green">식품안전 데이터 플랫폼</span>은 공공데이터를 기반으로 대화를 통해<br>
+                        인사이트를 찾아주는 새로운 생성형 AI 서비스 입니다.
+                    </p>
+                    <p class="hub-intro02">
+                        마치 교통의 허브가 여러 경로를 연결하고 여행자들이 모이는 중심지 역할을 하듯이,<br>
+                        <span class="fc-green">식품안전나라</span>의 다양한 공공데이터와 사용자를 일상 대화하듯 연결해<br>
+                        보다 손쉽게 정보를 찾아주는 새로운 경험을 느껴보세요.
+                    </p>
+                    <p class="hub-intro02">
+                        본 서비스가 나날이 발전해 갈 수 있도록 다양한 의견과 피드백을 남겨주세요.
+                    </p>
 
-                <section class="intro-section" aria-labelledby="flow-title">
-                    <div class="section-head">
-                        <h2 id="flow-title">이용 절차</h2>
-                        <p>공공데이터포털의 제공신청 흐름처럼 찾는 데이터가 없을 때의 요청 경로까지 함께 안내합니다.</p>
-                    </div>
-                    <ol class="flow" aria-label="이용 절차 5단계">
-                        <li class="flow-item">
-                            <strong>데이터 검색</strong>
-                            <p>분류별, 제공기관별, 유형별 메뉴에서 필요한 데이터와 서비스 ID를 찾습니다.</p>
-                        </li>
-                        <li class="flow-item">
-                            <strong>상세 구조 확인</strong>
-                            <p>요청 주소, 필수 파라미터, 응답 항목, 샘플 데이터를 확인합니다.</p>
-                        </li>
-                        <li class="flow-item">
-                            <strong>인증키 신청</strong>
-                            <p>회원 로그인 후 Open API 이용 신청을 진행하고 인증키를 발급받습니다.</p>
-                        </li>
-                        <li class="flow-item">
-                            <strong>서비스 연동</strong>
-                            <p>JSON 또는 XML 응답을 애플리케이션, 분석 도구, 업무 시스템에 연결합니다.</p>
-                        </li>
-                        <li class="flow-item">
-                            <strong>활용 공유</strong>
-                            <p>개발 결과와 활용 사례를 갤러리·사례 페이지에 등록해 재사용 가능성을 높입니다.</p>
-                        </li>
-                    </ol>
-                </section>
-
-                <section class="intro-section" aria-labelledby="api-title">
-                    <div class="section-head">
-                        <h2 id="api-title">Open API 기본 형식</h2>
-                        <p>식품안전나라 Open API 호출 규칙을 개발자가 바로 이해할 수 있도록 핵심만 정리했습니다.</p>
-                    </div>
-                    <div class="api-box" role="region" aria-label="API 요청 형식 예시">
-                        <div class="api-url-block">
-                            <span class="method-badge">GET</span>
-                            <code>http://openapi.foodsafetykorea.go.kr/api/{keyId}/{serviceId}/{dataType}/{startIdx}/{endIdx}</code>
-                        </div>
-                        <div class="api-meta">
-                            <div>
-                                <span>keyId</span>
-                                <strong>발급받은 인증키</strong>
-                            </div>
-                            <div>
-                                <span>dataType</span>
-                                <strong>json 또는 xml</strong>
-                            </div>
-                            <div>
-                                <span>startIdx/endIdx</span>
-                                <strong>조회 시작·종료 번호</strong>
-                            </div>
+                    <div class="mt80">
+                        <h2>식품안전 데이터 플랫폼의 <span class="fc-green">목적</span></h2>
+                        <div class="hub-container">
+                            <dl>
+                                <dt>통찰력 제공</dt>
+                                <dd>시민, 연구자, 정책 입안자에게 식품안전의 현재와 미래를 제시하여 올바른 의사결정을 지원합니다.</dd>
+                            </dl>
+                            <dl>
+                                <dt>스마트 행정 구현</dt>
+                                <dd>데이터의 활발한 활용을 통해 보다 스마트하고 체계적인 식품안전 관리 시스템을 구축합니다.</dd>
+                            </dl>
+                            <dl>
+                                <dt>국민 삶의 질 향상</dt>
+                                <dd>데이터 기반 행정과 서비스 제공을 통해 먹거리 안전을 보장하고 국민의 삶의 질을 높이는 데 기여합니다.</dd>
+                            </dl>
                         </div>
                     </div>
-                </section>
 
-                <section class="intro-section" aria-labelledby="guide-title">
-                    <div class="section-head">
-                        <h2 id="guide-title">운영 원칙과 이용 유의사항</h2>
-                        <p>공공데이터는 자유로운 활용을 지향하지만, 데이터별 이용 조건과 호출 제한을 확인해야 합니다.</p>
+                    <div class="mt80">
+                        <h2>식품안전 데이터 플랫폼의 <span class="fc-green">핵심 가치</span></h2>
+                        <div class="hub-container">
+                            <dl>
+                                <dt class="mt10">개방성</dt>
+                                <dd>데이터 서비스가 필요한 모든 이에게 항상 개방되어 있는 플랫폼을 지향합니다.</dd>
+                            </dl>
+                            <dl>
+                                <dt class="mt10">접근성</dt>
+                                <dd>데이터 활용에 익숙하지 않은 초심자도 대화형 인터페이스로 쉽게 접근이 가능합니다.</dd>
+                            </dl>
+                            <dl>
+                                <dt class="mt10">혁신</dt>
+                                <dd>새로운 가치 창출을 위해 데이터 활용 방식에 대한 지속적이고 혁신적인 접근을 시도합니다.</dd>
+                            </dl>
+                        </div>
                     </div>
-                    <div class="guide-grid">
-                        <article class="guide-card">
-                            <h3>활용 전 확인할 것</h3>
-                            <ul class="notice-list">
-                                <li>데이터별 제공기관, 갱신 주기, 제공 형식, 이용허락 범위를 확인하세요.</li>
-                                <li>상업적 서비스에 적용할 경우 공공데이터 이용 조건과 출처 표기 방식을 확인하세요.</li>
-                                <li>Open API 제한 운영, 서비스 점검, 항목 변경 공지는 반드시 사전에 확인하세요.</li>
-                            </ul>
-                        </article>
-                        <article class="guide-card">
-                            <h3>찾는 데이터가 없을 때</h3>
-                            <p>
-                                공공데이터포털처럼 원하는 데이터가 제공되지 않는 경우 제공신청이나 문의 경로를 통해 추가 개방을 요청할 수 있습니다.
-                                본 서비스에서도 데이터 공개 범위와 연계기관 확장을 고려해 요청 사항을 관리합니다.
-                            </p>
-                        </article>
+
+                    <div class="service-txt mt80">
+                        <h2>식품안전 데이터 플랫폼의 <span class="fc-green">핵심 서비스</span></h2>
+                        <p class="mt20"><span class="fc-green">식품안전 데이터 플랫폼</span>에서는 데이터 서비스의 3요소인 “검색, 탐색, 활용” 서비스를 보다 세밀하고 고도화된 프리미엄 서비스로 업그레이드하여 제공합니다.</p>
+                    </div>
+
+                    <h3 class="mt80">
+                        <span class="service-num">01.</span>
+                        데이터 검색<span class="ml8">원하는 데이터를 쉽고 정확하게 검색할 수 있습니다.</span>
+                    </h3>
+                    <div class="hub-service-container">
+                        <h4>공공데이터 챗봇 서비스<a href="/service/chatbot.do">바로가기</a></h4>
+                        <p>데이터 검색에 어려움을 겪을 수 있는 초심자도 거부감 없이 일상 언어로 대화하듯 질문하고 답변을 받을 수 있습니다.<br>복잡한 쿼리 작성 없이 데이터 다운로드와 간단한 인사이트 도출이 가능한 새로운 경험을 제공합니다.</p>
+                    </div>
+                    <div class="hub-service-container">
+                        <h4>데이터 검색 서비스<a href="/data/dataset.do">바로가기</a></h4>
+                        <p>데이터를 검색하기 위한 세부적인 검색 옵션을 제공하여 필요한 내용을 빠르게 찾을 수 있도록 도와줍니다.<br>데이터 검색 및 활용에 익숙한 전문가 사용자에게 더욱 유용한 기능입니다.</p>
+                    </div>
+
+                    <h3 class="mt80">
+                        <span class="service-num">02.</span>
+                        데이터 탐색<span class="ml8">직관적인 방법으로 필요한 데이터를 빠르게 발견할 수 있습니다.</span>
+                    </h3>
+                    <div class="hub-service-container">
+                        <h4>데이터 맵 서비스<a href="/data/map.do">바로가기</a></h4>
+                        <p>수많은 데이터를 사용자의 눈높이에 맞게 분류하여 트리맵, 워드클라우드 등 시각화된 형태로 제공하는 탐색 서비스입니다.<br>관심 있는 분야를 직관적으로 파고들어 데이터를 발견할 수 있습니다.</p>
+                    </div>
+                    <div class="hub-service-container">
+                        <h4>데이터 설명서 (사전)<a href="/data/dictionary.do">바로가기</a></h4>
+                        <p>데이터셋이 가진 정보 유형, 정형성, 주요 컬럼 설명 등을 한눈에 파악할 수 있게 도표 형태로 제공합니다.<br>데이터 구조를 미리 이해하고 활용 파이프라인을 설계하는 데 필요한 안내서 역할을 합니다.</p>
+                    </div>
+
+                    <h3 class="mt80">
+                        <span class="service-num">03.</span>
+                        데이터 활용<span class="ml8">다양한 시각화 콘텐츠를 통해 한 눈에 종합 정보를 확인할 수 있습니다.</span>
+                    </h3>
+                    <div class="hub-service-container">
+                        <h4>주제분석 시각화<a href="/data/visualization.do">바로가기</a></h4>
+                        <p>시민의 관심도가 높은 주요 식품안전 주제를 선정하여 동적인 인포그래픽 형태로 시각화한 콘텐츠입니다.<br>고정된 데이터가 아닌, 기간, 지역 등 변수를 변경하며 다각도로 지표를 분석할 수 있습니다.</p>
+                    </div>
+                    <div class="hub-service-container">
+                        <h4>3차원 시각화<a href="/data/3d.do">바로가기</a></h4>
+                        <p>학업이나 정책 연구에 유용한 주제의 데이터를 분석하여 3차원 애니메이션 등 고도화된 형태로 시각화합니다.<br>다차원 데이터를 융합 분석할 때 효과적인 탐색 도구를 제공합니다.</p>
                     </div>
                 </section>
-            </main>
+            </section>
+            </div>
         </div>
-
         <!-- INCLUDE_FOOTER -->
     </div>
 </body>
-
 </html>
