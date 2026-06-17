@@ -1,3 +1,15 @@
+/**
+ * routes/stream.js
+ * Server-Sent Events(SSE) 기반 실시간 스트리밍 라우트
+ * - GET /api/live-join-stream?tableA=&tableB=&joinKey=
+ *     → 두 테이블을 joinKey 로 JOIN하여 결과를 SSE로 청크 단위 전송
+ * - GET /api/live-hygiene-stream
+ *     → 식품접객업소 위생등급 데이터를 SSE로 스트리밍
+ * - GET /api/live-barcode-stream
+ *     → 바코드 연계 제품 정보를 SSE로 스트리밍
+ *
+ * ⚠️ 테이블명 파라미터는 SQL 인젝션 방지를 위해 정규식으로 화이트리스트 검증합니다.
+ */
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');

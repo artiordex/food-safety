@@ -6,7 +6,7 @@
  * - GET /api/external/:serviceId/:dataType/:startIdx/:endIdx
  *     → 외부 식약처 API 직접 프록시 (장애 시 로컬 Fallback)
  *
- * ⚠️  이 라우터는 반드시 다른 모든 /api/* 라우터보다 나중에 등록해야 합니다.
+ * ⚠️ 이 라우터는 반드시 다른 모든 /api/* 라우터보다 나중에 등록해야 합니다.
  *     /:keyId/:serviceId/... 패턴이 구체적 경로보다 먼저 매칭될 수 있습니다.
  */
 
