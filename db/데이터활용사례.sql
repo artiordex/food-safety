@@ -56,6 +56,7 @@
 
 -- 1-1. 건기식 품목 + 원재료  [연결키: PRDLST_REPORT_NO]
 --      어떤 제품에 어떤 제형·원재료가 들어가는지 확인
+--      ※ I0030.PRDLST_CDNM 컬럼은 미적재 — PRIMARY_FNCLTY 로 필터링
 SELECT
     p.LCNS_NO,
     p.BSSH_NM           AS 업소명,
@@ -65,8 +66,8 @@ SELECT
     p.PRDLST_CDNM       AS 품목분류,
     r.SHAP              AS 제형
 FROM "I0030" p
-JOIN "C003"  r ON p.PRDLST_REPORT_NO = r.PRDLST_REPORT_NO
-WHERE p.PRDLST_CDNM LIKE '%비타민%'
+LEFT JOIN "C003"  r ON p.PRDLST_REPORT_NO = r.PRDLST_REPORT_NO
+WHERE p.PRIMARY_FNCLTY LIKE '%비타민%'
 LIMIT 30;
 
 -- 1-2. 건기식 품목분류 + 기능성 원료인정현황  [연결키: 원료명 텍스트 매칭]
@@ -116,7 +117,7 @@ LIMIT 30;
 --   식품 위해정보 실시간 모니터링 — 행정처분·회수·부적합 통합 관리 (값조회x)
 -- ============================================================
 
--- 2-1. 행정처분 + 인허가 업소  [연결키: LCNS_NO]
+-- 2-1. 행정처분 + 인허가 업소  [연결키: LCNS_NO] (값조회x)
 --      H-wis·농심: 거래처 업소의 처분 이력 파악
 SELECT
     a.PRCSCITYPOINT_BSSHNM  AS 업소명,
@@ -131,7 +132,7 @@ JOIN "I2500" u ON a.LCNS_NO = u.LCNS_NO
 ORDER BY a.DSPS_DCSNDT DESC
 LIMIT 30;
 
--- 2-2. 검사부적합(국내) + 회수·판매중지  [연결키: BRCDNO 바코드]
+-- 2-2. 검사부적합(국내) + 회수·판매중지  [연결키: BRCDNO 바코드] (값조회x)
 --      BGF리테일 QSS: 바코드로 부적합 이력과 회수 현황 동시 조회
 SELECT
     b.PRDTNM            AS 제품명,
@@ -146,7 +147,7 @@ LEFT JOIN "I0490" r ON b.BRCDNO = r.BRCDNO
 WHERE b.BRCDNO IS NOT NULL AND b.BRCDNO != ''
 LIMIT 30;
 
--- 2-3. 회수·판매중지 + 행정처분 + 부적합 3종 통합  [UNION ALL]
+-- 2-3. 회수·판매중지 + 행정처분 + 부적합 3종 통합  [UNION ALL] (값조회x)
 --      농심 내부시스템: 위해이력 종합 타임라인
 SELECT '회수' AS 구분, r.PRDTNM AS 제품명, r.BSSHNM AS 업소명,
        r.RTRVLPRVNS AS 사유내용, CAST(r.MNFDT AS TEXT) AS 기준일
@@ -162,7 +163,7 @@ FROM "I2620" b
 ORDER BY 기준일 DESC
 LIMIT 50;
 
--- 2-4. 검사부적합 + 시험항목코드  [연결키: TESTITM_NM]
+-- 2-4. 검사부적합 + 시험항목코드  [연결키: TESTITM_NM] (값조회x)
 --      농심·삼성 웰스토리: 시험항목 영문명·분류 정보 보강
 SELECT
     b.PRDTNM            AS 제품명,
@@ -182,7 +183,7 @@ LIMIT 30;
 --   식품접객업소 위생·인허가 정보 서비스 (값조회x)
 -- ============================================================
 
--- 3-1. 식품접객업 인허가 + 위생등급  [연결키: LCNS_NO]
+-- 3-1. 식품접객업 인허가 + 위생등급  [연결키: LCNS_NO] (값조회x)
 --      먹깨비·REDTABLE: 배달·관광 플랫폼에 위생등급 표시
 SELECT
     i.BSSH_NM           AS 업소명,
@@ -198,8 +199,9 @@ LEFT JOIN "C004" g ON i.LCNS_NO = g.LCNS_NO
 WHERE g.HG_ASGN_LV IS NOT NULL
 LIMIT 30;
 
--- 3-2. 식품접객업 + 행정처분(식품접객업)  [연결키: LCNS_NO]
+-- 3-2. 식품접객업 + 행정처분(식품접객업)  [연결키: LCNS_NO] (값조회x)
 --      요기요·네이버 플레이스: 음식점 처분 이력 실시간 반영
+--      ⚠️ I1200(식품접객업정보), I2630(행정처분식품접객업) 현재 DB 미적재
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LOCP_ADDR         AS 주소,
@@ -214,8 +216,9 @@ JOIN "I2630" a ON i.LCNS_NO = a.LCNS_NO
 ORDER BY a.DSPS_DCSNDT DESC
 LIMIT 30;
 
--- 3-3. 위생등급 + 행정처분 + 인허가 3중 연결  [연결키: LCNS_NO]
+-- 3-3. 위생등급 + 행정처분 + 인허가 3중 연결  [연결키: LCNS_NO] (값조회x)
 --      한국관광공사: 위생등급 우수 업소 중 최근 2년 처분 이력 없는 곳 추천
+--      ⚠️ I1200(식품접객업정보), I2630(행정처분식품접객업) 현재 DB 미적재
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LOCP_ADDR         AS 주소,
@@ -250,8 +253,9 @@ FROM "COOKRCP01" r
 LEFT JOIN "1471000" n ON TRIM(r.RCP_NM) = TRIM(n.FOOD_NM_KR)
 LIMIT 30;
 
--- 4-2. 식품영양성분DB — 단백질 함량 높은 음식 TOP30
+-- 4-2. 식품영양성분DB — 단백질 함량 높은 식품 TOP30
 --      듀얼케어·하루다이어트: 특정 영양소 기준 식품 추천
+--      ※ 1471000.DB_CLASS_NM 값은 '품목대표' 단일값 — 별도 필터 불필요
 SELECT
     FOOD_NM_KR          AS 식품명,
     DB_CLASS_NM         AS 분류,
@@ -262,7 +266,6 @@ SELECT
     AMT_NUM5            AS 탄수화물_g,
     AMT_NUM10           AS 나트륨_mg
 FROM "1471000"
-WHERE DB_CLASS_NM LIKE '%음식%'
 ORDER BY CAST(AMT_NUM3 AS REAL) DESC
 LIMIT 30;
 
@@ -272,16 +275,18 @@ LIMIT 30;
 --   식품제조·기준규격 정보 시스템
 -- ============================================================
 
--- 5-1. 품목유형코드 + 개별기준규격  [연결키: PRDLST_CD]
---      오뚜기·LIMS: 제품 유형에 따른 기준규격 자동 매핑
+-- 5-1. 품목유형코드 + 공통기준규격  [연결키: PRDLST_CD → I2600]
+--      오뚜기·LIMS: 제품 유형에 따른 공통기준규격 자동 매핑
+--      ※ I2510(A-prefix)↔I2580(D-prefix) 코드체계 불일치 → I2600(공통기준규격) 으로 대체
 SELECT
     c.KOR_NM            AS 품목유형명,
     c.PRDLST_CD         AS 품목유형코드,
-    s.TESTITM_NM        AS 시험항목,
-    s.SPEC_VAL          AS 기준값,
-    s.VALD_BEGN_DT      AS 기준적용시작일
+    g.TESTITM_NM        AS 시험항목,
+    g.SPEC_VAL          AS 기준값,
+    g.PIAM_KOR_NM       AS 단위,
+    g.VALD_BEGN_DT      AS 기준적용시작일
 FROM "I2510" c
-JOIN "I2580" s ON c.PRDLST_CD = s.PRDLST_CD
+JOIN "I2600" g ON c.PRDLST_CD = g.PRDLST_CD
 WHERE c.LV = 3
 LIMIT 30;
 
@@ -330,21 +335,21 @@ LIMIT 30;
 --   식품 판매자 인허가 사전 검수 및 B2B 거래처 검증
 -- ============================================================
 
--- 6-1. 인허가 업소 + 건기식판매업 + HACCP 지정 통합  [연결키: LCNS_NO]
+-- 6-1. 건기식판매업 + 인허가 업소 + HACCP 지정 통합  [연결키: LCNS_NO]
 --      토스: 식품 판매자의 인허가·HACCP 인증 상태 한번에 확인
+--      ※ I2500.INDUTY_CD_NM 에 '건강기능식품' 값 없음 → I1290(건기식판매업) 을 드라이빙 테이블로 변경
 SELECT
-    u.BSSH_NM           AS 업소명,
-    u.LCNS_NO           AS 허가번호,
-    u.INDUTY_CD_NM      AS 업종,
-    u.ADDR              AS 주소,
-    hf.INDUTY_NM        AS 건기식판매업종,
-    hf.PRMS_DT          AS 건기식신고일,
-    h.HACCP_APPN_NO     AS HACCP지정번호,
-    h.HACCP_APPN_DT     AS HACCP지정일
-FROM "I2500" u
-LEFT JOIN "I1290" hf ON u.LCNS_NO = hf.LCNS_NO
-LEFT JOIN "I0580" h  ON u.LCNS_NO = h.LCNS_NO
-WHERE u.INDUTY_CD_NM LIKE '%건강기능식품%'
+    hf.BSSH_NM          AS 업소명,
+    hf.LCNS_NO           AS 허가번호,
+    hf.INDUTY_NM         AS 건기식판매업종,
+    hf.PRMS_DT           AS 건기식신고일,
+    u.ADDR               AS 주소,
+    u.INDUTY_CD_NM       AS 업종,
+    h.HACCP_APPN_NO      AS HACCP지정번호,
+    h.HACCP_APPN_DT      AS HACCP지정일
+FROM "I1290" hf
+LEFT JOIN "I2500" u  ON hf.LCNS_NO = u.LCNS_NO
+LEFT JOIN "I0580" h  ON hf.LCNS_NO = h.LCNS_NO
 LIMIT 30;
 
 -- 6-2. 수입식품영업신고 + 수입식품업 폐업정보  [연결키: LCNS_NO]
@@ -407,8 +412,9 @@ LIMIT 100;
 --   바코드 기반 제품 정보·이력추적 서비스
 -- ============================================================
 
--- 7-1. 유통바코드 + 바코드연계제품정보  [연결키: BRCD_NO = BAR_CD]
+-- 7-1. 유통바코드 + 바코드연계제품정보  [연결키: BRCD_NO = BAR_CD] (값조회x)
 --      큐마켓: 바코드 스캔으로 제품 유형·유통기한·제조사 즉시 확인
+--      ⚠️ I2570(유통바코드), C005(바코드연계제품정보) 현재 DB 미적재
 SELECT
     b.BRCD_NO           AS 바코드,
     b.PRDT_NM           AS 제품명,
@@ -421,8 +427,9 @@ FROM "I2570" b
 LEFT JOIN "C005" p ON b.BRCD_NO = p.BAR_CD
 LIMIT 30;
 
--- 7-2. 이력추적관리 + 유통바코드  [연결키: PDT_BARCD = BRCD_NO]
+-- 7-2. 이력추적관리 + 유통바코드  [연결키: PDT_BARCD = BRCD_NO] (값조회x)
 --      BGF리테일: 이력추적 제품의 바코드로 제조~유통 전 단계 추적
+--      ⚠️ I0320(식품이력추적관리), I2570(유통바코드) 현재 DB 미적재
 SELECT
     t.PDT_NM            AS 제품명,
     t.PDT_BARCD         AS 제품바코드,
@@ -441,8 +448,9 @@ LIMIT 30;
 --   업소 위생교육 + 인허가 현황 연동
 -- ============================================================
 
--- 8-1. 식품접객업 + 식품위생교육내역  [연결키: LCNS_NO]
+-- 8-1. 식품접객업 + 식품위생교육내역  [연결키: LCNS_NO] (값조회x)
 --      한국외식업중앙회: 교육 이수 업소와 인허가 현황 대조
+--      ⚠️ I1200(식품접객업정보) 현재 DB 미적재
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LCNS_NO           AS 허가번호,
@@ -456,8 +464,9 @@ LEFT JOIN "I1560" e ON i.LCNS_NO = e.LCNS_NO
 WHERE e.COMPL_DTM >= '20240101'
 LIMIT 30;
 
--- 8-2. 위생등급 + 위생교육 이수 현황  [연결키: LCNS_NO]
+-- 8-2. 위생등급 + 위생교육 이수 현황  [연결키: LCNS_NO] (값조회x)
 --      한국외식업중앙회: 위생등급 지정 업소의 교육 이수 횟수 파악
+--      ⚠️ I1200(식품접객업정보) 현재 DB 미적재
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LCNS_NO,
@@ -487,7 +496,8 @@ LIMIT 30;
 --   I2570 ↔ C005 ↔ I0490(회수) ↔ I2620(부적합)
 --
 -- PRDLST_CD (품목유형코드)
---   I2510 ↔ I2580(개별기준규격) ↔ I2600(공통기준규격)
+--   I2510 ↔ I2600(공통기준규격)  [A-prefix 코드 공유]
+--   I2580(개별기준규격, D-prefix) ↔ I2590(공통기준종류, CMMN_SPEC_CD)  [별도 코드체계]
 --
 -- TESTITM_CD (시험항목코드)
 --   I2530 ↔ I2580 ↔ I2600

@@ -1,12 +1,12 @@
 /**
  * 식품안전나라 SQLite DB 기반 조인 검증 및 N차 체인 조인 탐색 통합 스크립트
  *
- * 기능:
- * - foodsafety_key_candidates.json의 후보 관계를 실제 SQLite JOIN으로 검증함
- * - 실제 매칭되는 직접 JOIN 결과를 join.sql로 생성함
- * - SQLite DB 전체 테이블을 기준으로 실제 매칭 가능한 조인 에지를 검증함
- * - 검증된 에지를 기반으로 3차~6차 체인 JOIN을 탐색함
- * - 최종 체인 JOIN 결과를 chain_joins.sql로 생성함
+ * [주요 기능]
+ * 1. foodsafety_key_candidates.json의 후보 관계를 실제 SQLite JOIN으로 검증함
+ * 2. 실제 매칭되는 직접 JOIN 결과를 join.sql로 생성함
+ * 3. SQLite DB 전체 테이블을 기준으로 실제 매칭 가능한 조인 에지를 검증함
+ * 4. 검증된 에지를 기반으로 3차~6차 체인 JOIN을 탐색함
+ * 5. 최종 체인 JOIN 결과를 chain_joins.sql로 생성함
  */
 
 // SQLite DB 접근을 위한 sqlite3 모듈 불러오기
@@ -54,6 +54,11 @@ const JOIN_SQL_PATH = path.join(DB_DIR, 'join.sql');
 
 // N차 체인 JOIN 출력 파일 경로
 const CHAIN_JOIN_SQL_PATH = path.join(DB_DIR, 'chain_joins.sql');
+
+function formatKstTimestamp(date = new Date()) {
+    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().replace('Z', '+09:00');
+}
 
 // 체인 조인 최소 길이
 const MIN_CHAIN_LENGTH = 3;
@@ -439,7 +444,7 @@ function buildDirectJoinSqlContent(activeVerified, tableFieldMap) {
     sqlContent += '-- =============================================================================\n';
     sqlContent += '--   데이터 연동 검증 보고서: 실제 SQL INNER JOIN 성공 케이스 쿼리 목록\n';
     sqlContent += `--   총 검증된 조인 성공 관계: ${activeVerified.length}개\n`;
-    sqlContent += `--   생성일시: ${new Date().toISOString()}\n`;
+    sqlContent += `--   생성일시: ${formatKstTimestamp()}\n`;
     sqlContent += '-- =============================================================================\n\n';
 
     activeVerified.forEach((verifiedJoin, index) => {
@@ -819,7 +824,7 @@ function buildChainJoinSqlContent(verifiedChains, tableColumns) {
     sqlContent += '--   N차 체인 조인 자동 탐색 결과\n';
     sqlContent += '--   기준: 실제 매칭 레코드가 존재하는 체인 조인만 포함\n';
     sqlContent += `--   총 검증된 체인 조인: ${verifiedChains.length}개\n`;
-    sqlContent += `--   생성일시: ${new Date().toISOString()}\n`;
+    sqlContent += `--   생성일시: ${formatKstTimestamp()}\n`;
     sqlContent += '-- =============================================================================\n\n';
 
     verifiedChains.forEach((chain, index) => {

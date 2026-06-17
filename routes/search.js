@@ -1,13 +1,26 @@
 /**
  * routes/search.js
- * /api/search/* 및 데이터셋 목록·메타 관련 라우트 모음
- * - POST/GET /api/datasetAllSearch.do  — 통합 검색 페이지 서빙
- * - GET  /api/categoryList.do          — 카테고리 목록
- * - GET  /api/providerList.do          — 제공기관 목록
- * - POST /api/search                   — 데이터셋 검색 (구조)
- * - POST /api/searchDatasetList.do     — 데이터셋 목록 검색
- * - GET  /api/dataset-tree             — 데이터셋 트리 (crawl_cache)
- * - GET  /api/datasetMetadata.do       — 데이터셋 메타데이터 (컬럼 정의)
+ * 데이터 검색 화면과 데이터셋 목록·메타데이터 API 라우트
+ * - POST/GET /api/datasetAllSearch.do
+ *     → public/includes/search.html을 include 처리해 통합 검색 페이지로 반환
+ * - GET /api/categoryList.do
+ *     → api_tables 기준 카테고리 목록과 데이터셋 수 반환
+ * - GET /api/providerList.do
+ *     → crawler/crawl_cache.json 기준 제공기관 목록 반환
+ * - POST /api/search
+ *     → 데이터 구조 검색 조건에 맞는 데이터셋 목록 반환
+ * - POST /api/searchDatasetList.do
+ *     → 키워드·카테고리·제공기관·유형 조건으로 데이터셋 목록 검색
+ * - GET /api/dataset-tree
+ *     → crawler/crawl_cache.json에 저장된 전체 데이터셋 트리 반환
+ * - GET /api/datasetMetadata.do
+ *     → api_columns 기준 특정 데이터셋의 컬럼 정의 반환
+ *
+ * ⚠️ 이 라우터는 /api에 마운트되며, /api/:keyId/:serviceId/... 형태의 OpenAPI 프록시보다
+ *     먼저 등록되어야 합니다. 그렇지 않으면 datasetAllSearch.do 같은 고정 경로가 프록시 라우트에
+ *     먼저 매칭될 수 있습니다.
+ *
+ * 참고: crawl_cache.json과 search.html은 반복 파일 읽기를 줄이기 위해 메모리에 캐시합니다.
  */
 
 const express = require('express');

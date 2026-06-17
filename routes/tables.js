@@ -1,13 +1,26 @@
 /**
  * routes/tables.js
- * /api/tables/* 관련 라우트 모음
- * - GET  /api/tables                       — 전체 테이블 목록 (논리명 포함)
- * - GET  /api/tables/column-search         — 키워드 컬럼 검색
- * - POST /api/tables/column-search-multi   — 다중 키워드 컬럼 검색 (AND/OR)
- * - GET  /api/tables/:name/schema          — 특정 테이블 컬럼 스키마
- * - GET  /api/tables/:name/data            — 특정 테이블 상위 데이터
- * - GET  /api/tables/:name/keyword-count   — 키워드 포함 레코드 수
- * - GET  /api/tables/:name/wordcloud       — 워드클라우드 데이터
+ * SQLite 테이블 탐색, 컬럼 검색, 데이터 미리보기 API 라우트
+ * - GET /api/tables
+ *     → sqlite_master와 api_tables를 조인해 전체 물리 테이블명·논리명을 반환
+ * - GET /api/tables/column-search
+ *     → 단일 키워드가 컬럼 메타데이터 또는 실제 데이터 값에 포함된 테이블 목록 반환
+ * - POST /api/tables/column-search-multi
+ *     → 여러 키워드별 매칭 테이블 목록을 반환해 AND/OR 검색 화면에서 사용
+ * - GET /api/tables/:tableName/schema
+ *     → 특정 테이블의 PRAGMA table_info 스키마 반환
+ * - GET /api/tables/:tableName/data
+ *     → 특정 테이블의 데이터 미리보기 반환, limit=all 또는 1~50000 제한 지원
+ * - GET /api/tables/:tableName/keyword-count
+ *     → 특정 테이블 전체 컬럼에서 키워드가 포함된 레코드 수 반환
+ * - GET /api/tables/:tableName/wordcloud
+ *     → 특정 테이블의 텍스트 컬럼을 분석해 워드클라우드용 단어 빈도 반환
+ *
+ * ⚠️ /column-search처럼 고정된 라우트는 /:tableName/... 동적 라우트보다 먼저 선언해야 합니다.
+ *     tableName은 SQL 식별자로 직접 쓰이므로 영문·숫자·언더스코어·하이픈만 허용합니다.
+ *
+ * 참고: 워드클라우드 결과는 테이블별로 짧게 캐시하고, server.js에서 주입한 _tableCountsMap으로
+ *      전체 테이블 목록과 테이블명 유효성을 확인합니다.
  */
 
 const express = require('express');

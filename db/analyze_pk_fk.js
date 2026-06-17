@@ -39,7 +39,11 @@ const Fuse = require('fuse.js');
 const aq = require('arquero');
 const ss = require('simple-statistics');
 const strSim = require('string-similarity');
+const { z } = require('zod');
 const { DirectedGraph } = require('graphology');
+const { connectedComponents } = require('graphology-components');
+const { topologicalSort, hasCycle } = require('graphology-dag');
+// graphology-metrics centrality는 서브패스 import가 필요하므로 직접 계산으로 대체
 
 // 로그 레벨(INFO/WARN/ERR/STEP)에 따라 logger 메서드를 호출하는 래퍼
 function log(level, msg) {
@@ -60,7 +64,12 @@ const DEFAULT_JSON = path.join(__dirname, 'foodsafety_key_candidates.json');
 const DEFAULT_MD = path.join(__dirname, 'foodsafety_key_candidates.md');
 const DEFAULT_SQL = path.join(__dirname, 'foodsafety_keys_erd.sql');
 
-const MAX_COMPOSITE_KEY_SIZE = 2;
+function formatKstTimestamp(date = new Date()) {
+    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().replace('Z', '+09:00');
+}
+
+// 복합 PK/FK 후보는 2개 필드 조합(makePairs)까지만 탐색한다.
 
 // FK 후보 정제 기준
 // 사용자 요청 반영: 조인이 되는(1건이라도 포함되는) 경우만 매핑하도록 기준 변경
@@ -586,9 +595,14 @@ const SYSTEM_SAMPLE_FIELDS = new Set([
     'RNUM',
     'RESULT',
     'RESULT_CODE',
+    'RESULT_CD',
     'RESULT_MSG',
+    'ERR_MSG',
+    'ERRMSG',
     'MSG',
     'CODE',
+    'DATA_TYPE',
+    'DATATYPE',
     'TOTAL_COUNT',
     'TOTALCOUNT',
     'PAGE_NO',
@@ -596,6 +610,17 @@ const SYSTEM_SAMPLE_FIELDS = new Set([
     'NUM_OF_ROWS',
     'NUMOFROWS'
 ]);
+
+// analyze() 입력값(datasets) 형식을 빠르게 실패시키기 위한 zod 스키마.
+// import_to_sqlite.js 등 외부 호출자가 잘못된 형식을 넘기는 경우 원인을 즉시 드러낸다.
+const DatasetSchema = z.object({
+    svc_no: z.union([z.string(), z.number()]).optional(),
+    svc_nm: z.union([z.string(), z.number()]).optional(),
+    cat: z.union([z.string(), z.number()]).optional(),
+    fields: z.array(z.any()).optional()
+}).passthrough();
+
+const DatasetsArraySchema = z.array(DatasetSchema);
 
 
 // =============================================================================
@@ -821,7 +846,7 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
  * 특정 필드가 기본키(PK) 식별자로 사용되기에 얼마나 적합한지 종합 점수(Score)를 계산합니다.
  * (필드명 패턴, 한글명, 엔트로피, 샘플 고유성 등을 반영)
  */
-function calculateIdentifierScore(field, records) {
+function calculateIdentifierScore(field, records, precomputedEntropy = null) {
     const fname = getFieldName(field);
     const upper = fname.toUpperCase();
     const kor = getKorName(field);
@@ -859,7 +884,8 @@ function calculateIdentifierScore(field, records) {
     const sampleConfidence = Math.min(records.length / RELIABLE_SAMPLE_MIN, 1.0);
 
     if (records.length > 0) {
-        const entropy = computeFieldEntropy(records, fname);
+        // buildEntropyMap()에서 미리 계산된 값이 있으면 재사용해 중복 계산을 피한다.
+        const entropy = precomputedEntropy !== null ? precomputedEntropy : computeFieldEntropy(records, fname);
         // 엔트로피 0~1 → 스코어 기여 -30~+60, 샘플 신뢰도 비례 축소
         const rawEntropyContrib = entropy * 90 - 30;
         const entropyContrib = Math.round(rawEntropyContrib * sampleConfidence);
@@ -900,16 +926,15 @@ function getConfidence(score) {
     return 'LOW';
 }
 
-// 배열에서 size 크기의 모든 조합을 반환함 (복합 PK 후보 탐색용)
-function makeCombinations(arr, size) {
+// 배열의 모든 2-원소 조합(쌍)을 반환함 (복합 PK 후보 탐색용).
+// MAX_COMPOSITE_KEY_SIZE가 2로 고정되어 있으므로 재귀 조합 생성 대신 단순 이중 루프로 충분하다.
+function makePairs(arr) {
     const result = [];
-    function helper(start, combo) {
-        if (combo.length === size) { result.push([...combo]); return; }
-        for (let i = start; i < arr.length; i++) {
-            combo.push(arr[i]); helper(i + 1, combo); combo.pop();
+    for (let i = 0; i < arr.length - 1; i++) {
+        for (let j = i + 1; j < arr.length; j++) {
+            result.push([arr[i], arr[j]]);
         }
     }
-    helper(0, []);
     return result;
 }
 
@@ -921,7 +946,7 @@ function makeCombinations(arr, size) {
 /**
  * 단일 데이터셋(테이블)의 필드 목록과 샘플 레코드를 바탕으로, 단일/복합 기본키(PK) 후보를 추출합니다.
  */
-function analyzePkCandidatesForTable(ds, records) {
+function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
     const fields = Array.isArray(ds.fields) ? ds.fields : [];
     const validFields = fields.filter(f => getFieldName(f));
 
@@ -942,7 +967,9 @@ function analyzePkCandidatesForTable(ds, records) {
     const singleCandidates = [];
 
     for (const field of validFields) {
-        const scoreResult = calculateIdentifierScore(field, records);
+        const upperFieldName = getFieldName(field).toUpperCase();
+        const precomputedEntropy = fieldEntropyMap ? fieldEntropyMap.get(upperFieldName) ?? null : null;
+        const scoreResult = calculateIdentifierScore(field, records, precomputedEntropy);
         if (scoreResult.score >= 50) {
             singleCandidates.push({
                 fields: [getFieldName(field)],
@@ -968,30 +995,44 @@ function analyzePkCandidatesForTable(ds, records) {
     const compositeCandidates = [];
 
     if (records.length > 0 && compositeBase.length >= 2) {
-        for (let size = 2; size <= MAX_COMPOSITE_KEY_SIZE; size++) {
-            for (const combo of makeCombinations(compositeBase, size)) {
-                const stats = getUniquenessStats(records, combo);
-                if (!stats.is_unique) continue;
+        // arquero 기반 컬럼 프로파일 — 복합키 후보 필드의 null 비율을 근거 문구에 반영한다.
+        const arqueroProfile = profileColumnsWithArquero(records, compositeBase);
 
-                const korNames = combo.map(fname => {
-                    const f = validFields.find(f => getFieldName(f) === fname);
-                    return f ? getKorName(f) : fname;
-                });
+        for (const combo of makePairs(compositeBase)) {
+            const stats = getUniquenessStats(records, combo);
+            if (!stats.is_unique) continue;
 
-                let score = 75;
-                if (combo.some(f => isKnownRelationKey(f.toUpperCase()))) score += 10;
-                if (combo.some(f => /SEQ|_NO|NO$/i.test(f))) score += 10;
+            const korNames = combo.map(fname => {
+                const f = validFields.find(f => getFieldName(f) === fname);
+                return f ? getKorName(f) : fname;
+            });
 
-                compositeCandidates.push({
-                    fields: combo,
-                    kor_names: korNames,
-                    score: Math.min(score, 95),
-                    type: 'composite',
-                    confidence: getConfidence(score),
-                    unique_check: stats,
-                    reason: `복합키 ${combo.join(' + ')} 샘플 기준 중복 없음`
-                });
-            }
+            let score = 75;
+            if (combo.some(f => isKnownRelationKey(f.toUpperCase()))) score += 10;
+            if (combo.some(f => /SEQ|_NO|NO$/i.test(f))) score += 10;
+
+            const nullNotes = combo
+                .map(fname => {
+                    const profile = arqueroProfile.get(fname.toUpperCase());
+                    return profile && profile.null_rate > 0
+                        ? `${fname} 결측률 ${(profile.null_rate * 100).toFixed(0)}%`
+                        : null;
+                })
+                .filter(Boolean);
+
+            const reason = nullNotes.length > 0
+                ? `복합키 ${combo.join(' + ')} 샘플 기준 중복 없음 (${nullNotes.join(', ')})`
+                : `복합키 ${combo.join(' + ')} 샘플 기준 중복 없음`;
+
+            compositeCandidates.push({
+                fields: combo,
+                kor_names: korNames,
+                score: Math.min(score, 95),
+                type: 'composite',
+                confidence: getConfidence(score),
+                unique_check: stats,
+                reason
+            });
         }
         compositeCandidates.sort((a, b) => b.score - a.score);
     }
@@ -1110,9 +1151,10 @@ function getCompositeInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, 
  * @param {object[]}           datasets
  * @param {object[]}           tableAnalyses
  * @param {Map<string,object[]>} recordsMap
+ * @param {Map}                valuesCache - analyze()에서 공유하는 값 Set 캐시 (Memoization)
  * @returns {object[]} 복합 FK 후보 목록
  */
-function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap) {
+function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, valuesCache = new Map()) {
     const results = [];
     const seenKeys = new Set();
 
@@ -1147,7 +1189,7 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap) {
                 if (seenKeys.has(dedupeKey)) continue;
                 seenKeys.add(dedupeKey);
 
-                const stats = getCompositeInclusionStats(fromSvcNo, targetTable.svc_no, fromRecords, toRecords, pkFields, recordsMap._valuesCache || new Map());
+                const stats = getCompositeInclusionStats(fromSvcNo, targetTable.svc_no, fromRecords, toRecords, pkFields, valuesCache);
                 if (!stats.checked || stats.inclusion_ratio <= 0) continue;
 
                 const score = Math.min(
@@ -1394,7 +1436,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
 /**
  * 대상 데이터셋의 단일 필드들이 다른 테이블의 단일키(PK)를 참조하는 외래키(FK)인지 분석하고 점수를 매깁니다.
  */
-function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null, thresholds = null) {
+function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null, thresholds = null, valuesCache = new Map()) {
     const tableLookup = createTableLookup(tableAnalyses);
     const existingSvcNoSet = new Set(tableAnalyses.map(t => normalizeSvcNo(t.svc_no)));
     const pkFieldIndex = buildPkFieldIndex(tableAnalyses);
@@ -1403,8 +1445,6 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
     const rejectedRelationships = [];
     // 순환 참조 탐지용 Set: "toTable|toField|fromTable|fromField" 형태로 기존 관계를 기록
     const reverseRelSet = new Set();
-    const valuesCache = new Map();
-    recordsMap._valuesCache = valuesCache;
 
     for (const ds of datasets) {
         const fromSvcNo = String(ds.svc_no || '').trim();
@@ -1657,25 +1697,46 @@ function buildFkGraph(tableAnalyses, relationships, compositeFks) {
 /**
  * in-degree 기준으로 테이블을 순위화한다.
  * in-degree >= 2 이고 out-degree 가 작은 테이블 = 마스터 테이블 후보.
+ * graphology-metrics의 in-degree centrality를 함께 계산해 그래프 크기에 따라
+ * 정규화된 중심성 지표도 제공한다 (마스터 테이블 판단의 보조 근거).
  */
 function computeInDegreeRanking(graph, tableAnalyses) {
     const tableMap = new Map(tableAnalyses.map(t => [t.svc_no, t]));
+
     return graph.nodes()
-        .map(node => ({
-            svc_no: node,
-            svc_nm: tableMap.get(node)?.svc_nm || node,
-            in_degree: graph.inDegree(node),
-            out_degree: graph.outDegree(node),
-            is_derived_master: graph.inDegree(node) >= 2
-        }))
+        .map(node => {
+            const inDeg = graph.inDegree(node);
+            return {
+                svc_no: node,
+                svc_nm: tableMap.get(node)?.svc_nm || node,
+                in_degree: inDeg,
+                out_degree: graph.outDegree(node),
+                in_degree_centrality: graph.order > 1 ? inDeg / (graph.order - 1) : 0,
+                is_derived_master: inDeg >= 2
+            };
+        })
         .sort((a, b) => b.in_degree - a.in_degree || a.out_degree - b.out_degree);
+}
+
+/**
+ * 사이클을 가장 작은(사전순) 노드가 맨 앞에 오도록 회전시켜 정규화한다.
+ * 서로 다른 시작점에서 탐지된 동일한 사이클(A→B→C→A 를 A, B, C 각각에서 발견)을
+ * 같은 표현으로 만들어 중복 제거에 사용한다.
+ */
+function normalizeCycle(cycle) {
+    if (cycle.length === 0) return cycle;
+    let minIdx = 0;
+    for (let i = 1; i < cycle.length; i++) {
+        if (cycle[i] < cycle[minIdx]) minIdx = i;
+    }
+    return [...cycle.slice(minIdx), ...cycle.slice(0, minIdx)];
 }
 
 /**
  * DFS로 순환 FK 참조를 탐지한다.
  * 순환이 있으면 SQL DDL 실행 순서가 깨질 수 있어 경고가 필요하다.
  *
- * @returns {string[][]} 각 사이클에 포함된 테이블 목록
+ * @returns {string[][]} 각 사이클에 포함된 테이블 목록 (중복 제거됨)
  */
 function detectFkCycles(graph) {
     const visited = new Set();
@@ -1717,16 +1778,34 @@ function detectFkCycles(graph) {
         }
     }
 
-    return cycles;
+    // 회전 정규화 후 중복 사이클 제거
+    const seen = new Set();
+    const deduped = [];
+    for (const cycle of cycles) {
+        const normalized = normalizeCycle(cycle);
+        const key = normalized.join('->');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(normalized);
+    }
+    return deduped;
 }
 
 /**
- * Kahn 알고리즘으로 위상 정렬을 수행한다.
- * 결과 순서대로 CREATE TABLE을 실행하면 FK 제약조건 위반 없이 DDL 실행 가능하다.
+ * 위상 정렬을 수행한다. 결과 순서대로 CREATE TABLE을 실행하면
+ * FK 제약조건 위반 없이 DDL 실행 가능하다.
+ * graphology-dag의 검증된 구현을 사용하며, 사이클이 있는 그래프(DAG 아님)에서는
+ * Kahn 알고리즘 기반 부분 순서로 대체해 사이클이 있어도 최대한 유용한 순서를 제공한다.
  *
  * @returns {{ order: string[], is_dag: boolean }}
  */
 function computeTopologicalOrder(graph) {
+    if (!hasCycle(graph)) {
+        return { order: topologicalSort(graph), is_dag: true };
+    }
+
+    // 사이클이 있는 그래프: graphology-dag의 topologicalSort는 DAG가 아니면 예외를 던지므로
+    // 검토용 부분 순서(Kahn)를 직접 계산해 is_dag: false로 반환한다.
     const inDeg = new Map(graph.nodes().map(n => [n, graph.inDegree(n)]));
     const queue = graph.nodes().filter(n => inDeg.get(n) === 0);
     const order = [];
@@ -1742,7 +1821,7 @@ function computeTopologicalOrder(graph) {
         }
     }
 
-    return { order, is_dag: order.length === graph.order };
+    return { order, is_dag: false };
 }
 
 /**
@@ -1821,9 +1900,23 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
  * @returns {object} 분석 결과 (tables, relationships, composite_fks, graph_analysis 포함)
  */
 function analyze(datasets, recordsMap = new Map(), thresholds = null) {
+    const parsedDatasets = DatasetsArraySchema.safeParse(datasets);
+    if (!parsedDatasets.success) {
+        const issue = parsedDatasets.error.issues[0];
+        throw new Error(`analyze(): datasets 입력 형식이 올바르지 않습니다 — ${issue?.path?.join('.')}: ${issue?.message}`);
+    }
+
     for (const [svcNo, records] of recordsMap) {
         recordsMap.set(svcNo, toRecordArray(records));
     }
+
+    // FK 분석과 복합 FK 탐지가 공유하는 값 Set 캐시 (Memoization).
+    // 과거에는 recordsMap에 임의 프로퍼티(_valuesCache)를 붙여 전달했으나,
+    // 타입 안전성이 없는 방식이라 일반 변수로 명시적으로 전달한다.
+    const valuesCache = new Map();
+
+    // 필드 엔트로피를 한 번만 계산해 PK 점수 산정 시 재사용한다 (중복 계산 제거).
+    const entropyMap = buildEntropyMap(recordsMap);
 
     const tableAnalyses = datasets.map(ds => {
         const svcNo = String(ds.svc_no || '').trim();
@@ -1831,7 +1924,7 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
         const colMap = buildColMap(ds, records);
         const fields = [...colMap.values()];
 
-        const pkCandidates = analyzePkCandidatesForTable({ ...ds, fields }, records);
+        const pkCandidates = analyzePkCandidatesForTable({ ...ds, fields }, records, entropyMap.get(svcNo) || null);
 
         return {
             svc_no: svcNo,
@@ -1846,11 +1939,11 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
 
     const fuseIndex = buildDatasetFuseIndex(datasets);
     log('INFO', `Fuse.js 인덱스 구성: ${datasets.length}개 데이터셋`);
-    const fkResult = analyzeFkCandidates(datasets, tableAnalyses, recordsMap, fuseIndex, thresholds);
+    const fkResult = analyzeFkCandidates(datasets, tableAnalyses, recordsMap, fuseIndex, thresholds, valuesCache);
     const relationships = fkResult.relationships;
     const rejectedRelationships = fkResult.rejected_relationships;
 
-    const compositeFks = detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap);
+    const compositeFks = detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, valuesCache);
     log('INFO', `복합 FK 후보 탐지: ${compositeFks.length}개`);
 
     const graphAnalysis = analyzeGraphStructure(tableAnalyses, relationships, compositeFks);
@@ -1862,7 +1955,7 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     log('INFO', `도메인 클러스터: ${graphAnalysis.domain_clusters.length}개, 위상 정렬: ${graphAnalysis.is_dag ? 'DAG 성공' : '사이클 존재'}`);
 
     return {
-        generated_at: new Date().toISOString(),
+        generated_at: formatKstTimestamp(),
         config: {
             fk_min_inclusion_ratio: FK_MIN_INCLUSION_RATIO,
             fk_strong_inclusion_ratio: FK_STRONG_INCLUSION_RATIO,
@@ -1876,7 +1969,9 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
         },
         summary: {
             total_tables: tableAnalyses.length,
-            tables_with_pk_candidates: tableAnalyses.filter(t => t.pk_candidates.length > 0).length,
+            tables_with_pk_candidates: tableAnalyses.filter(t =>
+                t.pk_candidates.some(pk => pk.fields && pk.fields.length > 0)
+            ).length,
             relationship_count: relationships.length,
             confirmed_relationship_count: relationships.filter(r => r.relation_type === 'CONFIRMED').length,
             suggested_relationship_count: relationships.filter(r => r.relation_type === 'SUGGESTED').length,
@@ -2149,18 +2244,38 @@ function generateKeysErdSql(analysis, outputPath) {
         if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, []);
         fksByTable.get(rel.from_table).push(rel);
     }
+    // 복합 FK 병합 (단일 FK와 동일 테이블 목록에 추가)
+    for (const fk of (analysis.composite_fks || [])) {
+        if (!fksByTable.has(fk.from_table)) fksByTable.set(fk.from_table, []);
+        fksByTable.get(fk.from_table).push({
+            from_table: fk.from_table,
+            from_field: null,
+            from_fields: fk.from_fields,
+            to_table: fk.to_table,
+            to_field: null,
+            to_fields: fk.to_fields,
+            relation_type: 'COMPOSITE_FK',
+            score: fk.score,
+            confidence: fk.confidence,
+            inclusion_check: fk.inclusion_check
+        });
+    }
 
     // 위상 정렬 순서가 있으면 해당 순서대로 DDL 생성 (FK 제약 위반 방지)
-    const topoOrder = analysis.graph_analysis?.topological_order || [];
+    // 그래프 방향이 자식→부모이므로 위상 정렬 결과를 역순으로 해야
+    // 부모 테이블 CREATE TABLE이 먼저 실행되어 FK 제약 위반을 방지한다.
+    const topoOrder = (analysis.graph_analysis?.topological_order || []).slice().reverse();
     const tableMap = new Map(analysis.tables.map(t => [t.svc_no, t]));
     const orderedTables = topoOrder.length > 0
         ? [...topoOrder.map(id => tableMap.get(id)).filter(Boolean),
-        ...analysis.tables.filter(t => !topoOrder.includes(t.svc_no))]
+           ...analysis.tables.filter(t => !topoOrder.includes(t.svc_no))]
         : analysis.tables;
 
     for (const table of orderedTables) {
-        const bestPk = table.pk_candidates[0];
-        const hasPk = !!bestPk; // HIGH 신뢰도 여부와 무관하게 PK 후보가 존재하면 무조건 PK 제약 적용
+        const bestPk = table.pk_candidates.find(
+            pk => pk.fields && pk.fields.length > 0 && pk.confidence !== 'NONE'
+        );
+        const hasPk = !!bestPk;
         const fksList = fksByTable.get(table.svc_no) || [];
         const hasFks = fksList.length > 0;
 
@@ -2180,7 +2295,10 @@ function generateKeysErdSql(analysis, outputPath) {
             const pkComment = (bestPk && bestPk.fields.includes(fname))
                 ? ` / PK 후보(${bestPk.confidence})`
                 : '';
-            const columnFks = fksList.filter(fk => fk.from_field === fname);
+            const columnFks = fksList.filter(fk =>
+                fk.from_field === fname ||
+                (fk.from_fields && fk.from_fields.includes(fname))
+            );
             const fkComment = columnFks.length > 0
                 ? ` / FK 후보: ${columnFks.map(fk => `${fk.to_table}.${fk.to_field}(${fk.confidence}, ${(fk.inclusion_check?.inclusion_ratio * 100 || 0).toFixed(1)}%)`).join(', ')}`
                 : '';
@@ -2195,9 +2313,16 @@ function generateKeysErdSql(analysis, outputPath) {
             fieldLines.push(`  PRIMARY KEY (${bestPk.fields.map(quoteIdent).join(', ')})${hasFks ? ',' : ''}`);
         }
         fksList.forEach((fk, idx) => {
-            fieldLines.push(
-                `  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})${idx < fksList.length - 1 ? ',' : ''}`
-            );
+            const comma = idx < fksList.length - 1 ? ',' : '';
+            if (fk.relation_type === 'COMPOSITE_FK') {
+                fieldLines.push(
+                    `  FOREIGN KEY (${fk.from_fields.map(quoteIdent).join(', ')}) REFERENCES ${quoteIdent(fk.to_table)} (${fk.to_fields.map(quoteIdent).join(', ')})${comma}`
+                );
+            } else {
+                fieldLines.push(
+                    `  FOREIGN KEY (${quoteIdent(fk.from_field)}) REFERENCES ${quoteIdent(fk.to_table)} (${quoteIdent(fk.to_field)})${comma}`
+                );
+            }
         });
 
         lines.push(fieldLines.join('\n'));

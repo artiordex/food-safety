@@ -35,7 +35,7 @@ const WEAK_KEY_PATTERN = /_NM$|_NAME$|_CD_NM$|ADDR$|ADDRESS$|_DT$|_YMD$|DTM$|DAT
 
 const KEY_SYNONYM_GROUPS = [
     ['LCNS_NO', 'BSSH_NO'],
-    ['BRCD_NO', 'BARCODE_NO', 'BRCDNO', 'BAR_CD']
+    ['BRCD_NO', 'BARCODE_NO', 'BRCDNO', 'BAR_CD', 'PDT_BARCD']
 ];
 
 const MIN_OVERLAP_RATIO = 0.05;
@@ -43,6 +43,11 @@ const MIN_DATASETS_PER_SCENARIO = 3;
 const MAX_SQL_TABLES = 5;
 const TOP_SCENARIOS = 50;
 const TOP_RELATIONS = 100;
+
+function formatKstTimestamp(date = new Date()) {
+    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().replace('Z', '+09:00');
+}
 
 
 // 커맨드라인 인수에서 --key value 형태의 옵션을 파싱하는 함수
@@ -243,6 +248,19 @@ function quoteIdent(identifier) {
     return `"${String(identifier).replace(/"/g, '""')}"`;
 }
 
+// 테이블 alias와 메타데이터로 전체 컬럼 SELECT 절 항목을 생성하는 함수
+// fieldList가 없으면 alias.* 단일 항목으로 폴백한다.
+function expandTableColumns(tableAlias, svcNo, meta) {
+    const fieldList = meta?.[svcNo]?.fieldList;
+    if (!fieldList || fieldList.length === 0) {
+        return [`${tableAlias}.*`];
+    }
+    return fieldList.map(({ field, korNm }) => {
+        const col = `${tableAlias}.${quoteIdent(field)}`;
+        return korNm ? `${col} AS "${tableAlias}_${korNm}"` : col;
+    });
+}
+
 // JOIN 유형 문자열을 SQL JOIN 키워드로 정리하는 함수
 function normalizeSqlJoinType(joinType) {
     return joinType.includes('INNER')
@@ -321,17 +339,20 @@ function loadMetadata(cachePath) {
 
         for (const dataset of cache) {
             const fieldNames = {};
+            const fieldList = [];
             if (Array.isArray(dataset.fields)) {
                 for (const f of dataset.fields) {
-                    if (f.field && f.kor_nm && f.kor_nm !== f.field) {
-                        fieldNames[f.field] = f.kor_nm;
-                    }
+                    if (!f.field) continue;
+                    const korNm = (f.kor_nm && f.kor_nm !== f.field) ? f.kor_nm : null;
+                    if (korNm) fieldNames[f.field] = korNm;
+                    fieldList.push({ field: f.field, korNm });
                 }
             }
             meta[dataset.svc_no] = {
                 svc_nm: dataset.svc_nm,
                 cat: dataset.cat || '기타',
-                fields: fieldNames
+                fields: fieldNames,
+                fieldList
             };
         }
 
@@ -644,7 +665,7 @@ function buildPairRelations(allProfiles, meta) {
 // =============================================================================
 
 // 관계 그래프를 기반으로 연결된 데이터셋 클러스터를 탐색하는 함수
-function clusterByJoinKey(relations) {
+function clusterByJoinKey(relations, meta) {
     const keyGroups = {};
 
     // joinKey별로 관계를 묶음
@@ -699,7 +720,7 @@ function clusterByJoinKey(relations) {
         // datasets은 전체 관계에서 수집하고, SQL 힌트는 상위 관계만 사용한다.
         // 이전에는 sortedRels.slice(0, 3) 기준으로 datasets을 수집해
         // datasetCount와 실제 datasets 목록이 불일치하는 문제가 있었다.
-        const sqlHint = buildSqlHint(joinKey, sortedRels.slice(0, MAX_SQL_TABLES - 1));
+        const sqlHint = buildSqlHint(joinKey, sortedRels.slice(0, MAX_SQL_TABLES - 1), meta);
 
         scenarios.push({
             id: `SCN_${String(scenarioId++).padStart(3, '0')}`,
@@ -736,7 +757,7 @@ function clusterByJoinKey(relations) {
 }
 
 // 시나리오의 SQL 힌트를 생성하는 함수
-function buildSqlHint(joinKey, rels) {
+function buildSqlHint(joinKey, rels, meta) {
     if (rels.length === 0) {
         return '';
     }
@@ -778,13 +799,12 @@ function buildSqlHint(joinKey, rels) {
     // 연결된 테이블이 시작 테이블 하나뿐이면 SQL 힌트를 생성하지 않는다.
     if (joins.length === 0) return '';
 
-    // 각 테이블의 실제 컬럼명으로 SELECT 절을 구성한다.
-    const selects = joinedCols
-        .slice(0, 3)
-        .map((col, index) => `${aliases[index]}.${quoteIdent(col)}`);
-
-    const starSelects = joinedTables.map((_, i) => `${aliases[i]}.*`).join(', ');
-    lines.push(`SELECT ${selects.join(', ')}, ${starSelects}`);
+    // 각 테이블의 전체 컬럼을 한글 alias와 함께 전개한다.
+    const allSelectCols = [];
+    for (let i = 0; i < joinedTables.length; i++) {
+        allSelectCols.push(...expandTableColumns(aliases[i], joinedTables[i], meta));
+    }
+    lines.push(`SELECT\n  ${allSelectCols.join(',\n  ')}`);
     lines.push(`FROM ${quoteIdent(joinedTables[0])} A`);
 
     for (const joinLine of joins) {
@@ -799,6 +819,152 @@ function buildSqlHint(joinKey, rels) {
     return lines.join('\n');
 }
 
+// BFS 스패닝 트리 경로로 다중 키 체인 JOIN SQL을 생성하는 함수
+function buildSqlHintFromPath(rootTable, joinPath, meta) {
+    if (joinPath.length === 0) return '';
+
+    const aliases = 'ABCDEFGH'.split('');
+    const tableAliasMap = new Map([[rootTable, aliases[0]]]);
+    joinPath.forEach((step, i) => tableAliasMap.set(step.toTable, aliases[i + 1]));
+
+    const lines = [];
+
+    // 각 테이블의 전체 컬럼을 한글 alias와 함께 전개한다.
+    const allTables = [rootTable, ...joinPath.map(s => s.toTable)];
+    const allSelectCols = [];
+    for (let i = 0; i < allTables.length; i++) {
+        allSelectCols.push(...expandTableColumns(aliases[i], allTables[i], meta));
+    }
+    lines.push(`SELECT\n  ${allSelectCols.join(',\n  ')}`);
+    lines.push(`FROM ${quoteIdent(rootTable)} A`);
+
+    for (const step of joinPath) {
+        const fromAlias = tableAliasMap.get(step.fromTable);
+        const toAlias = tableAliasMap.get(step.toTable);
+        lines.push(`${normalizeSqlJoinType(step.rel.joinType)} ${quoteIdent(step.toTable)} ${toAlias}`);
+        lines.push(`  ON ${fromAlias}.${quoteIdent(step.fromCol)} = ${toAlias}.${quoteIdent(step.toCol)}`);
+    }
+
+    const firstCol = quoteIdent(joinPath[0].fromCol);
+    lines.push(`WHERE A.${firstCol} IS NOT NULL AND A.${firstCol} != ''`);
+    lines.push('LIMIT 100;');
+
+    return lines.join('\n');
+}
+
+// 브릿지 테이블을 통해 서로 다른 joinKey 그룹을 연결하는 체인 시나리오를 생성하는 함수
+function buildChainScenarios(starScenarios, relations, meta) {
+    // 테이블 → 참여 joinKey Set
+    const tableKeyMap = new Map();
+    for (const scenario of starScenarios) {
+        for (const dataset of scenario.datasets) {
+            if (!tableKeyMap.has(dataset)) tableKeyMap.set(dataset, new Set());
+            tableKeyMap.get(dataset).add(scenario.joinKey);
+        }
+    }
+
+    // 브릿지 테이블: 2개 이상의 joinKey 그룹에 속한 테이블
+    const bridges = [...tableKeyMap.entries()]
+        .filter(([, keys]) => keys.size >= 2)
+        .sort((a, b) => b[1].size - a[1].size);
+
+    if (bridges.length === 0) return [];
+
+    // joinKey별 관계 목록 인덱스
+    const relsByKey = new Map();
+    for (const rel of relations) {
+        if (!relsByKey.has(rel.joinKey)) relsByKey.set(rel.joinKey, []);
+        relsByKey.get(rel.joinKey).push(rel);
+    }
+
+    const chainScenarios = [];
+    let chainId = 1;
+
+    for (const [bridgeTable, bridgeKeys] of bridges) {
+        // 각 joinKey에서 브릿지 테이블과 직접 연결된 최고 점수 관계 수집
+        const stepsPerKey = [];
+        for (const joinKey of bridgeKeys) {
+            const keyRels = (relsByKey.get(joinKey) || [])
+                .filter(rel => rel.svcA === bridgeTable || rel.svcB === bridgeTable)
+                .sort((a, b) => b.score - a.score);
+
+            if (keyRels.length === 0) continue;
+
+            const best = keyRels[0];
+            const neighbor = best.svcA === bridgeTable ? best.svcB : best.svcA;
+            const fromCol = best.svcA === bridgeTable ? best.colA : best.colB;
+            const toCol   = best.svcA === bridgeTable ? best.colB : best.colA;
+
+            stepsPerKey.push({ joinKey, neighbor, fromCol, toCol, rel: best, score: best.score });
+        }
+
+        // 점수 내림차순 정렬 후 MAX_SQL_TABLES - 1개까지
+        stepsPerKey.sort((a, b) => b.score - a.score);
+
+        const joinPath = [];
+        const usedTables = new Set([bridgeTable]);
+        const coveredKeys = new Set();
+
+        for (const step of stepsPerKey) {
+            if (joinPath.length >= MAX_SQL_TABLES - 1) break;
+            if (usedTables.has(step.neighbor)) continue;
+
+            usedTables.add(step.neighbor);
+            coveredKeys.add(step.joinKey);
+            joinPath.push({
+                fromTable: bridgeTable,
+                fromCol:   step.fromCol,
+                toTable:   step.neighbor,
+                toCol:     step.toCol,
+                rel:       step.rel
+            });
+        }
+
+        // 단일 키만 쓰이면 star 시나리오와 중복 → 제외
+        if (joinPath.length < 2 || coveredKeys.size < 2) continue;
+
+        const avgScore = Math.round(
+            joinPath.reduce((s, p) => s + p.rel.score, 0) / joinPath.length
+        );
+        const confidence = avgScore >= 70 ? 'HIGH' : avgScore >= 40 ? 'MEDIUM' : 'LOW';
+
+        const datasets = new Set([bridgeTable, ...joinPath.map(p => p.toTable)]);
+        const joinKeyLabel = `CHAIN:${[...coveredKeys].join('+')}`;
+
+        chainScenarios.push({
+            id: `SCN_CHAIN_${String(chainId++).padStart(3, '0')}`,
+            joinKey: joinKeyLabel,
+            datasets: [...datasets],
+            datasetCount: datasets.size,
+            bridgeTable,
+            relations: joinPath.map(p => ({
+                from:           p.rel.svcA,
+                fromNm:         p.rel.nmA,
+                to:             p.rel.svcB,
+                toNm:           p.rel.nmB,
+                colFrom:        p.rel.colA,
+                colTo:          p.rel.colB,
+                colFromDisplay: p.rel.korA ? `${p.rel.korA}(${p.rel.colA})` : p.rel.colA,
+                colToDisplay:   p.rel.korB ? `${p.rel.korB}(${p.rel.colB})` : p.rel.colB,
+                joinType:       p.rel.joinType,
+                cardinality:    p.rel.cardinality,
+                score:          p.rel.score,
+                confidence:     p.rel.confidence,
+                matched:        p.rel.matched,
+                ratioA:         p.rel.ratioA,
+                ratioB:         p.rel.ratioB,
+                sampleMatches:  p.rel.sampleMatches
+            })),
+            score: avgScore,
+            confidence,
+            sql: buildSqlHintFromPath(bridgeTable, joinPath, meta),
+            isChain: true
+        });
+    }
+
+    return chainScenarios;
+}
+
 // =============================================================================
 // 7. 결과 파일 생성
 // =============================================================================
@@ -806,9 +972,11 @@ function buildSqlHint(joinKey, rels) {
 // JSON 결과 파일을 저장하는 함수
 function writeJson(scenarios, relations, outputPath) {
     const result = {
-        generatedAt: new Date().toISOString(),
+        generatedAt: formatKstTimestamp(),
         summary: {
             totalScenarios: scenarios.length,
+            starScenarios: scenarios.filter(s => !s.isChain).length,
+            chainScenarios: scenarios.filter(s => s.isChain).length,
             totalRelations: relations.length,
             highConfidence: scenarios.filter(scenario => scenario.confidence === 'HIGH').length,
         },
@@ -833,9 +1001,9 @@ function writeMd(scenarios, relations, outputPath) {
     const lines = [];
 
     lines.push('# 데이터셋 사용 시나리오 분석 결과');
-    lines.push(`> 생성일시: ${new Date().toLocaleString('ko-KR')}`);
+    lines.push(`> 생성일시: ${formatKstTimestamp()}`);
     lines.push('');
-    lines.push(`- 전체 시나리오: **${scenarios.length}개**`);
+    lines.push(`- 전체 시나리오: **${scenarios.length}개** (Star: ${scenarios.filter(s => !s.isChain).length}개, Chain: ${scenarios.filter(s => s.isChain).length}개)`);
     lines.push(`- 전체 관계: **${relations.length}개**`);
     lines.push(`- HIGH 신뢰도 시나리오: **${scenarios.filter(scenario => scenario.confidence === 'HIGH').length}개**`);
     lines.push('');
@@ -843,7 +1011,9 @@ function writeMd(scenarios, relations, outputPath) {
     lines.push('');
 
     for (const scenario of scenarios.slice(0, TOP_SCENARIOS)) {
-        lines.push(`## ${scenario.id} — \`${scenario.joinKey}\` 기반 (${scenario.confidence}, ${scenario.score}점)`);
+        const chainTag = scenario.isChain ? ` 🔗 브릿지: \`${scenario.bridgeTable}\`` : '';
+        const emptyTag = scenario.isEmpty ? ' ⚠️ (건수 0건)' : '';
+        lines.push(`## ${scenario.id} — \`${scenario.joinKey}\` 기반 (${scenario.confidence}, ${scenario.score}점)${chainTag}${emptyTag}`);
         lines.push('');
         lines.push(`**참여 데이터셋** (${scenario.datasetCount}개): ${scenario.datasets.join(', ')}`);
         lines.push('');
@@ -944,11 +1114,19 @@ async function main() {
 
     // 4. 시나리오 클러스터링
     logger.info('JOIN 키 기반 시나리오 클러스터링을 시작합니다.');
-    const scenarios = clusterByJoinKey(relations);
+    const starScenarios = clusterByJoinKey(relations, meta);
+
+    logger.info('브릿지 테이블 기반 체인 시나리오 도출을 시작합니다.');
+    const chainScenarios = buildChainScenarios(starScenarios, relations, meta);
+
+    const scenarios = [...starScenarios, ...chainScenarios]
+        .sort((a, b) => b.score - a.score || b.datasetCount - a.datasetCount);
 
     // 5. 결과 출력
     logger.info({
         totalScenarios: scenarios.length,
+        starScenarios: starScenarios.length,
+        chainScenarios: chainScenarios.length,
         highConfidence: scenarios.filter(scenario => scenario.confidence === 'HIGH').length,
         totalRelations: relations.length
     }, '분석 완료. 상위 시나리오 요약');
@@ -964,12 +1142,35 @@ async function main() {
         }, '시나리오');
     });
 
-    // 6. 결과 파일 저장
+    // 6. DB 검증 — SQL 결과 0건인 시나리오에 isEmpty 플래그 부착
+    const dbPath = path.join(__dirname, 'foodsafety.db');
+    if (fs.existsSync(dbPath)) {
+        try {
+            const Database = require('better-sqlite3');
+            const db = new Database(dbPath, { readonly: true });
+            let emptyCount = 0;
+            for (const scenario of scenarios) {
+                if (!scenario.sql) continue;
+                try {
+                    const rows = db.prepare(scenario.sql).all();
+                    scenario.isEmpty = rows.length === 0;
+                    if (scenario.isEmpty) emptyCount++;
+                } catch {
+                    scenario.isEmpty = false;
+                }
+            }
+            db.close();
+            logger.info({ emptyCount }, 'DB 검증 완료 — 0건 시나리오 표시 예정');
+        } catch (err) {
+            logger.warn({ errorMessage: err.message }, 'DB 검증 생략 (better-sqlite3 로드 실패)');
+        }
+    }
+
+    // 7. 결과 파일 저장
     if (!noJson) writeJson(scenarios, relations, jsonOut);
     if (!noMd)   writeMd(scenarios, relations, mdOut);
 
     if (!noXlsx) {
-        const fs = require('fs');
         if (!fs.existsSync(xlsxPath)) {
             logger.warn({ xlsxPath }, 'xlsx 파일 없음 — Arquero 시트 갱신 생략');
         } else {
@@ -1011,7 +1212,9 @@ module.exports = {
     profileAllTables,
     buildPairRelations,
     clusterByJoinKey,
+    buildChainScenarios,
     buildSqlHint,
+    buildSqlHintFromPath,
     writeJson,
     writeMd,
     // 유틸

@@ -2,7 +2,7 @@
  * 식품안전나라 Open API 샘플 데이터 최적화 업데이트 스크립트
  * 파일명: update_samples.js
  *
- * [수행 역할]
+ * [주요 기능]
  * 1. samples 폴더 혹은 CLI 인수를 기준으로 serviceId 목록을 수집함
  * 2. 원자적 파일 쓰기(Atomic Write)를 통해 크롤링 중 기존 샘플 파손을 방지함
  * 3. 비동기 작업 풀(Pool)을 이용해 동시성(Concurrency)을 제어하며 고속 수집함

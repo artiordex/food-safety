@@ -1,7 +1,7 @@
 /**
  * 식품안전나라 전체 파이프라인 실행 스크립트
  *
- * 실행 순서:
+ * [실행 순서]
  * 1. crawler_api.js             — 식품안전나라 사이트 크롤링 및 crawl_cache.json 생성
  * 2. crawler_link.js            — 공공데이터포털 식품영양성분 API 수집 및 캐시 병합
  * 3. update_samples.js          — 전체 샘플 데이터 최대 1000건 최신화
@@ -12,7 +12,7 @@
  * 8. pipeline.js                — 공통키 식별, 결합 시나리오 도출, 엑셀 보고서 생성
  * 9. scrape_board_playwright.js — 게시판 데이터 수집
  *
- * 사용법:
+ * [사용법]
  *   node crawler/crawler_and_report.js
  */
 
@@ -63,11 +63,11 @@ async function main() {
   // }
 
   // STEP 5: PK/FK 분석 (analyze_pk_fk.js) - STEP 4에서 내부적으로 이미 실행되므로 생략 가능
-  // try {
-  //   run('5/9 analyze_pk_fk', path.join(DB_DIR, 'analyze_pk_fk.js'));
-  // } catch (err) {
-  //   logger.warn({ err }, 'analyze_pk_fk.js 실패 — 다음 단계를 계속 진행합니다.');
-  // }
+  try {
+    run('5/9 analyze_pk_fk', path.join(DB_DIR, 'analyze_pk_fk.js'));
+  } catch (err) {
+    logger.warn({ err }, 'analyze_pk_fk.js 실패 — 다음 단계를 계속 진행합니다.');
+  }
 
   // STEP 6: 시나리오 탐색 (analyze_scenario.js)
   try {

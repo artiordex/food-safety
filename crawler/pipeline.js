@@ -1,10 +1,10 @@
 /**
- * 식품안전나라 API 메타데이터 분석 파이프라인 (analyze_pk_fk.js 연동 버전)
+ * 식품안전나라 API 메타데이터 분석 파이프라인
  *
- * 기능:
- * - db/analyze_pk_fk.js의 강력한 통계적(Entropy, Inclusion Ratio, String-Similarity) 분석 결과를 활용
- * - analyze_pk_fk.js 결과를 excel_reporter.js 가 요구하는 형식으로 어댑팅(Adapting)
- * - 최종 분석 결과를 엑셀 보고서로 생성
+ * [주요 기능]
+ * 1. db/analyze_pk_fk.js의 강력한 통계적(Entropy, Inclusion Ratio, String-Similarity) 분석 결과를 활용
+ * 2. analyze_pk_fk.js 결과를 excel_reporter.js 가 요구하는 형식으로 어댑팅(Adapting)
+ * 3. 최종 분석 결과를 엑셀 보고서로 생성
  */
 
 const fs = require('fs');

@@ -1,10 +1,31 @@
+/**
+ * routes/query.js
+ * 화면 시안에서 사용하는 조회/분석성 API 라우트
+ * - GET /api/join-scenarios
+ *     → db/join.sql에 작성된 추천 JOIN 시나리오를 파싱해 반환
+ * - POST /api/query
+ *     → SQL Playground, ERD, 관계도에서 사용하는 읽기 전용 SQL 실행
+ * - GET /api/relationships
+ *     → analyze_pk_fk.js 산출물 기반 PK/FK 후보 관계 반환
+ * - GET /api/super-converge-search
+ *     → 바코드/품목보고번호/인허가번호 기준으로 업체·제품·영양·HACCP·행정처분 통합 조회
+ * - GET /api/keyword-datamap
+ *     → 키워드가 실제 데이터 어느 테이블/컬럼에서 발견되는지 그래프 데이터로 반환
+ *
+ * ⚠️ /api/query는 사용자 입력 SQL을 받기 때문에 SELECT, EXPLAIN, 일부 PRAGMA만 허용합니다.
+ *     LIMIT 없는 SELECT는 최대 1000행으로 자동 제한합니다.
+ */
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
 module.exports = (db, dbAll, logger, readonlyDb) => {
+  // join.sql은 파일 파싱 비용이 있으므로 최초 1회 읽은 결과를 메모리에 캐시한다.
 let _joinScenariosCache = null;
+
+// 추천 JOIN 시나리오 목록 API.
+// 주석으로 작성된 설명부와 SQL 본문을 분리해서 프론트에서 바로 표시할 수 있는 형태로 만든다.
 router.get('/join-scenarios', (req, res) => {
   if (_joinScenariosCache) {
     return res.json(_joinScenariosCache);
@@ -61,6 +82,9 @@ router.get('/join-scenarios', (req, res) => {
     res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
   }
 });
+
+// 읽기 전용 SQL 실행 API.
+// 화면 시안에서 자유 쿼리와 ERD 확인에 사용되므로 SELECT/EXPLAIN/일부 PRAGMA만 허용한다.
 router.post('/query', (req, res) => {
   const { query } = req.body;
   if (!query || query.trim() === '') {
@@ -93,7 +117,11 @@ router.post('/query', (req, res) => {
 
 
   // PK/FK 관계 데이터 조회
+  // PK/FK 관계 후보도 정적 분석 결과 JSON을 읽기 때문에 메모리에 캐시한다.
   let _relationshipsCache = null;
+
+  // 데이터 관계도/ERD 화면에서 사용하는 관계 후보 목록 API.
+  // analyze_pk_fk.js가 생성한 foodsafety_key_candidates.json을 읽어 relationships 배열만 반환한다.
   router.get('/relationships', (req, res) => {
     if (_relationshipsCache) {
       return res.json(_relationshipsCache);
@@ -114,6 +142,8 @@ router.post('/query', (req, res) => {
   });
 
   // 핵심 공공-민간 초융합형 ERD 검색 API
+  // 통합 검색 API.
+  // 바코드 -> 품목보고번호 -> 인허가번호 순서로 단서를 확장해 업체, 제품, 영양, HACCP, 행정처분을 묶어준다.
   router.get('/super-converge-search', (req, res) => {
     const { keyword } = req.query;
     if (!keyword) return res.status(400).json({ error: 'Keyword is required' });
@@ -181,6 +211,8 @@ router.post('/query', (req, res) => {
   });
 
   // 키워드 기반 전체 테이블 스캔 데이터맵 API
+  // 키워드 데이터맵은 전체 테이블/컬럼을 훑는 비용이 커서 짧은 TTL 캐시를 둔다.
+  // 같은 키워드와 AND/OR 조건으로 반복 조회하면 캐시된 그래프 데이터를 바로 반환한다.
   const datamapCache = {};
   const DATAMAP_CACHE_TTL = 3 * 60 * 1000;
 
@@ -206,6 +238,8 @@ router.post('/query', (req, res) => {
     '기타': { bg: '#57534e', border: '#44403c', light: '#f5f5f4' }
   };
 
+  // 키워드가 포함된 테이블과 컬럼을 찾아 vis-network용 nodes/edges로 변환한다.
+  // 프론트의 "키워드 시각화" 탭에서 중심 노드, 테이블 노드, 샘플 데이터 노드를 그릴 때 사용된다.
   router.get('/keyword-datamap', async (req, res) => {
     const rawKeyword = req.query.keyword || '소스';
     const defaultOp = req.query.op || 'AND';
@@ -219,6 +253,7 @@ router.post('/query', (req, res) => {
       }
     }
 
+    // 입력 키워드는 세미콜론으로 나누며, 명시 연산자가 없으면 defaultOp로 이어 붙인다.
     const isOperator = w => w.toUpperCase() === 'AND' || w.toUpperCase() === 'OR';
     const rawWords = rawKeyword.split(';').map(w => w.trim()).filter(Boolean);
     const tokens = rawWords.map(w => isOperator(w) ? w.toUpperCase() : w);
@@ -231,8 +266,10 @@ router.post('/query', (req, res) => {
     }
 
     try {
+      // 실제 데이터 테이블만 스캔하고, api_tables/api_columns 같은 메타 테이블은 제외한다.
       const tables = await dbAll(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('api_tables', 'api_columns')`);
 
+      // api_tables의 서비스명/카테고리를 이용해 테이블 라벨과 색상 도메인을 보강한다.
       const catRows = await dbAll(`SELECT svc_no, svc_nm, cat FROM api_tables`);
       const domainMap = {};
       const tableLabels = {};
@@ -244,6 +281,7 @@ router.post('/query', (req, res) => {
         svcNoMap[normalizedSvcNo] = row.svc_no;
       });
 
+      // nodes/edges는 프론트 그래프 라이브러리가 바로 소비할 수 있는 형태로 누적한다.
       const nodes = [];
       const edges = [];
       const matchedTables = [];
@@ -260,12 +298,14 @@ router.post('/query', (req, res) => {
         level: 0
       });
 
+      // 테이블 수가 많으므로 일정 개수씩 병렬 처리해 응답 시간을 줄인다.
       const BATCH_SIZE = 20;
       const processTable = async (tableName) => {
         let columns = [];
         try { columns = await dbAll(`PRAGMA table_info("${tableName}")`); } catch (e) { return null; }
         if (!columns.length) return null;
 
+        // 각 컬럼을 TEXT로 변환해 키워드 포함 여부를 확인한다.
         const colResults = await Promise.all(columns.map(async col => {
           try {
             let sqlWhere = '';
@@ -290,6 +330,7 @@ router.post('/query', (req, res) => {
         const tableLabel = tableLabels[tableName] || tableName;
         const bestCol = matchingCols.sort((a, b) => b.count - a.count)[0];
 
+        // 가장 많이 매칭된 컬럼 기준으로 샘플 행을 가져와 하위 노드로 표시한다.
         let sampleRows = [];
         try {
           sampleRows = await dbAll(

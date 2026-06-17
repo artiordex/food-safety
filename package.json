@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "arquero": "^8.0.3",
+    "better-sqlite3": "^12.11.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -25,6 +26,8 @@
     "fuse.js": "^7.4.2",
     "graphology": "^0.26.0",
     "graphology-components": "^1.5.4",
+    "graphology-dag": "^0.4.1",
+    "graphology-metrics": "^2.4.0",
     "graphology-shortest-path": "^2.1.0",
     "infer-types": "^0.0.2",
     "pino": "^10.3.1",
@@ -32,7 +35,8 @@
     "pptxgenjs": "^4.0.1",
     "simple-statistics": "^7.9.0",
     "sqlite3": "^5.1.7",
-    "string-similarity": "^4.0.4"
+    "string-similarity": "^4.0.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "cheerio": "^1.0.0-rc.12",

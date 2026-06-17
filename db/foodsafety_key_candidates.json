@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-15T07:21:32.291Z",
+  "generated_at": "2026-06-17T10:48:24.538+09:00",
   "config": {
     "fk_min_inclusion_ratio": 0.0001,
     "fk_strong_inclusion_ratio": 0.5,
@@ -55,7 +55,7 @@
   },
   "summary": {
     "total_tables": 170,
-    "tables_with_pk_candidates": 145,
+    "tables_with_pk_candidates": 140,
     "relationship_count": 202,
     "confirmed_relationship_count": 151,
     "suggested_relationship_count": 51,
@@ -29182,6 +29182,7 @@
         "svc_nm": "인허가 업소 정보",
         "in_degree": 72,
         "out_degree": 0,
+        "in_degree_centrality": 0.4260355029585799,
         "is_derived_master": true
       },
       {
@@ -29189,6 +29190,7 @@
         "svc_nm": "위생용품영업정보",
         "in_degree": 32,
         "out_degree": 0,
+        "in_degree_centrality": 0.1893491124260355,
         "is_derived_master": true
       },
       {
@@ -29196,6 +29198,7 @@
         "svc_nm": "축산물 가공업허가정보",
         "in_degree": 17,
         "out_degree": 0,
+        "in_degree_centrality": 0.10059171597633136,
         "is_derived_master": true
       },
       {
@@ -29203,6 +29206,7 @@
         "svc_nm": "축산물 품목제조정보",
         "in_degree": 11,
         "out_degree": 2,
+        "in_degree_centrality": 0.0650887573964497,
         "is_derived_master": true
       },
       {
@@ -29210,6 +29214,7 @@
         "svc_nm": "위생용품품목제조보고",
         "in_degree": 11,
         "out_degree": 3,
+        "in_degree_centrality": 0.0650887573964497,
         "is_derived_master": true
       },
       {
@@ -29217,6 +29222,7 @@
         "svc_nm": "품목유형코드",
         "in_degree": 9,
         "out_degree": 0,
+        "in_degree_centrality": 0.05325443786982249,
         "is_derived_master": true
       },
       {
@@ -29224,6 +29230,7 @@
         "svc_nm": "식품제조가공업정보",
         "in_degree": 9,
         "out_degree": 0,
+        "in_degree_centrality": 0.05325443786982249,
         "is_derived_master": true
       },
       {
@@ -29231,6 +29238,7 @@
         "svc_nm": "식품접객업정보",
         "in_degree": 9,
         "out_degree": 0,
+        "in_degree_centrality": 0.05325443786982249,
         "is_derived_master": true
       },
       {
@@ -29238,6 +29246,7 @@
         "svc_nm": "식품(첨가물)품목제조보고",
         "in_degree": 8,
         "out_degree": 3,
+        "in_degree_centrality": 0.047337278106508875,
         "is_derived_master": true
       },
       {
@@ -29245,6 +29254,7 @@
         "svc_nm": "시험항목코드",
         "in_degree": 6,
         "out_degree": 0,
+        "in_degree_centrality": 0.03550295857988166,
         "is_derived_master": true
       },
       {
@@ -29252,6 +29262,7 @@
         "svc_nm": "식품등수입판매업정보",
         "in_degree": 6,
         "out_degree": 0,
+        "in_degree_centrality": 0.03550295857988166,
         "is_derived_master": true
       },
       {
@@ -29259,6 +29270,7 @@
         "svc_nm": "행정처분결과",
         "in_degree": 3,
         "out_degree": 5,
+        "in_degree_centrality": 0.01775147928994083,
         "is_derived_master": true
       },
       {
@@ -29266,6 +29278,7 @@
         "svc_nm": "식품(첨가물)품목제조보고(원재료)",
         "in_degree": 3,
         "out_degree": 5,
+        "in_degree_centrality": 0.01775147928994083,
         "is_derived_master": true
       },
       {
@@ -29273,6 +29286,7 @@
         "svc_nm": "공통기준종류",
         "in_degree": 2,
         "out_degree": 0,
+        "in_degree_centrality": 0.011834319526627219,
         "is_derived_master": true
       },
       {
@@ -29280,6 +29294,7 @@
         "svc_nm": "건강기능식품 품목제조 신고사항 현황",
         "in_degree": 2,
         "out_degree": 3,
+        "in_degree_centrality": 0.011834319526627219,
         "is_derived_master": true
       },
       {
@@ -29287,6 +29302,7 @@
         "svc_nm": "건강기능식품 생산실적 보고 품목 현황",
         "in_degree": 2,
         "out_degree": 4,
+        "in_degree_centrality": 0.011834319526627219,
         "is_derived_master": true
       },
       {
@@ -29294,6 +29310,7 @@
         "svc_nm": "건강기능식품 품목제조신고(원재료)",
         "in_degree": 2,
         "out_degree": 4,
+        "in_degree_centrality": 0.011834319526627219,
         "is_derived_master": true
       },
       {
@@ -29301,6 +29318,7 @@
         "svc_nm": "회수.판매중지 정보",
         "in_degree": 2,
         "out_degree": 5,
+        "in_degree_centrality": 0.011834319526627219,
         "is_derived_master": true
       },
       {
@@ -29308,6 +29326,7 @@
         "svc_nm": "기구등의 살균소독제 한시적 기준 및 규격 인정 현황",
         "in_degree": 1,
         "out_degree": 0,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29315,6 +29334,7 @@
         "svc_nm": "식품위생검사기관 지정 현황",
         "in_degree": 1,
         "out_degree": 0,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29322,6 +29342,7 @@
         "svc_nm": "농산물이력추적 유통정보",
         "in_degree": 1,
         "out_degree": 0,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29329,6 +29350,7 @@
         "svc_nm": "건강기능식품 기능성 원료인정현황",
         "in_degree": 1,
         "out_degree": 0,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29336,6 +29358,7 @@
         "svc_nm": "과태료부과기준",
         "in_degree": 1,
         "out_degree": 1,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29343,6 +29366,7 @@
         "svc_nm": "처분기준코드",
         "in_degree": 1,
         "out_degree": 1,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29350,6 +29374,7 @@
         "svc_nm": "행정처분결과(수입식품업)",
         "in_degree": 1,
         "out_degree": 3,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29357,6 +29382,7 @@
         "svc_nm": "행정처분결과(식품제조가공업)",
         "in_degree": 1,
         "out_degree": 3,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29364,6 +29390,7 @@
         "svc_nm": "행정처분결과(식품판매업)",
         "in_degree": 1,
         "out_degree": 3,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29371,6 +29398,7 @@
         "svc_nm": "위생용품품목제조보고(원재료)",
         "in_degree": 1,
         "out_degree": 4,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29378,6 +29406,7 @@
         "svc_nm": "검사부적합(국내)",
         "in_degree": 1,
         "out_degree": 5,
+        "in_degree_centrality": 0.005917159763313609,
         "is_derived_master": false
       },
       {
@@ -29385,6 +29414,7 @@
         "svc_nm": "식품영양성분 DB정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29392,6 +29422,7 @@
         "svc_nm": "과징금부과기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29399,6 +29430,7 @@
         "svc_nm": "농약잔류허용기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29406,6 +29438,7 @@
         "svc_nm": "동물용의약품 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29413,6 +29446,7 @@
         "svc_nm": "동물의약품별 잔류허용 기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29420,6 +29454,7 @@
         "svc_nm": "방사선조사식품 품목 인정 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29427,6 +29462,7 @@
         "svc_nm": "시약정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29434,6 +29470,7 @@
         "svc_nm": "기구등의 살균소독제 기준규격",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29441,6 +29478,7 @@
         "svc_nm": "식품별 농약잔류허용기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29448,6 +29486,7 @@
         "svc_nm": "식품원료의 한시적 기준 및 규격 인정 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29455,6 +29494,7 @@
         "svc_nm": "식품원재료(식물,동물,미생물,수산물) 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29462,6 +29502,7 @@
         "svc_nm": "식품첨가물의 한시적 기준 및 규격 인정 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29469,6 +29510,7 @@
         "svc_nm": "신고대상분류기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29476,6 +29518,7 @@
         "svc_nm": "잔류동물의약품 식품별 잔류허용 기준",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29483,6 +29526,7 @@
         "svc_nm": "법령코드",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29490,6 +29534,7 @@
         "svc_nm": "식품원재료코드",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29497,6 +29542,7 @@
         "svc_nm": "식품공전",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29504,6 +29550,7 @@
         "svc_nm": "건강기능식품 영양DB",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29511,6 +29558,7 @@
         "svc_nm": "조리식품의 레시피 DB",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29518,6 +29566,7 @@
         "svc_nm": "상수도 수질정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29525,6 +29574,7 @@
         "svc_nm": "지하수수질측정망 측정결과",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29532,6 +29582,7 @@
         "svc_nm": "토양지하수 토양실태조사정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29539,6 +29590,7 @@
         "svc_nm": "하수도 수질정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29546,6 +29598,7 @@
         "svc_nm": "농산물 안전성검사기관 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29553,6 +29606,7 @@
         "svc_nm": "식품검사기관별 시험항목정보조회",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29560,6 +29614,7 @@
         "svc_nm": "축산물위생검사기관 지정 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29567,6 +29622,7 @@
         "svc_nm": "농축산물유통관리 허위표시공표정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29574,6 +29630,7 @@
         "svc_nm": "농축산물유통관리 허위표시품목정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29581,6 +29638,7 @@
         "svc_nm": "식중독 원인물질별 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29588,6 +29646,7 @@
         "svc_nm": "식중독 원인시설별 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29595,6 +29654,7 @@
         "svc_nm": "식중독 지역별 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29602,6 +29662,7 @@
         "svc_nm": "해외직구 위해식품 차단정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29609,6 +29670,7 @@
         "svc_nm": "해외 위해식품 회수정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29616,6 +29678,7 @@
         "svc_nm": "수산물 표시단속정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29623,6 +29686,7 @@
         "svc_nm": "건강기능식품제조업, 건강기능식품판매업 지도단속계획 및 실적현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29630,6 +29694,7 @@
         "svc_nm": "농약 등록정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29637,6 +29702,7 @@
         "svc_nm": "물환경 수질정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29644,6 +29710,7 @@
         "svc_nm": "어류질병정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29651,6 +29718,7 @@
         "svc_nm": "유전자변형식품등의 안전성 평가 심사 결과 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29658,6 +29726,7 @@
         "svc_nm": "후대교배종의 안전성 평가 신청 및 검토 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29665,6 +29734,7 @@
         "svc_nm": "패류독소정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29672,6 +29742,7 @@
         "svc_nm": "쇠고기(국내)이력추적 가공관리",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29679,6 +29750,7 @@
         "svc_nm": "쇠고기(국내)이력추적 생산정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29686,6 +29758,7 @@
         "svc_nm": "수산물이력정보-기본정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29693,6 +29766,7 @@
         "svc_nm": "수산물이력정보-생산정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29700,6 +29774,7 @@
         "svc_nm": "수산물이력정보-출하정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29707,6 +29782,7 @@
         "svc_nm": "수입쇠고기 유통이력정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29714,6 +29790,7 @@
         "svc_nm": "어린이 급식센터 지원현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29721,6 +29798,7 @@
         "svc_nm": "HACCP 교육훈련기관 지정 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29728,6 +29806,7 @@
         "svc_nm": "어린이 식품안전보호구역 관리 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29735,6 +29814,7 @@
         "svc_nm": "어린이 우수판매업소 지정현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29742,6 +29822,7 @@
         "svc_nm": "건강기능식품 품목분류정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29749,6 +29830,7 @@
         "svc_nm": "쇠고기(국내)이력추적 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29756,6 +29838,7 @@
         "svc_nm": "LMO 수입 승인 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29763,6 +29846,7 @@
         "svc_nm": "수산물 해외등록시설정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29770,6 +29854,7 @@
         "svc_nm": "수산물 수입업체 현황 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29777,6 +29862,7 @@
         "svc_nm": "수입축산물 냉동전환 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29784,6 +29870,7 @@
         "svc_nm": "위생공통교육기관내역",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29791,6 +29878,7 @@
         "svc_nm": "집단급식소 설치 현황",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29798,6 +29886,7 @@
         "svc_nm": "수입쇠고기 냉동전환 정보",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29805,6 +29894,7 @@
         "svc_nm": "용어사전(기구용기포장∙식의약품용어집)",
         "in_degree": 0,
         "out_degree": 0,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29812,6 +29902,7 @@
         "svc_nm": "기구 및 용기.포장의 한시적 기준 및 규격 인정 현황",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29819,6 +29910,7 @@
         "svc_nm": "식품첨가물의 기준 및 규격 현황",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29826,6 +29918,7 @@
         "svc_nm": "국외검사기관 인정 현황",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29833,6 +29926,7 @@
         "svc_nm": "식품별 유해오염물질 검출량",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29840,6 +29934,7 @@
         "svc_nm": "농산물이력추적 생산정보",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29847,6 +29942,7 @@
         "svc_nm": "식용란선별포장업 인허가 대장",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29854,6 +29950,7 @@
         "svc_nm": "건강기능식품 개별인정형 정보",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29861,6 +29958,7 @@
         "svc_nm": "건강기능식품 전문.벤처제조업인허가 현황",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29868,6 +29966,7 @@
         "svc_nm": "건강기능식품GMP 지정 현황",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29875,6 +29974,7 @@
         "svc_nm": "건강기능식품업소 인허가 변경 정보",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29882,6 +29982,7 @@
         "svc_nm": "건강기능식품판매업",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29889,6 +29990,7 @@
         "svc_nm": "기구.용기포장제조업",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29896,6 +29998,7 @@
         "svc_nm": "건강기능식품 폐업정보",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29903,6 +30006,7 @@
         "svc_nm": "용기.포장류제조업 폐업정보",
         "in_degree": 0,
         "out_degree": 1,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29910,6 +30014,7 @@
         "svc_nm": "개별기준규격",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29917,6 +30022,7 @@
         "svc_nm": "건강기능식품공전",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29924,6 +30030,7 @@
         "svc_nm": "식품용 기구 및 용기.포장 공전",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29931,6 +30038,7 @@
         "svc_nm": "식품첨가물공전",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29938,6 +30046,7 @@
         "svc_nm": "바코드연계제품정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29945,6 +30054,7 @@
         "svc_nm": "유통바코드",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29952,6 +30062,7 @@
         "svc_nm": "영업소재지 GIS 코드",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29959,6 +30070,7 @@
         "svc_nm": "행정처분결과(식품접객업)",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29966,6 +30078,7 @@
         "svc_nm": "수거검사 계획 및 실적 관련 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29973,6 +30086,7 @@
         "svc_nm": "식품이력추적관리 등록 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29980,6 +30094,7 @@
         "svc_nm": "HACCP 적용업소 지정 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29987,6 +30102,7 @@
         "svc_nm": "축산물HACCP 지정정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -29994,6 +30110,7 @@
         "svc_nm": "공유주방운영업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30001,6 +30118,7 @@
         "svc_nm": "도축업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30008,6 +30126,7 @@
         "svc_nm": "식육즉석판매가공업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30015,6 +30134,7 @@
         "svc_nm": "식품냉동.냉장업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30022,6 +30142,7 @@
         "svc_nm": "식품소분업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30029,6 +30150,7 @@
         "svc_nm": "식품운반업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30036,6 +30158,7 @@
         "svc_nm": "식품조사처리업 인허가 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30043,6 +30166,7 @@
         "svc_nm": "식품판매업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30050,6 +30174,7 @@
         "svc_nm": "즉석판매제조가공업 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30057,6 +30182,7 @@
         "svc_nm": "집단급식소 인허가 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30064,6 +30190,7 @@
         "svc_nm": "푸드트럭지정현황조회",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30071,6 +30198,7 @@
         "svc_nm": "위생용품수입업영업신고대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30078,6 +30206,7 @@
         "svc_nm": "축산물 보관업영업허가대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30085,6 +30214,7 @@
         "svc_nm": "축산물 식육포장처리업영업허가대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30092,6 +30222,7 @@
         "svc_nm": "축산물 운반업영업신고대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30099,6 +30230,7 @@
         "svc_nm": "축산물 집유업영업허가대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30106,6 +30238,7 @@
         "svc_nm": "축산물 판매업영업신고대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30113,6 +30246,7 @@
         "svc_nm": "수입식품등영업신고대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30120,6 +30254,7 @@
         "svc_nm": "우수수입업소 등록 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30127,6 +30262,7 @@
         "svc_nm": "나트륨 줄이기 실천음식점 지정업체 대장",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30134,6 +30270,7 @@
         "svc_nm": "식품모범음식점",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30141,6 +30278,7 @@
         "svc_nm": "식품업소 인허가 변경 정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30148,6 +30286,7 @@
         "svc_nm": "식품위생교육내역",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30155,6 +30294,7 @@
         "svc_nm": "식품위생등급평가관리내역",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30162,6 +30302,7 @@
         "svc_nm": "식품첨가물제조업",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30169,6 +30310,7 @@
         "svc_nm": "식품접객업소 위생등급 지정현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30176,6 +30318,7 @@
         "svc_nm": "음식점업소 인허가 변경 정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30183,6 +30326,7 @@
         "svc_nm": "주류제조.면허자 식품제조.가공영업 등록 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30190,6 +30334,7 @@
         "svc_nm": "위생관리등급별 업소 현황",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30197,6 +30342,7 @@
         "svc_nm": "식육즉석판매가공업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30204,6 +30350,7 @@
         "svc_nm": "수입식품업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30211,6 +30358,7 @@
         "svc_nm": "식품보존업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30218,6 +30366,7 @@
         "svc_nm": "식품소분업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30225,6 +30374,7 @@
         "svc_nm": "식품운반업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30232,6 +30382,7 @@
         "svc_nm": "식품첨가물제조업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30239,6 +30390,7 @@
         "svc_nm": "식품제조가공업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30246,6 +30398,7 @@
         "svc_nm": "위생용품 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30253,6 +30406,7 @@
         "svc_nm": "식품판매업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30260,6 +30414,7 @@
         "svc_nm": "집단급식소 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30267,6 +30422,7 @@
         "svc_nm": "축산물 가공업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30274,6 +30430,7 @@
         "svc_nm": "식품접객업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30281,6 +30438,7 @@
         "svc_nm": "즉석판매제조가공업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30288,6 +30446,7 @@
         "svc_nm": "축산물 식육포장처리업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30295,6 +30454,7 @@
         "svc_nm": "축산물(도축업,보관업,운반업,집유업,식용란선별포장업) 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30302,6 +30462,7 @@
         "svc_nm": "축산물 판매업 폐업정보",
         "in_degree": 0,
         "out_degree": 2,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30309,6 +30470,7 @@
         "svc_nm": "공통기준제외",
         "in_degree": 0,
         "out_degree": 3,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30316,6 +30478,7 @@
         "svc_nm": "공통기준규격",
         "in_degree": 0,
         "out_degree": 3,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30323,6 +30486,7 @@
         "svc_nm": "검사부적합 현황(농산물)",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30330,6 +30494,7 @@
         "svc_nm": "생산중단제품정보",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30337,6 +30502,7 @@
         "svc_nm": "위생용품영업 생산실적보고",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30344,6 +30510,7 @@
         "svc_nm": "축산물 생산실적정보",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30351,6 +30518,7 @@
         "svc_nm": "축산물품목제조보고(원재료)",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30358,6 +30526,7 @@
         "svc_nm": "식품.식품첨가물 생산실적 보고 현황",
         "in_degree": 0,
         "out_degree": 4,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       },
       {
@@ -30365,6 +30534,7 @@
         "svc_nm": "어린이 기호식품 품질인증 현황 및 재심사 현황",
         "in_degree": 0,
         "out_degree": 5,
+        "in_degree_centrality": 0,
         "is_derived_master": false
       }
     ],
@@ -30470,14 +30640,14 @@
         "I2712"
       ],
       [
+        "C002",
         "I2711",
         "I2712",
-        "I1250",
-        "C002"
+        "I1250"
       ],
       [
-        "I1250",
-        "C002"
+        "C002",
+        "I1250"
       ],
       [
         "I0470",
@@ -30492,17 +30662,17 @@
         "I0482"
       ],
       [
-        "I0310",
+        "I0030",
+        "I0310"
+      ],
+      [
+        "C003",
         "I0030"
       ],
       [
-        "I0030",
-        "C003"
-      ],
-      [
+        "C003",
         "I0310",
-        "I0030",
-        "C003"
+        "I0030"
       ]
     ],
     "has_cycles": true,

@@ -400,6 +400,20 @@ function gracefulShutdown(signal) {
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
+// 전역 에러 핸들러 — 라우트에서 next(err) 또는 throw된 에러 포착
+app.use((err, req, res, next) => {
+  logger.error({ err }, '처리되지 않은 오류');
+  res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+});
+
+// 프로세스 레벨 예외 — 잡히지 않은 예외로 서버가 죽는 것 방지
+process.on('uncaughtException', (err) => {
+  logger.error({ err }, 'uncaughtException — 서버가 비정상 종료될 수 있습니다.');
+});
+process.on('unhandledRejection', (reason) => {
+  logger.error({ reason }, 'unhandledRejection — Promise 처리 누락');
+});
+
 app.listen(PORT, () => {
   logger.info(`식품안전나라 통합 DB 웹 앱 서비스가 시작되었습니다. http://localhost:${PORT}`);
 });
