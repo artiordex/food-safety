@@ -9,8 +9,8 @@
  * 5. 최종 체인 JOIN 결과를 chain_joins.sql로 생성함
  */
 
-// SQLite DB 접근을 위한 sqlite3 모듈 불러오기
-const sqlite3 = require('sqlite3').verbose();
+// SQLite DB 접근을 위한 better-sqlite3 모듈 불러오기
+const Database = require('better-sqlite3');
 
 // 파일 읽기, 쓰기, 존재 여부 확인을 위한 fs 모듈 불러오기
 const fs = require('fs');
@@ -70,7 +70,18 @@ const MAX_CHAIN_LENGTH = 4;
 const TABLE_ALIASES = 'ABCDEFGH'.split('');
 
 // 실제 조인 후보로 인정할 주요 컬럼 목록 (main()에서 동적으로 설정됨)
-let VALID_JOIN_KEYS = new Set();
+let VALID_JOIN_KEYS = null; // null = 미초기화, Set = 초기화 완료
+
+/**
+ * VALID_JOIN_KEYS가 초기화되지 않은 경우 CACHE_PATH에서 자동으로 로드한다.
+ * main()을 거치지 않고 개별 함수를 직접 호출할 때도 올바르게 동작하도록 보장한다.
+ */
+function ensureValidJoinKeys() {
+    if (VALID_JOIN_KEYS !== null) return;
+    const datasets = readJsonFileSafe(CACHE_PATH, []);
+    VALID_JOIN_KEYS = buildValidJoinKeys(datasets);
+    logger.info({ keyCount: VALID_JOIN_KEYS.size }, 'VALID_JOIN_KEYS 자동 초기화 완료');
+}
 
 // 자체 identifyCommonKeys 결과로 VALID_JOIN_KEYS를 동적 생성하는 함수
 // 날짜·명칭·주소 등 약한 키 패턴은 조인 후보에서 제외함
@@ -144,63 +155,37 @@ function buildValidJoinKeys(datasets) {
 // pino logger 설정 제거 및 공통 logger 모듈 사용
 const logger = require('../utils/logger');
 
-// SQLite DB 파일 존재 여부 확인
-if (!fs.existsSync(DB_PATH)) {
-    logger.fatal({ dbPath: DB_PATH }, 'foodsafety.db 파일을 찾을 수 없습니다.');
-    process.exit(1);
-}
+// DB 연결은 main() 안에서 initDb()를 통해 초기화한다.
+// 모듈로 import할 때 불필요한 DB 연결을 방지한다.
+let db = null;
 
-// SQLite DB 연결 생성
-const db = new sqlite3.Database(DB_PATH, err => {
-    if (err) {
-        logger.fatal({ err, dbPath: DB_PATH }, 'SQLite DB 연결 중 오류가 발생했습니다.');
+function initDb() {
+    if (!fs.existsSync(DB_PATH)) {
+        logger.fatal({ dbPath: DB_PATH }, 'foodsafety.db 파일을 찾을 수 없습니다.');
         process.exit(1);
     }
-
+    db = new Database(DB_PATH, { readonly: true });
     logger.info({ dbPath: DB_PATH }, 'SQLite DB 연결이 완료되었습니다.');
-});
+}
 
 // SQLite all 쿼리를 Promise 방식으로 실행하는 함수
 function dbAll(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve(rows);
-        });
-    });
+    if (!db) throw new Error('DB가 초기화되지 않았습니다. initDb()를 먼저 호출하세요.');
+    return db.prepare(sql).all(params);
 }
 
-// SQLite get 쿼리를 Promise 방식으로 실행하는 함수
+// SQLite 단일 행 조회를 동기적으로 실행하는 함수
 function dbGet(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve(row);
-        });
-    });
+    if (!db) throw new Error('DB가 초기화되지 않았습니다. initDb()를 먼저 호출하세요.');
+    return db.prepare(sql).get(params);
 }
 
-// SQLite DB 연결을 Promise 방식으로 종료하는 함수
+// SQLite DB 연결을 동기적으로 종료하는 함수
 function closeDb() {
-    return new Promise(resolve => {
-        db.close(err => {
-            if (err) {
-                logger.error({ err }, 'SQLite DB 연결 종료 중 오류가 발생했습니다.');
-            } else {
-                logger.info('SQLite DB 연결을 정상적으로 종료했습니다.');
-            }
-
-            resolve();
-        });
-    });
+    if (db) {
+        db.close();
+        logger.info('SQLite DB 연결을 정상적으로 종료했습니다.');
+    }
 }
 
 // SQLite 식별자에 큰따옴표가 들어가는 경우를 대비해 이스케이프 처리하는 함수
@@ -249,8 +234,8 @@ function loadTableFieldMetadata() {
 }
 
 // SQLite 테이블 목록을 조회하는 함수
-async function getTableNames() {
-    const tables = await dbAll(`
+function getTableNames() {
+    const tables = dbAll(`
     SELECT name
     FROM sqlite_master
     WHERE type = 'table'
@@ -264,17 +249,17 @@ async function getTableNames() {
 }
 
 // 특정 테이블의 컬럼 목록을 조회하는 함수
-async function getTableColumns(tableName) {
-    const columns = await dbAll(`PRAGMA table_info(${quoteIdent(tableName)})`);
+function getTableColumns(tableName) {
+    const columns = dbAll(`PRAGMA table_info(${quoteIdent(tableName)})`);
     return columns.map(column => column.name);
 }
 
 // 전체 테이블의 컬럼 정보를 조회하는 함수
-async function getAllTableColumns(tableNames) {
+function getAllTableColumns(tableNames) {
     const tableColumns = {};
 
     for (const tableName of tableNames) {
-        tableColumns[tableName] = await getTableColumns(tableName);
+        tableColumns[tableName] = getTableColumns(tableName);
     }
 
     return tableColumns;
@@ -298,7 +283,7 @@ function loadCandidateRelationships() {
 }
 
 // 후보 관계 하나에 대해 실제 JOIN 매칭 통계를 조회하는 함수
-async function verifyDirectJoinRelationship(relationship) {
+function verifyDirectJoinRelationship(relationship) {
     const {
         from_table,
         from_field,
@@ -330,7 +315,7 @@ async function verifyDirectJoinRelationship(relationship) {
       ) AS actual_join_count
   `;
 
-    const stats = await dbGet(countSql);
+    const stats = dbGet(countSql);
 
     const totalUnique = stats?.total_unique || 0;
     const matchedUnique = stats?.matched_unique || 0;
@@ -349,7 +334,7 @@ async function verifyDirectJoinRelationship(relationship) {
       LIMIT 3
     `;
 
-        const sampleRows = await dbAll(sampleSql);
+        const sampleRows = dbAll(sampleSql);
 
         samples = sampleRows
             .map(row => row.sample_val)
@@ -375,7 +360,7 @@ async function verifyDirectJoinRelationship(relationship) {
 }
 
 // 후보 관계 목록 전체를 실제 SQLite JOIN 기준으로 검증하는 함수
-async function verifyDirectJoins(relationships) {
+function verifyDirectJoins(relationships) {
     const verified = [];
 
     logger.info({
@@ -393,7 +378,7 @@ async function verifyDirectJoins(relationships) {
         }
 
         try {
-            const result = await verifyDirectJoinRelationship(relationship);
+            const result = verifyDirectJoinRelationship(relationship);
             verified.push(result);
         } catch (err) {
             logger.warn({
@@ -496,7 +481,7 @@ function logDirectJoinSummary(activeVerified) {
 }
 
 // 직접 JOIN 검증 파이프라인을 실행하는 함수
-async function runDirectJoinVerification(tableFieldMap) {
+function runDirectJoinVerification(tableFieldMap) {
     const relationships = loadCandidateRelationships();
 
     if (relationships.length === 0) {
@@ -504,7 +489,7 @@ async function runDirectJoinVerification(tableFieldMap) {
         return [];
     }
 
-    const activeVerified = await verifyDirectJoins(relationships);
+    const activeVerified = verifyDirectJoins(relationships);
     const sqlContent = buildDirectJoinSqlContent(activeVerified, tableFieldMap);
 
     fs.writeFileSync(JOIN_SQL_PATH, sqlContent, 'utf8');
@@ -520,7 +505,7 @@ async function runDirectJoinVerification(tableFieldMap) {
 }
 
 // 두 테이블 사이에서 실제 데이터 매칭이 존재하는 조인키를 검증하는 함수
-async function findMatchedJoinKeys(tableA, tableB, commonKeys) {
+function findMatchedJoinKeys(tableA, tableB, commonKeys) {
     const matchedKeys = [];
 
     for (const key of commonKeys) {
@@ -534,7 +519,7 @@ async function findMatchedJoinKeys(tableA, tableB, commonKeys) {
     `;
 
         try {
-            const row = await dbGet(sql);
+            const row = dbGet(sql);
 
             if (row && row.cnt > 0) {
                 matchedKeys.push({
@@ -570,7 +555,8 @@ function addVerifiedEdge(graph, tableA, tableB, key, count) {
 }
 
 // 실제 매칭이 존재하는 테이블 간 에지 그래프를 생성하는 함수
-async function buildVerifiedEdgeGraph(tableNames, tableColumns) {
+function buildVerifiedEdgeGraph(tableNames, tableColumns) {
+    ensureValidJoinKeys();
     const verifiedEdges = new Map();
 
     let checkedPairCount = 0;
@@ -593,7 +579,7 @@ async function buildVerifiedEdgeGraph(tableNames, tableColumns) {
 
             checkedPairCount++;
 
-            const matchedKeys = await findMatchedJoinKeys(tableA, tableB, commonKeys);
+            const matchedKeys = findMatchedJoinKeys(tableA, tableB, commonKeys);
 
             if (matchedKeys.length === 0) {
                 continue;
@@ -716,7 +702,7 @@ function findChainCandidates(tableNames, verifiedEdges) {
 }
 
 // 체인 경로 전체에 대해 실제 최종 매칭 건수를 검증하는 함수
-async function verifyChainMatchCount(chain) {
+function verifyChainMatchCount(chain) {
     const aliases = TABLE_ALIASES;
 
     const fromClause = `${quoteIdent(chain.path[0])} ${aliases[0]}`;
@@ -742,13 +728,13 @@ async function verifyChainMatchCount(chain) {
     WHERE ${buildNotEmptyCondition(aliases[0], firstJoinKey)}
   `;
 
-    const row = await dbGet(countSql);
+    const row = dbGet(countSql);
 
     return row && row.cnt ? row.cnt : 0;
 }
 
 // 체인 후보 전체를 실제 매칭 여부 기준으로 최종 검증하는 함수
-async function verifyChains(uniqueChains) {
+function verifyChains(uniqueChains) {
     const verifiedChains = [];
 
     for (let i = 0; i < uniqueChains.length; i++) {
@@ -763,7 +749,7 @@ async function verifyChains(uniqueChains) {
         }
 
         try {
-            const matchCount = await verifyChainMatchCount(chain);
+            const matchCount = verifyChainMatchCount(chain);
 
             if (matchCount > 0) {
                 verifiedChains.push({
@@ -872,10 +858,10 @@ function buildChainJoinSqlContent(verifiedChains, tableColumns, tableFieldMap) {
 }
 
 // 체인 JOIN 탐색 파이프라인을 실행하는 함수
-async function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
+function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
     logger.info('테이블 간 공통 조인키를 검증합니다.');
 
-    const verifiedEdges = await buildVerifiedEdgeGraph(tableNames, tableColumns);
+    const verifiedEdges = buildVerifiedEdgeGraph(tableNames, tableColumns);
 
     logger.info({
         minChainLength: MIN_CHAIN_LENGTH,
@@ -896,7 +882,7 @@ async function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
 
     logger.info('전체 체인 경로의 실제 매칭 여부를 최종 검증합니다.');
 
-    const verifiedChains = await verifyChains(uniqueChains);
+    const verifiedChains = verifyChains(uniqueChains);
 
     const sqlContent = buildChainJoinSqlContent(verifiedChains, tableColumns, tableFieldMap);
 
@@ -914,6 +900,8 @@ async function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
 async function main() {
     logger.info('식품안전나라 조인 검증 통합 파이프라인을 시작합니다.');
 
+    initDb();
+
     const tableFieldMap = loadTableFieldMetadata();
 
     // pipeline.js 분석 결과로 VALID_JOIN_KEYS 동적 초기화
@@ -921,20 +909,20 @@ async function main() {
     VALID_JOIN_KEYS = buildValidJoinKeys(datasets);
 
     logger.info('SQLite 테이블 목록을 조회합니다.');
-    const tableNames = await getTableNames();
+    const tableNames = getTableNames();
 
     logger.info({
         tableCount: tableNames.length
     }, 'SQLite 테이블 목록 조회가 완료되었습니다.');
 
     logger.info('SQLite 테이블별 컬럼 정보를 조회합니다.');
-    const tableColumns = await getAllTableColumns(tableNames);
+    const tableColumns = getAllTableColumns(tableNames);
 
     logger.info('직접 JOIN 후보 검증 파이프라인을 실행합니다.');
-    await runDirectJoinVerification(tableFieldMap);
+    runDirectJoinVerification(tableFieldMap);
 
     logger.info('N차 체인 JOIN 탐색 파이프라인을 실행합니다.');
-    await runChainJoinFinder(tableNames, tableColumns, tableFieldMap);
+    runChainJoinFinder(tableNames, tableColumns, tableFieldMap);
 
     logger.info({
         joinSqlPath: JOIN_SQL_PATH,
@@ -943,11 +931,25 @@ async function main() {
 }
 
 // 스크립트 실행 및 최상위 오류 처리
-main()
-    .catch(err => {
-        logger.fatal({ err }, '조인 검증 통합 파이프라인 실행 중 심각한 오류가 발생했습니다.');
-        process.exitCode = 1;
-    })
-    .finally(async () => {
-        await closeDb();
-    });
+if (require.main === module) {
+    main()
+        .catch(err => {
+            logger.fatal({ err }, '조인 검증 통합 파이프라인 실행 중 심각한 오류가 발생했습니다.');
+            process.exitCode = 1;
+        })
+        .finally(() => {
+            closeDb();
+        });
+}
+
+module.exports = {
+    initDb,
+    buildValidJoinKeys,
+    loadTableFieldMetadata,
+    loadCandidateRelationships,
+    findChainCandidates,
+    buildChainJoinSqlContent,
+    buildDirectJoinSqlContent,
+    identifyCommonKeys,
+    main
+};

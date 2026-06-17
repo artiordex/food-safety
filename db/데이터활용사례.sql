@@ -14,9 +14,9 @@
 --   I2710      건강기능식품 품목분류정보
 --   I2500      인허가 업소 정보
 --   I0470      행정처분결과
---   I0490      회수.판매중지 정보
+--   I0490      회수.판매중지 정보 (= "회수판매 중지 정보" — 워치독 표기)
 --   I2620      검사부적합(국내)
---   I2630      행정처분결과(식품접객업)
+--   I2630      행정처분결과(식품접객업) (= "행정처분 의뢰 및 결과 현황(식품접객업)" — 네이버 플레이스 표기)
 --   C004       식품접객업소 위생등급 지정현황
 --   I1200      식품접객업정보
 --   I1220      식품제조가공업정보
@@ -28,7 +28,7 @@
 --   I2600      공통기준규격
 --   I2590      공통기준종류
 --   I2610      공통기준제외
---   I2510      품목유형코드
+--   I2510      품목유형코드 (= "품목분류코드" — LIMS·식품LIMS 표기)
 --   I2530      시험항목코드
 --   I2520      식품원재료코드
 --   I0320      식품이력추적관리 등록 현황
@@ -46,6 +46,10 @@
 --   I2835      식육즉석판매가공업 인허가 대장
 --   I1260      식품등수입판매업정보
 --   I1560      식품위생교육내역
+--   I1240      기구.용기포장제조업
+--   I1230      식품첨가물제조업
+--   I1300      축산물 가공업허가정보
+--   I0610      축산물HACCP 지정정보
 -- ============================================================
 
 
@@ -201,7 +205,7 @@ LIMIT 30;
 
 -- 3-2. 식품접객업 + 행정처분(식품접객업)  [연결키: LCNS_NO] (값조회x)
 --      요기요·네이버 플레이스: 음식점 처분 이력 실시간 반영
---      ⚠️ I1200(식품접객업정보), I2630(행정처분식품접객업) 현재 DB 미적재
+--      ※ I1200(997건)·I2630(993건) 적재됨. 단 현재 DB 데이터 범위 비겹침으로 JOIN 결과 0건
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LOCP_ADDR         AS 주소,
@@ -218,7 +222,7 @@ LIMIT 30;
 
 -- 3-3. 위생등급 + 행정처분 + 인허가 3중 연결  [연결키: LCNS_NO] (값조회x)
 --      한국관광공사: 위생등급 우수 업소 중 최근 2년 처분 이력 없는 곳 추천
---      ⚠️ I1200(식품접객업정보), I2630(행정처분식품접객업) 현재 DB 미적재
+--      ※ I1200(997건)·I2630(993건) 적재됨. 단 현재 DB 데이터 범위 비겹침으로 JOIN 결과 0건
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LOCP_ADDR         AS 주소,
@@ -271,12 +275,12 @@ LIMIT 30;
 
 
 -- ============================================================
--- [사례 5] 오뚜기 / 한살림 ERP / 식품 LIMS
+-- [사례 5] 제품 유형·공통기준규격 연계
 --   식품제조·기준규격 정보 시스템
 -- ============================================================
 
 -- 5-1. 품목유형코드 + 공통기준규격  [연결키: PRDLST_CD → I2600]
---      오뚜기·LIMS: 제품 유형에 따른 공통기준규격 자동 매핑
+--      제품 유형에 따른 공통기준규격 자동 매핑
 --      ※ I2510(A-prefix)↔I2580(D-prefix) 코드체계 불일치 → I2600(공통기준규격) 으로 대체
 SELECT
     c.KOR_NM            AS 품목유형명,
@@ -304,7 +308,7 @@ JOIN "I2600" g ON t.TESTITM_CD = g.TESTITM_CD
 LIMIT 30;
 
 -- 5-3. 식품 품목제조보고 + 축산물 품목제조정보 통합  [UNION ALL]
---      오뚜기: 경쟁사 신제품 출시 현황 모니터링 (식품 + 축산물)
+--      경쟁사 신제품 출시 현황 모니터링 (식품 + 축산물)
 SELECT
     '식품' AS 구분,
     f.LCNS_NO, f.BSSH_NM AS 업소명, f.PRDLST_NM AS 제품명,
@@ -319,15 +323,17 @@ FROM "I1310" a
 ORDER BY 신고일 DESC
 LIMIT 50;
 
--- 5-4. 한살림 ERP: 식품원재료코드 + 품목유형코드  [연결키: 원재료분류명]
-SELECT
-    r.RPRSNT_RAWMTRL_NM AS 원재료명,
-    r.RAWMTRL_LCLAS_NM  AS 원재료분류,
-    p.KOR_NM            AS 품목유형명,
-    p.PRDLST_CD         AS 품목유형코드
-FROM "I2520" r
-LEFT JOIN "I2510" p ON r.RAWMTRL_LCLAS_NM = p.KOR_NM
-LIMIT 30;
+-- 5-4. 식품원재료코드 + 품목유형코드
+--      ⚠️ I2520.RAWMTRL_LCLAS_NM 값이 '식품원료(A코드)' 단일값으로 I2510.KOR_NM과 실질적 연결 불가
+--      두 테이블 간 공통 JOIN 키 없음 — 쿼리 비활성화
+-- SELECT
+--     r.RPRSNT_RAWMTRL_NM AS 원재료명,
+--     r.RAWMTRL_LCLAS_NM  AS 원재료분류,
+--     p.KOR_NM            AS 품목유형명,
+--     p.PRDLST_CD         AS 품목유형코드
+-- FROM "I2520" r
+-- LEFT JOIN "I2510" p ON r.RAWMTRL_LCLAS_NM = p.KOR_NM
+-- LIMIT 30;
 
 
 -- ============================================================
@@ -414,7 +420,7 @@ LIMIT 100;
 
 -- 7-1. 유통바코드 + 바코드연계제품정보  [연결키: BRCD_NO = BAR_CD] (값조회x)
 --      큐마켓: 바코드 스캔으로 제품 유형·유통기한·제조사 즉시 확인
---      ⚠️ I2570(유통바코드), C005(바코드연계제품정보) 현재 DB 미적재
+--      ※ I2570(964건)·C005(949건) 적재됨. BRCD_NO↔BAR_CD 크로스키 JOIN 14건 매칭
 SELECT
     b.BRCD_NO           AS 바코드,
     b.PRDT_NM           AS 제품명,
@@ -429,7 +435,7 @@ LIMIT 30;
 
 -- 7-2. 이력추적관리 + 유통바코드  [연결키: PDT_BARCD = BRCD_NO] (값조회x)
 --      BGF리테일: 이력추적 제품의 바코드로 제조~유통 전 단계 추적
---      ⚠️ I0320(식품이력추적관리), I2570(유통바코드) 현재 DB 미적재
+--      ※ I0320(534건)·I2570(964건) 적재됨. 단 PDT_BARCD↔BRCD_NO 현재 매칭값 없음 (JOIN 0건)
 SELECT
     t.PDT_NM            AS 제품명,
     t.PDT_BARCD         AS 제품바코드,
@@ -450,7 +456,7 @@ LIMIT 30;
 
 -- 8-1. 식품접객업 + 식품위생교육내역  [연결키: LCNS_NO] (값조회x)
 --      한국외식업중앙회: 교육 이수 업소와 인허가 현황 대조
---      ⚠️ I1200(식품접객업정보) 현재 DB 미적재
+--      ※ I1200(997건) 적재됨. 단 LCNS_NO 포맷 불일치로 현재 JOIN 결과 0건
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LCNS_NO           AS 허가번호,
@@ -466,7 +472,7 @@ LIMIT 30;
 
 -- 8-2. 위생등급 + 위생교육 이수 현황  [연결키: LCNS_NO] (값조회x)
 --      한국외식업중앙회: 위생등급 지정 업소의 교육 이수 횟수 파악
---      ⚠️ I1200(식품접객업정보) 현재 DB 미적재
+--      ※ I1200(997건) 적재됨. 단 LCNS_NO 포맷 불일치로 현재 JOIN 결과 0건
 SELECT
     i.BSSH_NM           AS 업소명,
     i.LCNS_NO,
@@ -478,6 +484,170 @@ LEFT JOIN "I1560" e ON i.LCNS_NO = e.LCNS_NO
 WHERE g.HG_ASGN_LV IS NOT NULL
 GROUP BY i.LCNS_NO, i.BSSH_NM, g.HG_ASGN_LV
 ORDER BY 교육이수횟수 DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 9] 개별기준규격·시험항목·처분기준 연계
+--   기준규격 계열 — 개별기준규격 + 공통기준종류 + 공통기준제외
+-- ============================================================
+
+-- 9-1. 개별기준규격 + 시험항목코드  [연결키: TESTITM_CD]
+--      식품 LIMS·LIMS: 품목별 개별 기준규격과 시험항목 상세 조회
+SELECT
+    s.INDV_SPEC_SEQ     AS 개별기준규격일련번호,
+    s.PRDLST_CD         AS 품목분류코드,
+    s.PRDLST_CD_NM      AS 품목명,
+    s.TESTITM_CD        AS 시험항목코드,
+    s.TESTITM_NM        AS 시험항목명,
+    s.SPEC_VAL          AS 기준규격,
+    t.KOR_NM            AS 시험항목한글명
+FROM "I2580" s
+LEFT JOIN "I2530" t ON s.TESTITM_CD = t.TESTITM_CD
+LIMIT 30;
+
+-- 9-2. 공통기준종류 계층 구조  [연결키: CMMN_SPEC_CD → HRNK_CMMN_SPEC_CD]
+--      LIMS: 공통기준규격의 상위-하위 계층 구조 파악
+SELECT
+    c.CMMN_SPEC_CD          AS 기준규격코드,
+    c.SPEC_NM               AS 기준규격명,
+    c.HRNK_CMMN_SPEC_CD     AS 상위코드,
+    p.SPEC_NM               AS 상위기준규격명,
+    c.LV                    AS 레벨,
+    c.DFN                   AS 정의
+FROM "I2590" c
+LEFT JOIN "I2590" p ON c.HRNK_CMMN_SPEC_CD = p.CMMN_SPEC_CD
+WHERE c.LV = 2
+LIMIT 30;
+
+-- 9-3. 공통기준제외 + 공통기준규격  [연결키: CMMN_SPEC_CD + TESTITM_CD]
+--      특정 품목에서 제외되는 기준규격 확인
+SELECT
+    x.CMMN_SPEC_CD      AS 공통기준규격코드,
+    x.SPEC_NM           AS 기준규격명,
+    x.PRDLST_CD         AS 품목코드,
+    x.KOR_NM            AS 한글명,
+    x.TESTITM_CD        AS 시험항목코드,
+    r.SPEC_VAL          AS 공통기준규격값
+FROM "I2610" x
+LEFT JOIN "I2600" r ON x.CMMN_SPEC_CD = r.CMMN_SPEC_CD
+                    AND x.TESTITM_CD   = r.TESTITM_CD
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 10] 농심 (내부 구축 시스템)
+--   HACCP 교육훈련기관 + HACCP 적용업소 연동
+-- ============================================================
+
+-- 10-1. HACCP 교육훈련기관 + HACCP 적용업소  [연결키: LCNS_NO]
+--       농심: HACCP 인증 업소가 이용한 교육훈련기관 파악
+SELECT
+    h.BSSH_NM               AS HACCP_업소명,
+    h.LCNS_NO               AS 인허가번호,
+    h.INDUTY_CD_NM          AS 업종,
+    e.BSSH_NM               AS 교육훈련기관명,
+    e.EDC_INSTT_APPN_NO     AS 기관지정번호,
+    e.BSSH_ADDR             AS 기관주소
+FROM "I0580" h
+LEFT JOIN "I0600" e ON h.LCNS_NO = e.EDC_INSTT_APPN_NO
+LIMIT 30;
+
+-- 10-2. HACCP 교육훈련기관 단독 조회
+--       농심: 기관별 지정 현황 목록
+SELECT
+    EDC_INSTT_APPN_NO   AS 지정번호,
+    BSSH_NM             AS 기관명,
+    BSSH_ADDR           AS 주소,
+    PRSDNT_NM           AS 대표자,
+    PRMS_DT             AS 허가일자
+FROM "I0600"
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 11] 토스(Toss) — 영업 인허가 + 폐업 통합 현황
+--   식품등수입판매업 / 식품제조가공업 폐업 / 식육즉석판매가공업 인허가
+-- ============================================================
+
+-- 11-1. 식품등수입판매업정보 + 인허가 업소  [연결키: LCNS_NO]
+--       토스: 수입판매업체 인허가 상태 종합 확인
+SELECT
+    i.LCNS_NO           AS 인허가번호,
+    i.BSSH_NM           AS 업소명,
+    i.INDUTY_NM         AS 업종,
+    i.PRMS_DT           AS 허가일자,
+    h.INDUTY_CD_NM      AS 인허가_업종분류,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I1260" i
+LEFT JOIN "I2500" h ON i.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 11-2. 식품제조가공업 폐업정보  [단독 조회]
+--       토스: 폐업 처리된 식품제조가공업체 현황
+SELECT
+    LCNS_NO     AS 인허가번호,
+    BSSH_NM     AS 업소명,
+    PRSDNT_NM   AS 대표자명,
+    INDUTY_NM   AS 업종,
+    PRMS_DT     AS 허가일자
+FROM "I2811"
+ORDER BY PRMS_DT DESC
+LIMIT 30;
+
+-- 11-3. 식육즉석판매가공업 인허가 대장  [단독 조회]
+--       토스: 식육즉석판매가공업 현행 인허가 목록
+SELECT
+    LCNS_NO     AS 인허가번호,
+    BSSH_NM     AS 업소명,
+    PRSDNT_NM   AS 대표자명,
+    INDUTY_NM   AS 업종,
+    PRMS_DT     AS 허가일자
+FROM "I2835"
+ORDER BY PRMS_DT DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 12] 푸드비투비(FoodB2B) — 식품업체 통합 인허가 현황
+--   기구.용기포장제조업 / 식품첨가물제조업 / 축산물 가공업허가 / 축산물HACCP
+-- ============================================================
+
+-- 12-1. 기구.용기포장제조업 + 인허가 업소  [연결키: LCNS_NO]
+--       푸드비투비: 기구·용기·포장 제조업체 인허가 현황
+SELECT
+    k.LCNS_NO       AS 인허가번호,
+    k.BSSH_NM       AS 업소명,
+    k.INDUTY_NM     AS 업종,
+    k.PRMS_DT       AS 허가일자,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I1240" k
+LEFT JOIN "I2500" h ON k.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 12-2. 식품첨가물제조업 + 인허가 업소  [연결키: LCNS_NO]
+--       푸드비투비: 식품첨가물 제조업체 인허가 현황
+SELECT
+    a.LCNS_NO       AS 인허가번호,
+    a.BSSH_NM       AS 업소명,
+    a.INDUTY_NM     AS 업종,
+    a.PRMS_DT       AS 허가일자,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I1230" a
+LEFT JOIN "I2500" h ON a.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 12-3. 축산물 가공업허가정보 + 축산물HACCP 지정정보  [연결키: LCNS_NO]
+--       BGF리테일·푸드비투비: 축산물 가공업체의 HACCP 지정 여부 교차 확인
+SELECT
+    m.LCNS_NO           AS 인허가번호,
+    m.BSSH_NM           AS 업소명,
+    m.INDUTY_NM         AS 업종,
+    m.PRMS_DT           AS 허가일자,
+    h.INDUTY_CD_NM      AS HACCP_업종,
+    h.CLSBIZ_DVS_CD_NM  AS HACCP_영업상태
+FROM "I1300" m
+LEFT JOIN "I0610" h ON m.LCNS_NO = h.LCNS_NO
 LIMIT 30;
 
 
@@ -504,3 +674,764 @@ LIMIT 30;
 --
 -- FOOD_NM_KR / RCP_NM (식품·레시피명, 텍스트 매칭)
 --   1471000 ↔ COOKRCP01
+
+-- ============================================================
+-- [사례 13] 위생용품 이력 관리
+--   위생용품 품목 등록·원재료·생산실적 통합 조회
+-- ============================================================
+
+-- 13-1. 위생용품 품목제조 + 영업정보  [연결키: LCNS_NO]
+--       위생용품 납품업체의 품목등록 현황과 업체 기본정보 통합 조회
+SELECT
+    p.BSSH_NM           AS 업소명,
+    p.PRDLST_REPORT_NO  AS 품목보고번호,
+    p.PRDLST_NM         AS 제품명,
+    p.PRDLST_DCNM       AS 제품유형,
+    p.PRMS_DT           AS 보고일자,
+    e.INDUTY_NM         AS 업종,
+    e.LOCP_ADDR         AS 소재지,
+    e.TELNO             AS 전화번호
+FROM "I2711" p
+JOIN "I2713" e ON p.LCNS_NO = e.LCNS_NO
+LIMIT 30;
+
+-- 13-2. 위생용품 원재료 + 완제품 연결  [연결키: PRDLST_REPORT_NO]
+--       위생용품 완제품과 사용 원재료 대조 확인
+SELECT
+    p.PRDLST_NM         AS 완제품명,
+    p.PRDLST_DCNM       AS 제품유형,
+    r.RAWMTRL_NM        AS 원재료명
+FROM "I2711" p
+JOIN "I2712" r ON p.PRDLST_REPORT_NO = r.PRDLST_REPORT_NO
+LIMIT 30;
+
+-- 13-3. 위생용품 생산실적 + 영업정보  [연결키: LCNS_NO]
+--       연도별 위생용품 생산실적과 업체 현황 통합 조회
+SELECT
+    s.EVL_YR            AS 평가연도,
+    s.BSSH_NM           AS 업소명,
+    s.PRDLST_NM         AS 제품명,
+    s.PRDCTN_QY         AS 생산량,
+    e.INDUTY_NM         AS 업종,
+    e.LOCP_ADDR         AS 소재지
+FROM "I2851" s
+JOIN "I2713" e ON s.LCNS_NO = e.LCNS_NO
+ORDER BY s.EVL_YR DESC, s.PRDCTN_QY DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 14] 영업소 위치·변경 이력 관리
+--   영업소 위치·변경 이력 기반 지도·음식점 서비스
+-- ============================================================
+
+-- 14-1. 영업소재지 GIS 코드 + 인허가 업소  [연결키: LCNS_NO]
+--       영업소 상세 주소(도로명·지번) + 인허가 업종 정보 지도 표출
+SELECT
+    g.BSSH_NM               AS 업소명,
+    g.LOCPLC                AS 지번주소,
+    g.ROADNMADDREMDCD       AS 도로명주소코드,
+    g.PNU_CD                AS PNU코드,
+    h.INDUTY_CD_NM          AS 업종
+FROM "I2560" g
+JOIN "I2500" h ON g.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 14-2. 음식점 인허가 변경 이력 + 식품접객업  [연결키: LCNS_NO]
+--       음식점 상호·주소 변경 이력 실시간 반영
+SELECT
+    i.BSSH_NM           AS 현재업소명,
+    i.INDUTY_NM         AS 업종,
+    i.LOCP_ADDR         AS 현재주소,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용,
+    c.CHNG_PRVNS        AS 변경사유
+FROM "I1200" i
+JOIN "I2861" c ON i.LCNS_NO = c.LCNS_NO
+ORDER BY c.CHNG_DT DESC
+LIMIT 30;
+
+-- 14-3. 식품판매업 인허가 현황  [연결키: LCNS_NO]
+--       식품판매업소 인허가 상태 확인
+SELECT
+    s.LCNS_NO           AS 인허가번호,
+    s.BSSH_NM           AS 업소명,
+    s.INDUTY_NM         AS 업종,
+    s.PRMS_DT           AS 허가일자,
+    s.LOCP_ADDR         AS 소재지,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I2832" s
+LEFT JOIN "I2500" h ON s.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 15] 공전 시험기준·시험항목 통합 조회
+--   공전 시험기준 + 시험항목코드 연계
+-- ============================================================
+
+-- 15-1. 식품첨가물공전 + 시험항목코드  [연결키: TESTITM_CD]
+--       식품첨가물 품목별 시험기준 항목 상세 조회
+SELECT
+    s.PC_KOR_NM         AS 품목명,
+    s.TESTITM_CD        AS 시험항목코드,
+    t.KOR_NM            AS 시험항목한글명,
+    s.SPEC_VAL          AS 기준규격,
+    s.UNIT_NM           AS 단위,
+    s.INJRY_YN          AS 위해여부
+FROM "I0950" s
+LEFT JOIN "I2530" t ON s.TESTITM_CD = t.TESTITM_CD
+LIMIT 30;
+
+-- 15-2. 건강기능식품공전 + 시험항목코드  [연결키: TESTITM_CD]
+--       건강기능식품 기준규격별 시험항목 조회
+SELECT
+    s.PC_KOR_NM         AS 품목명,
+    s.TESTITM_CD        AS 시험항목코드,
+    t.KOR_NM            AS 시험항목한글명,
+    s.SPEC_VAL          AS 기준규격,
+    s.UNIT_NM           AS 단위
+FROM "I0960" s
+LEFT JOIN "I2530" t ON s.TESTITM_CD = t.TESTITM_CD
+LIMIT 30;
+
+-- 15-3. 기구·용기·포장 공전 + 시험항목코드  [연결키: TESTITM_CD]
+--       기구·용기·포장 재질별 시험기준 조회
+SELECT
+    s.PC_KOR_NM         AS 품목명,
+    s.TESTITM_CD        AS 시험항목코드,
+    t.KOR_NM            AS 시험항목한글명,
+    s.SPEC_VAL          AS 기준규격,
+    s.UNIT_NM           AS 단위
+FROM "I0940" s
+LEFT JOIN "I2530" t ON s.TESTITM_CD = t.TESTITM_CD
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 16] 식품 생산실적 통계 분석
+--   식품 생산실적 통계 분석
+-- ============================================================
+
+-- 16-1. 식품(첨가물) 품목제조보고 원재료 + 제조업체  [연결키: LCNS_NO]
+--       제조업체별 사용 원재료 현황 분석
+SELECT
+    r.BSSH_NM           AS 업소명,
+    r.PRDLST_NM         AS 품목명,
+    r.RAWMTRL_NM        AS 원재료명,
+    m.LOCP_ADDR         AS 소재지
+FROM "C002" r
+JOIN "I1220" m ON r.LCNS_NO = m.LCNS_NO
+LIMIT 30;
+
+-- 16-2. 식품·식품첨가물 생산실적 + 제조업체  [연결키: LCNS_NO]
+--       연도별 생산실적 현황과 업체 정보 통합 분석
+SELECT
+    p.EVL_YR            AS 평가연도,
+    p.BSSH_NM           AS 업소명,
+    p.H_ITEM_NM         AS 대분류,
+    p.PRDLST_NM         AS 품목명,
+    p.PRDCTN_QY         AS 생산량,
+    m.LOCP_ADDR         AS 소재지
+FROM "I0300" p
+JOIN "I1220" m ON p.LCNS_NO = m.LCNS_NO
+ORDER BY p.EVL_YR DESC, p.PRDCTN_QY DESC
+LIMIT 30;
+
+-- 16-3. 건강기능식품 생산실적 + 품목제조신고  [연결키: PRDLST_REPORT_NO]
+--       건강기능식품 품목별 연도별 생산량 추적
+SELECT
+    r.EVL_YR            AS 평가연도,
+    r.BSSH_NM           AS 업소명,
+    r.PRDLST_NM         AS 제품명,
+    r.PRDCTN_QY         AS 생산량,
+    d.PRMS_DT           AS 신고일자
+FROM "I0310" r
+JOIN "I0030" d ON r.PRDLST_REPORT_NO = d.PRDLST_REPORT_NO
+ORDER BY r.EVL_YR DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 17] 식약처 법규·집행 정보 시스템
+--   처분기준·과태료 코드 연계
+-- ============================================================
+
+-- 17-1. 처분기준코드 계층 구조  [연결키: HRNK_DSPS_STDR_CD → DSPS_STDR_CD]
+--       처분기준 상위-하위 계층 전체 조회
+SELECT
+    c.DSPS_STDR_CD      AS 처분기준코드,
+    c.DSPS_STDR_CD_NM   AS 처분기준명,
+    c.LV_NO             AS 레벨,
+    p.DSPS_STDR_CD_NM   AS 상위처분기준명,
+    c.VILT_TYPE_CD_NM   AS 위반유형,
+    c.BASIS_LAWORD      AS 근거법령
+FROM "I2550" c
+LEFT JOIN "I2550" p ON c.HRNK_DSPS_STDR_CD = p.DSPS_STDR_CD
+WHERE c.USE_YN = 'Y'
+LIMIT 30;
+
+-- 17-2. 처분기준 + 과태료 부과기준  [연결키: DSPS_STDR_CD]
+--       위반 유형별 처분기준과 과태료 매핑
+SELECT
+    d.DSPS_STDR_CD      AS 처분기준코드,
+    d.DSPS_STDR_CD_NM   AS 처분기준명,
+    d.VILT_TYPE_CD_NM   AS 위반유형,
+    d.BASIS_LAWORD      AS 근거법령,
+    f.DSPS_STDR_CD_NM   AS 과태료기준명
+FROM "I2550" d
+JOIN "I1670" f ON d.DSPS_STDR_CD = f.DSPS_STDR_CD
+WHERE d.USE_YN = 'Y'
+LIMIT 30;
+
+-- 17-3. 식품제조가공업 행정처분 + 제조업체  [연결키: LCNS_NO]
+--       행정처분 이력과 업체 기본정보 통합 조회
+SELECT
+    a.PRCSCITYPOINT_BSSHNM  AS 처분업소명,
+    a.DSPS_TYPECD_NM        AS 처분유형,
+    a.VILTCN                AS 위반내용,
+    a.DSPS_DCSNDT           AS 처분결정일,
+    m.LOCP_ADDR             AS 소재지,
+    m.TELNO                 AS 전화번호
+FROM "I0480" a
+JOIN "I1220" m ON a.LCNS_NO = m.LCNS_NO
+ORDER BY a.DSPS_DCSNDT DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 18] 건강기능식품 전주기 추적
+--   건강기능식품 전주기 추적 (chain: 원재료 → 제조 → 생산실적 → GMP인증)
+-- ============================================================
+
+-- 18-1. 건강기능식품 원재료 → 품목제조신고 → GMP 인증  [3차 체인: PRDLST_REPORT_NO → LCNS_NO]
+--       GMP 인증 업체의 품목별 원재료 구성 파악
+SELECT
+    r.RAWMTRL_NM        AS 원재료명,
+    d.PRDLST_NM         AS 제품명,
+    d.BSSH_NM           AS 업소명,
+    g.INDUTY_CD_NM      AS GMP_업종,
+    g.APPN_DT           AS GMP_인증일
+FROM "C003" r
+JOIN "I0030" d ON r.PRDLST_REPORT_NO = d.PRDLST_REPORT_NO
+JOIN "I0630" g ON d.LCNS_NO = g.LCNS_NO
+LIMIT 30;
+
+-- 18-2. 건강기능식품 제조업 인허가 + 생산실적  [연결키: LCNS_NO]
+--       건강기능식품 전문·벤처 제조업체별 생산실적 추적
+SELECT
+    m.BSSH_NM           AS 업소명,
+    m.INDUTY_NM         AS 업종,
+    m.LOCP_ADDR         AS 소재지,
+    p.EVL_YR            AS 평가연도,
+    p.PRDLST_NM         AS 제품명,
+    p.PRDCTN_QY         AS 생산량
+FROM "I-0020" m
+JOIN "I0310" p ON m.LCNS_NO = p.LCNS_NO
+ORDER BY p.EVL_YR DESC
+LIMIT 30;
+
+-- 18-3. 건강기능식품 업소 인허가 변경 이력  [연결키: LCNS_NO]
+--       건강기능식품 제조업체 상호·주소 변경 이력 확인
+SELECT
+    d.PRDLST_NM         AS 제품명,
+    d.BSSH_NM           AS 업소명,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용,
+    c.CHNG_PRVNS        AS 변경사유
+FROM "I0030" d
+JOIN "I2860" c ON d.LCNS_NO = c.LCNS_NO
+ORDER BY c.CHNG_DT DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 19] 농산물이력추적 생산·유통 연계
+--   농산물이력추적 생산·유통 연계
+-- ============================================================
+
+-- 19-1. 농산물이력추적 생산 + 유통  [연결키: HIST_TRACE_REG_NO]
+--       이력추적 등록 농산물의 생산자→유통업체 연결
+SELECT
+    p.HIST_TRACE_REG_NO AS 이력추적등록번호,
+    p.RPRSNT_PRDLST_NM  AS 대표품목명,
+    p.REG_INSTT_NM      AS 등록기관,
+    p.ORGN_NM           AS 생산지,
+    d.GRP_NM            AS 유통업체명,
+    d.PRSDNT_NM         AS 유통업체대표
+FROM "I1790" p
+JOIN "I1800" d ON p.HIST_TRACE_REG_NO = d.HIST_TRACE_REG_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 20] 어린이·모범·우수 업소 인증 연계
+--   어린이·모범·우수 업소 인증 연계
+-- ============================================================
+
+-- 20-1. 어린이 기호식품 품질인증 + 축산물 품목제조정보  [연결키: PRDLST_REPORT_NO]
+--       어린이 기호식품 인증 제품의 품목제조 정보 대조
+SELECT
+    c.PRDLST_NM                 AS 인증제품명,
+    c.CHILD_FAVOR_FOOD_TYPE_NM  AS 어린이기호식품유형,
+    c.APPN_BGN_DT               AS 인증시작일,
+    c.APPN_END_DT               AS 인증종료일,
+    m.PRDLST_NM                 AS 품목명,
+    m.INDUTY_CD_NM              AS 업종
+FROM "I0080" c
+JOIN "I1310" m ON c.PRDLST_REPORT_NO = m.PRDLST_REPORT_NO
+LIMIT 30;
+
+-- 20-2. 식품모범음식점 + 식품접객업  [연결키: LCNS_NO]
+--       모범음식점 지정 현황과 식품접객업 정보 통합 표출
+SELECT
+    r.BSSH_NM           AS 업소명,
+    r.SIGNGU_NM         AS 시군구,
+    r.YEAR              AS 지정연도,
+    r.PNCPL_FOOD_NM     AS 주요음식,
+    r.APPN_DT           AS 지정일자,
+    i.LOCP_ADDR         AS 주소,
+    i.TELNO             AS 전화번호
+FROM "I1590" r
+JOIN "I1200" i ON r.LCNS_NO = i.LCNS_NO
+LIMIT 30;
+
+-- 20-3. 우수수입업소 + 수입판매업  [연결키: LCNS_NO]
+--       우수수입업소 등록 업체의 수입판매업 허가 현황 확인
+SELECT
+    u.BSSH_NM               AS 업소명,
+    u.EXCOURY_NATN_CD_NM    AS 수출국,
+    u.PRDLST_NM             AS 품목,
+    u.PRMS_DT               AS 등록일자,
+    i.INDUTY_NM             AS 업종,
+    i.LOCP_ADDR             AS 소재지
+FROM "I0250" u
+JOIN "I1260" i ON u.LCNS_NO = i.LCNS_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 21] 검사기관 연계·수거검사 이력
+--   검사기관 연계·수거검사 이력
+-- ============================================================
+
+-- 21-1. 국내외 검사기관 연계  [연결키: PRSEC_INSTT_RCOGN_NO]
+--       국내·외 검사기관 인정번호 기준 연계 조회
+SELECT
+    n.BSSH_NM           AS 국내기관명,
+    n.WORK_SCOPE        AS 업무범위,
+    n.APPN_BGN_DT       AS 지정시작일,
+    n.APPN_END_DT       AS 지정종료일,
+    f.BSSH_NM           AS 국외기관명,
+    f.BSSH_ADDR         AS 국외기관주소,
+    f.PRSEC_ITM_CD_NM   AS 검사항목
+FROM "I0890" n
+JOIN "I0910" f ON n.PRSEC_INSTT_RCOGN_NO = f.PRSEC_INSTT_RCOGN_NO
+LIMIT 30;
+
+-- 21-2. 수거검사 실적 + 축산물 품목제조정보  [연결키: PRDLST_REPORT_NO]
+--       수거검사 대상 제품의 품목제조 정보 및 판정 결과 조회
+SELECT
+    s.BSSH_NM               AS 업소명,
+    s.PRDTNM                AS 제품명,
+    s.JDGMNT_CD_NM          AS 판정결과,
+    s.TKAWYDTM              AS 수거일시,
+    s.TKAWYSPCI_TYPECD_NM   AS 수거특이유형,
+    m.PRDLST_NM             AS 품목명,
+    m.INDUTY_CD_NM          AS 업종
+FROM "I0460" s
+JOIN "I1310" m ON s.PRDLST_REPORT_NO = m.PRDLST_REPORT_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 22] join.sql 미포함 관계 추가 (21개)
+-- ============================================================
+
+-- 22-1. 공통기준규격 + 공통기준종류  [연결키: CMMN_SPEC_CD] (1,000건)
+SELECT
+    r.CMMN_SPEC_CD      AS 공통기준코드,
+    r.PRDLST_CD_NM      AS 품목명,
+    r.TESTITM_NM        AS 시험항목명,
+    r.SPEC_VAL          AS 기준규격,
+    r.UNIT_NM           AS 단위,
+    c.SPEC_NM           AS 공통기준종류명,
+    c.LV                AS 계층레벨
+FROM "I2600" r
+JOIN "I2590" c ON r.CMMN_SPEC_CD = c.CMMN_SPEC_CD
+LIMIT 30;
+
+-- 22-2. 축산물 품목제조정보 + 축산물 가공업허가정보  [연결키: LCNS_NO] (1,000건)
+SELECT
+    p.PRDLST_NM         AS 품목명,
+    p.PRDLST_DCNM       AS 품목유형,
+    p.PRMS_DT           AS 보고일자,
+    m.INDUTY_NM         AS 업종,
+    m.LOCP_ADDR         AS 소재지
+FROM "I1310" p
+JOIN "I1300" m ON p.LCNS_NO = m.LCNS_NO
+LIMIT 30;
+
+-- 22-3. 수입식품등영업신고대장 + 식품등수입판매업정보  [연결키: LCNS_NO] (1,000건)
+SELECT
+    e.BSSH_NM           AS 영업신고업소명,
+    e.INDUTY_NM         AS 업종,
+    e.PRMS_DT           AS 신고일자,
+    i.LOCP_ADDR         AS 소재지,
+    i.TELNO             AS 전화번호
+FROM "C001" e
+JOIN "I1260" i ON e.LCNS_NO = i.LCNS_NO
+LIMIT 30;
+
+-- 22-4. 식품(첨가물)품목제조보고 + 인허가 업소 정보  [연결키: LCNS_NO] (1,000건)
+SELECT
+    p.BSSH_NM           AS 업소명,
+    p.PRDLST_NM         AS 품목명,
+    p.PRDLST_DCNM       AS 품목유형,
+    p.PRMS_DT           AS 보고일자,
+    h.INDUTY_CD_NM      AS 인허가업종
+FROM "I1250" p
+JOIN "I2500" h ON p.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 22-5. 위생용품 품목제조보고(원재료) + 위생용품영업정보  [연결키: LCNS_NO] (802건)
+SELECT
+    r.PRDLST_NM         AS 품목명,
+    r.RAWMTRL_NM        AS 원재료명,
+    e.INDUTY_NM         AS 업종,
+    e.LOCP_ADDR         AS 소재지
+FROM "I2712" r
+JOIN "I2713" e ON r.LCNS_NO = e.LCNS_NO
+LIMIT 30;
+
+-- 22-6. 축산물 품목제조정보 + 인허가 업소 정보  [연결키: LCNS_NO] (212건)
+SELECT
+    p.PRDLST_NM         AS 품목명,
+    p.INDUTY_CD_NM      AS 업종,
+    p.PRMS_DT           AS 보고일자,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I1310" p
+LEFT JOIN "I2500" h ON p.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 22-7. 축산물품목제조보고(원재료) + 축산물 가공업허가정보  [연결키: LCNS_NO] (25건)
+SELECT
+    r.PRDLST_NM         AS 품목명,
+    r.RAWMTRL_NM        AS 원재료명,
+    m.INDUTY_NM         AS 업종,
+    m.LOCP_ADDR         AS 소재지
+FROM "C006" r
+JOIN "I1300" m ON r.LCNS_NO = m.LCNS_NO
+LIMIT 30;
+
+-- 22-8. 위생용품 생산실적 + 위생용품 품목제조보고  [연결키: PRDLST_REPORT_NO] (21건)
+SELECT
+    s.EVL_YR            AS 평가연도,
+    s.PRDLST_NM         AS 제품명,
+    s.PRDCTN_QY         AS 생산량,
+    p.PRDLST_DCNM       AS 품목유형,
+    p.POG_DAYCNT        AS 유통기한
+FROM "I2851" s
+JOIN "I2711" p ON s.PRDLST_REPORT_NO = p.PRDLST_REPORT_NO
+LIMIT 30;
+
+-- 22-9. 생산중단제품정보 + 축산물 가공업허가정보  [연결키: LCNS_NO] (17건)
+SELECT
+    d.PRDLST_NM         AS 생산중단품목명,
+    d.END_DT            AS 생산중단일,
+    d.ARTCL_END_WHY     AS 생산중단사유,
+    m.INDUTY_NM         AS 업종,
+    m.LOCP_ADDR         AS 소재지
+FROM "I2852" d
+JOIN "I1300" m ON d.LCNS_NO = m.LCNS_NO
+LIMIT 30;
+
+-- 22-10. 공통기준제외 + 시험항목코드  [연결키: TESTITM_CD] (16건)
+SELECT
+    x.SPEC_NM           AS 공통기준종류명,
+    x.TESTITM_CD        AS 시험항목코드,
+    x.KOR_NM            AS 제외항목명,
+    t.KOR_NM            AS 시험항목한글명
+FROM "I2610" x
+JOIN "I2530" t ON x.TESTITM_CD = t.TESTITM_CD
+LIMIT 30;
+
+-- 22-11. 검사부적합(농산물) + 검사부적합(국내)  [연결키: BRCDNO] (16건)
+SELECT
+    a.PRDTNM            AS 농산물제품명,
+    a.BSSHNM            AS 업소명,
+    a.TEST_ITMNM        AS 시험항목,
+    a.TESTANALS_RSLT    AS 검사결과,
+    d.PRDLST_CD_NM      AS 국내품목유형
+FROM "I2640" a
+JOIN "I2620" d ON a.BRCDNO = d.BRCDNO
+LIMIT 30;
+
+-- 22-12. 회수·판매중지 정보 + 품목유형코드  [연결키: PRDLST_CD] (11건)
+SELECT
+    r.PRDTNM            AS 제품명,
+    r.BSSHNM            AS 업소명,
+    r.RTRVLPRVNS        AS 회수사유,
+    c.KOR_NM            AS 품목유형명
+FROM "I0490" r
+JOIN "I2510" c ON r.PRDLST_CD = c.PRDLST_CD
+LIMIT 30;
+
+-- 22-13. 검사부적합(농산물) + 회수·판매중지 정보  [연결키: BRCDNO] (7건)
+SELECT
+    a.PRDTNM            AS 농산물제품명,
+    a.BSSHNM            AS 업소명,
+    a.TEST_ITMNM        AS 시험항목,
+    a.TESTANALS_RSLT    AS 검사결과,
+    r.RTRVLPRVNS        AS 회수사유
+FROM "I2640" a
+JOIN "I0490" r ON a.BRCDNO = r.BRCDNO
+LIMIT 30;
+
+-- 22-14. 회수·판매중지 정보 + 축산물 가공업허가정보  [연결키: LCNS_NO] (6건)
+SELECT
+    r.PRDTNM            AS 제품명,
+    r.BSSHNM            AS 업소명,
+    r.RTRVLPRVNS        AS 회수사유,
+    m.INDUTY_NM         AS 업종,
+    m.LOCP_ADDR         AS 소재지
+FROM "I0490" r
+JOIN "I1300" m ON r.LCNS_NO = m.LCNS_NO
+LIMIT 30;
+
+-- 22-15. 식품(첨가물)품목제조보고(원재료) + 인허가 업소 정보  [연결키: LCNS_NO] (5건)
+SELECT
+    r.PRDLST_NM         AS 품목명,
+    r.RAWMTRL_NM        AS 원재료명,
+    h.INDUTY_CD_NM      AS 인허가업종
+FROM "C002" r
+JOIN "I2500" h ON r.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 22-16. 어린이 기호식품 품질인증 + 인허가 업소 정보  [연결키: LCNS_NO] (4건)
+SELECT
+    c.PRDLST_NM                 AS 인증제품명,
+    c.CHILD_FAVOR_FOOD_TYPE_NM  AS 어린이기호식품유형,
+    c.APPN_BGN_DT               AS 인증시작일,
+    c.APPN_END_DT               AS 인증종료일,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I0080" c
+LEFT JOIN "I2500" h ON c.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 22-17. 공통기준제외 + 품목유형코드  [연결키: PRDLST_CD] (1건)
+SELECT
+    x.SPEC_NM           AS 공통기준종류명,
+    x.PRDLST_CD         AS 품목분류코드,
+    x.KOR_NM            AS 제외항목명,
+    c.KOR_NM            AS 품목유형명
+FROM "I2610" x
+JOIN "I2510" c ON x.PRDLST_CD = c.PRDLST_CD
+LIMIT 30;
+
+-- 22-18. 바코드연계제품정보 + 축산물 품목제조정보  [연결키: PRDLST_REPORT_NO] (1건)
+SELECT
+    b.PRDLST_NM         AS 바코드제품명,
+    b.BSSH_NM           AS 업소명,
+    b.BAR_CD            AS 바코드,
+    p.PRDLST_DCNM       AS 품목유형,
+    p.INDUTY_CD_NM      AS 업종
+FROM "C005" b
+JOIN "I1310" p ON b.PRDLST_REPORT_NO = p.PRDLST_REPORT_NO
+LIMIT 30;
+
+-- 22-19. 건강기능식품 개별인정형 정보 + 기능성 원료인정현황  [연결키: HF_FNCLTY_MTRAL_RCOGN_NO] (1건)
+SELECT
+    i.RAWMTRL_NM            AS 원료명,
+    i.PRIMARY_FNCLTY        AS 주요기능성,
+    i.DAY_INTK_HIGHLIMIT    AS 최대섭취량,
+    i.DAY_INTK_LOWLIMIT     AS 최소섭취량,
+    r.BSSH_NM               AS 인정업체명,
+    r.FNCLTY_CN             AS 기능성내용
+FROM "I-0050" i
+JOIN "I-0040" r ON i.HF_FNCLTY_MTRAL_RCOGN_NO = r.HF_FNCLTY_MTRAL_RCOGN_NO
+LIMIT 30;
+
+-- 22-20. 식품업소 인허가 변경 정보 + 인허가 업소 정보  [연결키: LCNS_NO] (1건)
+SELECT
+    c.BSSH_NM           AS 업소명,
+    c.INDUTY_CD_NM      AS 업종,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I2859" c
+LEFT JOIN "I2500" h ON c.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+-- 22-21. 식품모범음식점 + 인허가 업소 정보  [연결키: LCNS_NO] (1건)
+SELECT
+    r.BSSH_NM           AS 업소명,
+    r.SIGNGU_NM         AS 시군구,
+    r.YEAR              AS 지정연도,
+    r.PNCPL_FOOD_NM     AS 주요음식,
+    CASE WHEN h.LCNS_NO IS NOT NULL THEN '폐업' ELSE '영업중' END AS 영업상태
+FROM "I1590" r
+LEFT JOIN "I2500" h ON r.LCNS_NO = h.LCNS_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 23] 식품(첨가물) 원재료 제조업체 인허가 변경이력
+-- ============================================================
+
+-- 23-1. 식품(첨가물) 원재료 제조업체 + 인허가 변경이력  [연결키: LCNS_NO] (37건 / DISTINCT 5개 업체)
+SELECT DISTINCT
+    a.PRDLST_NM         AS 원재료품목명,
+    b.BSSH_NM           AS 업소명,
+    b.INDUTY_NM         AS 업종,
+    b.LOCP_ADDR         AS 소재지,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용
+FROM "C002" a
+JOIN "I1220" b ON a.LCNS_NO = b.LCNS_NO
+JOIN "I2859" c ON b.LCNS_NO = c.LCNS_NO
+ORDER BY c.CHNG_DT DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 24] chain_joins.sql 신규 2차 조인 (7개)
+-- ============================================================
+
+-- 24-1. 위생관리 종합평가 + 평가 상세결과  [연결키: LCNS_NO] (DISTINCT 759개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.EVL_TYPE_DVS_NM   AS 평가유형,
+    a.EVL_GRD_NM        AS 평가등급,
+    a.EVL_DT            AS 평가일,
+    b.EVL_SCORE         AS 평가점수,
+    b.EVL_GRD_CD_NM     AS 상세등급,
+    b.ADDR              AS 주소
+FROM "I0680" a
+JOIN "I1540" b ON a.LCNS_NO = b.LCNS_NO
+LIMIT 30;
+
+-- 24-2. 식품영업허가 + 위생관리 종합평가  [연결키: LCNS_NO] (DISTINCT 372개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.INDUTY_NM         AS 업종,
+    a.PRMS_DT           AS 허가일,
+    b.EVL_TYPE_DVS_NM   AS 평가유형,
+    b.EVL_GRD_NM        AS 평가등급,
+    b.EVL_DT            AS 평가일
+FROM "I0060" a
+JOIN "I0680" b ON a.LCNS_NO = b.LCNS_NO
+LIMIT 30;
+
+-- 24-3. 건강기능식품 제조업 + 인허가 변경이력  [연결키: LCNS_NO] (DISTINCT 315개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.INDUTY_NM         AS 업종,
+    a.LOCP_ADDR         AS 소재지,
+    b.CHNG_DT           AS 변경일자,
+    b.CHNG_BF_CN        AS 변경전내용,
+    b.CHNG_AF_CN        AS 변경후내용
+FROM "I-0020" a
+JOIN "I2860" b ON a.LCNS_NO = b.LCNS_NO
+ORDER BY b.CHNG_DT DESC
+LIMIT 30;
+
+-- 24-4. 건강기능식품 GMP 인증 + 인허가 변경이력  [연결키: LCNS_NO] (DISTINCT 293개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.INDUTY_CD_NM      AS 업종,
+    a.APPN_DT           AS GMP인증일,
+    b.CHNG_DT           AS 변경일자,
+    b.CHNG_BF_CN        AS 변경전내용,
+    b.CHNG_AF_CN        AS 변경후내용
+FROM "I0630" a
+JOIN "I2860" b ON a.LCNS_NO = b.LCNS_NO
+ORDER BY b.CHNG_DT DESC
+LIMIT 30;
+
+-- 24-5. HACCP 인증 업소 + 식품제조업 인허가  [연결키: LCNS_NO] (DISTINCT 22개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.INDUTY_CD_NM      AS 업종,
+    a.HACCP_APPN_DT     AS HACCP인증일,
+    a.PRDLST_NM         AS 인증품목,
+    b.INDUTY_NM         AS 인허가업종,
+    b.LOCP_ADDR         AS 소재지
+FROM "I0580" a
+JOIN "I1220" b ON a.LCNS_NO = b.LCNS_NO
+LIMIT 30;
+
+-- 24-6. 회수·판매중지 제품 + 공통기준규격  [연결키: PRDLST_CD] (DISTINCT 28개 업체)
+SELECT DISTINCT
+    a.PRDTNM            AS 제품명,
+    a.BSSHNM            AS 업소명,
+    a.RTRVLPRVNS        AS 회수사유,
+    b.PRDLST_CD_NM      AS 품목유형,
+    b.TESTITM_NM        AS 시험항목,
+    b.SPEC_VAL          AS 기준규격,
+    b.UNIT_NM           AS 단위
+FROM "I0490" a
+JOIN "I2600" b ON a.PRDLST_CD = b.PRDLST_CD
+LIMIT 30;
+
+-- 24-7. HACCP 인증 업소 + 건강기능식품 생산중단  [연결키: LCNS_NO] (DISTINCT 7개 업체)
+SELECT DISTINCT
+    a.BSSH_NM           AS 업소명,
+    a.INDUTY_CD_NM      AS 업종,
+    a.HACCP_APPN_DT     AS HACCP인증일,
+    b.PRDLST_NM         AS 생산중단품목,
+    b.END_DT            AS 생산중단일,
+    b.ARTCL_END_WHY     AS 중단사유
+FROM "I0580" a
+JOIN "I2852" b ON a.LCNS_NO = b.LCNS_NO
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 25] chain_joins.sql 신규 3차 체인 (3개)
+-- ============================================================
+
+-- 25-1. 건기식 원재료 → 제조업 → GMP 인증  [연결키: LCNS_NO → LCNS_NO] (DISTINCT 30개 업체)
+SELECT DISTINCT
+    a.RAWMTRL_NM        AS 원재료명,
+    a.BSSH_NM           AS 원재료업소명,
+    b.INDUTY_NM         AS 제조업종,
+    b.LOCP_ADDR         AS 소재지,
+    c.INDUTY_CD_NM      AS GMP업종,
+    c.APPN_DT           AS GMP인증일
+FROM "C003" a
+JOIN "I-0020" b ON a.LCNS_NO = b.LCNS_NO
+JOIN "I0630" c ON b.LCNS_NO = c.LCNS_NO
+LIMIT 30;
+
+-- 25-2. 건기식 원재료 → 제조업 → 인허가 변경이력  [연결키: LCNS_NO → LCNS_NO] (DISTINCT 23개 업체)
+SELECT DISTINCT
+    a.RAWMTRL_NM        AS 원재료명,
+    b.BSSH_NM           AS 업소명,
+    b.INDUTY_NM         AS 업종,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용
+FROM "C003" a
+JOIN "I-0020" b ON a.LCNS_NO = b.LCNS_NO
+JOIN "I2860" c ON b.LCNS_NO = c.LCNS_NO
+ORDER BY c.CHNG_DT DESC
+LIMIT 30;
+
+-- 25-3. 건기식 원재료 → 품목제조신고 → 인허가 변경이력  [연결키: LCNS_NO → LCNS_NO] (DISTINCT 12개 업체)
+SELECT DISTINCT
+    a.RAWMTRL_NM        AS 원재료명,
+    b.PRDLST_NM         AS 제품명,
+    b.PRIMARY_FNCLTY    AS 주요기능성,
+    c.CHNG_DT           AS 변경일자,
+    c.CHNG_BF_CN        AS 변경전내용,
+    c.CHNG_AF_CN        AS 변경후내용
+FROM "C003" a
+JOIN "I0030" b ON a.LCNS_NO = b.LCNS_NO
+JOIN "I2860" c ON b.LCNS_NO = c.LCNS_NO
+ORDER BY c.CHNG_DT DESC
+LIMIT 30;
