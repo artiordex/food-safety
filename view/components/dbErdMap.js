@@ -1,15 +1,13 @@
-import { escapeHtml, escapeAttr } from '/view/utils.js';
 /**
+ * view/components/dbErdMap.js
  * DB ERD 시각화 모듈 (D3.js 물리 시뮬레이션 + Vis.js 포스 다이렉티드 네트워크)
- * 파일명: dbErdMap.js
- *
- * [수행 역할]
- * 1. /api/query 로 테이블 스키마·관계 데이터를 fetch해 D3 물리 시뮬레이션 ERD를 그림
- * 2. 카테고리·공통키 필터, 텍스트 검색, 줌/팬, 카드 드래그 고정을 지원함
- * 3. 테이블 카드 클릭 시 컬럼·샘플 데이터 상세 패널을 렌더링함
- * 4. Vis.js 기반 통합 관계도(renderCombinedErdMap)에서 노드·엣지 인스펙터를 지원함
- * 5. 키워드 필터 이벤트(datamap-filter-updated)를 수신해 관련 노드를 강조함
+ * - renderDbErdMap(container, onSelectDataset)
+ *     → /api/query로 테이블 스키마·관계 데이터를 fetch해 D3 물리 시뮬레이션 ERD를 렌더링
+ *     → 카테고리·공통키 필터, 텍스트 검색, 줌/팬, 카드 드래그 고정 지원
+ * - renderCombinedErdMap(container, onSelectDataset)
+ *     → Vis.js 기반 통합 관계도, 노드·엣지 클릭 시 인스펙터 패널 표시
  */
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 import { renderRelationDataMap } from './relationDataMap.js';
 
 // =============================================================================

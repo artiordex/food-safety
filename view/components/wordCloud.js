@@ -1,7 +1,11 @@
+/**
+ * view/components/wordCloud.js
+ * 워드 클라우드 컴포넌트
+ * - renderWordCloud(container, onSelectDataset, keyword)
+ *     → 선택한 데이터세트의 컬럼값 빈도를 분석하여 d3-cloud로 시각화
+ *     → 단어 클릭 시 키워드 검색으로 연동
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
-// 워드 클라우드 컴포넌트
-// 선택한 데이터세트의 컬럼값 빈도를 분석하여 d3-cloud로 시각화합니다.
-
 import { getDatasets } from '../datasetStore.js';
 
 export async function renderWordCloud(container, onSelectDataset, keyword = '') {

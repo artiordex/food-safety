@@ -1,6 +1,11 @@
+/**
+ * view/components/sauceDataMap.js
+ * 소스 데이터맵 컴포넌트
+ * - renderSauceDataMap(container, initialKeyword, onSelectDataset)
+ *     → 8대 주제 도메인별로 데이터세트를 분류하고
+ *       도메인 간 연결 관계도를 캔버스로 시각화
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
-// 소스 데이터맵 컴포넌트
-// 8대 주제 도메인별로 데이터세트를 분류하고 관계도를 시각화합니다.
 
 import { getDatasetsSync } from '../datasetStore.js';
 const { useState, useEffect, useRef, useCallback, createElement: h } = React;

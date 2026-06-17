@@ -1,3 +1,9 @@
+/**
+ * view/components/dataMap.js
+ * 데이터맵 메인 컨테이너 컴포넌트
+ * - renderDataMap(container, onSelectDataset)
+ *     → ERD 그래프(reactErdMap / dbErdMap), 관계 맵, 소스 맵, 키워드 그래프 탭을 통합하여 렌더링하고 탭 전환 및 검색을 관리
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
 
 // =============================================================================

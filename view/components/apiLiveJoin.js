@@ -1,6 +1,10 @@
+/**
+ * view/components/apiLiveJoin.js
+ * 실시간 API 조인 분석 컴포넌트
+ * - renderApiLiveJoin(container, onSelectDataset)
+ *     → 식약처 외부 OpenAPI에서 두 테이블 데이터를 SSE로 수집한 뒤 메모리 상에서 Inner Join하여 결과를 표시
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
-// 실시간 API 조인 분석 컴포넌트
-// 식약처 외부 OpenAPI에서 두 테이블 데이터를 병렬 크롤링 후 메모리 상에서 Inner Join하여 결과를 표시합니다.
 
 import { getDatasets } from '../datasetStore.js';
 

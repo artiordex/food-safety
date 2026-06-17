@@ -1,10 +1,11 @@
-import { escapeHtml, escapeAttr } from '/view/utils.js';
 /**
- * keywordGraph.js
- * 순수 D3.js로 키워드 데이터맵 그래프를 렌더링합니다.
- * HTML 구조는 datamap.html에 이미 정의되어 있고,
- * 이 파일은 #kwmap-graph-container 안의 SVG와 #kwmap-detail-panel 만 담당합니다.
+ * view/components/keywordGraph.js
+ * 키워드 데이터맵 그래프 컴포넌트 (순수 D3.js)
+ * - renderKeywordGraph(keyword)
+ *     → 입력 키워드로 연관 테이블·컬럼을 검색해 포스 레이아웃 그래프로 시각화
+ *     → #kwmap-graph-container 내 SVG와 #kwmap-detail-panel 을 담당
  */
+import { escapeHtml, escapeAttr } from '/view/utils.js';
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 
 // 카테고리별 고정 색상 매핑 (도메인 이름 → 색상 코드)

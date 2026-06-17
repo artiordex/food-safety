@@ -1,5 +1,10 @@
-// 데이터세트 탐색기 컴포넌트
-// 전체 데이터세트 목록을 카테고리·기관·유형별로 필터링하고 페이지네이션으로 표시합니다.
+/**
+ * view/components/datasetExplorer.js
+ * 데이터세트 탐색기 컴포넌트
+ * - renderDatasetExplorer(container, onSelectDataset)
+ *     → 전체 데이터세트 목록을 카테고리·기관·유형별로 필터링하고
+ *       페이지네이션으로 표시, 카드 클릭 시 상세 패널 오픈
+ */
 
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 import { escapeHtml, escapeAttr } from '../utils.js';

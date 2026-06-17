@@ -1,7 +1,10 @@
-// SQL 플레이그라운드 컴포넌트
-// SQLite DB에 직접 쿼리를 실행하고 결과를 테이블로 표시합니다.
-// join.sql 시나리오 기반의 JOIN 쿼리 가이드도 제공합니다.
-
+/**
+ * view/components/sqlPlayground.js
+ * SQL 플레이그라운드 컴포넌트
+ * - renderSqlPlayground(container, onSelectDataset)
+ *     → 브라우저에서 직접 SELECT 쿼리를 입력·실행하고 결과를 테이블로 표시
+ *     → join.sql 시나리오 기반의 JOIN 쿼리 가이드 제공
+ */
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 import { escapeHtml, escapeAttr } from '../utils.js';
 

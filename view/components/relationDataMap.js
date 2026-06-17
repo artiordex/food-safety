@@ -1,6 +1,11 @@
+/**
+ * view/components/relationDataMap.js
+ * 데이터 관계 맵 컴포넌트 (React + D3.js)
+ * - renderRelationDataMap(container, onSelectDataset)
+ *     → 카테고리별 데이터세트 노드와 JOIN 연관 관계를
+ *       포스 기반 네트워크 그래프로 시각화
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
-// 데이터 관계 맵 컴포넌트 (React + D3.js)
-// 카테고리별 데이터세트 노드와 연관 관계를 포스 기반 네트워크 그래프로 표시합니다.
 
 import { getDatasets } from '../datasetStore.js';
 

@@ -1,6 +1,9 @@
-// view/components/apiExplorer.js
-// 식약처 OpenAPI 탐색기 컴포넌트
-// 데이터셋 목록을 검색·선택하고 로컬 에뮬레이터 또는 실제 외부 API로 테스트 호출합니다.
+/**
+ * view/components/apiExplorer.js
+ * 식약처 OpenAPI 탐색기 컴포넌트
+ * - renderApiExplorer(container, onSelectDataset)
+ *     → 데이터셋 목록을 검색·선택하고 로컬 에뮬레이터 또는 실제 외부 API로 테스트 호출하여 응답 결과를 표시
+ */
 import { getDatasets } from '../datasetStore.js';
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
 import { escapeHtml } from '../utils.js';

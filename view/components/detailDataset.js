@@ -1,6 +1,11 @@
+/**
+ * view/components/detailDataset.js
+ * 데이터세트 상세 패널 컴포넌트
+ * - renderDetailPanel(dataset, onClose)
+ *     → 데이터세트 선택 시 우측 슬라이드인 패널로 상세 정보 표시
+ *       (컬럼 목록, 샘플 데이터, API 명세, 활용 예시 포함)
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
-// 데이터세트 상세 패널 컴포넌트
-// 데이터세트 선택 시 우측에 슬라이드인 패널로 상세 정보(컬럼, 샘플 데이터, API 명세)를 표시합니다.
 
 // 주제 분류별 배지 색상 매핑 (Tailwind 클래스)
 const subjectColorMap = {

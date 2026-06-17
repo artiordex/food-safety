@@ -1,3 +1,11 @@
+/**
+ * view/components/reactErdMap.js
+ * React Flow 기반 ERD 시각화 컴포넌트
+ * - renderCombinedErdMap(container, onSelectDataset)
+ *     → 테이블 노드와 JOIN 관계 엣지를 React Flow로 렌더링
+ *     → 노드 클릭: 컬럼·샘플 데이터 인스펙터 표시
+ *     → 엣지 클릭: JOIN 키 정보 및 한글 alias 포함 샘플 SQL 표시
+ */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
