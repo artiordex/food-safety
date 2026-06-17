@@ -1,5 +1,5 @@
 # 데이터셋 사용 시나리오 분석 결과
-> 생성일시: 2026-06-17T18:46:52.180+09:00
+> 생성일시: 2026-06-17T19:17:10.346+09:00
 
 - 전체 시나리오: **32개** (Star: 12개, Chain: 20개)
 - 전체 관계: **124개**
@@ -57,7 +57,7 @@ WHERE A."STEP" IS NOT NULL AND A."STEP" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_006 — `CHAIN:DSPS_ENDDT+DSPS_BGNDT` 기반 (MEDIUM, 53점) 🔗 브릿지: `I0480` ⚠️ (건수 0건)
+## SCN_CHAIN_006 — `CHAIN:DSPS_ENDDT+DSPS_BGNDT` 기반 (MEDIUM, 53점) 🔗 브릿지: `I0480`
 
 **참여 데이터셋** (3개): I0480, I2630, I0481
 
@@ -173,7 +173,7 @@ WHERE A."PRDLST_DCNM" IS NOT NULL AND A."PRDLST_DCNM" != ''
 LIMIT 100;
 ```
 
-## SCN_004 — `DSPS_ENDDT` 기반 (MEDIUM, 48점) ⚠️ (건수 0건)
+## SCN_004 — `DSPS_ENDDT` 기반 (MEDIUM, 48점)
 
 **참여 데이터셋** (3개): I0480, I2630, I0482
 
@@ -504,7 +504,7 @@ WHERE A."TESTITM_CD" IS NOT NULL AND A."TESTITM_CD" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_007 — `CHAIN:DSPS_ENDDT+DSPSCN` 기반 (MEDIUM, 41점) 🔗 브릿지: `I2630` ⚠️ (건수 0건)
+## SCN_CHAIN_007 — `CHAIN:DSPS_ENDDT+DSPSCN` 기반 (MEDIUM, 41점) 🔗 브릿지: `I2630`
 
 **참여 데이터셋** (3개): I2630, I0480, I0470
 
@@ -575,7 +575,7 @@ WHERE A."DSPS_ENDDT" IS NOT NULL AND A."DSPS_ENDDT" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_018 — `CHAIN:DSPS_BGNDT+DSPSCN` 기반 (MEDIUM, 40점) 🔗 브릿지: `I0481` ⚠️ (건수 0건)
+## SCN_CHAIN_018 — `CHAIN:DSPS_BGNDT+DSPSCN` 기반 (MEDIUM, 40점) 🔗 브릿지: `I0481`
 
 **참여 데이터셋** (3개): I0481, I0480, I0470
 
@@ -889,7 +889,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 100;
 ```
 
-## SCN_006 — `DSPS_BGNDT` 기반 (LOW, 32점) ⚠️ (건수 0건)
+## SCN_006 — `DSPS_BGNDT` 기반 (LOW, 32점)
 
 **참여 데이터셋** (4개): I0480, I0481, I0482, I0470
 
@@ -1029,7 +1029,7 @@ WHERE A."PRDLST_DCNM" IS NOT NULL AND A."PRDLST_DCNM" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_003 — `CHAIN:PRDLST_CD+TESTITM_CD+SPEC_VAL_SUMUP` 기반 (LOW, 30점) 🔗 브릿지: `I0960` ⚠️ (건수 0건)
+## SCN_CHAIN_003 — `CHAIN:PRDLST_CD+TESTITM_CD+SPEC_VAL_SUMUP` 기반 (LOW, 30점) 🔗 브릿지: `I0960`
 
 **참여 데이터셋** (4개): I0960, I2580, I2530, I0930
 
@@ -1204,7 +1204,7 @@ WHERE A."PRDLST_DCNM" IS NOT NULL AND A."PRDLST_DCNM" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_019 — `CHAIN:DSPSCN+DSPS_BGNDT` 기반 (LOW, 29점) 🔗 브릿지: `I0470` ⚠️ (건수 0건)
+## SCN_CHAIN_019 — `CHAIN:DSPSCN+DSPS_BGNDT` 기반 (LOW, 29점) 🔗 브릿지: `I0470`
 
 **참여 데이터셋** (3개): I0470, I0481, I0480
 
@@ -1714,7 +1714,7 @@ WHERE A."HIST_TRACE_REG_NO" IS NOT NULL AND A."HIST_TRACE_REG_NO" != ''
 LIMIT 100;
 ```
 
-## SCN_008 — `DSPSCN` 기반 (LOW, 23점) ⚠️ (건수 0건)
+## SCN_008 — `DSPSCN` 기반 (LOW, 23점)
 
 **참여 데이터셋** (4개): I0470, I0481, I2630, I0482
 
@@ -1989,7 +1989,7 @@ WHERE A."PRDLST_CD" IS NOT NULL AND A."PRDLST_CD" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_015 — `CHAIN:LCNS_NO+PRDLST_CD` 기반 (LOW, 18점) 🔗 브릿지: `I0490` ⚠️ (건수 0건)
+## SCN_CHAIN_015 — `CHAIN:LCNS_NO+PRDLST_CD` 기반 (LOW, 18점) 🔗 브릿지: `I0490`
 
 **참여 데이터셋** (3개): I0490, I2640, I0940
 
@@ -2258,7 +2258,7 @@ WHERE A."SPEC_VAL_SUMUP" IS NOT NULL AND A."SPEC_VAL_SUMUP" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_016 — `CHAIN:LCNS_NO+PRDTNM` 기반 (LOW, 14점) 🔗 브릿지: `I2640` ⚠️ (건수 0건)
+## SCN_CHAIN_016 — `CHAIN:LCNS_NO+PRDTNM` 기반 (LOW, 14점) 🔗 브릿지: `I2640`
 
 **참여 데이터셋** (3개): I2640, I0490, I0460
 
@@ -2325,7 +2325,7 @@ WHERE A."LCNS_NO" IS NOT NULL AND A."LCNS_NO" != ''
 LIMIT 100;
 ```
 
-## SCN_012 — `PRDTNM` 기반 (LOW, 4점) ⚠️ (건수 0건)
+## SCN_012 — `PRDTNM` 기반 (LOW, 4점)
 
 **참여 데이터셋** (3개): I0460, I2620, I2640
 
@@ -2391,7 +2391,7 @@ WHERE A."PRDTNM" IS NOT NULL AND A."PRDTNM" != ''
 LIMIT 100;
 ```
 
-## SCN_CHAIN_017 — `CHAIN:PRDTNM+LCNS_NO` 기반 (LOW, 4점) 🔗 브릿지: `I2620` ⚠️ (건수 0건)
+## SCN_CHAIN_017 — `CHAIN:PRDTNM+LCNS_NO` 기반 (LOW, 4점) 🔗 브릿지: `I2620`
 
 **참여 데이터셋** (3개): I2620, I0460, I0610
 

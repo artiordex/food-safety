@@ -56,11 +56,12 @@ async function main() {
   // }
 
   // STEP 4: SQLite 변환 및 내부 PK/FK 분석 수행 (import_to_sqlite.js)
-  // try {
-  //   run('4/9 import_to_sqlite', path.join(DB_DIR, 'import_to_sqlite.js'), '--apply-constraints');
-  // } catch (err) {
-  //   logger.warn({ err }, 'import_to_sqlite.js 실패 — 다음 단계를 계속 진행합니다.');
-  // }
+  try {
+    run('4/9 import_to_sqlite', path.join(DB_DIR, 'import_to_sqlite.js'), '--apply-constraints');
+  } catch (err) {
+    logger.error({ err }, 'import_to_sqlite.js 실패 — 파이프라인을 중단합니다.');
+    process.exit(1);
+  }
 
   // STEP 5: PK/FK 분석 (analyze_pk_fk.js) - STEP 4에서 내부적으로 이미 실행되므로 생략 가능
   try {

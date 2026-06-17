@@ -897,16 +897,22 @@ async function insertRecords(db, svcNo, records, colMeta) {
     if (records.length === 0 || colMeta.size === 0) return 0;
 
     const colNames = [...colMeta.keys()];
-    const insertSql = `INSERT INTO ${quoteIdent(svcNo)} (${colNames.map(quoteIdent).join(', ')}) VALUES (${colNames.map(() => '?').join(', ')})`;
+    // INSERT OR IGNORE: UNIQUE 위반 행은 건너뛰고 나머지를 삽입한다.
+    const insertSql = `INSERT OR IGNORE INTO ${quoteIdent(svcNo)} (${colNames.map(quoteIdent).join(', ')}) VALUES (${colNames.map(() => '?').join(', ')})`;
 
+    let inserted = 0;
+    let skipped = 0;
     await runSql(db, 'BEGIN TRANSACTION');
     try {
         for (const rec of records) {
-            await runSql(db, insertSql, colNames.map(c => normalizeValue(rec[c])));
+            const result = await runSql(db, insertSql, colNames.map(c => normalizeValue(rec[c])));
+            if (result.changes > 0) inserted++;
+            else skipped++;
         }
         await runSql(db, 'COMMIT');
-        log('INFO', `데이터 INSERT: ${records.length}행`);
-        return records.length;
+        if (skipped > 0) log('WARN', `${svcNo}: ${inserted}행 INSERT, ${skipped}행 중복 스킵`);
+        else log('INFO', `데이터 INSERT: ${inserted}행`);
+        return inserted;
     } catch (err) {
         await runSql(db, 'ROLLBACK').catch(e => log('WARN', `ROLLBACK 실패 (${svcNo}): ${e.message}`));
         log('WARN', `INSERT 실패 (${svcNo}): ${err.message}`);
