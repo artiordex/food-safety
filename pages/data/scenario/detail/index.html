@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <!-- INCLUDE_HEAD -->
+  <link rel="stylesheet" href="/public/css/main.css">
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+    .grade-HIGH   { background: #d1fae5; color: #065f46; }
+    .grade-MEDIUM { background: #fef3c7; color: #92400e; }
+    .grade-CHAIN  { background: #ede9fe; color: #5b21b6; }
+    .grade-CASE   { background: #e0f2fe; color: #0c4a6e; }
+    .grade-SUPER  { background: linear-gradient(90deg,#7c3aed,#4f46e5); color: #fff; }
+    #sql-block pre::-webkit-scrollbar { height: 6px; }
+    #sql-block pre::-webkit-scrollbar-track { background: #2d2d2d; }
+    #sql-block pre::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 99px; }
+  </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+<div id="wrap" class="flex flex-col min-h-screen">
+  <!-- INCLUDE_HEADER -->
+
+  <div class="bg-white flex-1">
+    <section class="max-w-[900px] mx-auto px-4 md:px-8 py-10">
+
+      <!-- 뒤로가기 -->
+      <a href="/data/scenario/page.do"
+        class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-blue-600 mb-8 transition-colors font-medium">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        목록으로 돌아가기
+      </a>
+
+      <!-- 스켈레톤 / 로딩 -->
+      <div id="loading" class="flex flex-col items-center py-32 text-slate-400 gap-3">
+        <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <span class="text-sm">시나리오를 불러오는 중...</span>
+      </div>
+
+      <!-- 본문 (JS로 채움) -->
+      <div id="detail-content" class="hidden"></div>
+
+    </section>
+  </div>
+
+  <div class="mt-auto"><!-- INCLUDE_FOOTER --></div>
+</div>
+
+<script>
+(function () {
+  const GRADE_LABELS = { HIGH: '검증 JOIN', MEDIUM: '추천', CHAIN: '체인 JOIN', CASE: '활용 사례', SUPER: 'SUPER' };
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  const idx = new URLSearchParams(location.search).get('idx');
+  if (idx === null) { showError('잘못된 접근입니다.'); return; }
+
+  fetch('/api/join-scenarios/' + encodeURIComponent(idx))
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(sc => render(sc))
+    .catch(() => showError('시나리오를 불러오지 못했습니다.'));
+
+  function render(sc) {
+    document.getElementById('loading').remove();
+    const grade = sc.grade || 'MEDIUM';
+    const label = GRADE_LABELS[grade] || grade;
+    const descParts = (sc.description || '').split('|').map(p => p.trim()).filter(Boolean);
+    const content = document.getElementById('detail-content');
+    content.classList.remove('hidden');
+    content.innerHTML = `
+      <!-- 배지 + 제목 -->
+      <div class="mb-2"><span class="badge grade-${grade}">${label}</span></div>
+      <h1 class="text-2xl font-extrabold text-slate-900 mb-1 leading-tight">${esc(sc.title)}</h1>
+      <p class="text-xs text-slate-400 font-mono mb-6">No.${esc(String(sc.no ?? ''))}</p>
+
+      ${descParts.length ? `
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8 text-slate-600 leading-relaxed text-[15px] space-y-1">
+        ${descParts.map(p => `<p>• ${esc(p)}</p>`).join('')}
+      </div>` : ''}
+
+      <!-- SQL 코드 블록 -->
+      <div id="sql-block" class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl border border-gray-800 mb-6">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#2d2d2d]">
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <span class="text-xs font-mono text-gray-400">SQL Query</span>
+          <button id="btn-copy" class="text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-xs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            복사
+          </button>
+        </div>
+        <div class="p-6 overflow-x-auto">
+          <pre class="text-sm font-mono text-gray-300 leading-relaxed whitespace-pre">${esc(sc.sql)}</pre>
+        </div>
+      </div>
+
+      <!-- Playground 버튼 -->
+      <button id="btn-playground"
+        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-colors mb-10">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        SQL Playground에서 실행해보기
+      </button>
+
+      <!-- 활용 기대 효과 -->
+      <div class="bg-blue-50 rounded-2xl p-8 border border-blue-100">
+        <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          활용 기대 효과
+        </h3>
+        <ul class="space-y-3 text-blue-800 text-sm">
+          <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>데이터 융합을 통해 새로운 인사이트 도출</li>
+          <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>복잡한 정보 탐색 시간을 획기적으로 단축</li>
+          <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>대국민 맞춤형 식품 안전 서비스 기획에 즉시 활용 가능</li>
+        </ul>
+      </div>
+
+      <!-- 이전/다음 네비게이션 -->
+      <div id="nav-row" class="flex items-center justify-between mt-10 pt-6 border-t border-slate-200"></div>
+    `;
+
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(sc.sql).catch(() => {});
+      const btn = document.getElementById('btn-copy');
+      btn.textContent = '복사됨 ✓';
+      setTimeout(() => { btn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>복사'; }, 2000);
+    });
+
+    document.getElementById('btn-playground').addEventListener('click', () => {
+      sessionStorage.setItem('sqlPlaygroundAutoQuery', sc.sql);
+      location.href = '/data/analysis.do?tab=sql-playground';
+    });
+
+    // 이전/다음 버튼 (idx 기준)
+    const navRow = document.getElementById('nav-row');
+    const idxNum = parseInt(idx);
+    navRow.innerHTML = `
+      ${idxNum > 0
+        ? `<a href="/data/scenario/detail.do?idx=${idxNum - 1}" class="flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>이전 시나리오</a>`
+        : '<span></span>'}
+      <a href="/data/scenario/detail.do?idx=${idxNum + 1}" class="flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600 transition-colors">다음 시나리오<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+    `;
+  }
+
+  function showError(msg) {
+    document.getElementById('loading').remove();
+    const c = document.getElementById('detail-content');
+    c.classList.remove('hidden');
+    c.innerHTML = `<div class="py-24 text-center text-red-400">${msg}</div>`;
+  }
+})();
+</script>
+</body>
+</html>

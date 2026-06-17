@@ -21,67 +21,137 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = (db, dbAll, logger, readonlyDb) => {
-  // join.sql은 파일 파싱 비용이 있으므로 최초 1회 읽은 결과를 메모리에 캐시한다.
-let _joinScenariosCache = null;
+  // 시나리오 캐시 (최초 1회 파싱 후 메모리 보관)
+  let _joinScenariosCache = null;
 
-// 추천 JOIN 시나리오 목록 API.
-// 주석으로 작성된 설명부와 SQL 본문을 분리해서 프론트에서 바로 표시할 수 있는 형태로 만든다.
-router.get('/join-scenarios', (req, res) => {
-  if (_joinScenariosCache) {
-    return res.json(_joinScenariosCache);
-  }
-  const joinSqlPath = path.join(__dirname, '..', 'db', 'join.sql');
-  try {
-    // join.sql 파일 파싱
-    const content = fs.readFileSync(joinSqlPath, 'utf-8');
+  const DB_DIR = path.join(__dirname, '..', 'db');
+
+  // SQL 파일 하나를 파싱해 시나리오 배열로 반환한다.
+  // 세 가지 포맷을 모두 처리한다:
+  //   join.sql        — "-- N. [HIGH] 제목"
+  //   chain_joins.sql — "-- N. [4차 체인 JOIN] 제목"
+  //   데이터활용사례.sql — "-- [사례 N] 그룹" + "-- N-M. 소제목"
+  function parseSqlFile(content) {
     const lines = content.split('\n');
-    const fileScenarios = [];
+    const scenarios = [];
     let currentBlock = null;
+    let currentCaseTitle = '';
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const titleMatch = line.match(/^--\s+(\d+)\.\s+\[([A-Z]+)\]\s+(.+)$/);
-      if (titleMatch) {
+    function normalizeGrade(bracket) {
+      if (['HIGH', 'MEDIUM', 'LOW', 'SUPER'].includes(bracket)) return bracket;
+      if (bracket.includes('체인')) return 'HIGH';
+      return 'MEDIUM';
+    }
+
+    for (const line of lines) {
+      // 구분선 · 빈 주석은 항상 무시
+      if (/^--\s*[-=]{8,}/.test(line)) continue;
+
+      // [사례 N] 그룹 헤더 (데이터활용사례.sql)
+      const caseMatch = line.match(/^--\s+\[사례\s*(\d+)\]\s+(.+)$/);
+      if (caseMatch) {
+        currentCaseTitle = `[사례 ${caseMatch[1]}] ${caseMatch[2].trim()}`;
+        currentBlock = null;
+        continue;
+      }
+
+      // "-- N. [GRADE] 제목" 포맷 (join.sql, chain_joins.sql)
+      const stdMatch = line.match(/^--\s+(\d+)\.\s+\[([^\]]+)\]\s+(.+)$/);
+      if (stdMatch) {
         currentBlock = {
-          no: parseInt(titleMatch[1]),
-          grade: titleMatch[2],
-          relation: titleMatch[3].trim(),
+          no: parseInt(stdMatch[1]),
+          grade: normalizeGrade(stdMatch[2].trim()),
+          relation: stdMatch[3].trim(),
           descLines: [],
           sqlLines: []
         };
-        fileScenarios.push(currentBlock);
+        scenarios.push(currentBlock);
         continue;
       }
+
+      // "-- N-M. 소제목 [연결키: ...]" 포맷 (데이터활용사례.sql)
+      const subMatch = line.match(/^--\s+(\d+-\d+)\.\s+(.+?)(?:\s+\[연결키[^\]]*\])?(?:\s+\(값조회x\))?\s*$/);
+      if (subMatch) {
+        const subTitle = subMatch[2].trim();
+        currentBlock = {
+          no: subMatch[1],
+          grade: 'CASE',
+          relation: currentCaseTitle ? `${currentCaseTitle} — ${subTitle}` : subTitle,
+          descLines: [],
+          sqlLines: []
+        };
+        scenarios.push(currentBlock);
+        continue;
+      }
+
       if (!currentBlock) continue;
-      if (/^--\s*[-=]{10,}/.test(line)) continue;
 
       if (line.trim().startsWith('--')) {
-        currentBlock.descLines.push(line.replace(/^--\s*/, '').trim());
+        const desc = line.replace(/^--\s*/, '').trim();
+        if (desc) currentBlock.descLines.push(desc);
       } else if (line.trim() !== '') {
         currentBlock.sqlLines.push(line);
       }
     }
 
-    const parsedScenarios = fileScenarios.map(block => {
-      const description = block.descLines.filter(Boolean).join(' | ');
-      const sql = block.sqlLines.join('\n').trim();
-      return {
+    return scenarios
+      .map((block, idx) => ({
         no: block.no,
         grade: block.grade,
         title: `${block.no}. ${block.relation}`,
-        description,
-        sql
-      };
-    }).filter(s => s.sql);
-
-    const finalResult = parsedScenarios;
-    _joinScenariosCache = finalResult;
-    res.json(finalResult);
-  } catch (err) {
-    logger.error({ err }, 'join.sql 파싱 중 오류가 발생했습니다.');
-    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+        description: block.descLines.filter(Boolean).join(' | '),
+        sql: block.sqlLines.join('\n').trim()
+      }))
+      .filter(s => s.sql);
   }
-});
+
+  function getScenarios() {
+    if (_joinScenariosCache) return _joinScenariosCache;
+    const sqlFiles = ['join.sql', 'chain_joins.sql', '데이터활용사례.sql'];
+    const allScenarios = [];
+    for (const fileName of sqlFiles) {
+      const filePath = path.join(DB_DIR, fileName);
+      if (!fs.existsSync(filePath)) continue;
+      const content = fs.readFileSync(filePath, 'utf-8');
+      allScenarios.push(...parseSqlFile(content));
+    }
+    _joinScenariosCache = allScenarios;
+    return allScenarios;
+  }
+
+  // 추천 JOIN 시나리오 목록 API (join.sql + chain_joins.sql + 데이터활용사례.sql 통합)
+  router.get('/join-scenarios', (req, res) => {
+    try {
+      const list = getScenarios();
+      const { grade, page = '1', size = '20', q } = req.query;
+      let result = grade && grade !== 'ALL' ? list.filter(s => s.grade === grade) : list;
+      if (q) {
+        const kw = q.toLowerCase();
+        result = result.filter(s => s.title.toLowerCase().includes(kw) || (s.description || '').toLowerCase().includes(kw));
+      }
+      const total = result.length;
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const pageSize = Math.min(1000, Math.max(1, parseInt(size) || 20));
+      const items = result.slice((pageNum - 1) * pageSize, pageNum * pageSize);
+      res.json({ total, page: pageNum, size: pageSize, items });
+    } catch (err) {
+      logger.error({ err }, 'join-scenarios 파싱 중 오류가 발생했습니다.');
+      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+    }
+  });
+
+  // 단건 시나리오 조회 API
+  router.get('/join-scenarios/:idx', (req, res) => {
+    try {
+      const list = getScenarios();
+      const idx = parseInt(req.params.idx);
+      if (isNaN(idx) || idx < 0 || idx >= list.length) return res.status(404).json({ error: '시나리오를 찾을 수 없습니다.' });
+      res.json(list[idx]);
+    } catch (err) {
+      logger.error({ err }, 'join-scenarios 단건 조회 오류');
+      res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
+    }
+  });
 
 // 읽기 전용 SQL 실행 API.
 // 화면 시안에서 자유 쿼리와 ERD 확인에 사용되므로 SELECT/EXPLAIN/일부 PRAGMA만 허용한다.

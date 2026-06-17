@@ -113,6 +113,41 @@ export function renderSqlPlayground(container, onSelectDataset) {
     }
   };
 
+  const normalizeResultValue = (value) => {
+    if (value === null || value === undefined) return '';
+    return String(value).trim();
+  };
+
+  // A_LCNS_NO, B_LCNS_NO, C_LCNS_NO처럼 같은 의미의 컬럼이 반복될 때,
+  // B/C 값이 A와 모든 행에서 동일하면 A 기준 컬럼만 표시한다.
+  const getDisplayResultKeys = (rows) => {
+    if (!rows || rows.length === 0) return [];
+
+    const originalKeys = Object.keys(rows[0]);
+    const nonEmptyKeys = originalKeys.filter(k =>
+      rows.some(row => row[k] !== null && row[k] !== undefined && row[k] !== '')
+    );
+
+    const aKeyByBaseName = new Map();
+    nonEmptyKeys.forEach(k => {
+      const match = k.match(/^A_(.+)$/);
+      if (match) aKeyByBaseName.set(match[1], k);
+    });
+
+    return nonEmptyKeys.filter(k => {
+      const match = k.match(/^[B-Z]_(.+)$/);
+      if (!match) return true;
+
+      const aKey = aKeyByBaseName.get(match[1]);
+      if (!aKey) return true;
+
+      const isSameAsA = rows.every(row =>
+        normalizeResultValue(row[k]) === normalizeResultValue(row[aKey])
+      );
+      return !isSameAsA;
+    });
+  };
+
   // 전체 UI를 container에 렌더링하는 함수 (테이블 목록, 상세 패널, 에디터, 결과 영역 포함)
   const render = () => {
     // ── 테이블 목록 ── escapeAttr: title 속성, escapeHtml: 텍스트 콘텐츠
@@ -277,9 +312,7 @@ export function renderSqlPlayground(container, onSelectDataset) {
         );
       } else {
         const originalKeys = Object.keys(queryResult[0]);
-        const keys = originalKeys.filter(k => {
-          return queryResult.some(row => row[k] !== null && row[k] !== '');
-        });
+        const keys = getDisplayResultKeys(queryResult);
 
         const hiddenCount = originalKeys.length - keys.length;
         const hiddenMessage = hiddenCount > 0
@@ -505,8 +538,8 @@ export function renderSqlPlayground(container, onSelectDataset) {
       }
 
       scenarioSelector.addEventListener('change', (e) => {
-        const no = parseInt(e.target.value);
-        const sc = joinScenarios.find(s => s.no === no);
+        const no = String(e.target.value);
+        const sc = joinScenarios.find(s => String(s.no) === no);
         if (sc) {
           currentSql = sc.sql;
           const editor = container.querySelector('#sql-editor');
@@ -558,8 +591,8 @@ export function renderSqlPlayground(container, onSelectDataset) {
     const csvBtn = container.querySelector('#download-csv-btn');
     if (csvBtn && queryResult && queryResult.length > 0) {
       csvBtn.addEventListener('click', () => {
-        const keys = Object.keys(queryResult[0]);
-        let csvContent = "data:text/csv;charset=utf-8,﻿"; // 한글 깨짐 방지 BOM 추가
+        const keys = getDisplayResultKeys(queryResult);
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // 한글 깨짐 방지 BOM 추가
         csvContent += keys.join(",") + "\n";
 
         queryResult.forEach(row => {
@@ -588,9 +621,10 @@ export function renderSqlPlayground(container, onSelectDataset) {
   // 서버의 /api/join-scenarios 엔드포인트에서 JOIN 시나리오 목록을 로드하는 함수
   const fetchJoinScenarios = async () => {
     try {
-      const res = await fetch('/api/join-scenarios');
+      const res = await fetch('/api/join-scenarios?size=1000');
       if (res.ok) {
-        joinScenarios = await res.json();
+        const data = await res.json();
+        joinScenarios = Array.isArray(data) ? data : (data.items || []);
         if (joinScenarios.length > 0 && currentSql.startsWith('-- join.sql')) {
           currentSql = joinScenarios[0].sql;
         }
@@ -606,9 +640,11 @@ export function renderSqlPlayground(container, onSelectDataset) {
 
     let autoRun = false;
     // 타 컴포넌트(예: 데이터맵)로부터 연계된 SQL 자동 입력 및 포커싱 연동
-    if (window.sqlPlaygroundAutoQuery) {
-      currentSql = window.sqlPlaygroundAutoQuery;
-      window.sqlPlaygroundAutoQuery = null; // 단회성 소비 후 초기화
+    const _autoQuery = window.sqlPlaygroundAutoQuery || sessionStorage.getItem('sqlPlaygroundAutoQuery');
+    if (_autoQuery) {
+      currentSql = _autoQuery;
+      window.sqlPlaygroundAutoQuery = null;
+      sessionStorage.removeItem('sqlPlaygroundAutoQuery');
       autoRun = true;
 
       // SQL 쿼리에서 FROM 구문을 분석하여 참조 테이블 명세를 자동 파싱/로드

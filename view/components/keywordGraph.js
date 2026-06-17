@@ -7,6 +7,7 @@
  */
 import { escapeHtml, escapeAttr } from '/view/utils.js';
 import { renderEmptyState, renderLoadingSpinner } from '../uiComponents.js';
+import { getDatasetsSync } from '../datasetStore.js';
 
 // 카테고리별 고정 색상 매핑 (도메인 이름 → 색상 코드)
 const CATEGORY_COLORS = {
@@ -59,6 +60,7 @@ let _svg = null;
 
 let _lastData = null;
 let _externalFilterIds = null;
+let _onSelectDataset = null;
 
 function handleDatamapFilterUpdate(e) {
   if (e.detail !== undefined) {
@@ -306,7 +308,7 @@ function renderSvg(wrap, nodes, links, keyword, onNodeClick) {
       return t === 'center' ? '8 5' : t === 'domain' ? '5 4' : '3 3';
     });
 
-  // Nodes group — 원본 sauceDataMap 디자인 적용
+  // Nodes group
   const nodeG = _svgG.append('g').attr('class', 'nodes')
     .selectAll('g').data(nodes).enter().append('g')
     .attr('data-node', d => d.id)
@@ -468,14 +470,26 @@ function updateDetailPanel(d) {
       </div>`;
   } else if (d.type === 'table') {
     const t = d.table || {};
+    const cleanId = (t.tableName || '').replace(/-/g, '').toLowerCase();
+    const datasetObj = getDatasetsSync().find(ds => (ds.id || '').replace(/-/g, '').toLowerCase() === cleanId);
+
     panel.innerHTML = `
-      <div>
-        <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${escapeHtml(d.color)};color:#fff;font-size:12px;font-weight:700;margin-bottom:10px;">${escapeHtml(d.domain || '')}</div>
-        <p style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 6px;">${t.tableLabel || t.tableName}</p>
-        <p style="font-size:12px;color:#64748b;margin:0 0 16px;">테이블 ID: ${t.tableName}</p>
-        <div id="kwmap-meta-loading" style="color:#94a3b8;font-size:13px;">컬럼 정보 불러오는 중...</div>
-        <div id="kwmap-meta-list" style="display:none;"></div>
+      <div style="display:flex;flex-direction:column;height:100%;">
+        <div style="flex:1;overflow-y:auto;padding-bottom:8px;">
+          <div style="display:inline-block;padding:3px 10px;border-radius:6px;background:${escapeHtml(d.color)};color:#fff;font-size:12px;font-weight:700;margin-bottom:10px;">${escapeHtml(d.domain || '')}</div>
+          <p style="font-size:15px;font-weight:700;color:#1e293b;margin:0 0 6px;">${escapeHtml(t.tableLabel || t.tableName)}</p>
+          <p style="font-size:12px;color:#64748b;margin:0 0 16px;">테이블 ID: ${escapeHtml(t.tableName)}</p>
+          <div id="kwmap-meta-loading" style="color:#94a3b8;font-size:13px;">컬럼 정보 불러오는 중...</div>
+          <div id="kwmap-meta-list" style="display:none;"></div>
+        </div>
+        ${_onSelectDataset && datasetObj ? `
+        <div style="padding:10px 0 0;border-top:1px solid #f1f5f9;flex-shrink:0;">
+          <button id="kwmap-jump-dataset" style="width:100%;padding:8px 0;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="ri-file-list-3-line"></i> 데이터 세트 자세히 보기
+          </button>
+        </div>` : ''}
       </div>`;
+
     fetch(`/api/datasetMetadata.do?svc_no=${encodeURIComponent(t.tableName)}`)
       .then(r => r.ok ? r.json() : [])
       .then(cols => {
@@ -494,12 +508,32 @@ function updateDetailPanel(d) {
             </div>`).join('')}
           </div>`;
       }).catch(() => {});
+
+    if (_onSelectDataset && datasetObj) {
+      document.getElementById('kwmap-jump-dataset')?.addEventListener('click', () => _onSelectDataset(datasetObj));
+    }
+
   } else if (d.type === 'leaf') {
+    const cleanId = (d.tableName || '').replace(/-/g, '').toLowerCase();
+    const datasetObj = getDatasetsSync().find(ds => (ds.id || '').replace(/-/g, '').toLowerCase() === cleanId);
+
     panel.innerHTML = `
-      <div>
-        <p style="font-size:14px;font-weight:600;color:#1e293b;margin:0 0 8px;">${d.leaf?.label || d.label}</p>
-        <p style="font-size:12px;color:#64748b;margin:0;">테이블: ${escapeHtml(d.tableName)}</p>
+      <div style="display:flex;flex-direction:column;height:100%;">
+        <div style="flex:1;overflow-y:auto;padding-bottom:8px;">
+          <p style="font-size:14px;font-weight:600;color:#1e293b;margin:0 0 8px;">${escapeHtml(d.leaf?.label || d.label || '')}</p>
+          <p style="font-size:12px;color:#64748b;margin:0;">테이블: ${escapeHtml(d.tableName)}</p>
+        </div>
+        ${_onSelectDataset && datasetObj ? `
+        <div style="padding:10px 0 0;border-top:1px solid #f1f5f9;flex-shrink:0;">
+          <button id="kwmap-jump-dataset" style="width:100%;padding:8px 0;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="ri-file-list-3-line"></i> 데이터 세트 자세히 보기
+          </button>
+        </div>` : ''}
       </div>`;
+
+    if (_onSelectDataset && datasetObj) {
+      document.getElementById('kwmap-jump-dataset')?.addEventListener('click', () => _onSelectDataset(datasetObj));
+    }
   }
 }
 
@@ -507,10 +541,12 @@ function updateDetailPanel(d) {
 // 동일 키워드 중복 렌더를 방지하고, 데이터 로드 후 buildGraph → renderSvg 순서로 처리
 let _currentOp = 'AND';
 
-export function renderKeywordGraph(keyword) {
+export function renderKeywordGraph(keyword, onSelectDataset) {
   const graphWrap = document.getElementById('kwmap-graph-container');
   const svgWrap = document.getElementById('kwmap-svg-wrap');
   if (!graphWrap || !svgWrap) return;
+
+  if (onSelectDataset !== undefined) _onSelectDataset = onSelectDataset;
 
   const currentOperator = document.getElementById('datamap-keyword-operator')?.value || 'AND';
 
@@ -619,4 +655,109 @@ export function renderKeywordGraph(keyword) {
       renderSvg(svgWrap, nodes, links, keyword, updateDetailPanel);
     })
     .catch(e => showError(e.message));
+}
+
+// container를 받아 내부에 전체 UI를 생성한 뒤 renderKeywordGraph를 실행하는 진입점
+export function renderKeywordDataMap(container, initialKeyword, onSelectDataset) {
+  if (!container) return;
+
+  // 이미 초기화된 경우 키워드만 변경하여 재검색
+  if (container._kwmapInitialized) {
+    const input = container.querySelector('#kwmap-standalone-input');
+    if (input && initialKeyword) {
+      input.value = initialKeyword;
+      renderKeywordGraph(initialKeyword, onSelectDataset);
+    }
+    return;
+  }
+  container._kwmapInitialized = true;
+
+  container.style.height = '100%';
+  container.innerHTML = `
+    <section style="display:flex;flex-direction:column;height:100%;padding:24px 32px;gap:16px;box-sizing:border-box;">
+      <!-- 헤더 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 18px;">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <h3 style="font-size:16px;font-weight:700;color:#1e293b;margin:0;display:flex;align-items:center;gap:8px;">
+            <i class="ri-share-circle-fill" style="color:#2563eb;"></i>
+            키워드 데이터맵 (D3 Force)
+          </h3>
+          <p style="font-size:12px;color:#64748b;margin:0;">노드를 드래그하여 유기적인 데이터 관계망을 탐색해 보세요.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input id="kwmap-standalone-input" type="text"
+            value="${initialKeyword || ''}"
+            placeholder="키워드 입력 (예: 건강기능식품)"
+            style="border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;outline:none;width:220px;" />
+          <button id="kwmap-standalone-search"
+            style="padding:7px 18px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+            검색
+          </button>
+          <button id="btn-kwmap-capture"
+            style="padding:7px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <i class="ri-camera-lens-line"></i> 화면 캡처
+          </button>
+        </div>
+      </div>
+
+      <!-- 본문: 그래프 + 상세 패널 -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;flex:1;min-height:0;">
+        <!-- 그래프 영역 -->
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;flex-direction:column;min-height:0;">
+          <h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;">키워드 연계 관계 시각화</h4>
+          <div id="kwmap-graph-container" style="flex:1;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;position:relative;overflow:hidden;cursor:grab;min-height:0;">
+            <!-- 로딩 -->
+            <div id="kwmap-loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:white;z-index:10;">
+              <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:kwspin 0.8s linear infinite;"></div>
+              <div style="font-size:13px;font-weight:600;color:#475569;" id="kwmap-loading-text">데이터 불러오는 중...</div>
+            </div>
+            <!-- 에러 -->
+            <div id="kwmap-error" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:32px;font-weight:700;z-index:10;background:white;"></div>
+            <!-- SVG -->
+            <div id="kwmap-svg-wrap" style="width:100%;height:100%;background:#fff;display:none;"></div>
+            <!-- 줌 버튼 -->
+            <div id="kwmap-zoom-btns" style="position:absolute;bottom:16px;right:16px;display:none;flex-direction:column;gap:8px;z-index:10;">
+              <button id="kwmap-zoom-in" style="width:36px;height:36px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 1px 4px #0001;">+</button>
+              <button id="kwmap-zoom-out" style="width:36px;height:36px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 1px 4px #0001;">−</button>
+              <button id="kwmap-zoom-home" style="width:36px;height:36px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;box-shadow:0 1px 4px #0001;display:flex;align-items:center;justify-content:center;">
+                <i class="ri-home-4-line" style="font-size:16px;color:#475569;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 상세 패널 -->
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;display:flex;flex-direction:column;overflow-y:auto;">
+          <h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 4px;">상세 정보 패널</h4>
+          <p style="font-size:12px;color:#94a3b8;margin:0 0 16px;border-bottom:1px solid #f1f5f9;padding-bottom:12px;">노드를 클릭하면 세부 정보가 표시됩니다.</p>
+          <div id="kwmap-detail-panel" style="flex:1;overflow-y:auto;">
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;gap:8px;min-height:160px;">
+              <i class="ri-cursor-line" style="font-size:28px;"></i>
+              <span>← 맵에서 노드를 클릭하세요</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <style>@keyframes kwspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>`;
+
+  const input = container.querySelector('#kwmap-standalone-input');
+  const searchBtn = container.querySelector('#kwmap-standalone-search');
+
+  const doSearch = () => {
+    const kw = input?.value.trim() || '';
+    if (kw) renderKeywordGraph(kw, onSelectDataset);
+  };
+
+  searchBtn?.addEventListener('click', doSearch);
+  input?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  const kw = initialKeyword?.trim() || '';
+  if (kw) {
+    renderKeywordGraph(kw, onSelectDataset);
+  } else {
+    // 로딩 숨기고 빈 상태 표시
+    const loadEl = container.querySelector('#kwmap-loading');
+    if (loadEl) loadEl.style.display = 'none';
+  }
 }

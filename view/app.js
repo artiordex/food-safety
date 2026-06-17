@@ -5,7 +5,7 @@ import { renderDetailPanel } from './components/detailDataset.js?v=102';
 import { renderSqlPlayground } from './components/sqlPlayground.js?v=100';
 import { renderApiExplorer } from './components/apiExplorer.js?v=100';
 import { renderApiLiveJoin } from './components/apiLiveJoin.js?v=100';
-import { renderSauceDataMap } from './components/sauceDataMap.js?v=101';
+import { renderKeywordDataMap } from './components/keywordGraph.js?v=7';
 import { renderDbErdMap } from './components/dbErdMap.js?v=100';
 import { renderWordCloud } from './components/wordCloud.js?v=100';
 import { getDatasetsSync } from './datasetStore.js?v=100';
@@ -101,15 +101,13 @@ const renderTabContent = () => {
   } else if (activeTab === 'api-live-join') {
     renderApiLiveJoin(currentView, onSelectDataset);
   } else if (activeTab === 'keyword-datamap') {
-    renderSauceDataMap(currentView, globalDatamapKeyword, onSelectDataset);
+    renderKeywordDataMap(currentView, globalDatamapKeyword, onSelectDataset);
   } else if (activeTab === 'db-erd') {
     renderDbErdMap(currentView, onSelectDataset);
   } else if (activeTab === 'wordcloud') {
     renderWordCloud(currentView, onSelectDataset, globalDatamapKeyword);
-  } else if (activeTab === 'recommend-beginner') {
-    renderScenarioTabs(currentView, 'beginner');
-  } else if (activeTab === 'recommend-developer') {
-    renderScenarioTabs(currentView, 'developer');
+  } else if (activeTab === 'recommend-beginner' || activeTab === 'recommend-developer') {
+    renderScenarioTabs(currentView);
   }
 };
 
@@ -303,9 +301,6 @@ window.setGlobalDatamapKeyword = (keyword) => {
 };
 window.getGlobalDatamapKeyword = () => globalDatamapKeyword;
 
-window.renderSauceDataMapInto = (container, keyword) => {
-  renderSauceDataMap(container, keyword || '검색', null);
-};
 
 document.querySelectorAll('.nav-menu-btn, .tab-pill, .mobile-nav-btn, .tab-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
@@ -383,143 +378,275 @@ updateActiveTabUI();
 renderTabContent();
 
 // 데이터 시나리오 추천 렌더러
-async function renderScenarioTabs(container, mode) {
+async function renderScenarioTabs(container) {
   const view = document.getElementById('scenario-view');
   if (!view) return;
-  
   view.style.display = 'block';
-  
-  const titleEl = view.querySelector('#scenario-sidebar-title');
-  if (titleEl) titleEl.textContent = mode === 'developer' ? '개발자 데이터 시나리오' : '일반인 데이터 시나리오';
-  
-  const descEl = view.querySelector('#scenario-sidebar-desc');
-  if (descEl) descEl.textContent = mode === 'developer' ? 'API 연동 및 SQL 쿼리 가이드' : '데이터 활용 비즈니스 아이디어';
+
+  const root = view.querySelector('#scenario-root');
+  if (!root) return;
+
+  // ── 상수 ──────────────────────────────────────────────
+  const PAGE_SIZE = 12;
+  const GRADE_LABELS = { HIGH: '검증 JOIN', MEDIUM: '추천', CHAIN: '체인 JOIN', CASE: '활용 사례', SUPER: 'SUPER' };
+  const GRADE_COLORS = {
+    HIGH:   'bg-emerald-100 text-emerald-700',
+    MEDIUM: 'bg-amber-100 text-amber-700',
+    CHAIN:  'bg-violet-100 text-violet-700',
+    CASE:   'bg-sky-100 text-sky-700',
+    SUPER:  'bg-gradient-to-r from-purple-500 to-indigo-600 text-white',
+  };
+  const FILTER_TABS = [
+    { key: 'ALL',    label: '전체' },
+    { key: 'CASE',   label: '활용 사례' },
+    { key: 'HIGH',   label: '검증 JOIN' },
+    { key: 'CHAIN',  label: '체인 JOIN' },
+    { key: 'MEDIUM', label: '추천' },
+  ];
+
+  let allScenarios = [];
+  let currentFilter = 'ALL';
+  let currentPage   = 1;
+  let currentDetail = null; // 상세 보기 중인 시나리오
+
+  // ── 로딩 ──────────────────────────────────────────────
+  root.innerHTML = `<div class="flex justify-center items-center py-32 text-slate-400">
+    <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  </div>`;
 
   try {
-    const res = await fetch('/api/join-scenarios');
-    const scenarios = await res.json();
-    
-    const listEl = view.querySelector('#scenario-list');
-    listEl.innerHTML = '';
-    
-    let activeIndex = 0;
+    const res = await fetch('/api/join-scenarios?size=1000');
+    const data = await res.json();
+    allScenarios = Array.isArray(data) ? data : (data.items || []);
+  } catch (err) {
+    root.innerHTML = `<div class="p-8 text-red-500 text-center">데이터를 불러오는 중 오류가 발생했습니다.</div>`;
+    return;
+  }
 
-    const renderDetail = (index) => {
-      activeIndex = index;
-      const scenario = scenarios[index];
-      const isDev = mode === 'developer';
+  // ── 헬퍼 ──────────────────────────────────────────────
+  const escHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-      Array.from(listEl.children).forEach((li, i) => {
-        if (i === index) {
-          li.className = 'px-4 py-3 text-sm font-bold text-blue-600 bg-blue-50 rounded-lg cursor-pointer transition-colors';
-        } else {
-          li.className = 'px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg cursor-pointer transition-colors';
-        }
-      });
+  function filtered() {
+    return currentFilter === 'ALL' ? allScenarios : allScenarios.filter(s => s.grade === currentFilter);
+  }
 
-      const contentEl = view.querySelector('#scenario-content');
-      
-      const badgeColor = scenario.grade === 'SUPER' ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' : 
-                         scenario.grade === 'HIGH' ? 'bg-emerald-500 text-white' : 
-                         scenario.grade === 'MEDIUM' ? 'bg-amber-500 text-white' : 'bg-gray-400 text-white';
+  // ── 카드 그리드 렌더 ─────────────────────────────────
+  function renderGrid() {
+    currentDetail = null;
+    const list = filtered();
+    const total = list.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    currentPage = Math.min(currentPage, totalPages || 1);
+    const slice = list.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-      let html = `
-        <div class="animate-fade-in-up">
-          <div class="mb-4">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${badgeColor} shadow-sm">
-              ${scenario.grade} 신뢰도
-            </span>
-          </div>
-          <h1 class="text-3xl font-extrabold text-gray-900 mb-6 leading-tight">${scenario.title}</h1>
-          
-          <div class="prose prose-blue max-w-none text-gray-600 mb-10 leading-relaxed text-lg">
-            ${scenario.description.split('|').map(p => `<p class="mb-2">${p.trim()}</p>`).join('')}
-          </div>
-      `;
+    const filterHtml = FILTER_TABS.map(f => {
+      const cnt = f.key === 'ALL' ? allScenarios.length : allScenarios.filter(s => s.grade === f.key).length;
+      const active = currentFilter === f.key;
+      return `<button data-filter="${f.key}"
+        class="px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+          active ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                 : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600'}"
+      >${f.label} <span class="ml-1 opacity-70">${cnt}</span></button>`;
+    }).join('');
 
-      if (isDev) {
-        html += `
-          <div class="mt-8 bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl border border-gray-800">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#2d2d2d]">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <span class="text-xs font-mono text-gray-400">SQL Query</span>
-              <button class="text-gray-400 hover:text-white transition-colors" title="Copy to clipboard">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-              </button>
-            </div>
-            <div class="p-6 overflow-x-auto">
-              <pre><code class="text-sm font-mono text-gray-300 leading-relaxed">${scenario.sql}</code></pre>
-            </div>
-          </div>
-          
-          <div class="mt-8">
-            <button id="run-playground-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-colors flex items-center space-x-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <span>API Playground에서 쿼리 실행해보기</span>
-            </button>
-          </div>
-        `;
-      } else {
-        html += `
-          <div class="mt-8 bg-blue-50 rounded-2xl p-8 border border-blue-100">
-            <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center">
-              <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-              활용 기대 효과
-            </h3>
-            <ul class="space-y-3 text-blue-800">
-              <li class="flex items-start">
-                <svg class="w-5 h-5 mr-3 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                데이터 융합을 통해 새로운 인사이트 도출
-              </li>
-              <li class="flex items-start">
-                <svg class="w-5 h-5 mr-3 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                복잡한 정보 탐색 시간을 획기적으로 단축
-              </li>
-              <li class="flex items-start">
-                <svg class="w-5 h-5 mr-3 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                대국민 맞춤형 식품 안전 서비스 기획에 즉시 활용 가능
-              </li>
-            </ul>
-          </div>
-        `;
-      }
-
-      html += `</div>`;
-      contentEl.innerHTML = html;
-
-      const runPlaygroundBtn = contentEl.querySelector('#run-playground-btn');
-      if (runPlaygroundBtn) {
-        runPlaygroundBtn.addEventListener('click', () => {
-          window.sqlPlaygroundAutoQuery = scenario.sql;
-          document.querySelector('[data-tab="sql-playground"]')?.click();
-        });
-      }
+    const BANNER_GRADIENTS = {
+      HIGH:   'from-emerald-500 to-teal-600',
+      MEDIUM: 'from-amber-400 to-orange-500',
+      CHAIN:  'from-violet-500 to-purple-600',
+      CASE:   'from-sky-400 to-blue-500',
+      SUPER:  'from-purple-600 to-indigo-700',
+    };
+    const BANNER_ICONS = {
+      HIGH:   `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>`,
+      MEDIUM: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>`,
+      CHAIN:  `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>`,
+      CASE:   `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>`,
+      SUPER:  `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>`,
     };
 
-    scenarios.forEach((sc, idx) => {
-      const li = document.createElement('li');
-      li.className = 'px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg cursor-pointer transition-colors line-clamp-2';
-      li.textContent = sc.title;
-      li.onclick = () => renderDetail(idx);
-      listEl.appendChild(li);
-    });
+    const cardHtml = slice.length === 0
+      ? `<div class="col-span-full py-24 text-center text-slate-400">해당 시나리오가 없습니다.</div>`
+      : slice.map((sc, i) => {
+          const gi = allScenarios.indexOf(sc);
+          const badgeCls = GRADE_COLORS[sc.grade] || 'bg-gray-100 text-gray-600';
+          const badgeLabel = GRADE_LABELS[sc.grade] || sc.grade;
+          const desc = (sc.description || '').split('|')[0].replace(/^\s*[-–·]\s*/, '').trim();
+          const shortDesc = desc.length > 72 ? desc.slice(0, 72) + '…' : desc;
+          const bannerGrad = BANNER_GRADIENTS[sc.grade] || 'from-slate-400 to-slate-600';
+          const bannerIcon = BANNER_ICONS[sc.grade] || '';
+          return `
+          <article data-idx="${gi}" title="${escHtml(sc.title)}"
+            class="scenario-card group bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col overflow-hidden">
+            <!-- 썸네일 배너 -->
+            <div class="relative h-32 bg-gradient-to-br ${bannerGrad} flex items-center justify-center overflow-hidden">
+              <svg class="w-16 h-16 text-white/20 absolute -right-2 -bottom-2 scale-150" fill="none" stroke="currentColor" viewBox="0 0 24 24">${bannerIcon}</svg>
+              <svg class="w-10 h-10 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">${bannerIcon}</svg>
+            </div>
+            <!-- 카드 본문 -->
+            <div class="p-4 flex-1 flex flex-col">
+              <div class="flex items-center gap-1.5 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${badgeCls}">${badgeLabel}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500">SQL</span>
+              </div>
+              <h3 class="text-[14px] font-bold text-slate-800 leading-snug mb-1.5 line-clamp-2 group-hover:text-blue-600 transition-colors">${escHtml(sc.title)}</h3>
+              <p class="text-[12px] text-slate-400 line-clamp-2 flex-1 leading-relaxed">${shortDesc ? escHtml(shortDesc) : '&nbsp;'}</p>
+            </div>
+            <!-- 카드 푸터 -->
+            <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+              <span class="text-[11px] text-slate-400 font-mono">No.${escHtml(String(sc.no))}</span>
+              <span class="text-[11px] font-semibold text-blue-500 group-hover:text-blue-700 flex items-center gap-0.5">자세히 보기
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+              </span>
+            </div>
+          </article>`;
+        }).join('');
 
-    if (scenarios.length > 0) {
-      renderDetail(0);
-    } else {
-      const contentEl = view.querySelector('#scenario-content');
-      if (contentEl) contentEl.innerHTML = '<div class="text-center text-gray-500 mt-20">시나리오가 없습니다.</div>';
+    // 페이지네이션
+    let pageHtml = '';
+    if (totalPages > 1) {
+      const pages = [];
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2) {
+          pages.push(p);
+        } else if (pages[pages.length - 1] !== '…') {
+          pages.push('…');
+        }
+      }
+      pageHtml = `<div class="flex items-center justify-center gap-1 mt-10">
+        <button data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}
+          class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-500 hover:bg-slate-50 disabled:opacity-30">‹</button>
+        ${pages.map(p => p === '…'
+          ? `<span class="px-2 text-slate-400">…</span>`
+          : `<button data-page="${p}" class="w-9 h-9 rounded-lg text-sm font-semibold border transition-all ${
+              p === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}">${p}</button>`
+        ).join('')}
+        <button data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}
+          class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-500 hover:bg-slate-50 disabled:opacity-30">›</button>
+      </div>`;
     }
 
-  } catch (err) {
-    console.error(err);
-    const contentEl = view.querySelector('#scenario-content');
-    if (contentEl) contentEl.innerHTML = '<div class="p-8 text-red-500">데이터를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>';
+    root.innerHTML = `
+      <div class="flex flex-wrap gap-2 mb-6" id="scenario-filter-tabs">${filterHtml}</div>
+      <p class="text-sm text-slate-500 mb-4">총 <strong>${total}</strong>개의 시나리오</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="scenario-card-grid">${cardHtml}</div>
+      ${pageHtml}`;
+
+    // 이벤트
+    root.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentFilter = btn.dataset.filter;
+        currentPage = 1;
+        renderGrid();
+      });
+    });
+    root.querySelectorAll('[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = parseInt(btn.dataset.page);
+        if (!isNaN(p) && p >= 1 && p <= totalPages) { currentPage = p; renderGrid(); }
+      });
+    });
+    root.querySelectorAll('.scenario-card').forEach(card => {
+      card.addEventListener('click', () => {
+        location.href = '/data/scenario/detail.do?idx=' + card.dataset.idx;
+      });
+    });
   }
+
+  // ── 상세 뷰 렌더 ─────────────────────────────────────
+  function renderDetail(idx) {
+    currentDetail = idx;
+    const sc = allScenarios[idx];
+    if (!sc) return;
+
+    const badgeCls   = GRADE_COLORS[sc.grade] || 'bg-gray-100 text-gray-600';
+    const badgeLabel = GRADE_LABELS[sc.grade] || sc.grade;
+    const descParts  = (sc.description || '').split('|').map(p => p.trim()).filter(Boolean);
+
+    root.innerHTML = `
+      <div class="animate-fade-in-up max-w-4xl mx-auto">
+
+        <!-- 뒤로가기 -->
+        <button id="scenario-back-btn"
+          class="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 mb-6 transition-colors font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          목록으로 돌아가기
+        </button>
+
+        <!-- 배지 + 제목 -->
+        <div class="mb-2">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${badgeCls}">${badgeLabel}</span>
+        </div>
+        <h1 class="text-2xl font-extrabold text-slate-900 mb-5 leading-tight">${escHtml(sc.title)}</h1>
+
+        ${descParts.length ? `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8 text-slate-600 leading-relaxed text-[15px] space-y-1">
+          ${descParts.map(p => `<p>• ${escHtml(p)}</p>`).join('')}
+        </div>` : ''}
+
+        <!-- SQL 코드 블록 -->
+        <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl border border-gray-800 mb-6">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-[#2d2d2d]">
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-red-500"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <span class="text-xs font-mono text-gray-400">SQL Query</span>
+            <button id="btn-copy-sql" class="text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              복사
+            </button>
+          </div>
+          <div class="p-6 overflow-x-auto">
+            <pre class="text-sm font-mono text-gray-300 leading-relaxed whitespace-pre">${escHtml(sc.sql)}</pre>
+          </div>
+        </div>
+
+        <!-- Playground 버튼 -->
+        <button id="run-playground-btn"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-colors mb-10">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          SQL Playground에서 실행해보기
+        </button>
+
+        <!-- 활용 기대 효과 -->
+        <div class="bg-blue-50 rounded-2xl p-8 border border-blue-100">
+          <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            활용 기대 효과
+          </h3>
+          <ul class="space-y-3 text-blue-800 text-sm">
+            <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>데이터 융합을 통해 새로운 인사이트 도출</li>
+            <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>복잡한 정보 탐색 시간을 획기적으로 단축</li>
+            <li class="flex items-start gap-2"><svg class="w-4 h-4 mt-0.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>대국민 맞춤형 식품 안전 서비스 기획에 즉시 활용 가능</li>
+          </ul>
+        </div>
+      </div>`;
+
+    root.querySelector('#scenario-back-btn').addEventListener('click', () => renderGrid());
+
+    root.querySelector('#btn-copy-sql').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(sc.sql).catch(() => {});
+      const btn = root.querySelector('#btn-copy-sql');
+      if (btn) { btn.textContent = '복사됨 ✓'; setTimeout(() => { if(btn) btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> 복사'; }, 2000); }
+    });
+
+    root.querySelector('#run-playground-btn').addEventListener('click', () => {
+      sessionStorage.setItem('sqlPlaygroundAutoQuery', sc.sql);
+      window.location.href = '/data/analysis.do?tab=sql-playground';
+    });
+  }
+
+  renderGrid();
 }
 
 const style = document.createElement('style');

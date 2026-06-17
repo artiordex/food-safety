@@ -191,13 +191,10 @@ node db/analyze_scenario.js
 
 `render.yaml`에 배포 설정이 포함되어 있습니다.  
 `FOOD_API_KEY`는 Render 대시보드 > Environment에서 직접 입력해야 합니다.
-
-> ⚠️ Render 무료 플랜은 배포 시 파일시스템이 초기화됩니다. `foodsafety.db`는 Persistent Disk를 사용하거나 빌드 단계에서 복원하는 별도 전략이 필요합니다.
-
 ---
 
 ## 데이터 출처
 
 - **식품의약품안전처 식품안전나라 OpenAPI**
   - https://www.foodsafetykorea.go.kr/api/openApiInfo.do
-  - 172개 오픈 데이터셋 (건강기능식품, 식품접객업, 이력추적, 기준규격 등)
+  - 170개 오픈 데이터셋 (건강기능식품, 식품접객업, 이력추적, 기준규격 등)

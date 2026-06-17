@@ -200,7 +200,9 @@ const doRoutes = {
   '/data/datamap.do': '/data/datamap.html',
   '/data/dataset.do': '/data/dataset.html',
   '/data/analysis.do': '/data/analysis.html',
-  '/data/scenario.do': '/data/scenario.html',
+  '/data/scenario.do': '/data/scenario/page/index.html',
+  '/data/scenario/page.do': '/data/scenario/page/index.html',
+  '/data/scenario/detail.do': '/data/scenario/detail/index.html',
 };
 Object.entries(doRoutes).forEach(([doUrl, htmlPath]) => {
   app.get(doUrl, (req, res) => {
@@ -271,119 +273,9 @@ app.get('/crawler/crawl_cache.json', (req, res) => {
 app.use(express.static(path.join(__dirname, 'pages')));
 // app.use(express.static(__dirname)); // ⚠️ 루트 노출 제거 — view/public만 서빙
 app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));  // /assets/* 직접 접근 허용
 app.use('/css', express.static(path.join(__dirname, 'css')));  // 공공포털 CSS 호환
 app.use('/view', express.static(path.join(__dirname, 'view')));
-
-// 서버 구동
-// 농심 내부 시스템 사내 규격 데이터 세트 API (7개 테이블 조인)
-app.get('/api/nongshim-dataset', async (req, res) => {
-  try {
-    const query = `
-      SELECT 
-        -- 1. 기준규격정보
-        S.PRDLST_CD_NM AS "식품유형",
-        S.TESTITM_NM AS "검사항목",
-        S.SPEC_VAL AS "기준규격",
-        
-        -- 2. 코드정보
-        P.KOR_NM AS "품목유형_표준명",
-        T.KOR_NM AS "시험항목_표준명",
-        
-        -- 3. 식품위해관리 (회수, 행정처분, 부적합)
-        R.BSSHNM AS "적발업체명",
-        R.PRDTNM AS "회수_대상제품명",
-        R.RTRVLPRVNS AS "회수사유",
-        COALESCE(I.TESTANALS_RSLT, (SELECT TESTANALS_RSLT FROM I2620 WHERE TESTANALS_RSLT IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "검사_부적합결과",
-        COALESCE(A.DSPS_TYPECD_NM, (SELECT DSPS_TYPECD_NM FROM I0470 WHERE DSPS_TYPECD_NM IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "행정처분유형",
-        
-        -- 4. HACCP지정현황
-        COALESCE(H.EDC_INSTT_APPN_NO, (SELECT EDC_INSTT_APPN_NO FROM I0600 WHERE EDC_INSTT_APPN_NO IS NOT NULL ORDER BY RANDOM() LIMIT 1)) AS "HACCP_지정번호"
-      FROM I2600 S
-      LEFT JOIN I2510 P ON S.PRDLST_CD = P.PRDLST_CD
-      LEFT JOIN I2530 T ON S.TESTITM_CD = T.TESTITM_CD
-      JOIN I0490 R ON S.PRDLST_CD = R.PRDLST_CD
-      LEFT JOIN I2620 I ON R.LCNS_NO = I.LCNS_NO
-      LEFT JOIN I0470 A ON R.LCNS_NO = A.LCNS_NO
-      LEFT JOIN I0600 H ON R.BSSHNM = H.BSSH_NM
-      LIMIT 100
-    `;
-    const rows = await dbAll(query);
-    res.json(rows);
-  } catch (err) {
-    logger.error({ err }, 'Nongshim dataset 조회 중 오류가 발생했습니다.');
-    res.status(500).json({ error: '서버 내부 오류가 발생했습니다.' });
-  }
-});
-
-const CAT_TO_SUBJECT = {
-  '식품영양정보': '영양·건강',
-  '건강기능식품': '영양·건강',
-  '식품 등': '식품·제품',
-  '기준규격정보': '식품·제품',
-  '이력추적관리': '식품·제품',
-  '수입식품 등': '수입식품',
-  '업체인허가현황': '업체·영업자',
-  '폐업정보': '업체·영업자',
-  'HACCP지정현황': '업체·영업자',
-  '위생용품': '업체·영업자',
-  '축산물': '농·축·수산물',
-  '식품위해관리': '식품·제품',
-  '식품안전관리': '식품·제품',
-  '수질환경정보': '기타',
-  '어린이식품안전관리': '식품·제품',
-  '검사기관정보': '기타',
-  '코드정보': '기타',
-  '용어사전': '기타',
-};
-
-function buildDatasetEntry(row, cacheItem, fieldNames) {
-  const svcNo = row.svc_no || '';
-  const svcNm = cacheItem?.svc_nm || row.svc_nm || svcNo;
-  const cat = cacheItem?.cat || row.cat || '기타';
-  const desc = cacheItem?.desc || row.description || '';
-  const provd = cacheItem?.provd_instt_nm || '식품의약품안전처';
-  const subject = CAT_TO_SUBJECT[cat] || '기타';
-  const fields = cacheItem?.fields || [];
-  const pkFields = fields.filter(f =>
-    /NO$|_SN$|_ID$|_SEQ$/i.test(f.field || '') &&
-    !/TELNO|PHONE|ADDR/i.test(f.field || '')
-  ).map(f => f.field);
-  const keys = pkFields.length > 0 ? pkFields : (fieldNames.length > 0 ? [fieldNames[0]] : []);
-  const includedData = fieldNames.slice(0, 8);
-  const dataCount = typeof _tableCountsMap[svcNo] !== "undefined" ? _tableCountsMap[svcNo] : 0;
-
-  const isView = svcNo.startsWith('v_');
-  const difficulty = isView ? 'easy'
-    : fieldNames.length > 30 ? 'hard'
-      : fieldNames.length > 12 ? 'medium' : 'easy';
-
-  return {
-    id: svcNo,
-    name: `${svcNm} (${svcNo})`,
-    description: desc || `${svcNm} 데이터를 제공하는 API입니다.`,
-    users: ['개발자', '연구원', '일반사용자'],
-    dataCount,
-    formats: isView ? ['SQLite View', 'JSON API'] : ['SQLite', 'JSON API'],
-    difficulty,
-    subject,
-    process: cat,
-    issue: '해당없음',
-    theme: '일반 조회용',
-    includedData,
-    keys,
-    usageExample: `SELECT * FROM "${svcNo}" LIMIT 10;`,
-    provd_instt_nm: provd,
-    detail: {
-      overview: desc || `${svcNm}(${svcNo}) 데이터셋입니다.`,
-      includedList: fields.slice(0, 10).map(f => `${f.field} (${f.kor_nm || f.field})`),
-      joinKeys: keys.map(k => `PK: ${k}`),
-      scenarios: [`${svcNm} 데이터 조회`, `${svcNm} 분석`],
-      recommendedUsers: ['데이터 분석가', '서비스 개발자'],
-      guideLinks: [{ label: 'Open API 포털 안내', url: 'https://www.foodsafetykorea.go.kr' }],
-      examples: [`SELECT * FROM "${svcNo}" LIMIT 10;`]
-    }
-  };
-}
 
 // 테이블 간 공통키 연관관계 API (실제 데이터 존재 여부 검증 및 캐싱)
 let cachedRelationships = null;

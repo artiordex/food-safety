@@ -234,7 +234,10 @@ function loadTableFieldMetadata() {
     const tableFieldMap = {};
 
     cache.forEach(dataset => {
-        tableFieldMap[dataset.svc_no] = dataset.fields || [];
+        tableFieldMap[dataset.svc_no] = {
+            logicalName: dataset.svc_nm || dataset.svc_no,
+            fields: dataset.fields || []
+        };
     });
 
     logger.info({
@@ -415,23 +418,22 @@ async function verifyDirectJoins(relationships) {
     return activeVerified;
 }
 
-// 직접 JOIN SQL의 SELECT 컬럼 목록을 생성하는 함수
 function buildDirectJoinSelectColumns(verifiedJoin, tableFieldMap) {
     const selectColumns = [];
 
-    const columnsA = tableFieldMap[verifiedJoin.fromTable] || [];
-    const columnsB = tableFieldMap[verifiedJoin.toTable] || [];
+    const metaA = tableFieldMap[verifiedJoin.fromTable] || { logicalName: verifiedJoin.fromTable, fields: [] };
+    const metaB = tableFieldMap[verifiedJoin.toTable] || { logicalName: verifiedJoin.toTable, fields: [] };
 
-    columnsA.forEach(column => {
+    metaA.fields.forEach(column => {
         const fieldName = column.field;
         const korName = column.kor_nm || column.field;
-        selectColumns.push(`A.${quoteIdent(fieldName)} AS ${quoteIdent(`A_${korName}`)}`);
+        selectColumns.push(`A.${quoteIdent(fieldName)} AS ${quoteIdent(`${korName}`)}`);
     });
 
-    columnsB.forEach(column => {
+    metaB.fields.forEach(column => {
         const fieldName = column.field;
         const korName = column.kor_nm || column.field;
-        selectColumns.push(`B.${quoteIdent(fieldName)} AS ${quoteIdent(`B_${korName}`)}`);
+        selectColumns.push(`B.${quoteIdent(fieldName)} AS ${quoteIdent(`${korName}`)}`);
     });
 
     return selectColumns;
@@ -793,22 +795,24 @@ async function verifyChains(uniqueChains) {
     return verifiedChains;
 }
 
-// 체인 JOIN SELECT 절에 포함할 대표 컬럼 목록을 생성하는 함수
-function buildChainSelectColumns(chain, tableColumns) {
+function buildChainSelectColumns(chain, tableColumns, tableFieldMap) {
     const selectColumns = [];
 
     for (let i = 0; i < chain.path.length; i++) {
         const tableName = chain.path[i];
         const alias = TABLE_ALIASES[i];
         const columns = tableColumns[tableName] || [];
+        const meta = tableFieldMap[tableName] || { logicalName: tableName, fields: [] };
 
         const meaningfulColumns = columns
             .filter(column => !['NUM', 'ROW_NUM', 'LAST_UPDT_DTM'].includes(column))
             .slice(0, 2);
 
         meaningfulColumns.forEach(column => {
+            const fieldMeta = meta.fields.find(f => f.field === column);
+            const korName = fieldMeta ? (fieldMeta.kor_nm || column) : column;
             selectColumns.push(
-                `${alias}.${quoteIdent(column)} AS ${quoteIdent(`${alias}_${column}`)}`
+                `${alias}.${quoteIdent(column)} AS ${quoteIdent(`${korName}`)}`
             );
         });
     }
@@ -817,7 +821,7 @@ function buildChainSelectColumns(chain, tableColumns) {
 }
 
 // 체인 JOIN 결과를 SQL 파일 내용으로 생성하는 함수
-function buildChainJoinSqlContent(verifiedChains, tableColumns) {
+function buildChainJoinSqlContent(verifiedChains, tableColumns, tableFieldMap) {
     let sqlContent = '';
 
     sqlContent += '-- =============================================================================\n';
@@ -829,7 +833,7 @@ function buildChainJoinSqlContent(verifiedChains, tableColumns) {
 
     verifiedChains.forEach((chain, index) => {
         const depth = chain.path.length;
-        const selectColumns = buildChainSelectColumns(chain, tableColumns);
+        const selectColumns = buildChainSelectColumns(chain, tableColumns, tableFieldMap);
 
         sqlContent += '-- -----------------------------------------------------------------------------\n';
         sqlContent += `-- ${index + 1}. [${depth}차 체인 JOIN] ${chain.path.join(' <-> ')}\n`;
@@ -868,7 +872,7 @@ function buildChainJoinSqlContent(verifiedChains, tableColumns) {
 }
 
 // 체인 JOIN 탐색 파이프라인을 실행하는 함수
-async function runChainJoinFinder(tableNames, tableColumns) {
+async function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
     logger.info('테이블 간 공통 조인키를 검증합니다.');
 
     const verifiedEdges = await buildVerifiedEdgeGraph(tableNames, tableColumns);
@@ -894,7 +898,7 @@ async function runChainJoinFinder(tableNames, tableColumns) {
 
     const verifiedChains = await verifyChains(uniqueChains);
 
-    const sqlContent = buildChainJoinSqlContent(verifiedChains, tableColumns);
+    const sqlContent = buildChainJoinSqlContent(verifiedChains, tableColumns, tableFieldMap);
 
     fs.writeFileSync(CHAIN_JOIN_SQL_PATH, sqlContent, 'utf-8');
 
@@ -930,7 +934,7 @@ async function main() {
     await runDirectJoinVerification(tableFieldMap);
 
     logger.info('N차 체인 JOIN 탐색 파이프라인을 실행합니다.');
-    await runChainJoinFinder(tableNames, tableColumns);
+    await runChainJoinFinder(tableNames, tableColumns, tableFieldMap);
 
     logger.info({
         joinSqlPath: JOIN_SQL_PATH,

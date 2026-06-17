@@ -2,7 +2,7 @@
 --   N차 체인 조인 자동 탐색 결과
 --   기준: 실제 매칭 레코드가 존재하는 체인 조인만 포함
 --   총 검증된 체인 조인: 294개
---   생성일시: 2026-06-17T10:48:31.238+09:00
+--   생성일시: 2026-06-17T18:46:56.691+09:00
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -11,14 +11,14 @@
 --   실제 매칭 레코드: 589,340건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -35,14 +35,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,340건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -59,14 +59,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -83,14 +83,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -107,14 +107,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -131,14 +131,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."TESTITM_CD" AS "D_TESTITM_CD",
-    D."KOR_NM" AS "D_KOR_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."TESTITM_CD" AS "시험항목코드",
+    D."KOR_NM" AS "한글명"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -155,14 +155,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -179,14 +179,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."TESTITM_CD" AS "D_TESTITM_CD",
-    D."KOR_NM" AS "D_KOR_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."TESTITM_CD" AS "시험항목코드",
+    D."KOR_NM" AS "한글명"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -203,14 +203,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -227,14 +227,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -251,14 +251,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    C."PC_KOR_NM" AS "C_PC_KOR_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."PRDLST_CD" AS "품목코드",
+    C."PC_KOR_NM" AS "품목한글명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -275,14 +275,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    C."PC_KOR_NM" AS "C_PC_KOR_NM",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."PRDLST_CD" AS "품목코드",
+    C."PC_KOR_NM" AS "품목한글명",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -299,14 +299,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -323,14 +323,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,338건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    C."PC_KOR_NM" AS "C_PC_KOR_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."PRDLST_CD" AS "품목코드",
+    C."PC_KOR_NM" AS "품목한글명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -347,14 +347,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 81,701건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."LV" AS "D_LV",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."LV" AS "레벨",
+    D."PRDLST_CD" AS "품목코드"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -371,14 +371,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 81,701건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    C."PC_KOR_NM" AS "C_PC_KOR_NM",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."PRDLST_CD" AS "품목코드",
+    C."PC_KOR_NM" AS "품목한글명",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -395,14 +395,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,677건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -419,14 +419,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,677건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -443,14 +443,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -467,14 +467,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -491,14 +491,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -515,14 +515,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -539,14 +539,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -563,14 +563,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -587,14 +587,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -611,14 +611,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -635,14 +635,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -659,14 +659,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -683,14 +683,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -707,14 +707,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -731,14 +731,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -755,14 +755,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -779,14 +779,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -803,14 +803,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -827,14 +827,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -851,14 +851,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -875,14 +875,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -899,14 +899,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -923,14 +923,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -947,14 +947,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -971,14 +971,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -995,14 +995,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1019,14 +1019,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1043,14 +1043,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1067,14 +1067,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1091,14 +1091,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1115,14 +1115,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1139,14 +1139,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1163,14 +1163,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1187,14 +1187,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1211,14 +1211,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1235,14 +1235,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1259,14 +1259,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1283,14 +1283,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1307,14 +1307,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,021건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -1331,14 +1331,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,021건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -1355,14 +1355,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1379,14 +1379,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1403,14 +1403,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1427,14 +1427,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1451,14 +1451,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1475,14 +1475,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1499,14 +1499,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1523,14 +1523,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1547,14 +1547,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1571,14 +1571,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1595,14 +1595,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1619,14 +1619,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1643,14 +1643,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,469건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -1667,14 +1667,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,469건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."TESTITM_CD" AS "D_TESTITM_CD",
-    D."KOR_NM" AS "D_KOR_NM"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."TESTITM_CD" AS "시험항목코드",
+    D."KOR_NM" AS "한글명"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -1691,14 +1691,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1715,14 +1715,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1739,14 +1739,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1763,14 +1763,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1787,14 +1787,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1811,14 +1811,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1835,14 +1835,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1859,14 +1859,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1883,14 +1883,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1907,14 +1907,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."BSSH_NM" AS "D_BSSH_NM",
-    D."PRDLST_NM" AS "D_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."BSSH_NM" AS "업소명",
+    D."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1931,14 +1931,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1955,14 +1955,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -1979,14 +1979,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2003,14 +2003,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "C002" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2027,14 +2027,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2051,14 +2051,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2075,14 +2075,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "C002" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2099,14 +2099,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2123,14 +2123,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2147,14 +2147,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2171,14 +2171,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2195,14 +2195,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2219,14 +2219,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2243,14 +2243,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2267,14 +2267,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 723건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."LV" AS "D_LV",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."LV" AS "레벨",
+    D."PRDLST_CD" AS "품목코드"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -2291,14 +2291,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 723건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    C."PC_KOR_NM" AS "C_PC_KOR_NM",
-    D."TESTITM_CD" AS "D_TESTITM_CD",
-    D."KOR_NM" AS "D_KOR_NM"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."PRDLST_CD" AS "품목코드",
+    C."PC_KOR_NM" AS "품목한글명",
+    D."TESTITM_CD" AS "시험항목코드",
+    D."KOR_NM" AS "한글명"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -2315,14 +2315,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2339,14 +2339,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1230" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2363,14 +2363,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2387,14 +2387,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2411,14 +2411,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1230" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2435,14 +2435,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2459,14 +2459,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2483,14 +2483,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2507,14 +2507,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2531,14 +2531,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2555,14 +2555,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2579,14 +2579,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2603,14 +2603,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2627,14 +2627,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2651,14 +2651,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2675,14 +2675,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2699,14 +2699,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2723,14 +2723,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2747,14 +2747,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2771,14 +2771,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2795,14 +2795,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0030" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2819,14 +2819,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2843,14 +2843,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2867,14 +2867,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2891,14 +2891,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2915,14 +2915,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1300" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2939,14 +2939,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2963,14 +2963,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -2987,14 +2987,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1300" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3011,14 +3011,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3035,14 +3035,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1310" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3059,14 +3059,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1310" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3083,14 +3083,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I1310" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3107,14 +3107,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."INDUTY_CD_NM" AS "D_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    D."INDUTY_CD_NM" AS "업종"
 FROM "I1310" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3131,14 +3131,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3155,14 +3155,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."LCNS_NO" AS "인허가번호",
+    D."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3179,14 +3179,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 118건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3203,14 +3203,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 118건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    A."SPEC_NM" AS "A_SPEC_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."CMMN_SPEC_CD" AS "공통기준규격코드",
+    A."SPEC_NM" AS "기준규격명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2590" A
 INNER JOIN "I2600" B
   ON A."CMMN_SPEC_CD" = B."CMMN_SPEC_CD"
@@ -3227,14 +3227,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 72건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3251,14 +3251,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 72건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    A."SPEC_NM" AS "A_SPEC_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."CMMN_SPEC_CD" AS "공통기준규격코드",
+    A."SPEC_NM" AS "기준규격명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2590" A
 INNER JOIN "I2600" B
   ON A."CMMN_SPEC_CD" = B."CMMN_SPEC_CD"
@@ -3275,14 +3275,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3299,14 +3299,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3323,14 +3323,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3347,14 +3347,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3371,14 +3371,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3395,14 +3395,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3419,14 +3419,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3443,14 +3443,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3467,14 +3467,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3491,14 +3491,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3515,14 +3515,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_SEQ" AS "A_CMMN_SPEC_SEQ",
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    A."CMMN_SPEC_CD" AS "공통기준종류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2600" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3539,14 +3539,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 36건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_SEQ" AS "A_CMMN_SPEC_SEQ",
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    A."CMMN_SPEC_CD" AS "공통기준종류코드",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2600" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3563,14 +3563,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3587,14 +3587,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3611,14 +3611,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3635,14 +3635,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3659,14 +3659,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3683,14 +3683,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."LCNS_NO" AS "D_LCNS_NO",
-    D."BSSH_NM" AS "D_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."LCNS_NO" AS "인허가 번호",
+    D."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3707,14 +3707,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3731,14 +3731,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3755,14 +3755,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3779,14 +3779,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."GMP_APPN_NO" AS "D_GMP_APPN_NO",
-    D."APPN_DT" AS "D_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."GMP_APPN_NO" AS "GMP지정번호",
+    D."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3803,14 +3803,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3827,14 +3827,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    D."PRDLST_REPORT_NO" AS "D_PRDLST_REPORT_NO",
-    D."PRMS_DT" AS "D_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명",
+    D."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    D."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -3851,14 +3851,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 21건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2510" A
 INNER JOIN "I2610" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -3875,14 +3875,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 21건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."INDV_SPEC_SEQ" AS "D_INDV_SPEC_SEQ",
-    D."PRDLST_CD" AS "D_PRDLST_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    D."PRDLST_CD" AS "품목분류코드"
 FROM "I2510" A
 INNER JOIN "I2610" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -3899,14 +3899,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 7건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."LV" AS "C_LV",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_SEQ" AS "D_CMMN_SPEC_SEQ",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."LV" AS "레벨",
+    C."PRDLST_CD" AS "품목코드",
+    D."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    D."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3923,14 +3923,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2510" A
 INNER JOIN "I2610" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -3947,14 +3947,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."LV" AS "C_LV",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."LV" AS "레벨",
+    C."PRDLST_CD" AS "품목코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -3971,14 +3971,14 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    A."SPEC_NM" AS "A_SPEC_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."LV" AS "C_LV",
-    C."PRDLST_CD" AS "C_PRDLST_CD",
-    D."CMMN_SPEC_CD" AS "D_CMMN_SPEC_CD",
-    D."SPEC_NM" AS "D_SPEC_NM"
+    A."CMMN_SPEC_CD" AS "공통기준규격코드",
+    A."SPEC_NM" AS "기준규격명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."LV" AS "레벨",
+    C."PRDLST_CD" AS "품목코드",
+    D."CMMN_SPEC_CD" AS "공통기준규격코드",
+    D."SPEC_NM" AS "기준규격명"
 FROM "I2590" A
 INNER JOIN "I2600" B
   ON A."CMMN_SPEC_CD" = B."CMMN_SPEC_CD"
@@ -3995,12 +3995,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,340건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4015,12 +4015,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,340건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4035,12 +4035,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 589,340건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4055,12 +4055,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 40,084건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."HIST_TRACE_REG_NO" AS "A_HIST_TRACE_REG_NO",
-    A."GOODS_NM" AS "A_GOODS_NM",
-    B."HIST_TRACE_REG_NO" AS "B_HIST_TRACE_REG_NO",
-    B."LOTNO_WRHOUSNG" AS "B_LOTNO_WRHOUSNG",
-    C."HIST_TRACE_REG_NO" AS "C_HIST_TRACE_REG_NO",
-    C."LOTNO_RELES" AS "C_LOTNO_RELES"
+    A."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    A."GOODS_NM" AS "상품명",
+    B."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    B."LOTNO_WRHOUSNG" AS "로트번호입고",
+    C."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    C."LOTNO_RELES" AS "로트번호출고"
 FROM "I1920" A
 INNER JOIN "I1930" B
   ON A."HIST_TRACE_REG_NO" = B."HIST_TRACE_REG_NO"
@@ -4075,12 +4075,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 40,084건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."HIST_TRACE_REG_NO" AS "A_HIST_TRACE_REG_NO",
-    A."GOODS_NM" AS "A_GOODS_NM",
-    B."HIST_TRACE_REG_NO" AS "B_HIST_TRACE_REG_NO",
-    B."LOTNO_RELES" AS "B_LOTNO_RELES",
-    C."HIST_TRACE_REG_NO" AS "C_HIST_TRACE_REG_NO",
-    C."LOTNO_WRHOUSNG" AS "C_LOTNO_WRHOUSNG"
+    A."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    A."GOODS_NM" AS "상품명",
+    B."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    B."LOTNO_RELES" AS "로트번호출고",
+    C."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    C."LOTNO_WRHOUSNG" AS "로트번호입고"
 FROM "I1920" A
 INNER JOIN "I1940" B
   ON A."HIST_TRACE_REG_NO" = B."HIST_TRACE_REG_NO"
@@ -4095,12 +4095,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 40,084건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."HIST_TRACE_REG_NO" AS "A_HIST_TRACE_REG_NO",
-    A."LOTNO_WRHOUSNG" AS "A_LOTNO_WRHOUSNG",
-    B."HIST_TRACE_REG_NO" AS "B_HIST_TRACE_REG_NO",
-    B."GOODS_NM" AS "B_GOODS_NM",
-    C."HIST_TRACE_REG_NO" AS "C_HIST_TRACE_REG_NO",
-    C."LOTNO_RELES" AS "C_LOTNO_RELES"
+    A."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    A."LOTNO_WRHOUSNG" AS "로트번호입고",
+    B."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    B."GOODS_NM" AS "상품명",
+    C."HIST_TRACE_REG_NO" AS "이력추적등록번호",
+    C."LOTNO_RELES" AS "로트번호출고"
 FROM "I1930" A
 INNER JOIN "I1920" B
   ON A."HIST_TRACE_REG_NO" = B."HIST_TRACE_REG_NO"
@@ -4115,12 +4115,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 16,054건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4135,12 +4135,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 16,054건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명"
 FROM "I0940" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4155,12 +4155,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 16,054건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4175,12 +4175,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,758건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4195,12 +4195,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,677건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4215,12 +4215,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,677건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4235,12 +4235,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 9,677건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4255,12 +4255,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4275,12 +4275,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4295,12 +4295,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4315,12 +4315,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4335,12 +4335,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4355,12 +4355,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,385건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4375,12 +4375,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4395,12 +4395,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4415,12 +4415,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 8,268건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4435,12 +4435,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,036건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4455,12 +4455,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,021건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I0940" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4475,12 +4475,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,021건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4495,12 +4495,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5,021건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    B."PC_KOR_NM" AS "B_PC_KOR_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."PRDLST_CD" AS "품목코드",
+    B."PC_KOR_NM" AS "품목한글명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I0940" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -4515,12 +4515,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4535,12 +4535,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4555,12 +4555,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4575,12 +4575,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4595,12 +4595,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4615,12 +4615,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,180건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4635,12 +4635,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,007건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2711" A
 INNER JOIN "I2712" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4655,12 +4655,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,007건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2711" A
 INNER JOIN "I2713" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4675,12 +4675,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 4,007건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2712" A
 INNER JOIN "I2711" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4695,12 +4695,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,469건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -4715,12 +4715,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4735,12 +4735,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4755,12 +4755,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4775,12 +4775,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4795,12 +4795,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I0030" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4815,12 +4815,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,288건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4835,12 +4835,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4855,12 +4855,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4875,12 +4875,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4895,12 +4895,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4915,12 +4915,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4935,12 +4935,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1,000건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4955,12 +4955,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 994건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4975,12 +4975,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 994건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -4995,12 +4995,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 994건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5015,12 +5015,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 979건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRDLST_NM" AS "B_PRDLST_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRDLST_NM" AS "품목명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I0310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5035,12 +5035,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 979건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRDLST_NM" AS "C_PRDLST_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRDLST_NM" AS "품목명"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5055,12 +5055,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 979건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRDLST_NM" AS "A_PRDLST_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRDLST_NM" AS "품목명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0310" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5075,12 +5075,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "C002" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5095,12 +5095,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5115,12 +5115,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5135,12 +5135,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5155,12 +5155,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5175,12 +5175,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 862건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5195,12 +5195,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 788건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -5215,12 +5215,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 724건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    A."PC_KOR_NM" AS "A_PC_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."LV" AS "C_LV",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."PRDLST_CD" AS "품목코드",
+    A."PC_KOR_NM" AS "품목한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."LV" AS "레벨",
+    C."PRDLST_CD" AS "품목코드"
 FROM "I0940" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5235,12 +5235,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1230" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5255,12 +5255,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I1250" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5275,12 +5275,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5295,12 +5295,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5315,12 +5315,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1250" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5335,12 +5335,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 569건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1250" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5355,12 +5355,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5375,12 +5375,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소_명"
 FROM "I-0020" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5395,12 +5395,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0030" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5415,12 +5415,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0030" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5435,12 +5435,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소_명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I0030" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5455,12 +5455,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 243건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소_명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "I0030" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5475,12 +5475,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1300" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5495,12 +5495,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5515,12 +5515,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5535,12 +5535,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5555,12 +5555,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1310" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5575,12 +5575,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1310" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5595,12 +5595,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1310" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5615,12 +5615,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1310" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5635,12 +5635,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 212건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1310" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5655,12 +5655,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 171건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5675,12 +5675,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 163건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5695,12 +5695,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 163건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I2530" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5715,12 +5715,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 163건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5735,12 +5735,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 118건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2580" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5755,12 +5755,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 118건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."INDV_SPEC_SEQ" AS "A_INDV_SPEC_SEQ",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    A."PRDLST_CD" AS "품목분류코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2580" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5775,12 +5775,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 118건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_SEQ" AS "A_CMMN_SPEC_SEQ",
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    B."INDV_SPEC_SEQ" AS "B_INDV_SPEC_SEQ",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    A."CMMN_SPEC_CD" AS "공통기준종류코드",
+    B."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    B."PRDLST_CD" AS "품목분류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2600" A
 INNER JOIN "I2580" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5795,12 +5795,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 100건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    A."SPEC_NM" AS "A_SPEC_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."CMMN_SPEC_CD" AS "공통기준규격코드",
+    A."SPEC_NM" AS "기준규격명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2590" A
 INNER JOIN "I2600" B
   ON A."CMMN_SPEC_CD" = B."CMMN_SPEC_CD"
@@ -5815,12 +5815,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 72건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2530" A
 INNER JOIN "I2600" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5835,12 +5835,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 72건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."TESTITM_CD" AS "A_TESTITM_CD",
-    A."KOR_NM" AS "A_KOR_NM",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."TESTITM_CD" AS "시험항목코드",
+    A."KOR_NM" AS "한글명",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2530" A
 INNER JOIN "I2610" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5855,12 +5855,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 72건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_SEQ" AS "A_CMMN_SPEC_SEQ",
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    B."TESTITM_CD" AS "B_TESTITM_CD",
-    B."KOR_NM" AS "B_KOR_NM",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    A."CMMN_SPEC_CD" AS "공통기준종류코드",
+    B."TESTITM_CD" AS "시험항목코드",
+    B."KOR_NM" AS "한글명",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2600" A
 INNER JOIN "I2530" B
   ON A."TESTITM_CD" = B."TESTITM_CD"
@@ -5875,12 +5875,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 42건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5895,12 +5895,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 42건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "I-0020" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5915,12 +5915,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 42건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5935,12 +5935,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "C003" A
 INNER JOIN "I-0020" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5955,12 +5955,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."GMP_APPN_NO" AS "B_GMP_APPN_NO",
-    B."APPN_DT" AS "B_APPN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."GMP_APPN_NO" AS "GMP지정번호",
+    B."APPN_DT" AS "지정일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "C003" A
 INNER JOIN "I0630" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5975,12 +5975,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."LCNS_NO" AS "인허가 번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C003" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -5995,12 +5995,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."GMP_APPN_NO" AS "C_GMP_APPN_NO",
-    C."APPN_DT" AS "C_APPN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."GMP_APPN_NO" AS "GMP지정번호",
+    C."APPN_DT" AS "지정일자"
 FROM "C003" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6015,12 +6015,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I-0020" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6035,12 +6035,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 28건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."GMP_APPN_NO" AS "A_GMP_APPN_NO",
-    A."APPN_DT" AS "A_APPN_DT",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."GMP_APPN_NO" AS "GMP지정번호",
+    A."APPN_DT" AS "지정일자",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0630" A
 INNER JOIN "C003" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6055,12 +6055,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 25건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_SEQ" AS "B_CMMN_SPEC_SEQ",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    C."TESTITM_CD" AS "C_TESTITM_CD",
-    C."KOR_NM" AS "C_KOR_NM"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    B."CMMN_SPEC_CD" AS "공통기준종류코드",
+    C."TESTITM_CD" AS "시험항목코드",
+    C."KOR_NM" AS "한글명"
 FROM "I2510" A
 INNER JOIN "I2600" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -6075,12 +6075,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 12건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1230" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6095,12 +6095,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 12건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1230" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6115,12 +6115,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 12건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1230" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6135,12 +6135,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 7건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."INDV_SPEC_SEQ" AS "C_INDV_SPEC_SEQ",
-    C."PRDLST_CD" AS "C_PRDLST_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."INDV_SPEC_SEQ" AS "개별기준규격일련번호",
+    C."PRDLST_CD" AS "품목분류코드"
 FROM "I2510" A
 INNER JOIN "I2610" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -6155,12 +6155,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 6건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6175,12 +6175,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 6건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I2832" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6195,12 +6195,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 6건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2560" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6215,12 +6215,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "C002" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6235,12 +6235,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "C002" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6255,12 +6255,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 5건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6275,12 +6275,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRSDNT_NM" AS "B_PRSDNT_NM",
-    C."EVL_SEQ" AS "C_EVL_SEQ",
-    C."EVL_PLAN_DT" AS "C_EVL_PLAN_DT"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."BSSH_NM" AS "업소명",
+    B."PRSDNT_NM" AS "대표자명",
+    C."EVL_SEQ" AS "평가일련번호",
+    C."EVL_PLAN_DT" AS "평가계획일자"
 FROM "C002" A
 INNER JOIN "I0060" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6295,12 +6295,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."EVL_SEQ" AS "B_EVL_SEQ",
-    B."EVL_PLAN_DT" AS "B_EVL_PLAN_DT",
-    C."BSSH_NM" AS "C_BSSH_NM",
-    C."PRSDNT_NM" AS "C_PRSDNT_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."EVL_SEQ" AS "평가일련번호",
+    B."EVL_PLAN_DT" AS "평가계획일자",
+    C."BSSH_NM" AS "업소명",
+    C."PRSDNT_NM" AS "대표자명"
 FROM "C002" A
 INNER JOIN "I1540" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6315,12 +6315,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRSDNT_NM" AS "A_PRSDNT_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."EVL_SEQ" AS "C_EVL_SEQ",
-    C."EVL_PLAN_DT" AS "C_EVL_PLAN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRSDNT_NM" AS "대표자명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."EVL_SEQ" AS "평가일련번호",
+    C."EVL_PLAN_DT" AS "평가계획일자"
 FROM "I0060" A
 INNER JOIN "C002" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6335,12 +6335,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1300" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6355,12 +6355,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1300" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6375,12 +6375,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1300" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6395,12 +6395,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 3건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LV" AS "A_LV",
-    A."PRDLST_CD" AS "A_PRDLST_CD",
-    B."CMMN_SPEC_CD" AS "B_CMMN_SPEC_CD",
-    B."SPEC_NM" AS "B_SPEC_NM",
-    C."CMMN_SPEC_SEQ" AS "C_CMMN_SPEC_SEQ",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD"
+    A."LV" AS "레벨",
+    A."PRDLST_CD" AS "품목코드",
+    B."CMMN_SPEC_CD" AS "공통기준규격코드",
+    B."SPEC_NM" AS "기준규격명",
+    C."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    C."CMMN_SPEC_CD" AS "공통기준종류코드"
 FROM "I2510" A
 INNER JOIN "I2610" B
   ON A."PRDLST_CD" = B."PRDLST_CD"
@@ -6415,12 +6415,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 2건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."INDUTY_CD_NM" AS "B_INDUTY_CD_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    B."INDUTY_CD_NM" AS "업종",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I1220" A
 INNER JOIN "I2500" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6435,12 +6435,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 2건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."BSSH_NM" AS "A_BSSH_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."INDUTY_CD_NM" AS "C_INDUTY_CD_NM"
+    A."LCNS_NO" AS "인허가 번호",
+    A."BSSH_NM" AS "업소명",
+    B."LCNS_NO" AS "인허가번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    C."INDUTY_CD_NM" AS "업종"
 FROM "I1220" A
 INNER JOIN "I2560" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6455,12 +6455,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 2건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."LCNS_NO" AS "A_LCNS_NO",
-    A."INDUTY_CD_NM" AS "A_INDUTY_CD_NM",
-    B."LCNS_NO" AS "B_LCNS_NO",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    C."LCNS_NO" AS "C_LCNS_NO",
-    C."BSSH_NM" AS "C_BSSH_NM"
+    A."LCNS_NO" AS "영업고유구분번호(인허가번호)",
+    A."INDUTY_CD_NM" AS "업종",
+    B."LCNS_NO" AS "인허가 번호",
+    B."BSSH_NM" AS "업소명",
+    C."LCNS_NO" AS "인허가번호",
+    C."BSSH_NM" AS "업소명"
 FROM "I2500" A
 INNER JOIN "I1220" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6475,12 +6475,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRSDNT_NM" AS "A_PRSDNT_NM",
-    B."EVL_SEQ" AS "B_EVL_SEQ",
-    B."EVL_PLAN_DT" AS "B_EVL_PLAN_DT",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRSDNT_NM" AS "대표자명",
+    B."EVL_SEQ" AS "평가일련번호",
+    B."EVL_PLAN_DT" AS "평가계획일자",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I0060" A
 INNER JOIN "I1540" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6495,12 +6495,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."BSSH_NM" AS "A_BSSH_NM",
-    A."PRSDNT_NM" AS "A_PRSDNT_NM",
-    B."PRDLST_REPORT_NO" AS "B_PRDLST_REPORT_NO",
-    B."PRMS_DT" AS "B_PRMS_DT",
-    C."EVL_SEQ" AS "C_EVL_SEQ",
-    C."EVL_PLAN_DT" AS "C_EVL_PLAN_DT"
+    A."BSSH_NM" AS "업소명",
+    A."PRSDNT_NM" AS "대표자명",
+    B."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    B."PRMS_DT" AS "품목보고일자",
+    C."EVL_SEQ" AS "평가일련번호",
+    C."EVL_PLAN_DT" AS "평가계획일자"
 FROM "I0060" A
 INNER JOIN "I2852" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6515,12 +6515,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."EVL_SEQ" AS "A_EVL_SEQ",
-    A."EVL_PLAN_DT" AS "A_EVL_PLAN_DT",
-    B."BSSH_NM" AS "B_BSSH_NM",
-    B."PRSDNT_NM" AS "B_PRSDNT_NM",
-    C."PRDLST_REPORT_NO" AS "C_PRDLST_REPORT_NO",
-    C."PRMS_DT" AS "C_PRMS_DT"
+    A."EVL_SEQ" AS "평가일련번호",
+    A."EVL_PLAN_DT" AS "평가계획일자",
+    B."BSSH_NM" AS "업소명",
+    B."PRSDNT_NM" AS "대표자명",
+    C."PRDLST_REPORT_NO" AS "품목제조보고번호",
+    C."PRMS_DT" AS "품목보고일자"
 FROM "I1540" A
 INNER JOIN "I0060" B
   ON A."LCNS_NO" = B."LCNS_NO"
@@ -6535,12 +6535,12 @@ LIMIT 10;
 --   실제 매칭 레코드: 1건
 -- -----------------------------------------------------------------------------
 SELECT
-    A."CMMN_SPEC_SEQ" AS "A_CMMN_SPEC_SEQ",
-    A."CMMN_SPEC_CD" AS "A_CMMN_SPEC_CD",
-    B."LV" AS "B_LV",
-    B."PRDLST_CD" AS "B_PRDLST_CD",
-    C."CMMN_SPEC_CD" AS "C_CMMN_SPEC_CD",
-    C."SPEC_NM" AS "C_SPEC_NM"
+    A."CMMN_SPEC_SEQ" AS "공통기준종류코드일련번호",
+    A."CMMN_SPEC_CD" AS "공통기준종류코드",
+    B."LV" AS "레벨",
+    B."PRDLST_CD" AS "품목코드",
+    C."CMMN_SPEC_CD" AS "공통기준규격코드",
+    C."SPEC_NM" AS "기준규격명"
 FROM "I2600" A
 INNER JOIN "I2510" B
   ON A."PRDLST_CD" = B."PRDLST_CD"

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <!-- INCLUDE_HEAD -->
+  <link rel="stylesheet" href="/public/css/main.css">
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+
+    /* SQL 코드 블록 스크롤바 */
+    #scenario-root pre::-webkit-scrollbar { height: 6px; }
+    #scenario-root pre::-webkit-scrollbar-track { background: #2d2d2d; }
+    #scenario-root pre::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 99px; }
+
+    /* 카드 line-clamp */
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</head>
+
+<body class="bg-gray-50 flex flex-col min-h-screen">
+  <div id="wrap" class="flex flex-col min-h-screen">
+    <!-- INCLUDE_HEADER -->
+
+    <!-- 숨김 트리거 (app.js 라우팅용) -->
+    <button id="btn-tab-recommend-beginner" data-tab="recommend-beginner"
+      style="display:none;" aria-hidden="true"></button>
+
+    <div class="bg-white flex-1" id="tab-content">
+      <div id="scenario-view" class="static-view" style="display: block;">
+        <section class="max-w-[1400px] mx-auto px-4 md:px-8 py-8">
+
+          <!-- 페이지 헤더 -->
+          <div class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2 shrink-0">
+              데이터 활용 시나리오
+              <span class="relative group inline-flex items-center">
+                <button class="tooltip-trigger" aria-label="데이터맵 설명">?</button>
+                <div class="tooltip-dark" style="left:50%;transform:translateX(-50%);top:26px;width:280px;">
+                  <p><strong>데이터 활용 시나리오란?</strong></p>
+                  <p>식품안전 공공데이터를 조합해 바로 사용할 수 있는 SQL 시나리오 모음입니다.</p>
+                  <div class="tooltip-arrow" style="top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);"></div>
+                </div>
+              </span>
+            </h2>
+          </div>
+          
+          <!-- 카드 그리드 / 상세 뷰 마운트 포인트 -->
+          <div id="scenario-root"></div>
+
+        </section>
+      </div>
+    </div>
+
+    <div id="detail-panel-container"></div>
+    <div class="mt-auto"><!-- INCLUDE_FOOTER --></div>
+  </div>
+
+  <script type="module" src="/view/app.js?v=103"></script>
+  <script>
+    window.addEventListener('load', function () {
+      document.getElementById('btn-tab-recommend-beginner')?.click();
+    });
+  </script>
+</body>
+
+</html>
