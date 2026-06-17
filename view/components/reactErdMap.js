@@ -7,6 +7,9 @@ import { getDatasetsSync } from '../datasetStore.js';
 
 const html = htm.bind(React.createElement);
 
+// 컬럼 메타(svc_no → [{field, kor_nm}]) — 엣지 인스펙터 SQL alias 생성에 사용
+let _allColumnsMap = {};
+
 // =============================================================================
 // 1. 커스텀 노드 정의 (테이블 카드 UI)
 // =============================================================================
@@ -160,8 +163,22 @@ function showEdgeInspector(container, rel) {
     ? `${rel.inclusion_check.matched_count} / ${rel.inclusion_check.from_unique_count}건`
     : '';
 
+  const buildSelectCols = (tableId, alias) => {
+    const cols = _allColumnsMap[tableId] || [];
+    if (cols.length === 0) return [`${alias}.*`];
+    return cols.map(c =>
+      c.kor_nm && c.kor_nm !== c.field
+        ? `${alias}."${c.field}" AS "${alias}_${c.kor_nm}"`
+        : `${alias}."${c.field}"`
+    );
+  };
+
+  const selectCols = [
+    ...buildSelectCols(rel.from_table, 'A'),
+    ...buildSelectCols(rel.to_table, 'B'),
+  ];
   const sampleSql =
-    `SELECT A."${rel.from_field}", B."${rel.to_field}", A.*, B.*\n` +
+    `SELECT\n  ${selectCols.join(',\n  ')}\n` +
     `FROM "${rel.from_table}" A\n` +
     `JOIN "${rel.to_table}" B\n` +
     `  ON A."${rel.from_field}" = B."${rel.to_field}"\n` +
@@ -637,6 +654,7 @@ function ReactErdApp({ onSelectDataset, container }) {
             if (allColumnsMap[row.svc_no].length < 10) allColumnsMap[row.svc_no].push(row);
           });
         }
+        _allColumnsMap = allColumnsMap;
 
         // 그래프 생성
         const allowed = new Set(allDatasets.map(d => d.id));
