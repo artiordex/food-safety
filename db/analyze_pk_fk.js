@@ -59,10 +59,14 @@ const closeness = require('graphology-metrics/centrality/closeness');
 const { bidirectional, undirectedSingleSourceLength } = require('graphology-shortest-path/unweighted');
 
 // 로그 레벨(INFO/WARN/ERR/STEP)에 따라 logger 메서드를 호출하는 래퍼
-function log(level, msg) {
+// STEP 레벨: log('STEP', stepName, message) 형태로 호출 가능
+function log(level, msg, extra) {
     if (level === 'ERR') return logger.error(msg);
     if (level === 'WARN') return logger.warn(msg);
-    if (level === 'STEP', 'OPERTN_CITYPOINT') return logger.info(`\n▶ ${msg}`);
+    if (level === 'STEP' || level === 'OPERTN_CITYPOINT') {
+        const label = extra !== undefined ? extra : msg;
+        return logger.info(`\n▶ ${label}`);
+    }
     return logger.info(msg);
 }
 
@@ -446,7 +450,29 @@ function keywordMatchesText(keyword, text, fuseIndex) {
  * Fuse.js 및 공백 정규화를 활용한 도메인 부모-자식 규칙 매칭.
  * exact includes 및 공백 정규화보다 넓은 범위를 커버
  */
+// 특정 대분류 도메인에 명확히 귀속된 테이블명 그룹
+// 이 테이블들이 다른 도메인의 '일반 규칙'에 의해 부모로 선택되는 것을 방지
+const DOMAIN_EXCLUSIVE_KEYWORDS = [
+    ['위생용품'],
+    ['축산물'],
+    ['건강기능식품', '건기식'],
+    ['수입식품', '수입판매업'],
+];
+
 function matchesDomainParentChildRuleFuzzy(fromSvcNm, toSvcNm, fuseIndex) {
+    // 이기종 도메인이면 부모-자식 규칙보다 도메인 교차 방지가 우선
+    if (getDomainScore(fromSvcNm, toSvcNm) < 0) return false;
+
+    // fromRoots가 비어(범용 테이블)있어도, toSvcNm이 특정 독립 도메인에 속하면
+    // fromSvcNm도 같은 도메인에 속해야만 부모-자식 관계 허용
+    const toExclusiveDomain = DOMAIN_EXCLUSIVE_KEYWORDS.find(group =>
+        tableNameHasAny(toSvcNm, group)
+    );
+    if (toExclusiveDomain) {
+        const fromBelongsToSameDomain = tableNameHasAny(fromSvcNm, toExclusiveDomain);
+        if (!fromBelongsToSameDomain) return false;
+    }
+
     for (const rule of FK_DOMAIN_PARENT_CHILD_RULES) {
         const childMatch = rule.childKeywords.some(kw => keywordMatchesText(kw, fromSvcNm, fuseIndex));
         if (!childMatch) continue;
@@ -608,6 +634,8 @@ const DESCRIPTIVE_OR_FILE_FIELD_PATTERNS = [
     /^FILE_PATH$/i,
     /^IMAGE_PATH$/i,
     /^IMG(_|$)/i,
+    /URL$/i,           // IMAGE_URL, FILE_URL 등 — URL은 관계 식별자가 아님
+    /^THUMB_/i,        // 썸네일 경로
     /^WORD$/i
 ];
 
@@ -671,6 +699,40 @@ const BAD_PK_KOR_PATTERNS = [
     /건수$/, /면적$/, /연도$/, /년도$/, /금액$/, /비율$/, /율$/,
     /합계$/, /총계$/, /평균$/, /수량$/, /중량$/, /농도$/
 ];
+
+/**
+ * 이력/트랜잭션 테이블 키워드 목록.
+ * 이 키워드를 포함한 테이블은 LCNS_NO·BRCDNO 등 공통키가 반복 등장하는 이력 테이블이므로
+ * 해당 공통키를 PK 후보로 올려서는 안 된다.
+ */
+const TRANSACTION_TABLE_KEYWORDS = [
+    '행정처분결과', '회수.판매중지', '회수·판매중지', '검사부적합',
+    '수거검사', '과태료부과', '교육내역', '생산실적', '이력추적관리',
+    '지도단속', '단속계획', '단속실적', 'HACCP 적용업소', 'HACCP 지정',
+    // 수입 이력/상태 테이블 — 동일 신고필증(ACCEPT_NO)에 대해 복수 행 발생
+    '냉동전환',
+    // 환경 측정망 — 동일 측정 지점(SPOT_NO)을 반복 측정
+    '측정결과', '측정망',
+    // 통계/검출 결과 테이블 — 동일 품목코드(PRDLST_CD)에 오염물질별 복수 행
+    '검출량', '검출현황', '오염물질'
+];
+
+/**
+ * 공전(公典) 테이블 키워드 목록.
+ * 공전 테이블은 품목코드(PRDLST_CD)당 기준규격 항목별 복수 행이 존재하므로
+ * PRDLST_CD는 PK가 될 수 없다.
+ */
+const CODEX_TABLE_KEYWORDS = ['공전', '기준규격', '기준종류', '기준제외'];
+
+/** 테이블명이 이력/트랜잭션 성격인지 확인 */
+function isTransactionTable(tableName) {
+    return TRANSACTION_TABLE_KEYWORDS.some(kw => String(tableName || '').includes(kw));
+}
+
+/** 테이블명이 공전/기준규격 성격인지 확인 */
+function isCodexTable(tableName) {
+    return CODEX_TABLE_KEYWORDS.some(kw => String(tableName || '').includes(kw));
+}
 
 /**
  * 도메인 지식 기반 알려진 관계 키 목록.
@@ -1029,8 +1091,19 @@ function calculateIdentifierScore(field, records, precomputedEntropy = null) {
             const penalty = Math.round(20 * sampleConfidence);
             score -= penalty;
             reasons.push(`unique 비율 낮음 ${stats.unique_count}/${stats.record_count} (-${penalty})`);
+        } else if (stats.uniqueness_ratio < 0.75) {
+            // 50~75% 구간: 중복이 상당히 존재 — PK 부적합 가능성 있음
+            const penalty = Math.round(10 * sampleConfidence);
+            score -= penalty;
+            reasons.push(`unique 비율 중간 ${stats.unique_count}/${stats.record_count} (${(stats.uniqueness_ratio * 100).toFixed(0)}%) — 중복 존재 (-${penalty})`);
         }
-        if (stats.has_empty) { score -= 20; reasons.push('샘플에 빈값 존재'); }
+        if (stats.has_empty) {
+            // BRCDNO·BRCD_NO 등 바코드 계열은 회수/부적합 테이블에서 빈값이 흔함 → PK 불가 수준 강페널티
+            const isBarcodeField = /^BRCD(NO|_NO)$|^BAR_CD$|^BARCODE_NO$/i.test(upper);
+            const emptyPenalty = isBarcodeField ? 40 : 20;
+            score -= emptyPenalty;
+            reasons.push(`샘플에 빈값 존재 (-${emptyPenalty}${isBarcodeField ? ', 바코드 필드 강페널티' : ''})`);
+        }
     } else {
         score -= 5;
         reasons.push('샘플 데이터 없음: 필드명/한글명 기준 추론');
@@ -1185,7 +1258,46 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
         compositeCandidates.sort((a, b) => b.score - a.score);
     }
 
-    return [...singleCandidates, ...compositeCandidates]
+    const tableName = String(ds.svc_nm || ds.svc_no || '');
+    const isTxn  = isTransactionTable(tableName);
+    const isCodex = isCodexTable(tableName);
+
+    // 트랜잭션/이력 테이블에서 공통키를 PK로 잡지 않도록 감점
+    // - 강페널티 대상: LCNS_NO·BRCDNO 등 명시적 공통키 (업소·바코드당 복수 행 존재)
+    const TXN_COMMON_KEYS = new Set(['LCNS_NO', 'BRCDNO', 'BRCD_NO', 'BAR_CD', 'BARCODE_NO']);
+    // - 약페널티 대상: uniqueness_ratio < 0.75인 모든 필드 (중복 이력이 많은 테이블의 일반 필드)
+    const TXN_WEAK_UNIQUE_THRESHOLD = 0.75;
+
+    // 공전/기준규격 테이블에서 PRDLST_CD를 PK로 잡지 않도록 감점
+    // - 하나의 품목코드에 기준규격 항목별 복수 행이 존재
+    const CODEX_REPEATED_KEYS = new Set(['PRDLST_CD']);
+
+    const allCandidates = [...singleCandidates, ...compositeCandidates];
+
+    for (const cand of allCandidates) {
+        if (cand.type !== 'single') continue;
+        const upperField = cand.fields[0].toUpperCase();
+
+        if (isTxn && TXN_COMMON_KEYS.has(upperField)) {
+            cand.score = Math.max(cand.score - 60, 0);
+            cand.confidence = getConfidence(cand.score);
+            cand.reason += ' / ⚠️ 이력·트랜잭션 테이블 — 공통키는 PK 불가 (업소·바코드당 복수 처분 이력 존재)';
+        } else if (isTxn && cand.unique_check && cand.unique_check.uniqueness_ratio < TXN_WEAK_UNIQUE_THRESHOLD) {
+            // 트랜잭션 테이블 내 중복이 많은 필드 — 이력키일 가능성
+            cand.score = Math.max(cand.score - 30, 0);
+            cand.confidence = getConfidence(cand.score);
+            cand.reason += ' / ⚠️ 이력·트랜잭션 테이블 — 중복 있는 필드는 PK 부적합';
+        }
+
+        if (isCodex && CODEX_REPEATED_KEYS.has(upperField)) {
+            cand.score = Math.max(cand.score - 50, 0);
+            cand.confidence = getConfidence(cand.score);
+            cand.reason += ' / ⚠️ 공전·기준규격 테이블 — 품목코드당 기준항목별 복수 행 존재, PRDLST_CD는 FK';
+        }
+    }
+
+    return allCandidates
+        .filter(c => c.score >= 50 || c.type === 'composite')
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 }
@@ -1601,6 +1713,25 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
         reasons.push('대표 마스터 테이블 규칙 적용');
     }
 
+    // 국외기관 ↔ 국내기관 번호 체계 교차 방지
+    // PRSEC_INSTT_RCOGN_NO(인정번호)는 국외/국내 기관이 별개 체계를 사용하므로 cross-match를 차단
+    const FOREIGN_AGENCY_KEYWORDS = ['국외검사기관', '해외검사기관'];
+    const DOMESTIC_AGENCY_KEYWORDS = ['식품위생검사기관', '축산물위생검사기관'];
+    const isForeignAgency = (name) => FOREIGN_AGENCY_KEYWORDS.some(k => name.includes(k));
+    const isDomesticAgency = (name) => DOMESTIC_AGENCY_KEYWORDS.some(k => name.includes(k));
+    if (
+        (isForeignAgency(fromSvcNm) && isDomesticAgency(target.svc_nm)) ||
+        (isDomesticAgency(fromSvcNm) && isForeignAgency(target.svc_nm))
+    ) {
+        return {
+            skip: true,
+            skip_reason: '국외기관 ↔ 국내기관 번호 체계 교차 방지 (spurious match 가능성)',
+            inclusion: { checked: false, inclusion_ratio: 0 },
+            score: 0,
+            reasons: ['국외·국내 기관 인정번호는 별개 체계']
+        };
+    }
+
     const domainScore = getDomainScore(fromSvcNm, target.svc_nm);
     if (domainScore < 0) {
         return {
@@ -1752,6 +1883,10 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
 
             // 마스터 테이블은 부모로 사용하고, 자식 FK 생성 대상에서는 제외한다.
             if (shouldSkipByMasterRule(fromSvcNo, upperField, existingSvcNoSet)) continue;
+
+            // HRNK_(상위코드) 접두사 필드: 테이블 자기참조(계층구조) 가능성이 높으므로
+            // 동일 테이블 이외의 테이블을 부모로 잡는 FK는 생성하지 않는다.
+            if (/^HRNK_/i.test(fieldName)) continue;
 
             const similarPkFields = findSimilarPkFields(upperField, pkFieldIndex);
             if (similarPkFields.length === 0) continue;
@@ -2634,7 +2769,7 @@ function generateMarkdownReport(analysis, outputPath) {
     lines.push('|---|---|---|---|---|---:|---|---|');
 
     for (const rel of analysis.relationships) {
-        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field} ${escapeMd(rel.from_kor_nm)} | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field} ${escapeMd(rel.to_kor_nm)} | ${rel.confidence} | ${rel.score} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reason)} |`);
+        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${rel.confidence} | ${rel.score} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reason)} |`);
     }
 
     lines.push('');
@@ -2645,7 +2780,7 @@ function generateMarkdownReport(analysis, outputPath) {
 
     const rejectedPreview = (analysis.rejected_relationships || []).slice(0, 300);
     for (const rel of rejectedPreview) {
-        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field} ${escapeMd(rel.from_kor_nm)} | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field} ${escapeMd(rel.to_kor_nm)} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reject_reason)} |`);
+        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reject_reason)} |`);
     }
     if ((analysis.rejected_relationships || []).length > rejectedPreview.length) {
         lines.push(`| ... | ... | ... | ... | ... | 총 ${analysis.rejected_relationships.length}건 중 ${rejectedPreview.length}건만 표시 |`);

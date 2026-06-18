@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-06-18T17:41:09.204+09:00",
+  "generatedAt": "2026-06-18T18:17:27.416+09:00",
   "summary": {
-    "totalScenarios": 13,
-    "starScenarios": 8,
-    "chainScenarios": 5,
+    "totalScenarios": 43,
+    "starScenarios": 29,
+    "chainScenarios": 14,
     "totalRelations": 114,
-    "highConfidence": 0,
+    "highConfidence": 13,
     "sqlErrorScenarios": 0,
-    "integratedThemeCandidates": 8,
+    "integratedThemeCandidates": 6,
     "integratedConnectionPaths": 30,
     "louvainDatasetSets": 17,
     "louvainModularity": 0.8447
@@ -15,74 +15,74 @@
   "pkfkSummary": {
     "total_tables": 170,
     "tables_with_pk_candidates": 138,
-    "relationship_count": 203,
-    "confirmed_relationship_count": 28,
-    "suggested_relationship_count": 13,
-    "unverified_relationship_count": 162,
+    "relationship_count": 212,
+    "confirmed_relationship_count": 34,
+    "suggested_relationship_count": 10,
+    "unverified_relationship_count": 168,
     "composite_fk_count": 11,
     "confirmed_composite_fk_count": 6,
     "suggested_composite_fk_count": 5,
-    "graph_master_table_count": 12,
-    "graph_domain_cluster_count": 130,
-    "graph_theme_candidate_count": 8,
+    "graph_master_table_count": 10,
+    "graph_domain_cluster_count": 129,
+    "graph_theme_candidate_count": 6,
     "graph_connection_path_count": 30,
     "graph_has_cycles": true,
-    "rejected_relationship_count": 257
+    "rejected_relationship_count": 255
   },
   "themeCandidates": [
     {
       "theme_id": "THEME_01",
-      "theme_name": "인허가·검사부적합 데이터 세트",
-      "size": 24,
-      "relation_count": 39,
+      "theme_name": "행정처분결과·인허가 데이터 세트",
+      "size": 33,
+      "relation_count": 69,
       "main_categories": [
         {
           "cat": "기준규격정보",
           "count": 7
         },
         {
-          "cat": "코드정보",
-          "count": 4
+          "cat": "식품위해관리",
+          "count": 7
         },
         {
-          "cat": "식품위해관리",
-          "count": 3
+          "cat": "식품 등",
+          "count": 7
         }
       ],
       "hub_tables": [
+        {
+          "svc_no": "I0470",
+          "svc_nm": "행정처분결과",
+          "in_degree": 3,
+          "out_degree": 2,
+          "centrality_score": 13.974
+        },
         {
           "svc_no": "I2530",
           "svc_nm": "시험항목코드",
           "in_degree": 6,
           "out_degree": 0,
-          "centrality_score": 13.453
+          "centrality_score": 13.375
         },
         {
-          "svc_no": "I1310",
-          "svc_nm": "축산물 품목제조정보",
-          "in_degree": 3,
-          "out_degree": 2,
-          "centrality_score": 12.547
-        },
-        {
-          "svc_no": "I0490",
-          "svc_nm": "회수.판매중지 정보",
-          "in_degree": 2,
-          "out_degree": 2,
-          "centrality_score": 11.943
+          "svc_no": "I2500",
+          "svc_nm": "인허가 업소 정보",
+          "in_degree": 4,
+          "out_degree": 0,
+          "centrality_score": 12.316
         }
       ],
       "join_keys": [
         {
           "field": "LCNS_NO",
-          "count": 14
-        },
-        {
-          "field": "PRDLST_CD",
-          "count": 7
+          "count": 36
         },
         {
           "field": "PRDLST_REPORT_NO",
+          "count": 9
+        },
+        {
+          "field": "PRDLST_CD",
           "count": 7
         },
         {
@@ -90,8 +90,8 @@
           "count": 6
         },
         {
-          "field": "BRCDNO",
-          "count": 3
+          "field": "DSPSDTLS_SEQ",
+          "count": 5
         }
       ],
       "tables": [
@@ -161,14 +161,14 @@
           "cat": "축산물"
         },
         {
+          "svc_no": "I0080",
+          "svc_nm": "어린이 기호식품 품질인증 현황 및 재심사 현황",
+          "cat": "어린이식품안전관리"
+        },
+        {
           "svc_no": "I0610",
           "svc_nm": "축산물HACCP 지정정보",
           "cat": "HACCP지정현황"
-        },
-        {
-          "svc_no": "I2852",
-          "svc_nm": "생산중단제품정보",
-          "cat": "업체인허가현황"
         },
         {
           "svc_no": "I1310",
@@ -179,21 +179,6 @@
           "svc_no": "C006",
           "svc_nm": "축산물품목제조보고(원재료)",
           "cat": "축산물"
-        },
-        {
-          "svc_no": "C005",
-          "svc_nm": "바코드연계제품정보",
-          "cat": "코드정보"
-        },
-        {
-          "svc_no": "I0460",
-          "svc_nm": "수거검사 계획 및 실적 관련 현황",
-          "cat": "식품안전관리"
-        },
-        {
-          "svc_no": "I0080",
-          "svc_nm": "어린이 기호식품 품질인증 현황 및 재심사 현황",
-          "cat": "어린이식품안전관리"
         },
         {
           "svc_no": "I2500",
@@ -214,11 +199,71 @@
           "svc_no": "I2859",
           "svc_nm": "식품업소 인허가 변경 정보",
           "cat": "식품 등"
+        },
+        {
+          "svc_no": "I1220",
+          "svc_nm": "식품제조가공업정보",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I0480",
+          "svc_nm": "행정처분결과(식품제조가공업)",
+          "cat": "식품위해관리"
+        },
+        {
+          "svc_no": "I0580",
+          "svc_nm": "HACCP 적용업소 지정 현황",
+          "cat": "HACCP지정현황"
+        },
+        {
+          "svc_no": "I2852",
+          "svc_nm": "생산중단제품정보",
+          "cat": "업체인허가현황"
+        },
+        {
+          "svc_no": "C002",
+          "svc_nm": "식품(첨가물)품목제조보고(원재료)",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I0300",
+          "svc_nm": "식품.식품첨가물 생산실적 보고 현황",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I1540",
+          "svc_nm": "식품위생등급평가관리내역",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I0680",
+          "svc_nm": "위생관리등급별 업소 현황",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I0470",
+          "svc_nm": "행정처분결과",
+          "cat": "식품위해관리"
+        },
+        {
+          "svc_no": "I1250",
+          "svc_nm": "식품(첨가물)품목제조보고",
+          "cat": "식품 등"
+        },
+        {
+          "svc_no": "I0482",
+          "svc_nm": "행정처분결과(수입식품업)",
+          "cat": "식품위해관리"
+        },
+        {
+          "svc_no": "I0481",
+          "svc_nm": "행정처분결과(식품판매업)",
+          "cat": "식품위해관리"
         }
       ]
     },
     {
-      "theme_id": "THEME_03",
+      "theme_id": "THEME_02",
       "theme_name": "위생용품품목제조보고·위생용품영업정보 데이터 세트",
       "size": 4,
       "relation_count": 5,
@@ -234,21 +279,21 @@
           "svc_nm": "위생용품영업정보",
           "in_degree": 3,
           "out_degree": 0,
-          "centrality_score": 12.132
+          "centrality_score": 12.08
         },
         {
           "svc_no": "I2711",
           "svc_nm": "위생용품품목제조보고",
           "in_degree": 2,
           "out_degree": 1,
-          "centrality_score": 11.397
+          "centrality_score": 11.369
         },
         {
           "svc_no": "I2851",
           "svc_nm": "위생용품영업 생산실적보고",
           "in_degree": 0,
           "out_degree": 2,
-          "centrality_score": 0.822
+          "centrality_score": 0.807
         }
       ],
       "join_keys": [
@@ -285,89 +330,7 @@
       ]
     },
     {
-      "theme_id": "THEME_02",
-      "theme_name": "행정처분결과·식품제조가공업 데이터 세트",
-      "size": 7,
-      "relation_count": 3,
-      "main_categories": [
-        {
-          "cat": "식품위해관리",
-          "count": 4
-        },
-        {
-          "cat": "식품 등",
-          "count": 3
-        }
-      ],
-      "hub_tables": [
-        {
-          "svc_no": "I0470",
-          "svc_nm": "행정처분결과",
-          "in_degree": 3,
-          "out_degree": 0,
-          "centrality_score": 11.993
-        },
-        {
-          "svc_no": "I1220",
-          "svc_nm": "식품제조가공업정보",
-          "in_degree": 3,
-          "out_degree": 0,
-          "centrality_score": 11.993
-        },
-        {
-          "svc_no": "I0480",
-          "svc_nm": "행정처분결과(식품제조가공업)",
-          "in_degree": 0,
-          "out_degree": 2,
-          "centrality_score": 0.822
-        }
-      ],
-      "join_keys": [
-        {
-          "field": "LCNS_NO",
-          "count": 3
-        }
-      ],
-      "tables": [
-        {
-          "svc_no": "I0470",
-          "svc_nm": "행정처분결과",
-          "cat": "식품위해관리"
-        },
-        {
-          "svc_no": "I0480",
-          "svc_nm": "행정처분결과(식품제조가공업)",
-          "cat": "식품위해관리"
-        },
-        {
-          "svc_no": "I0482",
-          "svc_nm": "행정처분결과(수입식품업)",
-          "cat": "식품위해관리"
-        },
-        {
-          "svc_no": "I0481",
-          "svc_nm": "행정처분결과(식품판매업)",
-          "cat": "식품위해관리"
-        },
-        {
-          "svc_no": "I1220",
-          "svc_nm": "식품제조가공업정보",
-          "cat": "식품 등"
-        },
-        {
-          "svc_no": "C002",
-          "svc_nm": "식품(첨가물)품목제조보고(원재료)",
-          "cat": "식품 등"
-        },
-        {
-          "svc_no": "I0300",
-          "svc_nm": "식품.식품첨가물 생산실적 보고 현황",
-          "cat": "식품 등"
-        }
-      ]
-    },
-    {
-      "theme_id": "THEME_04",
+      "theme_id": "THEME_03",
       "theme_name": "건강기능식품·생산실적 데이터 세트",
       "size": 3,
       "relation_count": 2,
@@ -383,21 +346,21 @@
           "svc_nm": "건강기능식품 생산실적 보고 품목 현황",
           "in_degree": 1,
           "out_degree": 0,
-          "centrality_score": 10.844
+          "centrality_score": 10.822
         },
         {
           "svc_no": "I0030",
           "svc_nm": "건강기능식품 품목제조 신고사항 현황",
           "in_degree": 1,
           "out_degree": 0,
-          "centrality_score": 10.844
+          "centrality_score": 10.822
         },
         {
           "svc_no": "C003",
           "svc_nm": "건강기능식품 품목제조신고(원재료)",
           "in_degree": 0,
           "out_degree": 2,
-          "centrality_score": 0.822
+          "centrality_score": 0.807
         }
       ],
       "join_keys": [
@@ -425,65 +388,7 @@
       ]
     },
     {
-      "theme_id": "THEME_05",
-      "theme_name": "식품등수입판매업정보·수입식품등영업신고대장 데이터 세트",
-      "size": 3,
-      "relation_count": 2,
-      "main_categories": [
-        {
-          "cat": "수입식품 등",
-          "count": 3
-        }
-      ],
-      "hub_tables": [
-        {
-          "svc_no": "I1260",
-          "svc_nm": "식품등수입판매업정보",
-          "in_degree": 2,
-          "out_degree": 0,
-          "centrality_score": 11.617
-        },
-        {
-          "svc_no": "C001",
-          "svc_nm": "수입식품등영업신고대장",
-          "in_degree": 0,
-          "out_degree": 1,
-          "centrality_score": 0.645
-        },
-        {
-          "svc_no": "I0250",
-          "svc_nm": "우수수입업소 등록 현황",
-          "in_degree": 0,
-          "out_degree": 1,
-          "centrality_score": 0.645
-        }
-      ],
-      "join_keys": [
-        {
-          "field": "LCNS_NO",
-          "count": 2
-        }
-      ],
-      "tables": [
-        {
-          "svc_no": "I1260",
-          "svc_nm": "식품등수입판매업정보",
-          "cat": "수입식품 등"
-        },
-        {
-          "svc_no": "C001",
-          "svc_nm": "수입식품등영업신고대장",
-          "cat": "수입식품 등"
-        },
-        {
-          "svc_no": "I0250",
-          "svc_nm": "우수수입업소 등록 현황",
-          "cat": "수입식품 등"
-        }
-      ]
-    },
-    {
-      "theme_id": "THEME_06",
+      "theme_id": "THEME_04",
       "theme_name": "식품접객업정보·식품접객업소 데이터 세트",
       "size": 3,
       "relation_count": 2,
@@ -499,21 +404,21 @@
           "svc_nm": "식품접객업정보",
           "in_degree": 2,
           "out_degree": 0,
-          "centrality_score": 11.617
+          "centrality_score": 11.576
         },
         {
           "svc_no": "C004",
           "svc_nm": "식품접객업소 위생등급 지정현황",
           "in_degree": 0,
           "out_degree": 1,
-          "centrality_score": 0.645
+          "centrality_score": 0.63
         },
         {
           "svc_no": "I2861",
           "svc_nm": "음식점업소 인허가 변경 정보",
           "in_degree": 0,
           "out_degree": 1,
-          "centrality_score": 0.645
+          "centrality_score": 0.63
         }
       ],
       "join_keys": [
@@ -541,10 +446,10 @@
       ]
     },
     {
-      "theme_id": "THEME_07",
+      "theme_id": "THEME_05",
       "theme_name": "과태료부과기준·처분기준코드 데이터 세트",
       "size": 2,
-      "relation_count": 2,
+      "relation_count": 1,
       "main_categories": [
         {
           "cat": "기준규격정보",
@@ -561,20 +466,20 @@
           "svc_nm": "과태료부과기준",
           "in_degree": 1,
           "out_degree": 1,
-          "centrality_score": 13.449
+          "centrality_score": 13.346
         },
         {
           "svc_no": "I2550",
           "svc_nm": "처분기준코드",
           "in_degree": 1,
           "out_degree": 1,
-          "centrality_score": 13.449
+          "centrality_score": 13.346
         }
       ],
       "join_keys": [
         {
           "field": "DSPS_STDR_CD",
-          "count": 2
+          "count": 1
         }
       ],
       "tables": [
@@ -591,53 +496,95 @@
       ]
     },
     {
-      "theme_id": "THEME_08",
-      "theme_name": "국외검사기관·인정 데이터 세트",
+      "theme_id": "THEME_06",
+      "theme_name": "식품등수입판매업정보·수입식품등영업신고대장 데이터 세트",
       "size": 2,
       "relation_count": 1,
       "main_categories": [
         {
-          "cat": "검사기관정보",
+          "cat": "수입식품 등",
           "count": 2
         }
       ],
       "hub_tables": [
         {
-          "svc_no": "I0890",
-          "svc_nm": "식품위생검사기관 지정 현황",
+          "svc_no": "I1260",
+          "svc_nm": "식품등수입판매업정보",
           "in_degree": 1,
           "out_degree": 0,
-          "centrality_score": 11.042
+          "centrality_score": 11.014
         },
         {
-          "svc_no": "I0910",
-          "svc_nm": "국외검사기관 인정 현황",
+          "svc_no": "C001",
+          "svc_nm": "수입식품등영업신고대장",
           "in_degree": 0,
           "out_degree": 1,
-          "centrality_score": 0.645
+          "centrality_score": 0.63
         }
       ],
       "join_keys": [
         {
-          "field": "PRSEC_INSTT_RCOGN_NO",
+          "field": "LCNS_NO",
           "count": 1
         }
       ],
       "tables": [
         {
-          "svc_no": "I0910",
-          "svc_nm": "국외검사기관 인정 현황",
-          "cat": "검사기관정보"
+          "svc_no": "I1260",
+          "svc_nm": "식품등수입판매업정보",
+          "cat": "수입식품 등"
         },
         {
-          "svc_no": "I0890",
-          "svc_nm": "식품위생검사기관 지정 현황",
-          "cat": "검사기관정보"
+          "svc_no": "C001",
+          "svc_nm": "수입식품등영업신고대장",
+          "cat": "수입식품 등"
         }
       ]
     }
   ],
   "connectionPaths": [
+    {
+      "from": "C002",
+      "from_name": "식품(첨가물)품목제조보고(원재료)",
+      "to": "I1220",
+      "to_name": "식품제조가공업정보",
+      "hop_count": 1,
+      "path": [
+        "C002",
+        "I1220"
+      ],
+      "edges": [
+        {
+          "from": "C002",
+          "to": "I1220",
+          "field": "LCNS_NO",
+          "to_field": "LCNS_NO",
+          "relation_type": "CONFIRMED",
+          "score": 100
+        }
+      ]
+    },
+    {
+      "from": "C002",
+      "from_name": "식품(첨가물)품목제조보고(원재료)",
+      "to": "I1250",
+      "to_name": "식품(첨가물)품목제조보고",
+      "hop_count": 1,
+      "path": [
+        "C002",
+        "I1250"
+      ],
+      "edges": [
+        {
+          "from": "C002",
+          "to": "I1250",
+          "field": "PRDLST_REPORT_NO",
+          "to_field": "PRDLST_REPORT_NO",
+          "relation_type": "SUGGESTED",
+          "score": 100
+        }
+      ]
+    },
     {
       "from": "C003",
       "from_name": "건강기능식품 품목제조신고(원재료)",
@@ -681,23 +628,44 @@
       ]
     },
     {
-      "from": "I0480",
-      "from_name": "행정처분결과(식품제조가공업)",
-      "to": "I0470",
-      "to_name": "행정처분결과",
+      "from": "I0470",
+      "from_name": "행정처분결과",
+      "to": "I0480",
+      "to_name": "행정처분결과(식품제조가공업)",
       "hop_count": 1,
       "path": [
-        "I0480",
-        "I0470"
+        "I0470",
+        "I0480"
       ],
       "edges": [
         {
-          "from": "I0480",
-          "to": "I0470",
-          "field": "",
-          "to_field": "",
-          "relation_type": "",
-          "score": 0
+          "from": "I0470",
+          "to": "I0480",
+          "field": "DSPSDTLS_SEQ",
+          "to_field": "DSPSDTLS_SEQ",
+          "relation_type": "CONFIRMED",
+          "score": 100
+        }
+      ]
+    },
+    {
+      "from": "I0470",
+      "from_name": "행정처분결과",
+      "to": "I0481",
+      "to_name": "행정처분결과(식품판매업)",
+      "hop_count": 1,
+      "path": [
+        "I0470",
+        "I0481"
+      ],
+      "edges": [
+        {
+          "from": "I0470",
+          "to": "I0481",
+          "field": "DSPSDTLS_SEQ",
+          "to_field": "DSPSDTLS_SEQ",
+          "relation_type": "CONFIRMED",
+          "score": 95
         }
       ]
     },
@@ -723,86 +691,23 @@
       ]
     },
     {
-      "from": "I0490",
-      "from_name": "회수.판매중지 정보",
-      "to": "I1300",
-      "to_name": "축산물 가공업허가정보",
+      "from": "I0480",
+      "from_name": "행정처분결과(식품제조가공업)",
+      "to": "I0470",
+      "to_name": "행정처분결과",
       "hop_count": 1,
       "path": [
-        "I0490",
-        "I1300"
+        "I0480",
+        "I0470"
       ],
       "edges": [
         {
-          "from": "I0490",
-          "to": "I1300",
-          "field": "LCNS_NO",
-          "to_field": "LCNS_NO",
-          "relation_type": "SUGGESTED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I0490",
-      "from_name": "회수.판매중지 정보",
-      "to": "I2510",
-      "to_name": "품목유형코드",
-      "hop_count": 1,
-      "path": [
-        "I0490",
-        "I2510"
-      ],
-      "edges": [
-        {
-          "from": "I0490",
-          "to": "I2510",
-          "field": "PRDLST_CD",
-          "to_field": "PRDLST_CD",
-          "relation_type": "CONFIRMED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I0940",
-      "from_name": "식품용 기구 및 용기.포장 공전",
-      "to": "I2530",
-      "to_name": "시험항목코드",
-      "hop_count": 1,
-      "path": [
-        "I0940",
-        "I2530"
-      ],
-      "edges": [
-        {
-          "from": "I0940",
-          "to": "I2530",
-          "field": "TESTITM_CD",
-          "to_field": "TESTITM_CD",
-          "relation_type": "CONFIRMED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I0960",
-      "from_name": "건강기능식품공전",
-      "to": "I2530",
-      "to_name": "시험항목코드",
-      "hop_count": 1,
-      "path": [
-        "I0960",
-        "I2530"
-      ],
-      "edges": [
-        {
-          "from": "I0960",
-          "to": "I2530",
-          "field": "TESTITM_CD",
-          "to_field": "TESTITM_CD",
-          "relation_type": "CONFIRMED",
-          "score": 100
+          "from": "I0480",
+          "to": "I0470",
+          "field": "",
+          "to_field": "",
+          "relation_type": "",
+          "score": 0
         }
       ]
     },
@@ -843,69 +748,6 @@
           "to": "I2500",
           "field": "LCNS_NO",
           "to_field": "LCNS_NO",
-          "relation_type": "CONFIRMED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I1670",
-      "from_name": "과태료부과기준",
-      "to": "I2550",
-      "to_name": "처분기준코드",
-      "hop_count": 1,
-      "path": [
-        "I1670",
-        "I2550"
-      ],
-      "edges": [
-        {
-          "from": "I1670",
-          "to": "I2550",
-          "field": "DSPS_STDR_CD",
-          "to_field": "DSPS_STDR_CD",
-          "relation_type": "CONFIRMED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I2550",
-      "from_name": "처분기준코드",
-      "to": "I1670",
-      "to_name": "과태료부과기준",
-      "hop_count": 1,
-      "path": [
-        "I2550",
-        "I1670"
-      ],
-      "edges": [
-        {
-          "from": "I2550",
-          "to": "I1670",
-          "field": "HRNK_DSPS_STDR_CD",
-          "to_field": "DSPS_STDR_CD",
-          "relation_type": "CONFIRMED",
-          "score": 92
-        }
-      ]
-    },
-    {
-      "from": "I2580",
-      "from_name": "개별기준규격",
-      "to": "I2530",
-      "to_name": "시험항목코드",
-      "hop_count": 1,
-      "path": [
-        "I2580",
-        "I2530"
-      ],
-      "edges": [
-        {
-          "from": "I2580",
-          "to": "I2530",
-          "field": "TESTITM_CD",
-          "to_field": "TESTITM_CD",
           "relation_type": "CONFIRMED",
           "score": 100
         }
@@ -1019,6 +861,27 @@
     {
       "from": "I2620",
       "from_name": "검사부적합(국내)",
+      "to": "I1300",
+      "to_name": "축산물 가공업허가정보",
+      "hop_count": 1,
+      "path": [
+        "I2620",
+        "I1300"
+      ],
+      "edges": [
+        {
+          "from": "I2620",
+          "to": "I1300",
+          "field": "LCNS_NO",
+          "to_field": "LCNS_NO",
+          "relation_type": "CONFIRMED",
+          "score": 100
+        }
+      ]
+    },
+    {
+      "from": "I2620",
+      "from_name": "검사부적합(국내)",
       "to": "I0490",
       "to_name": "회수.판매중지 정보",
       "hop_count": 1,
@@ -1030,10 +893,10 @@
         {
           "from": "I2620",
           "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
-          "score": 100
+          "score": 85
         }
       ]
     },
@@ -1051,10 +914,10 @@
         {
           "from": "I2640",
           "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
-          "score": 100
+          "score": 85
         }
       ]
     },
@@ -1072,29 +935,8 @@
         {
           "from": "I2640",
           "to": "I2620",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
-          "relation_type": "CONFIRMED",
-          "score": 100
-        }
-      ]
-    },
-    {
-      "from": "I2711",
-      "from_name": "위생용품품목제조보고",
-      "to": "I2713",
-      "to_name": "위생용품영업정보",
-      "hop_count": 1,
-      "path": [
-        "I2711",
-        "I2713"
-      ],
-      "edges": [
-        {
-          "from": "I2711",
-          "to": "I2713",
-          "field": "LCNS_NO",
-          "to_field": "LCNS_NO",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
           "score": 100
         }
@@ -1185,32 +1027,104 @@
       ]
     },
     {
-      "from": "I2620",
-      "from_name": "검사부적합(국내)",
-      "to": "I1300",
-      "to_name": "축산물 가공업허가정보",
-      "hop_count": 2,
+      "from": "I2859",
+      "from_name": "식품업소 인허가 변경 정보",
+      "to": "I1220",
+      "to_name": "식품제조가공업정보",
+      "hop_count": 1,
       "path": [
-        "I2620",
-        "I0490",
-        "I1300"
+        "I2859",
+        "I1220"
       ],
       "edges": [
         {
-          "from": "I2620",
-          "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "from": "I2859",
+          "to": "I1220",
+          "field": "LCNS_NO",
+          "to_field": "LCNS_NO",
+          "relation_type": "CONFIRMED",
+          "score": 100
+        }
+      ]
+    },
+    {
+      "from": "I2859",
+      "from_name": "식품업소 인허가 변경 정보",
+      "to": "I2500",
+      "to_name": "인허가 업소 정보",
+      "hop_count": 1,
+      "path": [
+        "I2859",
+        "I2500"
+      ],
+      "edges": [
+        {
+          "from": "I2859",
+          "to": "I2500",
+          "field": "LCNS_NO",
+          "to_field": "LCNS_NO",
+          "relation_type": "SUGGESTED",
+          "score": 100
+        }
+      ]
+    },
+    {
+      "from": "I0470",
+      "from_name": "행정처분결과",
+      "to": "I1220",
+      "to_name": "식품제조가공업정보",
+      "hop_count": 2,
+      "path": [
+        "I0470",
+        "I0480",
+        "I1220"
+      ],
+      "edges": [
+        {
+          "from": "I0470",
+          "to": "I0480",
+          "field": "DSPSDTLS_SEQ",
+          "to_field": "DSPSDTLS_SEQ",
           "relation_type": "CONFIRMED",
           "score": 100
         },
         {
-          "from": "I0490",
-          "to": "I1300",
+          "from": "I0480",
+          "to": "I1220",
           "field": "LCNS_NO",
           "to_field": "LCNS_NO",
           "relation_type": "SUGGESTED",
           "score": 100
+        }
+      ]
+    },
+    {
+      "from": "I0480",
+      "from_name": "행정처분결과(식품제조가공업)",
+      "to": "I0481",
+      "to_name": "행정처분결과(식품판매업)",
+      "hop_count": 2,
+      "path": [
+        "I0480",
+        "I0470",
+        "I0481"
+      ],
+      "edges": [
+        {
+          "from": "I0480",
+          "to": "I0470",
+          "field": "",
+          "to_field": "",
+          "relation_type": "",
+          "score": 0
+        },
+        {
+          "from": "I0470",
+          "to": "I0481",
+          "field": "DSPSDTLS_SEQ",
+          "to_field": "DSPSDTLS_SEQ",
+          "relation_type": "CONFIRMED",
+          "score": 95
         }
       ]
     },
@@ -1229,10 +1143,10 @@
         {
           "from": "I2620",
           "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
-          "score": 100
+          "score": 85
         },
         {
           "from": "I0490",
@@ -1252,24 +1166,24 @@
       "hop_count": 2,
       "path": [
         "I2640",
-        "I0490",
+        "I2620",
         "I1300"
       ],
       "edges": [
         {
           "from": "I2640",
-          "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "to": "I2620",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
           "score": 100
         },
         {
-          "from": "I0490",
+          "from": "I2620",
           "to": "I1300",
           "field": "LCNS_NO",
           "to_field": "LCNS_NO",
-          "relation_type": "SUGGESTED",
+          "relation_type": "CONFIRMED",
           "score": 100
         }
       ]
@@ -1289,10 +1203,10 @@
         {
           "from": "I2640",
           "to": "I0490",
-          "field": "BRCDNO",
-          "to_field": "BRCDNO",
+          "field": "RTRVLDSUSE_SEQ",
+          "to_field": "RTRVLDSUSE_SEQ",
           "relation_type": "CONFIRMED",
-          "score": 100
+          "score": 85
         },
         {
           "from": "I0490",
@@ -2651,7 +2565,1011 @@
   },
   "scenarios": [
     {
+      "id": "SCN_002",
+      "joinKey": "VALDMANLI",
+      "datasets": [
+        "I2580",
+        "I2600"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2580",
+          "fromNm": "개별기준규격",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "VALD_MANLI",
+          "colTo": "VALD_MANLI",
+          "colFromDisplay": "유효자리(VALD_MANLI)",
+          "colToDisplay": "유효자리(VALD_MANLI)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 4,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "1",
+            "2",
+            "0"
+          ]
+        }
+      ],
+      "score": 100,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"INDV_SPEC_SEQ\" AS \"A_개별기준규격일련번호\",\n  A.\"PRDLST_CD\" AS \"A_품목분류코드\",\n  A.\"PRDLST_CD_NM\" AS \"A_품목명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"TESTITM_NM\" AS \"A_시험항목명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"ATTRB_SEQ\" AS \"A_단서조항일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_단서조항명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"VALD_MANLI\" AS \"A_유효자리\",\n  A.\"JDGMNT_FOM_CD\" AS \"A_판정형식코드\",\n  A.\"A079_FNPRT_CD_NM\" AS \"A_판정형식명\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MXMM_VAL_DVS_CD\" AS \"A_최대값구분코드\",\n  A.\"A081_FNPRT_CD_NM\" AS \"A_최대값구분명\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"MIMM_VAL_DVS_CD\" AS \"A_최소값구분코드\",\n  A.\"A080_FNPRT_CD_NM\" AS \"A_최소값구분명\",\n  A.\"CHOIC_FIT\" AS \"A_선택형적합코드\",\n  A.\"A082_CF_FNPRT_CD_NM\" AS \"A_선택형적합명\",\n  A.\"CHOIC_IMPROPT\" AS \"A_선택형부적합코드\",\n  A.\"A082_CI_FNPRT_CD_NM\" AS \"A_선택형부적합명\",\n  A.\"MCRRGNSM_2N\" AS \"A_미생물2N\",\n  A.\"MCRRGNSM_2C\" AS \"A_미생물2C\",\n  A.\"MCRRGNSM_2M\" AS \"A_미생물2M\",\n  A.\"MCRRGNSM_3M\" AS \"A_미생물3M\",\n  A.\"FNPRT_ITM_INCLS_YN\" AS \"A_세부항목포함여부\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"EMPHS_PRSEC_TESTITM_YN\" AS \"A_중점검사시험항목여부\",\n  A.\"MONTRNG_TESTITM_YN\" AS \"A_감시시험항목여부\",\n  A.\"RVLV_ELSE_TESTITM_YN\" AS \"A_공전외시험항목여부\",\n  A.\"NTR_PRSEC_ITM_YN\" AS \"A_자품검사시험항목여부\",\n  A.\"UNIT_CD\" AS \"A_단위코드\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"CMMN_SPEC_SEQ\" AS \"B_공통기준종류코드일련번호\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준종류코드\",\n  B.\"SPEC_NM\" AS \"B_공통기준종류명\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I2580\" A\nINNER JOIN \"I2600\" B\n  ON A.\"VALD_MANLI\" = B.\"VALD_MANLI\"\nWHERE A.\"VALD_MANLI\" IS NOT NULL AND A.\"VALD_MANLI\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_003",
+      "joinKey": "CHOICIMPROPT",
+      "datasets": [
+        "I2580",
+        "I2600"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2580",
+          "fromNm": "개별기준규격",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "CHOIC_IMPROPT",
+          "colTo": "CHOIC_IMPROPT",
+          "colFromDisplay": "선택형부적합코드(CHOIC_IMPROPT)",
+          "colToDisplay": "선택형부적합코드(CHOIC_IMPROPT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 3,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "02",
+            "04",
+            "05"
+          ]
+        }
+      ],
+      "score": 100,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"INDV_SPEC_SEQ\" AS \"A_개별기준규격일련번호\",\n  A.\"PRDLST_CD\" AS \"A_품목분류코드\",\n  A.\"PRDLST_CD_NM\" AS \"A_품목명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"TESTITM_NM\" AS \"A_시험항목명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"ATTRB_SEQ\" AS \"A_단서조항일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_단서조항명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"VALD_MANLI\" AS \"A_유효자리\",\n  A.\"JDGMNT_FOM_CD\" AS \"A_판정형식코드\",\n  A.\"A079_FNPRT_CD_NM\" AS \"A_판정형식명\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MXMM_VAL_DVS_CD\" AS \"A_최대값구분코드\",\n  A.\"A081_FNPRT_CD_NM\" AS \"A_최대값구분명\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"MIMM_VAL_DVS_CD\" AS \"A_최소값구분코드\",\n  A.\"A080_FNPRT_CD_NM\" AS \"A_최소값구분명\",\n  A.\"CHOIC_FIT\" AS \"A_선택형적합코드\",\n  A.\"A082_CF_FNPRT_CD_NM\" AS \"A_선택형적합명\",\n  A.\"CHOIC_IMPROPT\" AS \"A_선택형부적합코드\",\n  A.\"A082_CI_FNPRT_CD_NM\" AS \"A_선택형부적합명\",\n  A.\"MCRRGNSM_2N\" AS \"A_미생물2N\",\n  A.\"MCRRGNSM_2C\" AS \"A_미생물2C\",\n  A.\"MCRRGNSM_2M\" AS \"A_미생물2M\",\n  A.\"MCRRGNSM_3M\" AS \"A_미생물3M\",\n  A.\"FNPRT_ITM_INCLS_YN\" AS \"A_세부항목포함여부\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"EMPHS_PRSEC_TESTITM_YN\" AS \"A_중점검사시험항목여부\",\n  A.\"MONTRNG_TESTITM_YN\" AS \"A_감시시험항목여부\",\n  A.\"RVLV_ELSE_TESTITM_YN\" AS \"A_공전외시험항목여부\",\n  A.\"NTR_PRSEC_ITM_YN\" AS \"A_자품검사시험항목여부\",\n  A.\"UNIT_CD\" AS \"A_단위코드\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"CMMN_SPEC_SEQ\" AS \"B_공통기준종류코드일련번호\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준종류코드\",\n  B.\"SPEC_NM\" AS \"B_공통기준종류명\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I2580\" A\nINNER JOIN \"I2600\" B\n  ON A.\"CHOIC_IMPROPT\" = B.\"CHOIC_IMPROPT\"\nWHERE A.\"CHOIC_IMPROPT\" IS NOT NULL AND A.\"CHOIC_IMPROPT\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_004",
+      "joinKey": "CHOICFIT",
+      "datasets": [
+        "I2580",
+        "I2600"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2580",
+          "fromNm": "개별기준규격",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "CHOIC_FIT",
+          "colTo": "CHOIC_FIT",
+          "colFromDisplay": "선택형적합코드(CHOIC_FIT)",
+          "colToDisplay": "선택형적합코드(CHOIC_FIT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 3,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "01",
+            "03",
+            "06"
+          ]
+        }
+      ],
+      "score": 100,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"INDV_SPEC_SEQ\" AS \"A_개별기준규격일련번호\",\n  A.\"PRDLST_CD\" AS \"A_품목분류코드\",\n  A.\"PRDLST_CD_NM\" AS \"A_품목명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"TESTITM_NM\" AS \"A_시험항목명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"ATTRB_SEQ\" AS \"A_단서조항일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_단서조항명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"VALD_MANLI\" AS \"A_유효자리\",\n  A.\"JDGMNT_FOM_CD\" AS \"A_판정형식코드\",\n  A.\"A079_FNPRT_CD_NM\" AS \"A_판정형식명\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MXMM_VAL_DVS_CD\" AS \"A_최대값구분코드\",\n  A.\"A081_FNPRT_CD_NM\" AS \"A_최대값구분명\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"MIMM_VAL_DVS_CD\" AS \"A_최소값구분코드\",\n  A.\"A080_FNPRT_CD_NM\" AS \"A_최소값구분명\",\n  A.\"CHOIC_FIT\" AS \"A_선택형적합코드\",\n  A.\"A082_CF_FNPRT_CD_NM\" AS \"A_선택형적합명\",\n  A.\"CHOIC_IMPROPT\" AS \"A_선택형부적합코드\",\n  A.\"A082_CI_FNPRT_CD_NM\" AS \"A_선택형부적합명\",\n  A.\"MCRRGNSM_2N\" AS \"A_미생물2N\",\n  A.\"MCRRGNSM_2C\" AS \"A_미생물2C\",\n  A.\"MCRRGNSM_2M\" AS \"A_미생물2M\",\n  A.\"MCRRGNSM_3M\" AS \"A_미생물3M\",\n  A.\"FNPRT_ITM_INCLS_YN\" AS \"A_세부항목포함여부\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"EMPHS_PRSEC_TESTITM_YN\" AS \"A_중점검사시험항목여부\",\n  A.\"MONTRNG_TESTITM_YN\" AS \"A_감시시험항목여부\",\n  A.\"RVLV_ELSE_TESTITM_YN\" AS \"A_공전외시험항목여부\",\n  A.\"NTR_PRSEC_ITM_YN\" AS \"A_자품검사시험항목여부\",\n  A.\"UNIT_CD\" AS \"A_단위코드\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"CMMN_SPEC_SEQ\" AS \"B_공통기준종류코드일련번호\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준종류코드\",\n  B.\"SPEC_NM\" AS \"B_공통기준종류명\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I2580\" A\nINNER JOIN \"I2600\" B\n  ON A.\"CHOIC_FIT\" = B.\"CHOIC_FIT\"\nWHERE A.\"CHOIC_FIT\" IS NOT NULL AND A.\"CHOIC_FIT\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_005",
+      "joinKey": "VACINLASTINOCLOPNO",
+      "datasets": [
+        "I1810",
+        "I1820"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I1810",
+          "fromNm": "쇠고기(국내)이력추적 생산정보",
+          "to": "I1820",
+          "toNm": "쇠고기(국내)이력추적 정보",
+          "colFrom": "VACIN_LAST_INOCL_OPNO",
+          "colTo": "VACIN_LAST_INOCL_OPNO",
+          "colFromDisplay": "백신최종접종차수(VACIN_LAST_INOCL_OPNO)",
+          "colToDisplay": "백신최종접종차수(VACIN_LAST_INOCL_OPNO)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 88,
+          "confidence": "HIGH",
+          "matched": 25,
+          "ratioA": 0.893,
+          "ratioB": 0.862,
+          "sampleMatches": [
+            "8",
+            "9",
+            "11"
+          ]
+        }
+      ],
+      "score": 88,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"ENTTY_IDNTFC_NO\" AS \"A_개체식별번호\",\n  A.\"BRTH_DT\" AS \"A_출생일자\",\n  A.\"ENTTY_STATS_NM\" AS \"A_개체상태명\",\n  A.\"COW_KND_NM\" AS \"A_소종류명\",\n  A.\"GND_NM\" AS \"A_성별\",\n  A.\"FMH_NM\" AS \"A_농가명\",\n  A.\"VACIN_LAST_INOCL_DT\" AS \"A_백신최종접종일자\",\n  A.\"VACIN_LAST_INOCL_OPNO\" AS \"A_백신최종접종차수\",\n  B.\"ENTTY_IDNTFC_NO\" AS \"B_개체식별번호\",\n  B.\"SLAU_PLC_NM\" AS \"B_도축장소\",\n  B.\"SNTT_PRSEC_NM\" AS \"B_위생검사\",\n  B.\"SLAU_YMD\" AS \"B_도축년월일\",\n  B.\"ADDR\" AS \"B_도축장소주소\",\n  B.\"SNTT_PRSEC_PASS_ENNC\" AS \"B_위생검사합격유무\",\n  B.\"PRCSS_DT\" AS \"B_가공일자\",\n  B.\"PRCSS_PLC_NM\" AS \"B_가공장소명\",\n  B.\"BRTH_DT\" AS \"B_출생일자\",\n  B.\"ENTTY_STATS_NM\" AS \"B_개체상태명\",\n  B.\"COW_KND_NM\" AS \"B_소종류명\",\n  B.\"GND_NM\" AS \"B_성별\",\n  B.\"FMH_NM\" AS \"B_농가명\",\n  B.\"VACIN_LAST_INOCL_DT\" AS \"B_백신최종접종일자\",\n  B.\"VACIN_LAST_INOCL_OPNO\" AS \"B_백신최종접종차수\"\nFROM \"I1810\" A\nINNER JOIN \"I1820\" B\n  ON A.\"VACIN_LAST_INOCL_OPNO\" = B.\"VACIN_LAST_INOCL_OPNO\"\nWHERE A.\"VACIN_LAST_INOCL_OPNO\" IS NOT NULL AND A.\"VACIN_LAST_INOCL_OPNO\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_006",
+      "joinKey": "TESTANALSRSLT",
+      "datasets": [
+        "I2620",
+        "I2640"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2620",
+          "fromNm": "검사부적합(국내)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "TESTANALS_RSLT",
+          "colTo": "TESTANALS_RSLT",
+          "colFromDisplay": "검사결과(TESTANALS_RSLT)",
+          "colToDisplay": "검사결과(TESTANALS_RSLT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 85,
+          "confidence": "HIGH",
+          "matched": 174,
+          "ratioA": 0.702,
+          "ratioB": 1,
+          "sampleMatches": [
+            "0.33 mg/kg",
+            "2.43 mg/kg",
+            "5.0 mg/kg"
+          ]
+        }
+      ],
+      "score": 85,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"PRDTNM\" AS \"A_제품명\",\n  A.\"BSSHNM\" AS \"A_업소명\",\n  A.\"MNFDT\" AS \"A_제조일자\",\n  A.\"DISTBTMLMT\" AS \"A_유통/소비기한\",\n  A.\"ADDR\" AS \"A_영업자주소\",\n  A.\"INSTT_NM\" AS \"A_검사기관\",\n  A.\"REGSTR_TELNO\" AS \"A_전화번호\",\n  A.\"BRCDNO\" AS \"A_바코드번호\",\n  A.\"FRMLCUNIT\" AS \"A_포장단위\",\n  A.\"TEST_ITMNM\" AS \"A_부적합항목\",\n  A.\"STDR_STND\" AS \"A_기준규격\",\n  A.\"TESTANALS_RSLT\" AS \"A_검사결과\",\n  A.\"CRET_DTM\" AS \"A_등록일\",\n  A.\"RTRVLDSUSE_SEQ\" AS \"A_회수폐기일련번호\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조보고번호\",\n  A.\"LCNS_NO\" AS \"A_업체인허가번호\",\n  A.\"REPORTR_TELNO\" AS \"A_보고자전화번호\",\n  A.\"PRDLST_CD_NM\" AS \"A_식품유형\",\n  B.\"PRDTNM\" AS \"B_제품명\",\n  B.\"BSSHNM\" AS \"B_업소명\",\n  B.\"MNFDT\" AS \"B_제조일자\",\n  B.\"DISTBTMLMT\" AS \"B_유통/소비기한\",\n  B.\"ADDR\" AS \"B_영업자주소\",\n  B.\"INSTT_NM\" AS \"B_검사기관\",\n  B.\"REGSTR_TELNO\" AS \"B_전화번호\",\n  B.\"BRCDNO\" AS \"B_바코드번호\",\n  B.\"FRMLCUNIT\" AS \"B_포장단위\",\n  B.\"TEST_ITMNM\" AS \"B_부적합항목\",\n  B.\"STDR_STND\" AS \"B_기준규격\",\n  B.\"TESTANALS_RSLT\" AS \"B_검사결과\",\n  B.\"CRET_DTM\" AS \"B_등록일\",\n  B.\"RTRVLDSUSE_SEQ\" AS \"B_회수폐기일련번호\",\n  B.\"LCNS_NO\" AS \"B_업체인허가번호\",\n  B.\"REPORTR_TELNO\" AS \"B_보고자전화번호\"\nFROM \"I2620\" A\nINNER JOIN \"I2640\" B\n  ON A.\"TESTANALS_RSLT\" = B.\"TESTANALS_RSLT\"\nWHERE A.\"TESTANALS_RSLT\" IS NOT NULL AND A.\"TESTANALS_RSLT\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_007",
+      "joinKey": "RTRVLDSUSESEQ",
+      "datasets": [
+        "I2620",
+        "I2640"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2620",
+          "fromNm": "검사부적합(국내)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "RTRVLDSUSE_SEQ",
+          "colTo": "RTRVLDSUSE_SEQ",
+          "colFromDisplay": "회수폐기일련번호(RTRVLDSUSE_SEQ)",
+          "colToDisplay": "회수폐기일련번호(RTRVLDSUSE_SEQ)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 84,
+          "confidence": "HIGH",
+          "matched": 235,
+          "ratioA": 0.681,
+          "ratioB": 1,
+          "sampleMatches": [
+            "3000216999",
+            "3000217026",
+            "3000217040"
+          ]
+        }
+      ],
+      "score": 84,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"PRDTNM\" AS \"A_제품명\",\n  A.\"BSSHNM\" AS \"A_업소명\",\n  A.\"MNFDT\" AS \"A_제조일자\",\n  A.\"DISTBTMLMT\" AS \"A_유통/소비기한\",\n  A.\"ADDR\" AS \"A_영업자주소\",\n  A.\"INSTT_NM\" AS \"A_검사기관\",\n  A.\"REGSTR_TELNO\" AS \"A_전화번호\",\n  A.\"BRCDNO\" AS \"A_바코드번호\",\n  A.\"FRMLCUNIT\" AS \"A_포장단위\",\n  A.\"TEST_ITMNM\" AS \"A_부적합항목\",\n  A.\"STDR_STND\" AS \"A_기준규격\",\n  A.\"TESTANALS_RSLT\" AS \"A_검사결과\",\n  A.\"CRET_DTM\" AS \"A_등록일\",\n  A.\"RTRVLDSUSE_SEQ\" AS \"A_회수폐기일련번호\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조보고번호\",\n  A.\"LCNS_NO\" AS \"A_업체인허가번호\",\n  A.\"REPORTR_TELNO\" AS \"A_보고자전화번호\",\n  A.\"PRDLST_CD_NM\" AS \"A_식품유형\",\n  B.\"PRDTNM\" AS \"B_제품명\",\n  B.\"BSSHNM\" AS \"B_업소명\",\n  B.\"MNFDT\" AS \"B_제조일자\",\n  B.\"DISTBTMLMT\" AS \"B_유통/소비기한\",\n  B.\"ADDR\" AS \"B_영업자주소\",\n  B.\"INSTT_NM\" AS \"B_검사기관\",\n  B.\"REGSTR_TELNO\" AS \"B_전화번호\",\n  B.\"BRCDNO\" AS \"B_바코드번호\",\n  B.\"FRMLCUNIT\" AS \"B_포장단위\",\n  B.\"TEST_ITMNM\" AS \"B_부적합항목\",\n  B.\"STDR_STND\" AS \"B_기준규격\",\n  B.\"TESTANALS_RSLT\" AS \"B_검사결과\",\n  B.\"CRET_DTM\" AS \"B_등록일\",\n  B.\"RTRVLDSUSE_SEQ\" AS \"B_회수폐기일련번호\",\n  B.\"LCNS_NO\" AS \"B_업체인허가번호\",\n  B.\"REPORTR_TELNO\" AS \"B_보고자전화번호\"\nFROM \"I2620\" A\nINNER JOIN \"I2640\" B\n  ON A.\"RTRVLDSUSE_SEQ\" = B.\"RTRVLDSUSE_SEQ\"\nWHERE A.\"RTRVLDSUSE_SEQ\" IS NOT NULL AND A.\"RTRVLDSUSE_SEQ\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_008",
+      "joinKey": "LV",
+      "datasets": [
+        "I2510",
+        "I2590"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "LV",
+          "colTo": "LV",
+          "colFromDisplay": "레벨(LV)",
+          "colToDisplay": "레벨(LV)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 81,
+          "confidence": "HIGH",
+          "matched": 5,
+          "ratioA": 1,
+          "ratioB": 0.625,
+          "sampleMatches": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      ],
+      "score": 81,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"LV\" AS \"A_레벨\",\n  A.\"PRDLST_CD\" AS \"A_품목코드\",\n  A.\"KOR_NM\" AS \"A_한글명\",\n  A.\"ENG_NM\" AS \"A_영문명\",\n  A.\"DFN\" AS \"A_정의\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일자\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일자\",\n  A.\"HRNK_PRDLST_CD\" AS \"A_상위품목코드\",\n  A.\"HTRK_PRDLST_CD\" AS \"A_최상위품목코드\",\n  A.\"MXTR_PRDLST_YN\" AS \"A_조합품목여부\",\n  A.\"ATTRB_SEQ\" AS \"A_속성일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_속성한글명\",\n  A.\"PRDLST_YN\" AS \"A_품목여부\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"USE_YN\" AS \"A_사용여부\",\n  A.\"RM\" AS \"A_비고\",\n  A.\"FDGRP_YN\" AS \"A_식품군여부\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일\",\n  A.\"CHD_SMBL_FD_YN\" AS \"A_어린이기호식품 여부\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준규격코드\",\n  B.\"SPEC_NM\" AS \"B_기준규격명\",\n  B.\"HRNK_CMMN_SPEC_CD\" AS \"B_상위공통기준규격코드\",\n  B.\"LV\" AS \"B_레벨\",\n  B.\"DFN\" AS \"B_정의\",\n  B.\"USE_YN\" AS \"B_사용여부\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I2510\" A\nINNER JOIN \"I2590\" B\n  ON A.\"LV\" = B.\"LV\"\nWHERE A.\"LV\" IS NOT NULL AND A.\"LV\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_003",
+      "joinKey": "CHAIN:VALDMANLI+PRDLST_CD",
+      "datasets": [
+        "I2580",
+        "I2600",
+        "I0940"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I2580",
+      "relations": [
+        {
+          "from": "I2580",
+          "fromNm": "개별기준규격",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "VALD_MANLI",
+          "colTo": "VALD_MANLI",
+          "colFromDisplay": "유효자리(VALD_MANLI)",
+          "colToDisplay": "유효자리(VALD_MANLI)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 4,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "1",
+            "2",
+            "0"
+          ]
+        },
+        {
+          "from": "I0940",
+          "fromNm": "식품용 기구 및 용기.포장 공전",
+          "to": "I2580",
+          "toNm": "개별기준규격",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "colFromDisplay": "품목코드(PRDLST_CD)",
+          "colToDisplay": "품목분류코드(PRDLST_CD)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 54,
+          "confidence": "MEDIUM",
+          "matched": 46,
+          "ratioA": 0.821,
+          "ratioB": 0.249,
+          "sampleMatches": [
+            "F0100004000000",
+            "F0300000100000",
+            "F0500000100000"
+          ]
+        }
+      ],
+      "score": 77,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"INDV_SPEC_SEQ\" AS \"A_개별기준규격일련번호\",\n  A.\"PRDLST_CD\" AS \"A_품목분류코드\",\n  A.\"PRDLST_CD_NM\" AS \"A_품목명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"TESTITM_NM\" AS \"A_시험항목명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"ATTRB_SEQ\" AS \"A_단서조항일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_단서조항명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"VALD_MANLI\" AS \"A_유효자리\",\n  A.\"JDGMNT_FOM_CD\" AS \"A_판정형식코드\",\n  A.\"A079_FNPRT_CD_NM\" AS \"A_판정형식명\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MXMM_VAL_DVS_CD\" AS \"A_최대값구분코드\",\n  A.\"A081_FNPRT_CD_NM\" AS \"A_최대값구분명\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"MIMM_VAL_DVS_CD\" AS \"A_최소값구분코드\",\n  A.\"A080_FNPRT_CD_NM\" AS \"A_최소값구분명\",\n  A.\"CHOIC_FIT\" AS \"A_선택형적합코드\",\n  A.\"A082_CF_FNPRT_CD_NM\" AS \"A_선택형적합명\",\n  A.\"CHOIC_IMPROPT\" AS \"A_선택형부적합코드\",\n  A.\"A082_CI_FNPRT_CD_NM\" AS \"A_선택형부적합명\",\n  A.\"MCRRGNSM_2N\" AS \"A_미생물2N\",\n  A.\"MCRRGNSM_2C\" AS \"A_미생물2C\",\n  A.\"MCRRGNSM_2M\" AS \"A_미생물2M\",\n  A.\"MCRRGNSM_3M\" AS \"A_미생물3M\",\n  A.\"FNPRT_ITM_INCLS_YN\" AS \"A_세부항목포함여부\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"EMPHS_PRSEC_TESTITM_YN\" AS \"A_중점검사시험항목여부\",\n  A.\"MONTRNG_TESTITM_YN\" AS \"A_감시시험항목여부\",\n  A.\"RVLV_ELSE_TESTITM_YN\" AS \"A_공전외시험항목여부\",\n  A.\"NTR_PRSEC_ITM_YN\" AS \"A_자품검사시험항목여부\",\n  A.\"UNIT_CD\" AS \"A_단위코드\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"CMMN_SPEC_SEQ\" AS \"B_공통기준종류코드일련번호\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준종류코드\",\n  B.\"SPEC_NM\" AS \"B_공통기준종류명\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\",\n  C.\"PRDLST_CD\" AS \"C_품목코드\",\n  C.\"PC_KOR_NM\" AS \"C_품목한글명\",\n  C.\"TESTITM_CD\" AS \"C_시험항목코드\",\n  C.\"T_KOR_NM\" AS \"C_시험항목 한글명\",\n  C.\"FNPRT_ITM_NM\" AS \"C_세부항목명\",\n  C.\"SPEC_VAL\" AS \"C_기준규격값\",\n  C.\"SPEC_VAL_SUMUP\" AS \"C_기준규격값 요약\",\n  C.\"VALD_BEGN_DT\" AS \"C_유효개시일자\",\n  C.\"VALD_END_DT\" AS \"C_유효종료일자\",\n  C.\"SORC\" AS \"C_출처\",\n  C.\"MXMM_VAL\" AS \"C_최대값\",\n  C.\"MIMM_VAL\" AS \"C_최소값\",\n  C.\"INJRY_YN\" AS \"C_위해여부\",\n  C.\"UNIT_NM\" AS \"C_단위명\"\nFROM \"I2580\" A\nINNER JOIN \"I2600\" B\n  ON A.\"VALD_MANLI\" = B.\"VALD_MANLI\"\nLEFT JOIN \"I0940\" C\n  ON A.\"PRDLST_CD\" = C.\"PRDLST_CD\"\nWHERE A.\"VALD_MANLI\" IS NOT NULL AND A.\"VALD_MANLI\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_009",
+      "joinKey": "ANIMALONLYMDCINNMKOR",
+      "datasets": [
+        "I1070",
+        "I1080"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I1070",
+          "fromNm": "동물용의약품 현황",
+          "to": "I1080",
+          "toNm": "동물의약품별 잔류허용 기준",
+          "colFrom": "ANIMAL_ONLY_MDCIN_NM_KOR",
+          "colTo": "ANIMAL_ONLY_MDCIN_NM_KOR",
+          "colFromDisplay": "의약품 한글명(ANIMAL_ONLY_MDCIN_NM_KOR)",
+          "colToDisplay": "동물 전용 의약품 한글명(ANIMAL_ONLY_MDCIN_NM_KOR)",
+          "joinType": "INNER JOIN",
+          "cardinality": "1:N",
+          "score": 77,
+          "confidence": "HIGH",
+          "matched": 136,
+          "ratioA": 0.535,
+          "ratioB": 1,
+          "sampleMatches": [
+            "옥시벤다졸",
+            "오비플록사신",
+            "세프퀴놈"
+          ]
+        }
+      ],
+      "score": 77,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"ANIMAL_ONLY_MDCIN_NM_KOR\" AS \"A_의약품 한글명\",\n  A.\"ANIMAL_ONLY_MDCIN_NM_ENG\" AS \"A_의약품 영문명\",\n  A.\"APPLC_OBJ_ANIMAL\" AS \"A_적용 대상 동물\",\n  A.\"MCFRL\" AS \"A_분자식\",\n  A.\"MCWGH\" AS \"A_분자량\",\n  A.\"SYSTM_NM\" AS \"A_계통명\",\n  A.\"IUPAC_NM\" AS \"A_IUPAC 명\",\n  A.\"CAS_NM\" AS \"A_CAS 명\",\n  A.\"SHAP_NM\" AS \"A_형태\",\n  A.\"POIOF\" AS \"A_녹는점\",\n  A.\"BOILPNT\" AS \"A_끓는점\",\n  A.\"STEPR\" AS \"A_증기압\",\n  A.\"LOGPOW\",\n  A.\"DENS_UNIT\" AS \"A_밀도단위\",\n  A.\"PKA\",\n  A.\"SOLUB\" AS \"A_용해도\",\n  A.\"STBLY\" AS \"A_안정성\",\n  B.\"CDX_KOREA_DVS_CD\" AS \"B_구분\",\n  B.\"ANIMAL_ONLY_MDCIN_NM_KOR\" AS \"B_동물 전용 의약품 한글명\",\n  B.\"OPERTN_CITYPOINT\" AS \"B_시행 시점\",\n  B.\"STEP\" AS \"B_단계\",\n  B.\"MRL\",\n  B.\"FOOD_KOR_NM\" AS \"B_식품 한글명\",\n  B.\"FOOD_ENG_NM\" AS \"B_식품 영문명\",\n  B.\"ETC_YN\" AS \"B_기타 여부\",\n  B.\"TMPR_STDR_APPLC_YN\" AS \"B_임시기준적용여부\",\n  B.\"DSUSE_YN\" AS \"B_폐기 여부\"\nFROM \"I1070\" A\nINNER JOIN \"I1080\" B\n  ON A.\"ANIMAL_ONLY_MDCIN_NM_KOR\" = B.\"ANIMAL_ONLY_MDCIN_NM_KOR\"\nWHERE A.\"ANIMAL_ONLY_MDCIN_NM_KOR\" IS NOT NULL AND A.\"ANIMAL_ONLY_MDCIN_NM_KOR\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_010",
+      "joinKey": "BOD",
+      "datasets": [
+        "I2380",
+        "I2410"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2380",
+          "fromNm": "하수도 수질정보",
+          "to": "I2410",
+          "toNm": "물환경 수질정보",
+          "colFrom": "BOD",
+          "colTo": "BOD",
+          "colFromDisplay": "BOD",
+          "colToDisplay": "BOD",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 54,
+          "ratioA": 0.607,
+          "ratioB": 0.885,
+          "sampleMatches": [
+            "5.6",
+            "3.1",
+            "4.2"
+          ]
+        }
+      ],
+      "score": 75,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"FCLTY_NM\" AS \"A_시설명\",\n  A.\"CTPRVN_NM\" AS \"A_시도명\",\n  A.\"SIGNGU_NM\" AS \"A_시군구명\",\n  A.\"ZIPNO\" AS \"A_우편번호\",\n  A.\"BASS_ADDR\" AS \"A_기본주소\",\n  A.\"DTL_ADDR\" AS \"A_상세주소\",\n  A.\"ROADNM_BASS_ADDR\" AS \"A_도로명기본주소\",\n  A.\"ROADNM_DTL_ADDR\" AS \"A_도로명상세주소\",\n  A.\"MESURE_DT\" AS \"A_측정일자\",\n  A.\"FCLTY_CD\" AS \"A_시설코드\",\n  A.\"PAPRONSLF_NM\" AS \"A_지자체명\",\n  A.\"RIVR_NM\" AS \"A_하천명\",\n  A.\"BASE_FCLTY_DVS_NM\" AS \"A_기초시설구분명\",\n  A.\"BOD\",\n  A.\"COD\",\n  A.\"SS\",\n  A.\"TP\",\n  A.\"TN\",\n  A.\"EEC_QTY\" AS \"A_대장균군수량\",\n  A.\"TEMOD\" AS \"A_수온\",\n  A.\"ECLGY_TOXCTY\" AS \"A_상태독성\",\n  B.\"EXAM_ARA_NM\" AS \"B_조사지역명\",\n  B.\"ABL_YN\" AS \"B_폐지여부\",\n  B.\"PRSEC_DT\" AS \"B_검사일자\",\n  B.\"WATSA_DT\" AS \"B_채수일자\",\n  B.\"WATSA_TM\" AS \"B_채수시간\",\n  B.\"MESURE_DP\" AS \"B_측정깊이\",\n  B.\"TEMOD\" AS \"B_수온\",\n  B.\"FLUX\" AS \"B_유량\",\n  B.\"PH\",\n  B.\"BOD\",\n  B.\"COD\",\n  B.\"SS\",\n  B.\"EEC_QTY\" AS \"B_대장균군수량\",\n  B.\"TN\",\n  B.\"TP\",\n  B.\"DOC\",\n  B.\"EC\",\n  B.\"TOC\"\nFROM \"I2380\" A\nINNER JOIN \"I2410\" B\n  ON A.\"BOD\" = B.\"BOD\"\nWHERE A.\"BOD\" IS NOT NULL AND A.\"BOD\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_011",
+      "joinKey": "DISTBTMLMT",
+      "datasets": [
+        "I2620",
+        "I2640"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2620",
+          "fromNm": "검사부적합(국내)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "DISTBTMLMT",
+          "colTo": "DISTBTMLMT",
+          "colFromDisplay": "유통/소비기한(DISTBTMLMT)",
+          "colToDisplay": "유통/소비기한(DISTBTMLMT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 75,
+          "confidence": "HIGH",
+          "matched": 66,
+          "ratioA": 0.504,
+          "ratioB": 1,
+          "sampleMatches": [
+            "2025.12.15(의뢰일자)",
+            "2025.12.16",
+            "2025.12.17"
+          ]
+        }
+      ],
+      "score": 75,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"PRDTNM\" AS \"A_제품명\",\n  A.\"BSSHNM\" AS \"A_업소명\",\n  A.\"MNFDT\" AS \"A_제조일자\",\n  A.\"DISTBTMLMT\" AS \"A_유통/소비기한\",\n  A.\"ADDR\" AS \"A_영업자주소\",\n  A.\"INSTT_NM\" AS \"A_검사기관\",\n  A.\"REGSTR_TELNO\" AS \"A_전화번호\",\n  A.\"BRCDNO\" AS \"A_바코드번호\",\n  A.\"FRMLCUNIT\" AS \"A_포장단위\",\n  A.\"TEST_ITMNM\" AS \"A_부적합항목\",\n  A.\"STDR_STND\" AS \"A_기준규격\",\n  A.\"TESTANALS_RSLT\" AS \"A_검사결과\",\n  A.\"CRET_DTM\" AS \"A_등록일\",\n  A.\"RTRVLDSUSE_SEQ\" AS \"A_회수폐기일련번호\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조보고번호\",\n  A.\"LCNS_NO\" AS \"A_업체인허가번호\",\n  A.\"REPORTR_TELNO\" AS \"A_보고자전화번호\",\n  A.\"PRDLST_CD_NM\" AS \"A_식품유형\",\n  B.\"PRDTNM\" AS \"B_제품명\",\n  B.\"BSSHNM\" AS \"B_업소명\",\n  B.\"MNFDT\" AS \"B_제조일자\",\n  B.\"DISTBTMLMT\" AS \"B_유통/소비기한\",\n  B.\"ADDR\" AS \"B_영업자주소\",\n  B.\"INSTT_NM\" AS \"B_검사기관\",\n  B.\"REGSTR_TELNO\" AS \"B_전화번호\",\n  B.\"BRCDNO\" AS \"B_바코드번호\",\n  B.\"FRMLCUNIT\" AS \"B_포장단위\",\n  B.\"TEST_ITMNM\" AS \"B_부적합항목\",\n  B.\"STDR_STND\" AS \"B_기준규격\",\n  B.\"TESTANALS_RSLT\" AS \"B_검사결과\",\n  B.\"CRET_DTM\" AS \"B_등록일\",\n  B.\"RTRVLDSUSE_SEQ\" AS \"B_회수폐기일련번호\",\n  B.\"LCNS_NO\" AS \"B_업체인허가번호\",\n  B.\"REPORTR_TELNO\" AS \"B_보고자전화번호\"\nFROM \"I2620\" A\nINNER JOIN \"I2640\" B\n  ON A.\"DISTBTMLMT\" = B.\"DISTBTMLMT\"\nWHERE A.\"DISTBTMLMT\" IS NOT NULL AND A.\"DISTBTMLMT\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_007",
+      "joinKey": "CHAIN:LV+CMMNSPECCD",
+      "datasets": [
+        "I2590",
+        "I2510",
+        "I2600"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I2590",
+      "relations": [
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "LV",
+          "colTo": "LV",
+          "colFromDisplay": "레벨(LV)",
+          "colToDisplay": "레벨(LV)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 81,
+          "confidence": "HIGH",
+          "matched": 5,
+          "ratioA": 1,
+          "ratioB": 0.625,
+          "sampleMatches": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "from": "I2590",
+          "fromNm": "공통기준종류",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "CMMN_SPEC_CD",
+          "colTo": "CMMN_SPEC_CD",
+          "colFromDisplay": "공통기준규격코드(CMMN_SPEC_CD)",
+          "colToDisplay": "공통기준종류코드(CMMN_SPEC_CD)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 64,
+          "confidence": "MEDIUM",
+          "matched": 26,
+          "ratioA": 0.289,
+          "ratioB": 1,
+          "sampleMatches": [
+            "000080",
+            "000081",
+            "000084"
+          ]
+        }
+      ],
+      "score": 73,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"CMMN_SPEC_CD\" AS \"A_공통기준규격코드\",\n  A.\"SPEC_NM\" AS \"A_기준규격명\",\n  A.\"HRNK_CMMN_SPEC_CD\" AS \"A_상위공통기준규격코드\",\n  A.\"LV\" AS \"A_레벨\",\n  A.\"DFN\" AS \"A_정의\",\n  A.\"USE_YN\" AS \"A_사용여부\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"LV\" AS \"B_레벨\",\n  B.\"PRDLST_CD\" AS \"B_품목코드\",\n  B.\"KOR_NM\" AS \"B_한글명\",\n  B.\"ENG_NM\" AS \"B_영문명\",\n  B.\"DFN\" AS \"B_정의\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일자\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일자\",\n  B.\"HRNK_PRDLST_CD\" AS \"B_상위품목코드\",\n  B.\"HTRK_PRDLST_CD\" AS \"B_최상위품목코드\",\n  B.\"MXTR_PRDLST_YN\" AS \"B_조합품목여부\",\n  B.\"ATTRB_SEQ\" AS \"B_속성일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_속성한글명\",\n  B.\"PRDLST_YN\" AS \"B_품목여부\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"USE_YN\" AS \"B_사용여부\",\n  B.\"RM\" AS \"B_비고\",\n  B.\"FDGRP_YN\" AS \"B_식품군여부\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일\",\n  B.\"CHD_SMBL_FD_YN\" AS \"B_어린이기호식품 여부\",\n  C.\"CMMN_SPEC_SEQ\" AS \"C_공통기준종류코드일련번호\",\n  C.\"CMMN_SPEC_CD\" AS \"C_공통기준종류코드\",\n  C.\"SPEC_NM\" AS \"C_공통기준종류명\",\n  C.\"PRDLST_CD\" AS \"C_품목분류코드\",\n  C.\"PRDLST_CD_NM\" AS \"C_품목명\",\n  C.\"TESTITM_CD\" AS \"C_시험항목코드\",\n  C.\"TESTITM_NM\" AS \"C_시험항목명\",\n  C.\"FNPRT_ITM_NM\" AS \"C_세부항목명\",\n  C.\"ATTRB_SEQ\" AS \"C_단서조항일련번호\",\n  C.\"PIAM_KOR_NM\" AS \"C_단서조항명\",\n  C.\"SPEC_VAL\" AS \"C_기준규격\",\n  C.\"SPEC_VAL_SUMUP\" AS \"C_기준규격요약\",\n  C.\"VALD_BEGN_DT\" AS \"C_유효개시일\",\n  C.\"VALD_END_DT\" AS \"C_유효종료일\",\n  C.\"SORC\" AS \"C_출처\",\n  C.\"VALD_MANLI\" AS \"C_유효자리\",\n  C.\"JDGMNT_FOM_CD\" AS \"C_판정형식코드\",\n  C.\"A079_FNPRT_CD_NM\" AS \"C_판정형식명\",\n  C.\"MXMM_VAL\" AS \"C_최대값\",\n  C.\"MXMM_VAL_DVS_CD\" AS \"C_최대값구분코드\",\n  C.\"A081_FNPRT_CD_NM\" AS \"C_최대값구분명\",\n  C.\"MIMM_VAL\" AS \"C_최소값\",\n  C.\"MIMM_VAL_DVS_CD\" AS \"C_최소값구분코드\",\n  C.\"A080_FNPRT_CD_NM\" AS \"C_최소값구분명\",\n  C.\"CHOIC_FIT\" AS \"C_선택형적합코드\",\n  C.\"A082_CF_FNPRT_CD_NM\" AS \"C_선택형적합명\",\n  C.\"CHOIC_IMPROPT\" AS \"C_선택형부적합코드\",\n  C.\"A082_CI_FNPRT_CD_NM\" AS \"C_선택형부적합명\",\n  C.\"MCRRGNSM_2N\" AS \"C_미생물2N\",\n  C.\"MCRRGNSM_2C\" AS \"C_미생물2C\",\n  C.\"MCRRGNSM_2M\" AS \"C_미생물2M\",\n  C.\"MCRRGNSM_3M\" AS \"C_미생물3M\",\n  C.\"FNPRT_ITM_INCLS_YN\" AS \"C_세부항목포함여부\",\n  C.\"INJRY_YN\" AS \"C_위해여부\",\n  C.\"EMPHS_PRSEC_TESTITM_YN\" AS \"C_중점검사시험항목여부\",\n  C.\"MONTRNG_TESTITM_YN\" AS \"C_감시시험항목여부\",\n  C.\"RVLV_ELSE_TESTITM_YN\" AS \"C_공전외시험항목여부\",\n  C.\"NTR_PRSEC_ITM_YN\" AS \"C_자품검사시험항목여부\",\n  C.\"UNIT_CD\" AS \"C_단위코드\",\n  C.\"UNIT_NM\" AS \"C_단위명\",\n  C.\"UPDT_PRVNS\" AS \"C_수정사유\",\n  C.\"LAST_UPDT_DTM\" AS \"C_최종수정일시\"\nFROM \"I2590\" A\nINNER JOIN \"I2510\" B\n  ON A.\"LV\" = B.\"LV\"\nLEFT JOIN \"I2600\" C\n  ON A.\"CMMN_SPEC_CD\" = C.\"CMMN_SPEC_CD\"\nWHERE A.\"LV\" IS NOT NULL AND A.\"LV\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_012",
+      "joinKey": "SS",
+      "datasets": [
+        "I2380",
+        "I2410"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2380",
+          "fromNm": "하수도 수질정보",
+          "to": "I2410",
+          "toNm": "물환경 수질정보",
+          "colFrom": "SS",
+          "colTo": "SS",
+          "colFromDisplay": "SS",
+          "colToDisplay": "SS",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 73,
+          "confidence": "HIGH",
+          "matched": 71,
+          "ratioA": 0.986,
+          "ratioB": 0.48,
+          "sampleMatches": [
+            "3.7",
+            "4.3",
+            "4.8"
+          ]
+        }
+      ],
+      "score": 73,
+      "confidence": "HIGH",
+      "sql": "SELECT\n  A.\"FCLTY_NM\" AS \"A_시설명\",\n  A.\"CTPRVN_NM\" AS \"A_시도명\",\n  A.\"SIGNGU_NM\" AS \"A_시군구명\",\n  A.\"ZIPNO\" AS \"A_우편번호\",\n  A.\"BASS_ADDR\" AS \"A_기본주소\",\n  A.\"DTL_ADDR\" AS \"A_상세주소\",\n  A.\"ROADNM_BASS_ADDR\" AS \"A_도로명기본주소\",\n  A.\"ROADNM_DTL_ADDR\" AS \"A_도로명상세주소\",\n  A.\"MESURE_DT\" AS \"A_측정일자\",\n  A.\"FCLTY_CD\" AS \"A_시설코드\",\n  A.\"PAPRONSLF_NM\" AS \"A_지자체명\",\n  A.\"RIVR_NM\" AS \"A_하천명\",\n  A.\"BASE_FCLTY_DVS_NM\" AS \"A_기초시설구분명\",\n  A.\"BOD\",\n  A.\"COD\",\n  A.\"SS\",\n  A.\"TP\",\n  A.\"TN\",\n  A.\"EEC_QTY\" AS \"A_대장균군수량\",\n  A.\"TEMOD\" AS \"A_수온\",\n  A.\"ECLGY_TOXCTY\" AS \"A_상태독성\",\n  B.\"EXAM_ARA_NM\" AS \"B_조사지역명\",\n  B.\"ABL_YN\" AS \"B_폐지여부\",\n  B.\"PRSEC_DT\" AS \"B_검사일자\",\n  B.\"WATSA_DT\" AS \"B_채수일자\",\n  B.\"WATSA_TM\" AS \"B_채수시간\",\n  B.\"MESURE_DP\" AS \"B_측정깊이\",\n  B.\"TEMOD\" AS \"B_수온\",\n  B.\"FLUX\" AS \"B_유량\",\n  B.\"PH\",\n  B.\"BOD\",\n  B.\"COD\",\n  B.\"SS\",\n  B.\"EEC_QTY\" AS \"B_대장균군수량\",\n  B.\"TN\",\n  B.\"TP\",\n  B.\"DOC\",\n  B.\"EC\",\n  B.\"TOC\"\nFROM \"I2380\" A\nLEFT JOIN \"I2410\" B\n  ON A.\"SS\" = B.\"SS\"\nWHERE A.\"SS\" IS NOT NULL AND A.\"SS\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_001",
+      "joinKey": "CHAIN:VALDMANLI+CMMNSPECCD+PRDLST_CD",
+      "datasets": [
+        "I2600",
+        "I2580",
+        "I2590",
+        "I2610"
+      ],
+      "datasetCount": 4,
+      "bridgeTable": "I2600",
+      "relations": [
+        {
+          "from": "I2580",
+          "fromNm": "개별기준규격",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "VALD_MANLI",
+          "colTo": "VALD_MANLI",
+          "colFromDisplay": "유효자리(VALD_MANLI)",
+          "colToDisplay": "유효자리(VALD_MANLI)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 100,
+          "confidence": "HIGH",
+          "matched": 4,
+          "ratioA": 1,
+          "ratioB": 1,
+          "sampleMatches": [
+            "1",
+            "2",
+            "0"
+          ]
+        },
+        {
+          "from": "I2590",
+          "fromNm": "공통기준종류",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "CMMN_SPEC_CD",
+          "colTo": "CMMN_SPEC_CD",
+          "colFromDisplay": "공통기준규격코드(CMMN_SPEC_CD)",
+          "colToDisplay": "공통기준종류코드(CMMN_SPEC_CD)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 64,
+          "confidence": "MEDIUM",
+          "matched": 26,
+          "ratioA": 0.289,
+          "ratioB": 1,
+          "sampleMatches": [
+            "000080",
+            "000081",
+            "000084"
+          ]
+        },
+        {
+          "from": "I2600",
+          "fromNm": "공통기준규격",
+          "to": "I2610",
+          "toNm": "공통기준제외",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "colFromDisplay": "품목분류코드(PRDLST_CD)",
+          "colToDisplay": "품목코드(PRDLST_CD)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 40,
+          "confidence": "MEDIUM",
+          "matched": 6,
+          "ratioA": 0.043,
+          "ratioB": 0.75,
+          "sampleMatches": [
+            "C0000000000000",
+            "B0203010000000",
+            "B0203020000000"
+          ]
+        }
+      ],
+      "score": 68,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"CMMN_SPEC_SEQ\" AS \"A_공통기준종류코드일련번호\",\n  A.\"CMMN_SPEC_CD\" AS \"A_공통기준종류코드\",\n  A.\"SPEC_NM\" AS \"A_공통기준종류명\",\n  A.\"PRDLST_CD\" AS \"A_품목분류코드\",\n  A.\"PRDLST_CD_NM\" AS \"A_품목명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"TESTITM_NM\" AS \"A_시험항목명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"ATTRB_SEQ\" AS \"A_단서조항일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_단서조항명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"VALD_MANLI\" AS \"A_유효자리\",\n  A.\"JDGMNT_FOM_CD\" AS \"A_판정형식코드\",\n  A.\"A079_FNPRT_CD_NM\" AS \"A_판정형식명\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MXMM_VAL_DVS_CD\" AS \"A_최대값구분코드\",\n  A.\"A081_FNPRT_CD_NM\" AS \"A_최대값구분명\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"MIMM_VAL_DVS_CD\" AS \"A_최소값구분코드\",\n  A.\"A080_FNPRT_CD_NM\" AS \"A_최소값구분명\",\n  A.\"CHOIC_FIT\" AS \"A_선택형적합코드\",\n  A.\"A082_CF_FNPRT_CD_NM\" AS \"A_선택형적합명\",\n  A.\"CHOIC_IMPROPT\" AS \"A_선택형부적합코드\",\n  A.\"A082_CI_FNPRT_CD_NM\" AS \"A_선택형부적합명\",\n  A.\"MCRRGNSM_2N\" AS \"A_미생물2N\",\n  A.\"MCRRGNSM_2C\" AS \"A_미생물2C\",\n  A.\"MCRRGNSM_2M\" AS \"A_미생물2M\",\n  A.\"MCRRGNSM_3M\" AS \"A_미생물3M\",\n  A.\"FNPRT_ITM_INCLS_YN\" AS \"A_세부항목포함여부\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"EMPHS_PRSEC_TESTITM_YN\" AS \"A_중점검사시험항목여부\",\n  A.\"MONTRNG_TESTITM_YN\" AS \"A_감시시험항목여부\",\n  A.\"RVLV_ELSE_TESTITM_YN\" AS \"A_공전외시험항목여부\",\n  A.\"NTR_PRSEC_ITM_YN\" AS \"A_자품검사시험항목여부\",\n  A.\"UNIT_CD\" AS \"A_단위코드\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"INDV_SPEC_SEQ\" AS \"B_개별기준규격일련번호\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\",\n  C.\"CMMN_SPEC_CD\" AS \"C_공통기준규격코드\",\n  C.\"SPEC_NM\" AS \"C_기준규격명\",\n  C.\"HRNK_CMMN_SPEC_CD\" AS \"C_상위공통기준규격코드\",\n  C.\"LV\" AS \"C_레벨\",\n  C.\"DFN\" AS \"C_정의\",\n  C.\"USE_YN\" AS \"C_사용여부\",\n  C.\"LAST_UPDT_DTM\" AS \"C_최종수정일시\",\n  D.\"CMMN_SPEC_CD\" AS \"D_공통기준규격코드\",\n  D.\"SPEC_NM\" AS \"D_기준규격명\",\n  D.\"PRDLST_CD\" AS \"D_품목코드\",\n  D.\"KOR_NM\" AS \"D_한글명\",\n  D.\"TESTITM_CD\" AS \"D_시험항목코드\",\n  D.\"LAST_UPDT_DTM\" AS \"D_최종수정일시\"\nFROM \"I2600\" A\nINNER JOIN \"I2580\" B\n  ON A.\"VALD_MANLI\" = B.\"VALD_MANLI\"\nLEFT JOIN \"I2590\" C\n  ON A.\"CMMN_SPEC_CD\" = C.\"CMMN_SPEC_CD\"\nLEFT JOIN \"I2610\" D\n  ON A.\"PRDLST_CD\" = D.\"PRDLST_CD\"\nWHERE A.\"VALD_MANLI\" IS NOT NULL AND A.\"VALD_MANLI\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_013",
+      "joinKey": "COD",
+      "datasets": [
+        "I2380",
+        "I2410"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2380",
+          "fromNm": "하수도 수질정보",
+          "to": "I2410",
+          "toNm": "물환경 수질정보",
+          "colFrom": "COD",
+          "colTo": "COD",
+          "colFromDisplay": "COD",
+          "colToDisplay": "COD",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 68,
+          "confidence": "MEDIUM",
+          "matched": 82,
+          "ratioA": 0.569,
+          "ratioB": 0.788,
+          "sampleMatches": [
+            "9.4",
+            "9.7",
+            "7.9"
+          ]
+        }
+      ],
+      "score": 68,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"FCLTY_NM\" AS \"A_시설명\",\n  A.\"CTPRVN_NM\" AS \"A_시도명\",\n  A.\"SIGNGU_NM\" AS \"A_시군구명\",\n  A.\"ZIPNO\" AS \"A_우편번호\",\n  A.\"BASS_ADDR\" AS \"A_기본주소\",\n  A.\"DTL_ADDR\" AS \"A_상세주소\",\n  A.\"ROADNM_BASS_ADDR\" AS \"A_도로명기본주소\",\n  A.\"ROADNM_DTL_ADDR\" AS \"A_도로명상세주소\",\n  A.\"MESURE_DT\" AS \"A_측정일자\",\n  A.\"FCLTY_CD\" AS \"A_시설코드\",\n  A.\"PAPRONSLF_NM\" AS \"A_지자체명\",\n  A.\"RIVR_NM\" AS \"A_하천명\",\n  A.\"BASE_FCLTY_DVS_NM\" AS \"A_기초시설구분명\",\n  A.\"BOD\",\n  A.\"COD\",\n  A.\"SS\",\n  A.\"TP\",\n  A.\"TN\",\n  A.\"EEC_QTY\" AS \"A_대장균군수량\",\n  A.\"TEMOD\" AS \"A_수온\",\n  A.\"ECLGY_TOXCTY\" AS \"A_상태독성\",\n  B.\"EXAM_ARA_NM\" AS \"B_조사지역명\",\n  B.\"ABL_YN\" AS \"B_폐지여부\",\n  B.\"PRSEC_DT\" AS \"B_검사일자\",\n  B.\"WATSA_DT\" AS \"B_채수일자\",\n  B.\"WATSA_TM\" AS \"B_채수시간\",\n  B.\"MESURE_DP\" AS \"B_측정깊이\",\n  B.\"TEMOD\" AS \"B_수온\",\n  B.\"FLUX\" AS \"B_유량\",\n  B.\"PH\",\n  B.\"BOD\",\n  B.\"COD\",\n  B.\"SS\",\n  B.\"EEC_QTY\" AS \"B_대장균군수량\",\n  B.\"TN\",\n  B.\"TP\",\n  B.\"DOC\",\n  B.\"EC\",\n  B.\"TOC\"\nFROM \"I2380\" A\nINNER JOIN \"I2410\" B\n  ON A.\"COD\" = B.\"COD\"\nWHERE A.\"COD\" IS NOT NULL AND A.\"COD\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_014",
+      "joinKey": "CMMNSPECCD",
+      "datasets": [
+        "I2590",
+        "I2600"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2590",
+          "fromNm": "공통기준종류",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "CMMN_SPEC_CD",
+          "colTo": "CMMN_SPEC_CD",
+          "colFromDisplay": "공통기준규격코드(CMMN_SPEC_CD)",
+          "colToDisplay": "공통기준종류코드(CMMN_SPEC_CD)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 64,
+          "confidence": "MEDIUM",
+          "matched": 26,
+          "ratioA": 0.289,
+          "ratioB": 1,
+          "sampleMatches": [
+            "000080",
+            "000081",
+            "000084"
+          ]
+        }
+      ],
+      "score": 64,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"CMMN_SPEC_CD\" AS \"A_공통기준규격코드\",\n  A.\"SPEC_NM\" AS \"A_기준규격명\",\n  A.\"HRNK_CMMN_SPEC_CD\" AS \"A_상위공통기준규격코드\",\n  A.\"LV\" AS \"A_레벨\",\n  A.\"DFN\" AS \"A_정의\",\n  A.\"USE_YN\" AS \"A_사용여부\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일시\",\n  B.\"CMMN_SPEC_SEQ\" AS \"B_공통기준종류코드일련번호\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준종류코드\",\n  B.\"SPEC_NM\" AS \"B_공통기준종류명\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I2590\" A\nLEFT JOIN \"I2600\" B\n  ON A.\"CMMN_SPEC_CD\" = B.\"CMMN_SPEC_CD\"\nWHERE A.\"CMMN_SPEC_CD\" IS NOT NULL AND A.\"CMMN_SPEC_CD\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_015",
+      "joinKey": "ORGNICPH",
+      "datasets": [
+        "I2390",
+        "I2400"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2390",
+          "fromNm": "토양지하수 토양실태조사정보",
+          "to": "I2400",
+          "toNm": "지하수수질측정망 측정결과",
+          "colFrom": "ORGNICPH",
+          "colTo": "ORGNICPH",
+          "colFromDisplay": "유기인(ORGNICPH)",
+          "colToDisplay": "유기인(ORGNICPH)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 63,
+          "confidence": "MEDIUM",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.25,
+          "sampleMatches": [
+            "0.0"
+          ]
+        }
+      ],
+      "score": 63,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"SOIL_SEQ\" AS \"A_토양 일련번호\",\n  A.\"EXAM_YR\" AS \"A_조사 년도\",\n  A.\"CHARTR_CL_NM\" AS \"A_특성 분류 명\",\n  A.\"ADDR\" AS \"A_주소\",\n  A.\"LNDCGR_NM\" AS \"A_지목 명\",\n  A.\"AREA\" AS \"A_면적\",\n  A.\"CDMM\" AS \"A_카드뮴\",\n  A.\"COPPR\" AS \"A_구리\",\n  A.\"AS_\" AS \"A_비소\",\n  A.\"MRC\" AS \"A_수은\",\n  A.\"PB\" AS \"A_납\",\n  A.\"CR6\" AS \"A_6가크롬\",\n  A.\"ZINC\" AS \"A_아연\",\n  A.\"NICKEL\" AS \"A_니켈\",\n  A.\"IMCOW\" AS \"A_불소\",\n  A.\"ORGNICPH\" AS \"A_유기인\",\n  A.\"PCT\" AS \"A_폴리클로리네이트페닐\",\n  A.\"CYN\" AS \"A_시안\",\n  A.\"PHNL\" AS \"A_페놀\",\n  A.\"BENZ\" AS \"A_벤젠\",\n  A.\"TOLUE\" AS \"A_톨루엔\",\n  A.\"ETBEN\" AS \"A_에틸벤젠\",\n  A.\"XYLEN\" AS \"A_크실렌\",\n  A.\"TPH\" AS \"A_석유계총탄화수소\",\n  A.\"TCE\" AS \"A_트리클로로에틸렌\",\n  A.\"PCE\" AS \"A_테트라클로로에틸렌\",\n  A.\"HYDRIONDNSTY\" AS \"A_수소이온농도\",\n  A.\"RM\" AS \"A_비고\",\n  B.\"YR\" AS \"B_년도\",\n  B.\"QU\" AS \"B_분기\",\n  B.\"SPOT_NO\" AS \"B_지점 번호\",\n  B.\"SIGNGU_NM\" AS \"B_시군구\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"PRPOS_NM\" AS \"B_용도\",\n  B.\"DKPS_YN_NM\" AS \"B_음용 여부\",\n  B.\"HYDRIONDNSTY\" AS \"B_수소이온농도\",\n  B.\"TOTEEC\" AS \"B_총대장균군\",\n  B.\"NO3N\" AS \"B_질산성질소\",\n  B.\"CI\" AS \"B_염소이온\",\n  B.\"CDMM\" AS \"B_카드뮴\",\n  B.\"AS_\" AS \"B_비소\",\n  B.\"CYN\" AS \"B_시안\",\n  B.\"MRC\" AS \"B_수은\",\n  B.\"ORGNICPH\" AS \"B_유기인\",\n  B.\"PHNL\" AS \"B_페놀\",\n  B.\"PB\" AS \"B_납\",\n  B.\"CR6\" AS \"B_6가크롬\",\n  B.\"TCE\" AS \"B_트리클로로에틸렌\",\n  B.\"PCE\" AS \"B_테트라클로로에틸렌\",\n  B.\"TCE111\" AS \"B_111트리클로로에탄\",\n  B.\"BENZ\" AS \"B_벤젠\",\n  B.\"TOLUE\" AS \"B_톨루엔\",\n  B.\"ETBEN\" AS \"B_에틸벤젠\",\n  B.\"XYLEN\" AS \"B_크실렌\",\n  B.\"EC\" AS \"B_전기전도도\",\n  B.\"ARA_YN\" AS \"B_오염지역 여부\",\n  B.\"ARA\" AS \"B_오염구분\"\nFROM \"I2390\" A\nLEFT JOIN \"I2400\" B\n  ON A.\"ORGNICPH\" = B.\"ORGNICPH\"\nWHERE A.\"ORGNICPH\" IS NOT NULL AND A.\"ORGNICPH\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_002",
+      "joinKey": "CHAIN:TESTANALSRSLT+LCNS_NO",
+      "datasets": [
+        "I2620",
+        "I2640",
+        "I0490"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I2620",
+      "relations": [
+        {
+          "from": "I2620",
+          "fromNm": "검사부적합(국내)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "TESTANALS_RSLT",
+          "colTo": "TESTANALS_RSLT",
+          "colFromDisplay": "검사결과(TESTANALS_RSLT)",
+          "colToDisplay": "검사결과(TESTANALS_RSLT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 85,
+          "confidence": "HIGH",
+          "matched": 174,
+          "ratioA": 0.702,
+          "ratioB": 1,
+          "sampleMatches": [
+            "0.33 mg/kg",
+            "2.43 mg/kg",
+            "5.0 mg/kg"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2620",
+          "toNm": "검사부적합(국내)",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "colFromDisplay": "업체인허가번호(LCNS_NO)",
+          "colToDisplay": "업체인허가번호(LCNS_NO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 29,
+          "confidence": "LOW",
+          "matched": 35,
+          "ratioA": 0.16,
+          "ratioB": 0.417,
+          "sampleMatches": [
+            "20210016021",
+            "20200574235",
+            "20120254022"
+          ]
+        }
+      ],
+      "score": 57,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"PRDTNM\" AS \"A_제품명\",\n  A.\"BSSHNM\" AS \"A_업소명\",\n  A.\"MNFDT\" AS \"A_제조일자\",\n  A.\"DISTBTMLMT\" AS \"A_유통/소비기한\",\n  A.\"ADDR\" AS \"A_영업자주소\",\n  A.\"INSTT_NM\" AS \"A_검사기관\",\n  A.\"REGSTR_TELNO\" AS \"A_전화번호\",\n  A.\"BRCDNO\" AS \"A_바코드번호\",\n  A.\"FRMLCUNIT\" AS \"A_포장단위\",\n  A.\"TEST_ITMNM\" AS \"A_부적합항목\",\n  A.\"STDR_STND\" AS \"A_기준규격\",\n  A.\"TESTANALS_RSLT\" AS \"A_검사결과\",\n  A.\"CRET_DTM\" AS \"A_등록일\",\n  A.\"RTRVLDSUSE_SEQ\" AS \"A_회수폐기일련번호\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조보고번호\",\n  A.\"LCNS_NO\" AS \"A_업체인허가번호\",\n  A.\"REPORTR_TELNO\" AS \"A_보고자전화번호\",\n  A.\"PRDLST_CD_NM\" AS \"A_식품유형\",\n  B.\"PRDTNM\" AS \"B_제품명\",\n  B.\"BSSHNM\" AS \"B_업소명\",\n  B.\"MNFDT\" AS \"B_제조일자\",\n  B.\"DISTBTMLMT\" AS \"B_유통/소비기한\",\n  B.\"ADDR\" AS \"B_영업자주소\",\n  B.\"INSTT_NM\" AS \"B_검사기관\",\n  B.\"REGSTR_TELNO\" AS \"B_전화번호\",\n  B.\"BRCDNO\" AS \"B_바코드번호\",\n  B.\"FRMLCUNIT\" AS \"B_포장단위\",\n  B.\"TEST_ITMNM\" AS \"B_부적합항목\",\n  B.\"STDR_STND\" AS \"B_기준규격\",\n  B.\"TESTANALS_RSLT\" AS \"B_검사결과\",\n  B.\"CRET_DTM\" AS \"B_등록일\",\n  B.\"RTRVLDSUSE_SEQ\" AS \"B_회수폐기일련번호\",\n  B.\"LCNS_NO\" AS \"B_업체인허가번호\",\n  B.\"REPORTR_TELNO\" AS \"B_보고자전화번호\",\n  C.\"PRDTNM\" AS \"C_제품명\",\n  C.\"RTRVLPRVNS\" AS \"C_회수사유\",\n  C.\"BSSHNM\" AS \"C_제조업체명\",\n  C.\"ADDR\" AS \"C_업체주소\",\n  C.\"TELNO\" AS \"C_전화번호\",\n  C.\"BRCDNO\" AS \"C_바코드번호\",\n  C.\"FRMLCUNIT\" AS \"C_포장단위\",\n  C.\"MNFDT\" AS \"C_제조일자\",\n  C.\"RTRVLPLANDOC_RTRVLMTHD\" AS \"C_회수방법\",\n  C.\"DISTBTMLMT\" AS \"C_유통/소비기한\",\n  C.\"PRDLST_TYPE\" AS \"C_식품분류\",\n  C.\"IMG_FILE_PATH\" AS \"C_제품사진 URL\",\n  C.\"PRDLST_CD\" AS \"C_품목코드\",\n  C.\"CRET_DTM\" AS \"C_등록일\",\n  C.\"RTRVLDSUSE_SEQ\" AS \"C_회수.판매중지 일련번호\",\n  C.\"PRDLST_REPORT_NO\" AS \"C_품목제조보고번호\",\n  C.\"RTRVL_GRDCD_NM\" AS \"C_회수등급\",\n  C.\"PRDLST_CD_NM\" AS \"C_품목유형(품목코드명)\",\n  C.\"LCNS_NO\" AS \"C_업체인허가번호\"\nFROM \"I2620\" A\nINNER JOIN \"I2640\" B\n  ON A.\"TESTANALS_RSLT\" = B.\"TESTANALS_RSLT\"\nLEFT JOIN \"I0490\" C\n  ON A.\"LCNS_NO\" = C.\"LCNS_NO\"\nWHERE A.\"TESTANALS_RSLT\" IS NOT NULL AND A.\"TESTANALS_RSLT\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_016",
+      "joinKey": "PCE",
+      "datasets": [
+        "I2390",
+        "I2400"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2390",
+          "fromNm": "토양지하수 토양실태조사정보",
+          "to": "I2400",
+          "toNm": "지하수수질측정망 측정결과",
+          "colFrom": "PCE",
+          "colTo": "PCE",
+          "colFromDisplay": "테트라클로로에틸렌(PCE)",
+          "colToDisplay": "테트라클로로에틸렌(PCE)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 56,
+          "confidence": "MEDIUM",
+          "matched": 1,
+          "ratioA": 1,
+          "ratioB": 0.125,
+          "sampleMatches": [
+            "0.0"
+          ]
+        }
+      ],
+      "score": 56,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"SOIL_SEQ\" AS \"A_토양 일련번호\",\n  A.\"EXAM_YR\" AS \"A_조사 년도\",\n  A.\"CHARTR_CL_NM\" AS \"A_특성 분류 명\",\n  A.\"ADDR\" AS \"A_주소\",\n  A.\"LNDCGR_NM\" AS \"A_지목 명\",\n  A.\"AREA\" AS \"A_면적\",\n  A.\"CDMM\" AS \"A_카드뮴\",\n  A.\"COPPR\" AS \"A_구리\",\n  A.\"AS_\" AS \"A_비소\",\n  A.\"MRC\" AS \"A_수은\",\n  A.\"PB\" AS \"A_납\",\n  A.\"CR6\" AS \"A_6가크롬\",\n  A.\"ZINC\" AS \"A_아연\",\n  A.\"NICKEL\" AS \"A_니켈\",\n  A.\"IMCOW\" AS \"A_불소\",\n  A.\"ORGNICPH\" AS \"A_유기인\",\n  A.\"PCT\" AS \"A_폴리클로리네이트페닐\",\n  A.\"CYN\" AS \"A_시안\",\n  A.\"PHNL\" AS \"A_페놀\",\n  A.\"BENZ\" AS \"A_벤젠\",\n  A.\"TOLUE\" AS \"A_톨루엔\",\n  A.\"ETBEN\" AS \"A_에틸벤젠\",\n  A.\"XYLEN\" AS \"A_크실렌\",\n  A.\"TPH\" AS \"A_석유계총탄화수소\",\n  A.\"TCE\" AS \"A_트리클로로에틸렌\",\n  A.\"PCE\" AS \"A_테트라클로로에틸렌\",\n  A.\"HYDRIONDNSTY\" AS \"A_수소이온농도\",\n  A.\"RM\" AS \"A_비고\",\n  B.\"YR\" AS \"B_년도\",\n  B.\"QU\" AS \"B_분기\",\n  B.\"SPOT_NO\" AS \"B_지점 번호\",\n  B.\"SIGNGU_NM\" AS \"B_시군구\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"PRPOS_NM\" AS \"B_용도\",\n  B.\"DKPS_YN_NM\" AS \"B_음용 여부\",\n  B.\"HYDRIONDNSTY\" AS \"B_수소이온농도\",\n  B.\"TOTEEC\" AS \"B_총대장균군\",\n  B.\"NO3N\" AS \"B_질산성질소\",\n  B.\"CI\" AS \"B_염소이온\",\n  B.\"CDMM\" AS \"B_카드뮴\",\n  B.\"AS_\" AS \"B_비소\",\n  B.\"CYN\" AS \"B_시안\",\n  B.\"MRC\" AS \"B_수은\",\n  B.\"ORGNICPH\" AS \"B_유기인\",\n  B.\"PHNL\" AS \"B_페놀\",\n  B.\"PB\" AS \"B_납\",\n  B.\"CR6\" AS \"B_6가크롬\",\n  B.\"TCE\" AS \"B_트리클로로에틸렌\",\n  B.\"PCE\" AS \"B_테트라클로로에틸렌\",\n  B.\"TCE111\" AS \"B_111트리클로로에탄\",\n  B.\"BENZ\" AS \"B_벤젠\",\n  B.\"TOLUE\" AS \"B_톨루엔\",\n  B.\"ETBEN\" AS \"B_에틸벤젠\",\n  B.\"XYLEN\" AS \"B_크실렌\",\n  B.\"EC\" AS \"B_전기전도도\",\n  B.\"ARA_YN\" AS \"B_오염지역 여부\",\n  B.\"ARA\" AS \"B_오염구분\"\nFROM \"I2390\" A\nLEFT JOIN \"I2400\" B\n  ON A.\"PCE\" = B.\"PCE\"\nWHERE A.\"PCE\" IS NOT NULL AND A.\"PCE\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
       "id": "SCN_CHAIN_004",
+      "joinKey": "CHAIN:TESTANALSRSLT+LCNS_NO",
+      "datasets": [
+        "I2640",
+        "I2620",
+        "I0490"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I2640",
+      "relations": [
+        {
+          "from": "I2620",
+          "fromNm": "검사부적합(국내)",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "TESTANALS_RSLT",
+          "colTo": "TESTANALS_RSLT",
+          "colFromDisplay": "검사결과(TESTANALS_RSLT)",
+          "colToDisplay": "검사결과(TESTANALS_RSLT)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 85,
+          "confidence": "HIGH",
+          "matched": 174,
+          "ratioA": 0.702,
+          "ratioB": 1,
+          "sampleMatches": [
+            "0.33 mg/kg",
+            "2.43 mg/kg",
+            "5.0 mg/kg"
+          ]
+        },
+        {
+          "from": "I0490",
+          "fromNm": "회수.판매중지 정보",
+          "to": "I2640",
+          "toNm": "검사부적합 현황(농산물)",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "colFromDisplay": "업체인허가번호(LCNS_NO)",
+          "colToDisplay": "업체인허가번호(LCNS_NO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 24,
+          "confidence": "LOW",
+          "matched": 5,
+          "ratioA": 0.023,
+          "ratioB": 0.455,
+          "sampleMatches": [
+            "20160333083",
+            "20000320226",
+            "20140333104"
+          ]
+        }
+      ],
+      "score": 55,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"PRDTNM\" AS \"A_제품명\",\n  A.\"BSSHNM\" AS \"A_업소명\",\n  A.\"MNFDT\" AS \"A_제조일자\",\n  A.\"DISTBTMLMT\" AS \"A_유통/소비기한\",\n  A.\"ADDR\" AS \"A_영업자주소\",\n  A.\"INSTT_NM\" AS \"A_검사기관\",\n  A.\"REGSTR_TELNO\" AS \"A_전화번호\",\n  A.\"BRCDNO\" AS \"A_바코드번호\",\n  A.\"FRMLCUNIT\" AS \"A_포장단위\",\n  A.\"TEST_ITMNM\" AS \"A_부적합항목\",\n  A.\"STDR_STND\" AS \"A_기준규격\",\n  A.\"TESTANALS_RSLT\" AS \"A_검사결과\",\n  A.\"CRET_DTM\" AS \"A_등록일\",\n  A.\"RTRVLDSUSE_SEQ\" AS \"A_회수폐기일련번호\",\n  A.\"LCNS_NO\" AS \"A_업체인허가번호\",\n  A.\"REPORTR_TELNO\" AS \"A_보고자전화번호\",\n  B.\"PRDTNM\" AS \"B_제품명\",\n  B.\"BSSHNM\" AS \"B_업소명\",\n  B.\"MNFDT\" AS \"B_제조일자\",\n  B.\"DISTBTMLMT\" AS \"B_유통/소비기한\",\n  B.\"ADDR\" AS \"B_영업자주소\",\n  B.\"INSTT_NM\" AS \"B_검사기관\",\n  B.\"REGSTR_TELNO\" AS \"B_전화번호\",\n  B.\"BRCDNO\" AS \"B_바코드번호\",\n  B.\"FRMLCUNIT\" AS \"B_포장단위\",\n  B.\"TEST_ITMNM\" AS \"B_부적합항목\",\n  B.\"STDR_STND\" AS \"B_기준규격\",\n  B.\"TESTANALS_RSLT\" AS \"B_검사결과\",\n  B.\"CRET_DTM\" AS \"B_등록일\",\n  B.\"RTRVLDSUSE_SEQ\" AS \"B_회수폐기일련번호\",\n  B.\"PRDLST_REPORT_NO\" AS \"B_품목제조보고번호\",\n  B.\"LCNS_NO\" AS \"B_업체인허가번호\",\n  B.\"REPORTR_TELNO\" AS \"B_보고자전화번호\",\n  B.\"PRDLST_CD_NM\" AS \"B_식품유형\",\n  C.\"PRDTNM\" AS \"C_제품명\",\n  C.\"RTRVLPRVNS\" AS \"C_회수사유\",\n  C.\"BSSHNM\" AS \"C_제조업체명\",\n  C.\"ADDR\" AS \"C_업체주소\",\n  C.\"TELNO\" AS \"C_전화번호\",\n  C.\"BRCDNO\" AS \"C_바코드번호\",\n  C.\"FRMLCUNIT\" AS \"C_포장단위\",\n  C.\"MNFDT\" AS \"C_제조일자\",\n  C.\"RTRVLPLANDOC_RTRVLMTHD\" AS \"C_회수방법\",\n  C.\"DISTBTMLMT\" AS \"C_유통/소비기한\",\n  C.\"PRDLST_TYPE\" AS \"C_식품분류\",\n  C.\"IMG_FILE_PATH\" AS \"C_제품사진 URL\",\n  C.\"PRDLST_CD\" AS \"C_품목코드\",\n  C.\"CRET_DTM\" AS \"C_등록일\",\n  C.\"RTRVLDSUSE_SEQ\" AS \"C_회수.판매중지 일련번호\",\n  C.\"PRDLST_REPORT_NO\" AS \"C_품목제조보고번호\",\n  C.\"RTRVL_GRDCD_NM\" AS \"C_회수등급\",\n  C.\"PRDLST_CD_NM\" AS \"C_품목유형(품목코드명)\",\n  C.\"LCNS_NO\" AS \"C_업체인허가번호\"\nFROM \"I2640\" A\nINNER JOIN \"I2620\" B\n  ON A.\"TESTANALS_RSLT\" = B.\"TESTANALS_RSLT\"\nLEFT JOIN \"I0490\" C\n  ON A.\"LCNS_NO\" = C.\"LCNS_NO\"\nWHERE A.\"TESTANALS_RSLT\" IS NOT NULL AND A.\"TESTANALS_RSLT\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_006",
+      "joinKey": "CHAIN:LV+PRDLST_CD",
+      "datasets": [
+        "I2510",
+        "I2590",
+        "I2600"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I2510",
+      "relations": [
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2590",
+          "toNm": "공통기준종류",
+          "colFrom": "LV",
+          "colTo": "LV",
+          "colFromDisplay": "레벨(LV)",
+          "colToDisplay": "레벨(LV)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 81,
+          "confidence": "HIGH",
+          "matched": 5,
+          "ratioA": 1,
+          "ratioB": 0.625,
+          "sampleMatches": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "from": "I2510",
+          "fromNm": "품목유형코드",
+          "to": "I2600",
+          "toNm": "공통기준규격",
+          "colFrom": "PRDLST_CD",
+          "colTo": "PRDLST_CD",
+          "colFromDisplay": "품목코드(PRDLST_CD)",
+          "colToDisplay": "품목분류코드(PRDLST_CD)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 18,
+          "confidence": "LOW",
+          "matched": 44,
+          "ratioA": 0.044,
+          "ratioB": 0.317,
+          "sampleMatches": [
+            "A0000000000000",
+            "A0100000000000",
+            "A0100100000000"
+          ]
+        }
+      ],
+      "score": 50,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"LV\" AS \"A_레벨\",\n  A.\"PRDLST_CD\" AS \"A_품목코드\",\n  A.\"KOR_NM\" AS \"A_한글명\",\n  A.\"ENG_NM\" AS \"A_영문명\",\n  A.\"DFN\" AS \"A_정의\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일자\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일자\",\n  A.\"HRNK_PRDLST_CD\" AS \"A_상위품목코드\",\n  A.\"HTRK_PRDLST_CD\" AS \"A_최상위품목코드\",\n  A.\"MXTR_PRDLST_YN\" AS \"A_조합품목여부\",\n  A.\"ATTRB_SEQ\" AS \"A_속성일련번호\",\n  A.\"PIAM_KOR_NM\" AS \"A_속성한글명\",\n  A.\"PRDLST_YN\" AS \"A_품목여부\",\n  A.\"UPDT_PRVNS\" AS \"A_수정사유\",\n  A.\"USE_YN\" AS \"A_사용여부\",\n  A.\"RM\" AS \"A_비고\",\n  A.\"FDGRP_YN\" AS \"A_식품군여부\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일\",\n  A.\"CHD_SMBL_FD_YN\" AS \"A_어린이기호식품 여부\",\n  B.\"CMMN_SPEC_CD\" AS \"B_공통기준규격코드\",\n  B.\"SPEC_NM\" AS \"B_기준규격명\",\n  B.\"HRNK_CMMN_SPEC_CD\" AS \"B_상위공통기준규격코드\",\n  B.\"LV\" AS \"B_레벨\",\n  B.\"DFN\" AS \"B_정의\",\n  B.\"USE_YN\" AS \"B_사용여부\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\",\n  C.\"CMMN_SPEC_SEQ\" AS \"C_공통기준종류코드일련번호\",\n  C.\"CMMN_SPEC_CD\" AS \"C_공통기준종류코드\",\n  C.\"SPEC_NM\" AS \"C_공통기준종류명\",\n  C.\"PRDLST_CD\" AS \"C_품목분류코드\",\n  C.\"PRDLST_CD_NM\" AS \"C_품목명\",\n  C.\"TESTITM_CD\" AS \"C_시험항목코드\",\n  C.\"TESTITM_NM\" AS \"C_시험항목명\",\n  C.\"FNPRT_ITM_NM\" AS \"C_세부항목명\",\n  C.\"ATTRB_SEQ\" AS \"C_단서조항일련번호\",\n  C.\"PIAM_KOR_NM\" AS \"C_단서조항명\",\n  C.\"SPEC_VAL\" AS \"C_기준규격\",\n  C.\"SPEC_VAL_SUMUP\" AS \"C_기준규격요약\",\n  C.\"VALD_BEGN_DT\" AS \"C_유효개시일\",\n  C.\"VALD_END_DT\" AS \"C_유효종료일\",\n  C.\"SORC\" AS \"C_출처\",\n  C.\"VALD_MANLI\" AS \"C_유효자리\",\n  C.\"JDGMNT_FOM_CD\" AS \"C_판정형식코드\",\n  C.\"A079_FNPRT_CD_NM\" AS \"C_판정형식명\",\n  C.\"MXMM_VAL\" AS \"C_최대값\",\n  C.\"MXMM_VAL_DVS_CD\" AS \"C_최대값구분코드\",\n  C.\"A081_FNPRT_CD_NM\" AS \"C_최대값구분명\",\n  C.\"MIMM_VAL\" AS \"C_최소값\",\n  C.\"MIMM_VAL_DVS_CD\" AS \"C_최소값구분코드\",\n  C.\"A080_FNPRT_CD_NM\" AS \"C_최소값구분명\",\n  C.\"CHOIC_FIT\" AS \"C_선택형적합코드\",\n  C.\"A082_CF_FNPRT_CD_NM\" AS \"C_선택형적합명\",\n  C.\"CHOIC_IMPROPT\" AS \"C_선택형부적합코드\",\n  C.\"A082_CI_FNPRT_CD_NM\" AS \"C_선택형부적합명\",\n  C.\"MCRRGNSM_2N\" AS \"C_미생물2N\",\n  C.\"MCRRGNSM_2C\" AS \"C_미생물2C\",\n  C.\"MCRRGNSM_2M\" AS \"C_미생물2M\",\n  C.\"MCRRGNSM_3M\" AS \"C_미생물3M\",\n  C.\"FNPRT_ITM_INCLS_YN\" AS \"C_세부항목포함여부\",\n  C.\"INJRY_YN\" AS \"C_위해여부\",\n  C.\"EMPHS_PRSEC_TESTITM_YN\" AS \"C_중점검사시험항목여부\",\n  C.\"MONTRNG_TESTITM_YN\" AS \"C_감시시험항목여부\",\n  C.\"RVLV_ELSE_TESTITM_YN\" AS \"C_공전외시험항목여부\",\n  C.\"NTR_PRSEC_ITM_YN\" AS \"C_자품검사시험항목여부\",\n  C.\"UNIT_CD\" AS \"C_단위코드\",\n  C.\"UNIT_NM\" AS \"C_단위명\",\n  C.\"UPDT_PRVNS\" AS \"C_수정사유\",\n  C.\"LAST_UPDT_DTM\" AS \"C_최종수정일시\"\nFROM \"I2510\" A\nINNER JOIN \"I2590\" B\n  ON A.\"LV\" = B.\"LV\"\nLEFT JOIN \"I2600\" C\n  ON A.\"PRDLST_CD\" = C.\"PRDLST_CD\"\nWHERE A.\"LV\" IS NOT NULL AND A.\"LV\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_019",
+      "joinKey": "WORKSCOPE",
+      "datasets": [
+        "I0890",
+        "I0900"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I0890",
+          "fromNm": "식품위생검사기관 지정 현황",
+          "to": "I0900",
+          "toNm": "축산물위생검사기관 지정 현황",
+          "colFrom": "WORK_SCOPE",
+          "colTo": "WORK_SCOPE",
+          "colFromDisplay": "업무범위(WORK_SCOPE)",
+          "colToDisplay": "업무범위(WORK_SCOPE)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 50,
+          "confidence": "MEDIUM",
+          "matched": 2,
+          "ratioA": 0.5,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "자가품질위탁검사",
+            "자가품질위탁검사 수입검사"
+          ]
+        }
+      ],
+      "score": 50,
+      "confidence": "MEDIUM",
+      "sql": "SELECT\n  A.\"PRSEC_INSTT_RCOGN_NO\" AS \"A_지정번호\",\n  A.\"BSSH_NM\" AS \"A_기관명\",\n  A.\"PRSDNT_NM\" AS \"A_대표자\",\n  A.\"APPN_BGN_DT\" AS \"A_지정일자\",\n  A.\"APPN_END_DT\" AS \"A_지정종료일자\",\n  A.\"WORK_SCOPE\" AS \"A_업무범위\",\n  B.\"BSSH_NM\" AS \"B_검사기관명\",\n  B.\"PRSDNT_NM\" AS \"B_대표자\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"APPN_BGN_DT\" AS \"B_지정시작일자\",\n  B.\"APPN_END_DT\" AS \"B_지정종료일자\",\n  B.\"WORK_SCOPE\" AS \"B_업무범위\"\nFROM \"I0890\" A\nINNER JOIN \"I0900\" B\n  ON A.\"WORK_SCOPE\" = B.\"WORK_SCOPE\"\nWHERE A.\"WORK_SCOPE\" IS NOT NULL AND A.\"WORK_SCOPE\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_013",
       "joinKey": "CHAIN:TESTITM_CD+PRDLST_CD",
       "datasets": [
         "I2610",
@@ -2714,7 +3632,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_CHAIN_005",
+      "id": "SCN_CHAIN_014",
       "joinKey": "CHAIN:PRDLST_CD+TESTITM_CD",
       "datasets": [
         "I0960",
@@ -2773,6 +3691,42 @@
       "confidence": "MEDIUM",
       "sql": "SELECT\n  A.\"PRDLST_CD\" AS \"A_품목코드\",\n  A.\"PC_KOR_NM\" AS \"A_품목한글명\",\n  A.\"TESTITM_CD\" AS \"A_시험항목코드\",\n  A.\"T_KOR_NM\" AS \"A_시험항목 한글명\",\n  A.\"FNPRT_ITM_NM\" AS \"A_세부항목명\",\n  A.\"SPEC_VAL\" AS \"A_기준규격값\",\n  A.\"SPEC_VAL_SUMUP\" AS \"A_기준규격값 요약\",\n  A.\"VALD_BEGN_DT\" AS \"A_유효개시일자\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일자\",\n  A.\"SORC\" AS \"A_출처\",\n  A.\"MXMM_VAL\" AS \"A_최대값\",\n  A.\"MIMM_VAL\" AS \"A_최소값\",\n  A.\"INJRY_YN\" AS \"A_위해여부\",\n  A.\"UNIT_NM\" AS \"A_단위명\",\n  B.\"INDV_SPEC_SEQ\" AS \"B_개별기준규격일련번호\",\n  B.\"PRDLST_CD\" AS \"B_품목분류코드\",\n  B.\"PRDLST_CD_NM\" AS \"B_품목명\",\n  B.\"TESTITM_CD\" AS \"B_시험항목코드\",\n  B.\"TESTITM_NM\" AS \"B_시험항목명\",\n  B.\"FNPRT_ITM_NM\" AS \"B_세부항목명\",\n  B.\"ATTRB_SEQ\" AS \"B_단서조항일련번호\",\n  B.\"PIAM_KOR_NM\" AS \"B_단서조항명\",\n  B.\"SPEC_VAL\" AS \"B_기준규격\",\n  B.\"SPEC_VAL_SUMUP\" AS \"B_기준규격요약\",\n  B.\"VALD_BEGN_DT\" AS \"B_유효개시일\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일\",\n  B.\"SORC\" AS \"B_출처\",\n  B.\"VALD_MANLI\" AS \"B_유효자리\",\n  B.\"JDGMNT_FOM_CD\" AS \"B_판정형식코드\",\n  B.\"A079_FNPRT_CD_NM\" AS \"B_판정형식명\",\n  B.\"MXMM_VAL\" AS \"B_최대값\",\n  B.\"MXMM_VAL_DVS_CD\" AS \"B_최대값구분코드\",\n  B.\"A081_FNPRT_CD_NM\" AS \"B_최대값구분명\",\n  B.\"MIMM_VAL\" AS \"B_최소값\",\n  B.\"MIMM_VAL_DVS_CD\" AS \"B_최소값구분코드\",\n  B.\"A080_FNPRT_CD_NM\" AS \"B_최소값구분명\",\n  B.\"CHOIC_FIT\" AS \"B_선택형적합코드\",\n  B.\"A082_CF_FNPRT_CD_NM\" AS \"B_선택형적합명\",\n  B.\"CHOIC_IMPROPT\" AS \"B_선택형부적합코드\",\n  B.\"A082_CI_FNPRT_CD_NM\" AS \"B_선택형부적합명\",\n  B.\"MCRRGNSM_2N\" AS \"B_미생물2N\",\n  B.\"MCRRGNSM_2C\" AS \"B_미생물2C\",\n  B.\"MCRRGNSM_2M\" AS \"B_미생물2M\",\n  B.\"MCRRGNSM_3M\" AS \"B_미생물3M\",\n  B.\"FNPRT_ITM_INCLS_YN\" AS \"B_세부항목포함여부\",\n  B.\"INJRY_YN\" AS \"B_위해여부\",\n  B.\"EMPHS_PRSEC_TESTITM_YN\" AS \"B_중점검사시험항목여부\",\n  B.\"MONTRNG_TESTITM_YN\" AS \"B_감시시험항목여부\",\n  B.\"RVLV_ELSE_TESTITM_YN\" AS \"B_공전외시험항목여부\",\n  B.\"NTR_PRSEC_ITM_YN\" AS \"B_자품검사시험항목여부\",\n  B.\"UNIT_CD\" AS \"B_단위코드\",\n  B.\"UNIT_NM\" AS \"B_단위명\",\n  B.\"UPDT_PRVNS\" AS \"B_수정사유\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\",\n  C.\"TESTITM_CD\" AS \"C_시험항목코드\",\n  C.\"KOR_NM\" AS \"C_한글명\",\n  C.\"ENG_NM\" AS \"C_영문명\",\n  C.\"ABRV\" AS \"C_약어\",\n  C.\"NCKNM\" AS \"C_이명\",\n  C.\"TESTITM_NM\" AS \"C_시험항목명\",\n  C.\"TESTITM_LCLAS_CD\" AS \"C_시험항목대분류시퀀스\",\n  C.\"L_ATTRB_CD\" AS \"C_시험항목대분류코드\",\n  C.\"L_KOR_NM\" AS \"C_대분류한글명\",\n  C.\"TESTITM_MLSFC_CD\" AS \"C_시험항목중분류시퀀스\",\n  C.\"M_ATTRB_CD\" AS \"C_시험항목중분류코드\",\n  C.\"M_KOR_NM\" AS \"C_중분류한글명\",\n  C.\"REMN_MTTR_DFN\" AS \"C_잔류물질정의\",\n  C.\"USE_YN\" AS \"C_사용여부\",\n  C.\"LAST_UPDT_DTM\" AS \"C_최종수정일시\"\nFROM \"I0960\" A\nLEFT JOIN \"I2580\" B\n  ON A.\"PRDLST_CD\" = B.\"PRDLST_CD\"\nLEFT JOIN \"I2530\" C\n  ON A.\"TESTITM_CD\" = C.\"TESTITM_CD\"\nWHERE A.\"PRDLST_CD\" IS NOT NULL AND A.\"PRDLST_CD\" != ''\nLIMIT 100;",
       "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_020",
+      "joinKey": "PHNL",
+      "datasets": [
+        "I2390",
+        "I2400"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I2390",
+          "fromNm": "토양지하수 토양실태조사정보",
+          "to": "I2400",
+          "toNm": "지하수수질측정망 측정결과",
+          "colFrom": "PHNL",
+          "colTo": "PHNL",
+          "colFromDisplay": "페놀(PHNL)",
+          "colToDisplay": "페놀(PHNL)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 33,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.5,
+          "ratioB": 0.167,
+          "sampleMatches": [
+            "0.0"
+          ]
+        }
+      ],
+      "score": 33,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"SOIL_SEQ\" AS \"A_토양 일련번호\",\n  A.\"EXAM_YR\" AS \"A_조사 년도\",\n  A.\"CHARTR_CL_NM\" AS \"A_특성 분류 명\",\n  A.\"ADDR\" AS \"A_주소\",\n  A.\"LNDCGR_NM\" AS \"A_지목 명\",\n  A.\"AREA\" AS \"A_면적\",\n  A.\"CDMM\" AS \"A_카드뮴\",\n  A.\"COPPR\" AS \"A_구리\",\n  A.\"AS_\" AS \"A_비소\",\n  A.\"MRC\" AS \"A_수은\",\n  A.\"PB\" AS \"A_납\",\n  A.\"CR6\" AS \"A_6가크롬\",\n  A.\"ZINC\" AS \"A_아연\",\n  A.\"NICKEL\" AS \"A_니켈\",\n  A.\"IMCOW\" AS \"A_불소\",\n  A.\"ORGNICPH\" AS \"A_유기인\",\n  A.\"PCT\" AS \"A_폴리클로리네이트페닐\",\n  A.\"CYN\" AS \"A_시안\",\n  A.\"PHNL\" AS \"A_페놀\",\n  A.\"BENZ\" AS \"A_벤젠\",\n  A.\"TOLUE\" AS \"A_톨루엔\",\n  A.\"ETBEN\" AS \"A_에틸벤젠\",\n  A.\"XYLEN\" AS \"A_크실렌\",\n  A.\"TPH\" AS \"A_석유계총탄화수소\",\n  A.\"TCE\" AS \"A_트리클로로에틸렌\",\n  A.\"PCE\" AS \"A_테트라클로로에틸렌\",\n  A.\"HYDRIONDNSTY\" AS \"A_수소이온농도\",\n  A.\"RM\" AS \"A_비고\",\n  B.\"YR\" AS \"B_년도\",\n  B.\"QU\" AS \"B_분기\",\n  B.\"SPOT_NO\" AS \"B_지점 번호\",\n  B.\"SIGNGU_NM\" AS \"B_시군구\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"PRPOS_NM\" AS \"B_용도\",\n  B.\"DKPS_YN_NM\" AS \"B_음용 여부\",\n  B.\"HYDRIONDNSTY\" AS \"B_수소이온농도\",\n  B.\"TOTEEC\" AS \"B_총대장균군\",\n  B.\"NO3N\" AS \"B_질산성질소\",\n  B.\"CI\" AS \"B_염소이온\",\n  B.\"CDMM\" AS \"B_카드뮴\",\n  B.\"AS_\" AS \"B_비소\",\n  B.\"CYN\" AS \"B_시안\",\n  B.\"MRC\" AS \"B_수은\",\n  B.\"ORGNICPH\" AS \"B_유기인\",\n  B.\"PHNL\" AS \"B_페놀\",\n  B.\"PB\" AS \"B_납\",\n  B.\"CR6\" AS \"B_6가크롬\",\n  B.\"TCE\" AS \"B_트리클로로에틸렌\",\n  B.\"PCE\" AS \"B_테트라클로로에틸렌\",\n  B.\"TCE111\" AS \"B_111트리클로로에탄\",\n  B.\"BENZ\" AS \"B_벤젠\",\n  B.\"TOLUE\" AS \"B_톨루엔\",\n  B.\"ETBEN\" AS \"B_에틸벤젠\",\n  B.\"XYLEN\" AS \"B_크실렌\",\n  B.\"EC\" AS \"B_전기전도도\",\n  B.\"ARA_YN\" AS \"B_오염지역 여부\",\n  B.\"ARA\" AS \"B_오염구분\"\nFROM \"I2390\" A\nLEFT JOIN \"I2400\" B\n  ON A.\"PHNL\" = B.\"PHNL\"\nWHERE A.\"PHNL\" IS NOT NULL AND A.\"PHNL\" != ''\nLIMIT 100;",
       "isEmpty": false,
       "sqlError": ""
     },
@@ -4070,7 +5024,69 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_CHAIN_002",
+      "id": "SCN_CHAIN_008",
+      "joinKey": "CHAIN:WORKSCOPE+PRSECINSTTRCOGNNO",
+      "datasets": [
+        "I0890",
+        "I0900",
+        "I0910"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "I0890",
+      "relations": [
+        {
+          "from": "I0890",
+          "fromNm": "식품위생검사기관 지정 현황",
+          "to": "I0900",
+          "toNm": "축산물위생검사기관 지정 현황",
+          "colFrom": "WORK_SCOPE",
+          "colTo": "WORK_SCOPE",
+          "colFromDisplay": "업무범위(WORK_SCOPE)",
+          "colToDisplay": "업무범위(WORK_SCOPE)",
+          "joinType": "INNER JOIN",
+          "cardinality": "N:M",
+          "score": 50,
+          "confidence": "MEDIUM",
+          "matched": 2,
+          "ratioA": 0.5,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "자가품질위탁검사",
+            "자가품질위탁검사 수입검사"
+          ]
+        },
+        {
+          "from": "I0890",
+          "fromNm": "식품위생검사기관 지정 현황",
+          "to": "I0910",
+          "toNm": "국외검사기관 인정 현황",
+          "colFrom": "PRSEC_INSTT_RCOGN_NO",
+          "colTo": "PRSEC_INSTT_RCOGN_NO",
+          "colFromDisplay": "지정번호(PRSEC_INSTT_RCOGN_NO)",
+          "colToDisplay": "인정번호(PRSEC_INSTT_RCOGN_NO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 20,
+          "ratioA": 0.054,
+          "ratioB": 0.12,
+          "sampleMatches": [
+            "0000090",
+            "0000091",
+            "제81호"
+          ]
+        }
+      ],
+      "score": 30,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"PRSEC_INSTT_RCOGN_NO\" AS \"A_지정번호\",\n  A.\"BSSH_NM\" AS \"A_기관명\",\n  A.\"PRSDNT_NM\" AS \"A_대표자\",\n  A.\"APPN_BGN_DT\" AS \"A_지정일자\",\n  A.\"APPN_END_DT\" AS \"A_지정종료일자\",\n  A.\"WORK_SCOPE\" AS \"A_업무범위\",\n  B.\"BSSH_NM\" AS \"B_검사기관명\",\n  B.\"PRSDNT_NM\" AS \"B_대표자\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"APPN_BGN_DT\" AS \"B_지정시작일자\",\n  B.\"APPN_END_DT\" AS \"B_지정종료일자\",\n  B.\"WORK_SCOPE\" AS \"B_업무범위\",\n  C.\"PRSEC_INSTT_RCOGN_NO\" AS \"C_인정번호\",\n  C.\"BSSH_NM\" AS \"C_기관명\",\n  C.\"PRSDNT_NM\" AS \"C_대표자\",\n  C.\"APPN_BGN_DT\" AS \"C_지정일자\",\n  C.\"PRSEC_ITM_CD_NM\" AS \"C_검사항목\",\n  C.\"TELNO\" AS \"C_전화번호\",\n  C.\"BSSH_ADDR\" AS \"C_주소\"\nFROM \"I0890\" A\nINNER JOIN \"I0900\" B\n  ON A.\"WORK_SCOPE\" = B.\"WORK_SCOPE\"\nLEFT JOIN \"I0910\" C\n  ON A.\"PRSEC_INSTT_RCOGN_NO\" = C.\"PRSEC_INSTT_RCOGN_NO\"\nWHERE A.\"WORK_SCOPE\" IS NOT NULL AND A.\"WORK_SCOPE\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_009",
       "joinKey": "CHAIN:LCNS_NO+PRDLST_REPORT_NO",
       "datasets": [
         "C003",
@@ -4133,7 +5149,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_005",
+      "id": "SCN_022",
       "joinKey": "BRCD_NO",
       "datasets": [
         "I0490",
@@ -4194,7 +5210,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_CHAIN_003",
+      "id": "SCN_CHAIN_010",
       "joinKey": "CHAIN:LCNS_NO+PRDLST_REPORT_NO",
       "datasets": [
         "I0310",
@@ -4257,7 +5273,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_003",
+      "id": "SCN_018",
       "joinKey": "TESTITM_CD",
       "datasets": [
         "I0940",
@@ -4564,7 +5580,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_004",
+      "id": "SCN_021",
       "joinKey": "HISTTRACEREGNO",
       "datasets": [
         "I1930",
@@ -4647,7 +5663,68 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_CHAIN_001",
+      "id": "SCN_CHAIN_011",
+      "joinKey": "CHAIN:LCNS_NO+RAWMTRLORDNO",
+      "datasets": [
+        "C002",
+        "I1250",
+        "C006"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "C002",
+      "relations": [
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "I1250",
+          "toNm": "식품(첨가물)품목제조보고",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "colFromDisplay": "인허가번호(LCNS_NO)",
+          "colToDisplay": "인허가번호(LCNS_NO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 25,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.004,
+          "ratioB": 0.5,
+          "sampleMatches": [
+            "19550509001"
+          ]
+        },
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "C006",
+          "toNm": "축산물품목제조보고(원재료)",
+          "colFrom": "RAWMTRL_ORDNO",
+          "colTo": "RAWMTRL_ORDNO",
+          "colFromDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "colToDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 22,
+          "ratioA": 0.036,
+          "ratioB": 0.379,
+          "sampleMatches": [
+            "1,2,3,4,5,6,7,8",
+            "7,8,9,10,11,12",
+            "1,2,3"
+          ]
+        }
+      ],
+      "score": 23,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"LCNS_NO\" AS \"A_인허가번호\",\n  A.\"BSSH_NM\" AS \"A_업소명\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조번호\",\n  A.\"PRMS_DT\" AS \"A_보고일자\",\n  A.\"PRDLST_NM\" AS \"A_품목명\",\n  A.\"PRDLST_DCNM\" AS \"A_품목유형명\",\n  A.\"RAWMTRL_NM\" AS \"A_원재료명\",\n  A.\"RAWMTRL_ORDNO\" AS \"A_원재료표시순서\",\n  A.\"CHNG_DT\" AS \"A_변경일자(YYYYMMDD)\",\n  A.\"ETQTY_XPORT_PRDLST_YN\" AS \"A_내수/겸용구분(N:내수, O:겸용)\",\n  B.\"LCNS_NO\" AS \"B_인허가번호\",\n  B.\"BSSH_NM\" AS \"B_업소명\",\n  B.\"PRDLST_REPORT_NO\" AS \"B_품목제조번호\",\n  B.\"PRMS_DT\" AS \"B_허가일자\",\n  B.\"PRDLST_NM\" AS \"B_제품명\",\n  B.\"PRDLST_DCNM\" AS \"B_품목유형명\",\n  B.\"PRODUCTION\" AS \"B_생산종료여부\",\n  B.\"HIENG_LNTRT_DVS_NM\" AS \"B_고열량저영양식품여부\",\n  B.\"CHILD_CRTFC_YN\" AS \"B_어린이기호식품품질인증여부\",\n  B.\"POG_DAYCNT\" AS \"B_소비기한\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일자\",\n  B.\"INDUTY_CD_NM\" AS \"B_업종\",\n  B.\"QLITY_MNTNC_TMLMT_DAYCNT\" AS \"B_품질유지기한일수\",\n  B.\"USAGE\" AS \"B_용법\",\n  B.\"PRPOS\" AS \"B_용도\",\n  B.\"DISPOS\" AS \"B_제품형태\",\n  B.\"FRMLC_MTRQLT\" AS \"B_포장재질\",\n  B.\"ETQTY_XPORT_PRDLST_YN\" AS \"B_내수/겸용구분(N:내수, O:겸용)\",\n  C.\"BSSH_NM\" AS \"C_업소명\",\n  C.\"PRDLST_REPORT_NO\" AS \"C_품목제조번호\",\n  C.\"PRMS_DT\" AS \"C_보고일자\",\n  C.\"PRDLST_NM\" AS \"C_품목명\",\n  C.\"PRDLST_DCNM\" AS \"C_유형\",\n  C.\"RAWMTRL_NM\" AS \"C_원재료\",\n  C.\"LCNS_NO\" AS \"C_인허가번호\",\n  C.\"CHNG_DT\" AS \"C_변경일자\",\n  C.\"RAWMTRL_ORDNO\" AS \"C_원재료표시순서\"\nFROM \"C002\" A\nLEFT JOIN \"I1250\" B\n  ON A.\"LCNS_NO\" = B.\"LCNS_NO\"\nLEFT JOIN \"C006\" C\n  ON A.\"RAWMTRL_ORDNO\" = C.\"RAWMTRL_ORDNO\"\nWHERE A.\"LCNS_NO\" IS NOT NULL AND A.\"LCNS_NO\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_CHAIN_005",
       "joinKey": "CHAIN:LCNS_NO+PRDLST_CD",
       "datasets": [
         "I0490",
@@ -4710,7 +5787,45 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_002",
+      "id": "SCN_025",
+      "joinKey": "RAWMTRLORDNO",
+      "datasets": [
+        "C002",
+        "C006"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "C006",
+          "toNm": "축산물품목제조보고(원재료)",
+          "colFrom": "RAWMTRL_ORDNO",
+          "colTo": "RAWMTRL_ORDNO",
+          "colFromDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "colToDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 22,
+          "ratioA": 0.036,
+          "ratioB": 0.379,
+          "sampleMatches": [
+            "1,2,3,4,5,6,7,8",
+            "7,8,9,10,11,12",
+            "1,2,3"
+          ]
+        }
+      ],
+      "score": 21,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"LCNS_NO\" AS \"A_인허가번호\",\n  A.\"BSSH_NM\" AS \"A_업소명\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조번호\",\n  A.\"PRMS_DT\" AS \"A_보고일자\",\n  A.\"PRDLST_NM\" AS \"A_품목명\",\n  A.\"PRDLST_DCNM\" AS \"A_품목유형명\",\n  A.\"RAWMTRL_NM\" AS \"A_원재료명\",\n  A.\"RAWMTRL_ORDNO\" AS \"A_원재료표시순서\",\n  A.\"CHNG_DT\" AS \"A_변경일자(YYYYMMDD)\",\n  A.\"ETQTY_XPORT_PRDLST_YN\" AS \"A_내수/겸용구분(N:내수, O:겸용)\",\n  B.\"BSSH_NM\" AS \"B_업소명\",\n  B.\"PRDLST_REPORT_NO\" AS \"B_품목제조번호\",\n  B.\"PRMS_DT\" AS \"B_보고일자\",\n  B.\"PRDLST_NM\" AS \"B_품목명\",\n  B.\"PRDLST_DCNM\" AS \"B_유형\",\n  B.\"RAWMTRL_NM\" AS \"B_원재료\",\n  B.\"LCNS_NO\" AS \"B_인허가번호\",\n  B.\"CHNG_DT\" AS \"B_변경일자\",\n  B.\"RAWMTRL_ORDNO\" AS \"B_원재료표시순서\"\nFROM \"C002\" A\nLEFT JOIN \"C006\" B\n  ON A.\"RAWMTRL_ORDNO\" = B.\"RAWMTRL_ORDNO\"\nWHERE A.\"RAWMTRL_ORDNO\" IS NOT NULL AND A.\"RAWMTRL_ORDNO\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_017",
       "joinKey": "PRDLST_CD",
       "datasets": [
         "I0940",
@@ -4971,7 +6086,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_006",
+      "id": "SCN_023",
       "joinKey": "PRDLST_REPORT_NO",
       "datasets": [
         "I0490",
@@ -5033,7 +6148,7 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_007",
+      "id": "SCN_024",
       "joinKey": "BASISLAWORD",
       "datasets": [
         "I1670",
@@ -5093,7 +6208,108 @@
       "sqlError": ""
     },
     {
-      "id": "SCN_008",
+      "id": "SCN_CHAIN_012",
+      "joinKey": "CHAIN:RAWMTRLORDNO+LCNS_NO",
+      "datasets": [
+        "C006",
+        "C002",
+        "I1320"
+      ],
+      "datasetCount": 3,
+      "bridgeTable": "C006",
+      "relations": [
+        {
+          "from": "C002",
+          "fromNm": "식품(첨가물)품목제조보고(원재료)",
+          "to": "C006",
+          "toNm": "축산물품목제조보고(원재료)",
+          "colFrom": "RAWMTRL_ORDNO",
+          "colTo": "RAWMTRL_ORDNO",
+          "colFromDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "colToDisplay": "원재료표시순서(RAWMTRL_ORDNO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "N:M",
+          "score": 21,
+          "confidence": "LOW",
+          "matched": 22,
+          "ratioA": 0.036,
+          "ratioB": 0.379,
+          "sampleMatches": [
+            "1,2,3,4,5,6,7,8",
+            "7,8,9,10,11,12",
+            "1,2,3"
+          ]
+        },
+        {
+          "from": "C006",
+          "fromNm": "축산물품목제조보고(원재료)",
+          "to": "I1320",
+          "toNm": "축산물 식육포장처리업영업허가대장",
+          "colFrom": "LCNS_NO",
+          "colTo": "LCNS_NO",
+          "colFromDisplay": "인허가번호(LCNS_NO)",
+          "colToDisplay": "인허가 번호(LCNS_NO)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:N",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 19,
+          "ratioA": 0.165,
+          "ratioB": 0.019,
+          "sampleMatches": [
+            "20040484772",
+            "20050368569",
+            "20070368449"
+          ]
+        }
+      ],
+      "score": 15,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"BSSH_NM\" AS \"A_업소명\",\n  A.\"PRDLST_REPORT_NO\" AS \"A_품목제조번호\",\n  A.\"PRMS_DT\" AS \"A_보고일자\",\n  A.\"PRDLST_NM\" AS \"A_품목명\",\n  A.\"PRDLST_DCNM\" AS \"A_유형\",\n  A.\"RAWMTRL_NM\" AS \"A_원재료\",\n  A.\"LCNS_NO\" AS \"A_인허가번호\",\n  A.\"CHNG_DT\" AS \"A_변경일자\",\n  A.\"RAWMTRL_ORDNO\" AS \"A_원재료표시순서\",\n  B.\"LCNS_NO\" AS \"B_인허가번호\",\n  B.\"BSSH_NM\" AS \"B_업소명\",\n  B.\"PRDLST_REPORT_NO\" AS \"B_품목제조번호\",\n  B.\"PRMS_DT\" AS \"B_보고일자\",\n  B.\"PRDLST_NM\" AS \"B_품목명\",\n  B.\"PRDLST_DCNM\" AS \"B_품목유형명\",\n  B.\"RAWMTRL_NM\" AS \"B_원재료명\",\n  B.\"RAWMTRL_ORDNO\" AS \"B_원재료표시순서\",\n  B.\"CHNG_DT\" AS \"B_변경일자(YYYYMMDD)\",\n  B.\"ETQTY_XPORT_PRDLST_YN\" AS \"B_내수/겸용구분(N:내수, O:겸용)\",\n  C.\"LCNS_NO\" AS \"C_인허가 번호\",\n  C.\"BSSH_NM\" AS \"C_업소명\",\n  C.\"PRSDNT_NM\" AS \"C_대표자명\",\n  C.\"INDUTY_NM\" AS \"C_업종\",\n  C.\"CLSBIZ_DVS_NM\" AS \"C_영업상태\",\n  C.\"PRMS_DT\" AS \"C_허가일자\",\n  C.\"LOCP_ADDR\" AS \"C_주소\",\n  C.\"INSTT_NM\" AS \"C_기관명\",\n  C.\"TELNO\" AS \"C_전화번호\"\nFROM \"C006\" A\nLEFT JOIN \"C002\" B\n  ON A.\"RAWMTRL_ORDNO\" = B.\"RAWMTRL_ORDNO\"\nLEFT JOIN \"I1320\" C\n  ON A.\"LCNS_NO\" = C.\"LCNS_NO\"\nWHERE A.\"RAWMTRL_ORDNO\" IS NOT NULL AND A.\"RAWMTRL_ORDNO\" != ''\nLIMIT 100;",
+      "isChain": true,
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_027",
+      "joinKey": "DSPSSTDRCD",
+      "datasets": [
+        "I1670",
+        "I2550"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I1670",
+          "fromNm": "과태료부과기준",
+          "to": "I2550",
+          "toNm": "처분기준코드",
+          "colFrom": "DSPS_STDR_CD",
+          "colTo": "DSPS_STDR_CD",
+          "colFromDisplay": "처분기준코드(DSPS_STDR_CD)",
+          "colToDisplay": "처분기준코드(DSPS_STDR_CD)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "1:1",
+          "score": 10,
+          "confidence": "LOW",
+          "matched": 66,
+          "ratioA": 0.134,
+          "ratioB": 0.066,
+          "sampleMatches": [
+            "00409702000000",
+            "00409702000053",
+            "00409702000010"
+          ]
+        }
+      ],
+      "score": 10,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"DSPS_STDR_CD\" AS \"A_처분기준코드\",\n  A.\"DSPS_STDR_CD_NM\" AS \"A_처분기준명\",\n  A.\"LV_NO\" AS \"A_레벨\",\n  A.\"BASIS_LAWORD\" AS \"A_근거법령\",\n  A.\"VILT_TYPE_NM\" AS \"A_위반유형\",\n  A.\"VALD_BGN_DT\" AS \"A_유효시작일자\",\n  A.\"VALD_END_DT\" AS \"A_유효종료일자\",\n  B.\"DSPS_STDR_CD\" AS \"B_처분기준코드\",\n  B.\"HRNK_DSPS_STDR_CD\" AS \"B_상위처분기준코드\",\n  B.\"LV_NO\" AS \"B_레벨\",\n  B.\"DSPS_STDR_CD_NM\" AS \"B_처분기준코드명\",\n  B.\"BASIS_LAWORD\" AS \"B_근거법령\",\n  B.\"VILT_TYPE_CD\" AS \"B_위반유형코드\",\n  B.\"VILT_TYPE_CD_NM\" AS \"B_위반유형명\",\n  B.\"USE_YN\" AS \"B_사용여부\",\n  B.\"VALD_BGN_DT\" AS \"B_유효시작일자\",\n  B.\"VALD_END_DT\" AS \"B_유효종료일자\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일시\"\nFROM \"I1670\" A\nLEFT JOIN \"I2550\" B\n  ON A.\"DSPS_STDR_CD\" = B.\"DSPS_STDR_CD\"\nWHERE A.\"DSPS_STDR_CD\" IS NOT NULL AND A.\"DSPS_STDR_CD\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_026",
       "joinKey": "DSPSDTLSSEQ",
       "datasets": [
         "I0470",
@@ -5173,6 +6389,80 @@
       "score": 9,
       "confidence": "LOW",
       "sql": "SELECT\n  A.\"PRCSCITYPOINT_BSSHNM\" AS \"A_업소명\",\n  A.\"INDUTY_CD_NM\" AS \"A_업종\",\n  A.\"LCNS_NO\" AS \"A_인허가번호\",\n  A.\"DSPS_DCSNDT\" AS \"A_처분확정일자\",\n  A.\"DSPS_BGNDT\" AS \"A_처분시작일(영업정지의경우)\",\n  A.\"DSPS_ENDDT\" AS \"A_처분종료일(영업정지의경우)\",\n  A.\"DSPS_TYPECD_NM\" AS \"A_처분유형\",\n  A.\"VILTCN\" AS \"A_위반일자및위반내용\",\n  A.\"ADDR\" AS \"A_주소\",\n  A.\"TELNO\" AS \"A_전화번호\",\n  A.\"PRSDNT_NM\" AS \"A_대표자명\",\n  A.\"DSPSCN\" AS \"A_처분내용\",\n  A.\"LAWORD_CD_NM\" AS \"A_위반법령\",\n  A.\"PUBLIC_DT\" AS \"A_공개기한\",\n  A.\"LAST_UPDT_DTM\" AS \"A_최종수정일\",\n  A.\"DSPS_INSTTCD_NM\" AS \"A_처분기관명\",\n  A.\"DSPSDTLS_SEQ\" AS \"A_행정처분전산키\",\n  B.\"PRCSCITYPOINT_BSSHNM\" AS \"B_업소명\",\n  B.\"INDUTY_CD_NM\" AS \"B_업종\",\n  B.\"LCNS_NO\" AS \"B_인허가번호\",\n  B.\"DSPS_DCSNDT\" AS \"B_처분확정일자\",\n  B.\"DSPS_BGNDT\" AS \"B_처분시작일(영업정지의경우)\",\n  B.\"DSPS_ENDDT\" AS \"B_처분종료일(영업정지의경우)\",\n  B.\"DSPS_TYPECD_NM\" AS \"B_처분유형\",\n  B.\"VILTCN\" AS \"B_위반일자및위반내용\",\n  B.\"ADDR\" AS \"B_주소\",\n  B.\"TELNO\" AS \"B_전화번호\",\n  B.\"PRSDNT_NM\" AS \"B_대표자명\",\n  B.\"LAWORD_CD_NM\" AS \"B_위반법령\",\n  B.\"DSPSCN\" AS \"B_처분내용\",\n  B.\"PUBLIC_DT\" AS \"B_공개기한\",\n  B.\"LAST_UPDT_DTM\" AS \"B_최종수정일\",\n  B.\"DSPSDTLS_SEQ\" AS \"B_행정처분전산키\",\n  B.\"DSPS_INSTTCD_NM\" AS \"B_처분기관명\",\n  C.\"PRCSCITYPOINT_BSSHNM\" AS \"C_업소명\",\n  C.\"INDUTY_CD_NM\" AS \"C_업종\",\n  C.\"LCNS_NO\" AS \"C_인허가번호\",\n  C.\"DSPS_DCSNDT\" AS \"C_처분확정일자\",\n  C.\"DSPS_BGNDT\" AS \"C_처분시작일(영업정지의경우)\",\n  C.\"DSPS_ENDDT\" AS \"C_처분종료일(영업정지의경우)\",\n  C.\"DSPS_TYPECD_NM\" AS \"C_처분유형\",\n  C.\"VILTCN\" AS \"C_위반일자 및 위반내용\",\n  C.\"ADDR\" AS \"C_주소\",\n  C.\"TELNO\" AS \"C_전화번호\",\n  C.\"PRSDNT_NM\" AS \"C_대표자명\",\n  C.\"LAWORD_CD_NM\" AS \"C_위반법령\",\n  C.\"DSPSCN\" AS \"C_처분내용\",\n  C.\"PUBLIC_DT\" AS \"C_공개기한\",\n  C.\"LAST_UPDT_DTM\" AS \"C_최종수정일\",\n  C.\"DSPSDTLS_SEQ\" AS \"C_행정처분전산키\",\n  C.\"DSPS_INSTTCD_NM\" AS \"C_처분기관명\",\n  D.\"PRCSCITYPOINT_BSSHNM\" AS \"D_업소명\",\n  D.\"INDUTY_CD_NM\" AS \"D_업종\",\n  D.\"LCNS_NO\" AS \"D_인허가번호\",\n  D.\"DSPS_DCSNDT\" AS \"D_처분확정일자\",\n  D.\"DSPS_BGNDT\" AS \"D_처분시작일(영업정지의경우)\",\n  D.\"DSPS_ENDDT\" AS \"D_처분종료일(영업정지의경우)\",\n  D.\"DSPS_TYPECD_NM\" AS \"D_처분유형\",\n  D.\"VILTCN\" AS \"D_위반일자 및 위반내용\",\n  D.\"ADDR\" AS \"D_주소\",\n  D.\"TELNO\" AS \"D_전화번호\",\n  D.\"PRSDNT_NM\" AS \"D_대표자명\",\n  D.\"LAWORD_CD_NM\" AS \"D_위반법령\",\n  D.\"DSPSCN\" AS \"D_처분내용\",\n  D.\"PUBLIC_DT\" AS \"D_공개기한\",\n  D.\"LAST_UPDT_DTM\" AS \"D_최종수정일\",\n  D.\"DSPSDTLS_SEQ\" AS \"D_행정처분전산키\",\n  D.\"DSPS_INSTTCD_NM\" AS \"D_처분기관명\"\nFROM \"I0470\" A\nLEFT JOIN \"I0480\" B\n  ON A.\"DSPSDTLS_SEQ\" = B.\"DSPSDTLS_SEQ\"\nLEFT JOIN \"I0481\" C\n  ON A.\"DSPSDTLS_SEQ\" = C.\"DSPSDTLS_SEQ\"\nLEFT JOIN \"I0482\" D\n  ON A.\"DSPSDTLS_SEQ\" = D.\"DSPSDTLS_SEQ\"\nWHERE A.\"DSPSDTLS_SEQ\" IS NOT NULL AND A.\"DSPSDTLS_SEQ\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_028",
+      "joinKey": "PRSECINSTTRCOGNNO",
+      "datasets": [
+        "I0890",
+        "I0910"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I0890",
+          "fromNm": "식품위생검사기관 지정 현황",
+          "to": "I0910",
+          "toNm": "국외검사기관 인정 현황",
+          "colFrom": "PRSEC_INSTT_RCOGN_NO",
+          "colTo": "PRSEC_INSTT_RCOGN_NO",
+          "colFromDisplay": "지정번호(PRSEC_INSTT_RCOGN_NO)",
+          "colToDisplay": "인정번호(PRSEC_INSTT_RCOGN_NO)",
+          "joinType": "LEFT JOIN (B→A)",
+          "cardinality": "1:N",
+          "score": 9,
+          "confidence": "LOW",
+          "matched": 20,
+          "ratioA": 0.054,
+          "ratioB": 0.12,
+          "sampleMatches": [
+            "0000090",
+            "0000091",
+            "제81호"
+          ]
+        }
+      ],
+      "score": 9,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"PRSEC_INSTT_RCOGN_NO\" AS \"A_지정번호\",\n  A.\"BSSH_NM\" AS \"A_기관명\",\n  A.\"PRSDNT_NM\" AS \"A_대표자\",\n  A.\"APPN_BGN_DT\" AS \"A_지정일자\",\n  A.\"APPN_END_DT\" AS \"A_지정종료일자\",\n  A.\"WORK_SCOPE\" AS \"A_업무범위\",\n  B.\"PRSEC_INSTT_RCOGN_NO\" AS \"B_인정번호\",\n  B.\"BSSH_NM\" AS \"B_기관명\",\n  B.\"PRSDNT_NM\" AS \"B_대표자\",\n  B.\"APPN_BGN_DT\" AS \"B_지정일자\",\n  B.\"PRSEC_ITM_CD_NM\" AS \"B_검사항목\",\n  B.\"TELNO\" AS \"B_전화번호\",\n  B.\"BSSH_ADDR\" AS \"B_주소\"\nFROM \"I0890\" A\nLEFT JOIN \"I0910\" B\n  ON A.\"PRSEC_INSTT_RCOGN_NO\" = B.\"PRSEC_INSTT_RCOGN_NO\"\nWHERE A.\"PRSEC_INSTT_RCOGN_NO\" IS NOT NULL AND A.\"PRSEC_INSTT_RCOGN_NO\" != ''\nLIMIT 100;",
+      "isEmpty": false,
+      "sqlError": ""
+    },
+    {
+      "id": "SCN_029",
+      "joinKey": "PRPOS",
+      "datasets": [
+        "I0130",
+        "I0980"
+      ],
+      "datasetCount": 2,
+      "relations": [
+        {
+          "from": "I0130",
+          "fromNm": "LMO 수입 승인 현황",
+          "to": "I0980",
+          "toNm": "식품원료의 한시적 기준 및 규격 인정 현황",
+          "colFrom": "PRPOS",
+          "colTo": "PRPOS",
+          "colFromDisplay": "용도(PRPOS)",
+          "colToDisplay": "용도(PRPOS)",
+          "joinType": "LEFT JOIN (A→B)",
+          "cardinality": "N:M",
+          "score": 7,
+          "confidence": "LOW",
+          "matched": 1,
+          "ratioA": 0.125,
+          "ratioB": 0.024,
+          "sampleMatches": [
+            "식품"
+          ]
+        }
+      ],
+      "score": 7,
+      "confidence": "LOW",
+      "sql": "SELECT\n  A.\"LMO_CONFM_NO\" AS \"A_유전자 변형 생물체 승인번호\",\n  A.\"CONFM_DT\" AS \"A_승인일자\",\n  A.\"BSSH_NM\" AS \"A_업소명\",\n  A.\"ADDR\" AS \"A_주소\",\n  A.\"COMMON_NM\" AS \"A_보통명\",\n  A.\"SYSTM_NM\" AS \"A_계통명\",\n  A.\"BNE_NM\" AS \"A_학명\",\n  A.\"PRPOS\" AS \"A_용도\",\n  A.\"NATN_CD_NM\" AS \"A_수입국\",\n  B.\"LIMIT_STDR_STND_RCOGN_NO\" AS \"B_한시적 기준 규격 인정 번호\",\n  B.\"BSSH_NM\" AS \"B_업소명\",\n  B.\"BSSH_ADDR\" AS \"B_주소\",\n  B.\"PRSDNT_NM\" AS \"B_대표자\",\n  B.\"RCOGN_DT\" AS \"B_인정일자\",\n  B.\"PRDT_NM\" AS \"B_제품명\",\n  B.\"RAWMTRL_NM\" AS \"B_원재료명\",\n  B.\"PRPOS\" AS \"B_용도\",\n  B.\"USED\" AS \"B_사용량\",\n  B.\"USING_UNIT\" AS \"B_사용량단위\"\nFROM \"I0130\" A\nLEFT JOIN \"I0980\" B\n  ON A.\"PRPOS\" = B.\"PRPOS\"\nWHERE A.\"PRPOS\" IS NOT NULL AND A.\"PRPOS\" != ''\nLIMIT 100;",
       "isEmpty": false,
       "sqlError": ""
     }

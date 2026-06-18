@@ -7,22 +7,6 @@
 PRAGMA foreign_keys = ON;
 
 -- -----------------------------------------------------------------------------
--- I1300 / 축산물 가공업허가정보
--- 카테고리: 축산물
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I1300" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(500), -- INDUTY_NM / 업종
-  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(500), -- INSTT_NM / 기관명
-  "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  PRIMARY KEY ("LCNS_NO")
-);
-
--- -----------------------------------------------------------------------------
 -- I2510 / 품목유형코드
 -- 카테고리: 코드정보
 -- -----------------------------------------------------------------------------
@@ -66,21 +50,6 @@ CREATE TABLE IF NOT EXISTS "I2713" (
 );
 
 -- -----------------------------------------------------------------------------
--- I2500 / 인허가 업소 정보
--- 카테고리: 업체인허가현황
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I2500" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 영업고유구분번호(인허가번호) / PK 후보(HIGH)
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  PRIMARY KEY ("LCNS_NO")
-);
-
--- -----------------------------------------------------------------------------
 -- I0490 / 회수.판매중지 정보
 -- 카테고리: 식품위해관리
 -- -----------------------------------------------------------------------------
@@ -90,7 +59,7 @@ CREATE TABLE IF NOT EXISTS "I0490" (
   "BSSHNM" VARCHAR(500), -- BSSHNM / 제조업체명
   "ADDR" VARCHAR(500), -- ADDR / 업체주소
   "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호 / PK 후보(HIGH)
+  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호
   "FRMLCUNIT" VARCHAR(500), -- FRMLCUNIT / 포장단위
   "MNFDT" VARCHAR(500), -- MNFDT / 제조일자
   "RTRVLPLANDOC_RTRVLMTHD" VARCHAR(500), -- RTRVLPLANDOC_RTRVLMTHD / 회수방법
@@ -99,13 +68,29 @@ CREATE TABLE IF NOT EXISTS "I0490" (
   "IMG_FILE_PATH" VARCHAR(500), -- IMG_FILE_PATH / 제품사진 URL
   "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / FK 후보: I2510.PRDLST_CD(HIGH, 9.2%)
   "CRET_DTM" VARCHAR(500), -- CRET_DTM / 등록일
-  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수.판매중지 일련번호
+  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수.판매중지 일련번호 / PK 후보(HIGH)
   "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조보고번호
   "RTRVL_GRDCD_NM" VARCHAR(500), -- RTRVL_GRDCD_NM / 회수등급
   "PRDLST_CD_NM" VARCHAR(500), -- PRDLST_CD_NM / 품목유형(품목코드명)
   "LCNS_NO" VARCHAR(500), -- LCNS_NO / 업체인허가번호
-  PRIMARY KEY ("BRCDNO"),
+  PRIMARY KEY ("RTRVLDSUSE_SEQ"),
   FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
+);
+
+-- -----------------------------------------------------------------------------
+-- I1300 / 축산물 가공업허가정보
+-- 카테고리: 축산물
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I1300" (
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(500), -- INDUTY_NM / 업종
+  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(500), -- INSTT_NM / 기관명
+  "TELNO" VARCHAR(500), -- TELNO / 전화번호
+  PRIMARY KEY ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -139,19 +124,44 @@ CREATE TABLE IF NOT EXISTS "I1200" (
 );
 
 -- -----------------------------------------------------------------------------
--- I1220 / 식품제조가공업정보
--- 카테고리: 식품 등
+-- I2500 / 인허가 업소 정보
+-- 카테고리: 업체인허가현황
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I1220" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
+CREATE TABLE IF NOT EXISTS "I2500" (
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 영업고유구분번호(인허가번호) / PK 후보(HIGH)
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "INDUTY_NM" VARCHAR(500), -- INDUTY_NM / 업종
-  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
   "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
-  "INSTT_NM" VARCHAR(500), -- INSTT_NM / 기관명
+  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
+  "ADDR" VARCHAR(500), -- ADDR / 주소
   PRIMARY KEY ("LCNS_NO")
+);
+
+-- -----------------------------------------------------------------------------
+-- I1250 / 식품(첨가물)품목제조보고
+-- 카테고리: 식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I1250" (
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
+  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
+  "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
+  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
+  "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
+  "PRDLST_DCNM" VARCHAR(500), -- PRDLST_DCNM / 품목유형명
+  "PRODUCTION" VARCHAR(500), -- PRODUCTION / 생산종료여부
+  "HIENG_LNTRT_DVS_NM" VARCHAR(500), -- HIENG_LNTRT_DVS_NM / 고열량저영양식품여부
+  "CHILD_CRTFC_YN" VARCHAR(500), -- CHILD_CRTFC_YN / 어린이기호식품품질인증여부
+  "POG_DAYCNT" VARCHAR(500), -- POG_DAYCNT / 소비기한
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일자
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
+  "QLITY_MNTNC_TMLMT_DAYCNT" VARCHAR(500), -- QLITY_MNTNC_TMLMT_DAYCNT / 품질유지기한일수
+  "USAGE" VARCHAR(500), -- USAGE / 용법
+  "PRPOS" VARCHAR(500), -- PRPOS / 용도
+  "DISPOS" VARCHAR(500), -- DISPOS / 제품형태
+  "FRMLC_MTRQLT" VARCHAR(500), -- FRMLC_MTRQLT / 포장재질
+  "ETQTY_XPORT_PRDLST_YN" VARCHAR(500), -- ETQTY_XPORT_PRDLST_YN / 내수/겸용구분(N:내수, O:겸용)
+  PRIMARY KEY ("PRDLST_REPORT_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -240,53 +250,6 @@ CREATE TABLE IF NOT EXISTS "I2711" (
 );
 
 -- -----------------------------------------------------------------------------
--- I1310 / 축산물 품목제조정보
--- 카테고리: 축산물
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I1310" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I2500.LCNS_NO(HIGH, 30.0%), I1300.LCNS_NO(HIGH, 100.0%)
-  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
-  "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
-  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 보고일자
-  "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
-  "PRDLST_DCNM" VARCHAR(500), -- PRDLST_DCNM / 유형
-  "PRODUCTION" VARCHAR(500), -- PRODUCTION / 생산종료여부
-  "HIENG_LNTRT_DVS_NM" VARCHAR(500), -- HIENG_LNTRT_DVS_NM / 고열량저영양식품여부
-  "CHILD_CRTFC_YN" VARCHAR(500), -- CHILD_CRTFC_YN / 어린이기호식품품질인증여부
-  "POG_DAYCNT" VARCHAR(500), -- POG_DAYCNT / 소비기한
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일자
-  PRIMARY KEY ("PRDLST_REPORT_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
-);
-
--- -----------------------------------------------------------------------------
--- I0470 / 행정처분결과
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I0470" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
-  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자및위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
-  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
-  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
-  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
-  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키
-  PRIMARY KEY ("LCNS_NO")
-);
-
--- -----------------------------------------------------------------------------
 -- I2620 / 검사부적합(국내)
 -- 카테고리: 식품위해관리
 -- -----------------------------------------------------------------------------
@@ -298,33 +261,20 @@ CREATE TABLE IF NOT EXISTS "I2620" (
   "ADDR" VARCHAR(500), -- ADDR / 영업자주소
   "INSTT_NM" VARCHAR(500), -- INSTT_NM / 검사기관
   "REGSTR_TELNO" VARCHAR(500), -- REGSTR_TELNO / 전화번호
-  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호 / PK 후보(HIGH) / FK 후보: I0490.BRCDNO(HIGH, 41.4%)
+  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호
   "FRMLCUNIT" VARCHAR(500), -- FRMLCUNIT / 포장단위
   "TEST_ITMNM" VARCHAR(500), -- TEST_ITMNM / 부적합항목
   "STDR_STND" VARCHAR(500), -- STDR_STND / 기준규격
   "TESTANALS_RSLT" VARCHAR(500), -- TESTANALS_RSLT / 검사결과
   "CRET_DTM" VARCHAR(500), -- CRET_DTM / 등록일
-  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수폐기일련번호
+  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수폐기일련번호 / PK 후보(HIGH) / FK 후보: I0490.RTRVLDSUSE_SEQ(HIGH, 12.5%)
   "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조보고번호
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 업체인허가번호
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 업체인허가번호 / FK 후보: I1300.LCNS_NO(HIGH, 3.6%)
   "REPORTR_TELNO" VARCHAR(500), -- REPORTR_TELNO / 보고자전화번호
   "PRDLST_CD_NM" VARCHAR(500), -- PRDLST_CD_NM / 식품유형
-  PRIMARY KEY ("BRCDNO"),
-  FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO")
-);
-
--- -----------------------------------------------------------------------------
--- I0890 / 식품위생검사기관 지정 현황
--- 카테고리: 검사기관정보
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I0890" (
-  "PRSEC_INSTT_RCOGN_NO" VARCHAR(500), -- PRSEC_INSTT_RCOGN_NO / 지정번호 / PK 후보(HIGH)
-  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 기관명
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자
-  "APPN_BGN_DT" VARCHAR(500), -- APPN_BGN_DT / 지정일자
-  "APPN_END_DT" VARCHAR(500), -- APPN_END_DT / 지정종료일자
-  "WORK_SCOPE" VARCHAR(500), -- WORK_SCOPE / 업무범위
-  PRIMARY KEY ("PRSEC_INSTT_RCOGN_NO")
+  PRIMARY KEY ("RTRVLDSUSE_SEQ"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO"),
+  FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I0490" ("RTRVLDSUSE_SEQ")
 );
 
 -- -----------------------------------------------------------------------------
@@ -502,7 +452,7 @@ CREATE TABLE IF NOT EXISTS "I2820" (
 -- 카테고리: 수입식품 등
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I2780" (
-  "MEATWATCH_NO" VARCHAR(500), -- MEATWATCH_NO / 이력번호 / PK 후보(HIGH)
+  "MEATWATCH_NO" VARCHAR(500), -- MEATWATCH_NO / 이력번호 / PK 후보(LOW)
   "HIST_NO" VARCHAR(500), -- HIST_NO / 수입신고확인증번호
   "ORGNP_NM" VARCHAR(500), -- ORGNP_NM / 원산지
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 수입업체명
@@ -879,14 +829,15 @@ CREATE TABLE IF NOT EXISTS "I1560" (
 CREATE TABLE IF NOT EXISTS "I2859" (
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I1220.LCNS_NO(HIGH, 100.0%)
   "TELNO" VARCHAR(500), -- TELNO / 전화번호
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
   "CHNG_DT" VARCHAR(500), -- CHNG_DT / 변경일자
   "CHNG_BF_CN" VARCHAR(500), -- CHNG_BF_CN / 변경전내용
   "CHNG_AF_CN" VARCHAR(500), -- CHNG_AF_CN / 변경후내용
   "CHNG_PRVNS" VARCHAR(500), -- CHNG_PRVNS / 변경사유
-  PRIMARY KEY ("LCNS_NO")
+  PRIMARY KEY ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -943,38 +894,12 @@ CREATE TABLE IF NOT EXISTS "C002" (
 );
 
 -- -----------------------------------------------------------------------------
--- I1250 / 식품(첨가물)품목제조보고
--- 카테고리: 식품 등
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I1250" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
-  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
-  "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
-  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
-  "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
-  "PRDLST_DCNM" VARCHAR(500), -- PRDLST_DCNM / 품목유형명
-  "PRODUCTION" VARCHAR(500), -- PRODUCTION / 생산종료여부
-  "HIENG_LNTRT_DVS_NM" VARCHAR(500), -- HIENG_LNTRT_DVS_NM / 고열량저영양식품여부
-  "CHILD_CRTFC_YN" VARCHAR(500), -- CHILD_CRTFC_YN / 어린이기호식품품질인증여부
-  "POG_DAYCNT" VARCHAR(500), -- POG_DAYCNT / 소비기한
-  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일자
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "QLITY_MNTNC_TMLMT_DAYCNT" VARCHAR(500), -- QLITY_MNTNC_TMLMT_DAYCNT / 품질유지기한일수
-  "USAGE" VARCHAR(500), -- USAGE / 용법
-  "PRPOS" VARCHAR(500), -- PRPOS / 용도
-  "DISPOS" VARCHAR(500), -- DISPOS / 제품형태
-  "FRMLC_MTRQLT" VARCHAR(500), -- FRMLC_MTRQLT / 포장재질
-  "ETQTY_XPORT_PRDLST_YN" VARCHAR(500), -- ETQTY_XPORT_PRDLST_YN / 내수/겸용구분(N:내수, O:겸용)
-  PRIMARY KEY ("PRDLST_REPORT_NO")
-);
-
--- -----------------------------------------------------------------------------
 -- I2781 / 수입축산물 냉동전환 정보
 -- 카테고리: 수입식품 등
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I2781" (
   "MEATWATCH_NO" VARCHAR(500), -- MEATWATCH_NO / 이력번호
-  "ACCEPT_NO" VARCHAR(500), -- ACCEPT_NO / 축산물수입신고필증번호 / PK 후보(HIGH)
+  "ACCEPT_NO" VARCHAR(500), -- ACCEPT_NO / 축산물수입신고필증번호 / PK 후보(LOW)
   "HIST_NO" VARCHAR(500), -- HIST_NO / 수입신고확인증번호
   "ORGNP_NM" VARCHAR(500), -- ORGNP_NM / 원산지
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 수입업체명
@@ -1305,6 +1230,28 @@ CREATE TABLE IF NOT EXISTS "C006" (
 );
 
 -- -----------------------------------------------------------------------------
+-- I1310 / 축산물 품목제조정보
+-- 카테고리: 축산물
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I1310" (
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I2500.LCNS_NO(HIGH, 30.0%), I1300.LCNS_NO(HIGH, 100.0%)
+  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
+  "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목제조번호 / PK 후보(HIGH)
+  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 보고일자
+  "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
+  "PRDLST_DCNM" VARCHAR(500), -- PRDLST_DCNM / 유형
+  "PRODUCTION" VARCHAR(500), -- PRODUCTION / 생산종료여부
+  "HIENG_LNTRT_DVS_NM" VARCHAR(500), -- HIENG_LNTRT_DVS_NM / 고열량저영양식품여부
+  "CHILD_CRTFC_YN" VARCHAR(500), -- CHILD_CRTFC_YN / 어린이기호식품품질인증여부
+  "POG_DAYCNT" VARCHAR(500), -- POG_DAYCNT / 소비기한
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일자
+  PRIMARY KEY ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+);
+
+-- -----------------------------------------------------------------------------
 -- I1350 / 축산물 판매업영업신고대장
 -- 카테고리: 축산물
 -- -----------------------------------------------------------------------------
@@ -1538,11 +1485,12 @@ CREATE TABLE IF NOT EXISTS "I2852" (
   "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
   "END_DT" VARCHAR(500), -- END_DT / 생산중단일자
   "PRDLST_DCNM" VARCHAR(500), -- PRDLST_DCNM / 품목유형명
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I1220.LCNS_NO(HIGH, 3.9%)
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "FOOD_HF_LS_CL_CD_NM" VARCHAR(500), -- FOOD_HF_LS_CL_CD_NM / 구분
   "ARTCL_END_WHY" VARCHAR(500), -- ARTCL_END_WHY / 생산중단사유
-  PRIMARY KEY ("PRDLST_REPORT_NO")
+  PRIMARY KEY ("PRDLST_REPORT_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -1641,7 +1589,7 @@ CREATE TABLE IF NOT EXISTS "I2857" (
 -- 카테고리: HACCP지정현황
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0610" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I1300.LCNS_NO(HIGH, 9.6%)
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I1300.LCNS_NO(HIGH, 9.6%)
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종명
   "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
@@ -1649,11 +1597,11 @@ CREATE TABLE IF NOT EXISTS "I0610" (
   "CLSBIZ_DT" VARCHAR(500), -- CLSBIZ_DT / 폐업일자
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 업소주소
   "HACCP_APPN_DT" VARCHAR(500), -- HACCP_APPN_DT / HACCP 지정일자
-  "HACCP_APPN_NO" VARCHAR(500), -- HACCP_APPN_NO / HACCP 지정번호
+  "HACCP_APPN_NO" VARCHAR(500), -- HACCP_APPN_NO / HACCP 지정번호 / PK 후보(HIGH)
   "ASGN_CANCL_DT" VARCHAR(500), -- ASGN_CANCL_DT / 지정취소일자
   "CRTFC_ENDDT" VARCHAR(500), -- CRTFC_ENDDT / 인증종료일자
   "CRTFC_RETN_DT" VARCHAR(500), -- CRTFC_RETN_DT / 인증반납일자
-  PRIMARY KEY ("LCNS_NO"),
+  PRIMARY KEY ("HACCP_APPN_NO"),
   FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
@@ -1662,20 +1610,21 @@ CREATE TABLE IF NOT EXISTS "I0610" (
 -- 카테고리: HACCP지정현황
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0580" (
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I1220.LCNS_NO(HIGH, 4.8%)
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
   "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
   "SITE_ADDR" VARCHAR(500), -- SITE_ADDR / 주소
   "HACCP_APPN_DT" VARCHAR(500), -- HACCP_APPN_DT / HACCP 지정일자
-  "HACCP_APPN_NO" VARCHAR(500), -- HACCP_APPN_NO / HACCP 지정번호
+  "HACCP_APPN_NO" VARCHAR(500), -- HACCP_APPN_NO / HACCP 지정번호 / PK 후보(HIGH)
   "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 품목명
   "CLSBIZ_DVS_CD_NM" VARCHAR(500), -- CLSBIZ_DVS_CD_NM / 영업상태
   "CLSBIZ_DT" VARCHAR(500), -- CLSBIZ_DT / 폐업일자
   "ASGN_CANCL_DT" VARCHAR(500), -- ASGN_CANCL_DT / 지정취소일자
   "CRTFC_ENDDT" VARCHAR(500), -- CRTFC_ENDDT / 인증종료일자
   "CRTFC_RETN_DT" VARCHAR(500), -- CRTFC_RETN_DT / 인증반납일자
-  PRIMARY KEY ("LCNS_NO")
+  PRIMARY KEY ("HACCP_APPN_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -1727,7 +1676,7 @@ CREATE TABLE IF NOT EXISTS "I0600" (
 CREATE TABLE IF NOT EXISTS "I0080" (
   "CHILD_FFQ_CRTFC_NO" VARCHAR(500), -- CHILD_FFQ_CRTFC_NO / 인증번호 / PK 후보(HIGH)
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I1300.LCNS_NO(HIGH, 11.1%)
   "PRDLST_CD_NM" VARCHAR(500), -- PRDLST_CD_NM / 식품유형
   "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 제품명
   "CN_WT" VARCHAR(500), -- CN_WT / 제품용량
@@ -1735,7 +1684,8 @@ CREATE TABLE IF NOT EXISTS "I0080" (
   "APPN_END_DT" VARCHAR(500), -- APPN_END_DT / 만료일자
   "CHILD_FAVOR_FOOD_TYPE_NM" VARCHAR(500), -- CHILD_FAVOR_FOOD_TYPE_NM / 제품형태
   "PRDLST_REPORT_NO" VARCHAR(500), -- PRDLST_REPORT_NO / 품목보고번호
-  PRIMARY KEY ("CHILD_FFQ_CRTFC_NO")
+  PRIMARY KEY ("CHILD_FFQ_CRTFC_NO"),
+  FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2066,65 +2016,13 @@ CREATE TABLE IF NOT EXISTS "I2839" (
 );
 
 -- -----------------------------------------------------------------------------
--- I0481 / 행정처분결과(식품판매업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I0481" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I0470.null(MEDIUM, 12.2%)
-  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자 및 위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
-  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
-  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / FK 후보: I0470.null(MEDIUM, 12.2%)
-  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO", "DSPSDTLS_SEQ") REFERENCES "I0470" ("LCNS_NO", "DSPSDTLS_SEQ")
-);
-
--- -----------------------------------------------------------------------------
--- I0480 / 행정처분결과(식품제조가공업)
--- 카테고리: 식품위해관리
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS "I0480" (
-  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
-  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I0470.null(MEDIUM, 19.1%)
-  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
-  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
-  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
-  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
-  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자및위반내용
-  "ADDR" VARCHAR(500), -- ADDR / 주소
-  "TELNO" VARCHAR(500), -- TELNO / 전화번호
-  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
-  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
-  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
-  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
-  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / FK 후보: I0470.null(MEDIUM, 19.1%)
-  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
-  FOREIGN KEY ("LCNS_NO", "DSPSDTLS_SEQ") REFERENCES "I0470" ("LCNS_NO", "DSPSDTLS_SEQ")
-);
-
--- -----------------------------------------------------------------------------
 -- I0482 / 행정처분결과(수입식품업)
 -- 카테고리: 식품위해관리
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0482" (
   "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH) / FK 후보: I0470.null(MEDIUM, 11.1%)
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I0470.null(MEDIUM, 11.1%)
   "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
   "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
   "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
@@ -2137,9 +2035,10 @@ CREATE TABLE IF NOT EXISTS "I0482" (
   "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
   "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
   "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
-  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / FK 후보: I0470.null(MEDIUM, 11.1%)
+  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / PK 후보(HIGH) / FK 후보: I0470.DSPSDTLS_SEQ(HIGH, 11.1%), I0470.null(MEDIUM, 11.1%)
   "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
-  PRIMARY KEY ("LCNS_NO"),
+  PRIMARY KEY ("DSPSDTLS_SEQ"),
+  FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0470" ("DSPSDTLS_SEQ"),
   FOREIGN KEY ("LCNS_NO", "DSPSDTLS_SEQ") REFERENCES "I0470" ("LCNS_NO", "DSPSDTLS_SEQ")
 );
 
@@ -2150,7 +2049,7 @@ CREATE TABLE IF NOT EXISTS "I0482" (
 CREATE TABLE IF NOT EXISTS "I2630" (
   "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
   "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
-  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / PK 후보(HIGH)
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
   "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
   "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
   "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
@@ -2164,8 +2063,8 @@ CREATE TABLE IF NOT EXISTS "I2630" (
   "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
   "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
   "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
-  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키
-  PRIMARY KEY ("LCNS_NO")
+  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / PK 후보(HIGH)
+  PRIMARY KEY ("DSPSDTLS_SEQ")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2224,7 +2123,7 @@ CREATE TABLE IF NOT EXISTS "I2715" (
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I2854" (
   "SNT_GBN" VARCHAR(500), -- SNT_GBN / 구분
-  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 식품유형 / PK 후보(MEDIUM)
+  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 식품유형 / PK 후보(LOW)
   "PRDLST_NM" VARCHAR(500), -- PRDLST_NM / 식품명
   "ANALS_YEAR" VARCHAR(500), -- ANALS_YEAR / 분석연도
   "COL_A_RESULT" VARCHAR(500), -- COL_A_RESULT / 다이옥신
@@ -2327,18 +2226,18 @@ CREATE TABLE IF NOT EXISTS "I2640" (
   "ADDR" VARCHAR(500), -- ADDR / 영업자주소
   "INSTT_NM" VARCHAR(500), -- INSTT_NM / 검사기관
   "REGSTR_TELNO" VARCHAR(500), -- REGSTR_TELNO / 전화번호
-  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호 / PK 후보(HIGH) / FK 후보: I2620.BRCDNO(HIGH, 100.0%), I0490.BRCDNO(HIGH, 40.0%)
+  "BRCDNO" VARCHAR(500), -- BRCDNO / 바코드번호
   "FRMLCUNIT" VARCHAR(500), -- FRMLCUNIT / 포장단위
   "TEST_ITMNM" VARCHAR(500), -- TEST_ITMNM / 부적합항목
   "STDR_STND" VARCHAR(500), -- STDR_STND / 기준규격
   "TESTANALS_RSLT" VARCHAR(500), -- TESTANALS_RSLT / 검사결과
   "CRET_DTM" VARCHAR(500), -- CRET_DTM / 등록일
-  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수폐기일련번호
+  "RTRVLDSUSE_SEQ" VARCHAR(500), -- RTRVLDSUSE_SEQ / 회수폐기일련번호 / PK 후보(HIGH) / FK 후보: I2620.RTRVLDSUSE_SEQ(HIGH, 100.0%), I0490.RTRVLDSUSE_SEQ(HIGH, 3.8%)
   "LCNS_NO" VARCHAR(500), -- LCNS_NO / 업체인허가번호
   "REPORTR_TELNO" VARCHAR(500), -- REPORTR_TELNO / 보고자전화번호
-  PRIMARY KEY ("BRCDNO"),
-  FOREIGN KEY ("BRCDNO") REFERENCES "I2620" ("BRCDNO"),
-  FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO")
+  PRIMARY KEY ("RTRVLDSUSE_SEQ"),
+  FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I2620" ("RTRVLDSUSE_SEQ"),
+  FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I0490" ("RTRVLDSUSE_SEQ")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2352,6 +2251,20 @@ CREATE TABLE IF NOT EXISTS "I0900" (
   "APPN_BGN_DT" VARCHAR(500), -- APPN_BGN_DT / 지정시작일자
   "APPN_END_DT" VARCHAR(500), -- APPN_END_DT / 지정종료일자
   "WORK_SCOPE" VARCHAR(500) -- WORK_SCOPE / 업무범위
+);
+
+-- -----------------------------------------------------------------------------
+-- I0890 / 식품위생검사기관 지정 현황
+-- 카테고리: 검사기관정보
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I0890" (
+  "PRSEC_INSTT_RCOGN_NO" VARCHAR(500), -- PRSEC_INSTT_RCOGN_NO / 지정번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 기관명
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자
+  "APPN_BGN_DT" VARCHAR(500), -- APPN_BGN_DT / 지정일자
+  "APPN_END_DT" VARCHAR(500), -- APPN_END_DT / 지정종료일자
+  "WORK_SCOPE" VARCHAR(500), -- WORK_SCOPE / 업무범위
+  PRIMARY KEY ("PRSEC_INSTT_RCOGN_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2376,15 +2289,14 @@ CREATE TABLE IF NOT EXISTS "I0920" (
 -- 카테고리: 검사기관정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0910" (
-  "PRSEC_INSTT_RCOGN_NO" VARCHAR(500), -- PRSEC_INSTT_RCOGN_NO / 인정번호 / PK 후보(HIGH) / FK 후보: I0890.PRSEC_INSTT_RCOGN_NO(HIGH, 12.0%)
+  "PRSEC_INSTT_RCOGN_NO" VARCHAR(500), -- PRSEC_INSTT_RCOGN_NO / 인정번호 / PK 후보(HIGH)
   "BSSH_NM" VARCHAR(500), -- BSSH_NM / 기관명
   "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자
   "APPN_BGN_DT" VARCHAR(500), -- APPN_BGN_DT / 지정일자
   "PRSEC_ITM_CD_NM" VARCHAR(500), -- PRSEC_ITM_CD_NM / 검사항목
   "TELNO" VARCHAR(500), -- TELNO / 전화번호
   "BSSH_ADDR" VARCHAR(500), -- BSSH_ADDR / 주소
-  PRIMARY KEY ("PRSEC_INSTT_RCOGN_NO"),
-  FOREIGN KEY ("PRSEC_INSTT_RCOGN_NO") REFERENCES "I0890" ("PRSEC_INSTT_RCOGN_NO")
+  PRIMARY KEY ("PRSEC_INSTT_RCOGN_NO")
 );
 
 -- -----------------------------------------------------------------------------
@@ -2473,7 +2385,7 @@ CREATE TABLE IF NOT EXISTS "I2390" (
 CREATE TABLE IF NOT EXISTS "I2400" (
   "YR" VARCHAR(500), -- YR / 년도
   "QU" VARCHAR(500), -- QU / 분기
-  "SPOT_NO" VARCHAR(500), -- SPOT_NO / 지점 번호 / PK 후보(HIGH)
+  "SPOT_NO" VARCHAR(500), -- SPOT_NO / 지점 번호 / PK 후보(LOW)
   "SIGNGU_NM" VARCHAR(500), -- SIGNGU_NM / 시군구
   "ADDR" VARCHAR(500), -- ADDR / 주소
   "PRPOS_NM" VARCHAR(500), -- PRPOS_NM / 용도
@@ -2817,7 +2729,7 @@ CREATE TABLE IF NOT EXISTS "I1020" (
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0950" (
-  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / PK 후보(HIGH)
+  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / PK 후보(LOW)
   "PC_KOR_NM" VARCHAR(500), -- PC_KOR_NM / 품목한글명
   "TESTITM_CD" VARCHAR(500), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH, 45.8%)
   "T_KOR_NM" VARCHAR(500), -- T_KOR_NM / 시험항목 한글명
@@ -2878,9 +2790,9 @@ CREATE TABLE IF NOT EXISTS "I1050" (
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0940" (
-  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / PK 후보(MEDIUM)
+  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드
   "PC_KOR_NM" VARCHAR(500), -- PC_KOR_NM / 품목한글명
-  "TESTITM_CD" VARCHAR(500), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH, 16.9%)
+  "TESTITM_CD" VARCHAR(500), -- TESTITM_CD / 시험항목코드 / PK 후보(LOW) / FK 후보: I2530.TESTITM_CD(HIGH, 16.9%)
   "T_KOR_NM" VARCHAR(500), -- T_KOR_NM / 시험항목 한글명
   "FNPRT_ITM_NM" VARCHAR(500), -- FNPRT_ITM_NM / 세부항목명
   "SPEC_VAL" VARCHAR(500), -- SPEC_VAL / 기준규격값
@@ -2892,7 +2804,7 @@ CREATE TABLE IF NOT EXISTS "I0940" (
   "MIMM_VAL" VARCHAR(500), -- MIMM_VAL / 최소값
   "INJRY_YN" VARCHAR(500), -- INJRY_YN / 위해여부
   "UNIT_NM" VARCHAR(500), -- UNIT_NM / 단위명
-  PRIMARY KEY ("PRDLST_CD"),
+  PRIMARY KEY ("TESTITM_CD"),
   FOREIGN KEY ("TESTITM_CD") REFERENCES "I2530" ("TESTITM_CD")
 );
 
@@ -3094,7 +3006,7 @@ CREATE TABLE IF NOT EXISTS "I0990" (
 -- 카테고리: 기준규격정보
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I0960" (
-  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / PK 후보(HIGH)
+  "PRDLST_CD" VARCHAR(500), -- PRDLST_CD / 품목코드 / PK 후보(LOW)
   "PC_KOR_NM" VARCHAR(500), -- PC_KOR_NM / 품목한글명
   "TESTITM_CD" VARCHAR(500), -- TESTITM_CD / 시험항목코드 / FK 후보: I2530.TESTITM_CD(HIGH, 66.0%)
   "T_KOR_NM" VARCHAR(500), -- T_KOR_NM / 시험항목 한글명
@@ -3413,7 +3325,7 @@ CREATE TABLE IF NOT EXISTS "I1670" (
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS "I2550" (
   "DSPS_STDR_CD" VARCHAR(500), -- DSPS_STDR_CD / 처분기준코드 / PK 후보(HIGH) / FK 후보: I1670.null(MEDIUM, 6.6%)
-  "HRNK_DSPS_STDR_CD" VARCHAR(500), -- HRNK_DSPS_STDR_CD / 상위처분기준코드 / FK 후보: I1670.DSPS_STDR_CD(HIGH, 7.0%)
+  "HRNK_DSPS_STDR_CD" VARCHAR(500), -- HRNK_DSPS_STDR_CD / 상위처분기준코드
   "LV_NO" VARCHAR(500), -- LV_NO / 레벨 / FK 후보: I1670.null(MEDIUM, 6.6%)
   "DSPS_STDR_CD_NM" VARCHAR(500), -- DSPS_STDR_CD_NM / 처분기준코드명
   "BASIS_LAWORD" VARCHAR(500), -- BASIS_LAWORD / 근거법령
@@ -3424,8 +3336,102 @@ CREATE TABLE IF NOT EXISTS "I2550" (
   "VALD_END_DT" VARCHAR(500), -- VALD_END_DT / 유효종료일자
   "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일시
   PRIMARY KEY ("DSPS_STDR_CD"),
-  FOREIGN KEY ("HRNK_DSPS_STDR_CD") REFERENCES "I1670" ("DSPS_STDR_CD"),
   FOREIGN KEY ("DSPS_STDR_CD", "LV_NO") REFERENCES "I1670" ("DSPS_STDR_CD", "LV_NO")
+);
+
+-- -----------------------------------------------------------------------------
+-- I0470 / 행정처분결과
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I0470" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호
+  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자및위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(500), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
+  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
+  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
+  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
+  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
+  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / PK 후보(HIGH) / FK 후보: I0480.DSPSDTLS_SEQ(HIGH, 5.0%), I0481.DSPSDTLS_SEQ(HIGH, 7.9%)
+  PRIMARY KEY ("DSPSDTLS_SEQ"),
+  FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0480" ("DSPSDTLS_SEQ"),
+  FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0481" ("DSPSDTLS_SEQ")
+);
+
+-- -----------------------------------------------------------------------------
+-- I0480 / 행정처분결과(식품제조가공업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I0480" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I0470.null(MEDIUM, 19.1%)
+  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자및위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(500), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
+  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
+  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
+  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
+  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / PK 후보(HIGH) / FK 후보: I0470.null(MEDIUM, 19.1%)
+  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
+  PRIMARY KEY ("DSPSDTLS_SEQ"),
+  FOREIGN KEY ("LCNS_NO", "DSPSDTLS_SEQ") REFERENCES "I0470" ("LCNS_NO", "DSPSDTLS_SEQ")
+);
+
+-- -----------------------------------------------------------------------------
+-- I0481 / 행정처분결과(식품판매업)
+-- 카테고리: 식품위해관리
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I0481" (
+  "PRCSCITYPOINT_BSSHNM" VARCHAR(500), -- PRCSCITYPOINT_BSSHNM / 업소명
+  "INDUTY_CD_NM" VARCHAR(500), -- INDUTY_CD_NM / 업종
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가번호 / FK 후보: I0470.null(MEDIUM, 12.2%)
+  "DSPS_DCSNDT" VARCHAR(500), -- DSPS_DCSNDT / 처분확정일자
+  "DSPS_BGNDT" VARCHAR(500), -- DSPS_BGNDT / 처분시작일(영업정지의경우)
+  "DSPS_ENDDT" VARCHAR(500), -- DSPS_ENDDT / 처분종료일(영업정지의경우)
+  "DSPS_TYPECD_NM" VARCHAR(500), -- DSPS_TYPECD_NM / 처분유형
+  "VILTCN" VARCHAR(500), -- VILTCN / 위반일자 및 위반내용
+  "ADDR" VARCHAR(500), -- ADDR / 주소
+  "TELNO" VARCHAR(500), -- TELNO / 전화번호
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
+  "LAWORD_CD_NM" VARCHAR(500), -- LAWORD_CD_NM / 위반법령
+  "DSPSCN" VARCHAR(500), -- DSPSCN / 처분내용
+  "PUBLIC_DT" VARCHAR(500), -- PUBLIC_DT / 공개기한
+  "LAST_UPDT_DTM" VARCHAR(500), -- LAST_UPDT_DTM / 최종수정일
+  "DSPSDTLS_SEQ" VARCHAR(500), -- DSPSDTLS_SEQ / 행정처분전산키 / PK 후보(HIGH) / FK 후보: I0470.null(MEDIUM, 12.2%)
+  "DSPS_INSTTCD_NM" VARCHAR(500), -- DSPS_INSTTCD_NM / 처분기관명
+  PRIMARY KEY ("DSPSDTLS_SEQ"),
+  FOREIGN KEY ("LCNS_NO", "DSPSDTLS_SEQ") REFERENCES "I0470" ("LCNS_NO", "DSPSDTLS_SEQ")
+);
+
+-- -----------------------------------------------------------------------------
+-- I1220 / 식품제조가공업정보
+-- 카테고리: 식품 등
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS "I1220" (
+  "LCNS_NO" VARCHAR(500), -- LCNS_NO / 인허가 번호 / PK 후보(HIGH)
+  "BSSH_NM" VARCHAR(500), -- BSSH_NM / 업소명
+  "PRSDNT_NM" VARCHAR(500), -- PRSDNT_NM / 대표자명
+  "INDUTY_NM" VARCHAR(500), -- INDUTY_NM / 업종
+  "PRMS_DT" VARCHAR(500), -- PRMS_DT / 허가일자
+  "TELNO" VARCHAR(500), -- TELNO / 전화번호
+  "LOCP_ADDR" VARCHAR(500), -- LOCP_ADDR / 주소
+  "INSTT_NM" VARCHAR(500), -- INSTT_NM / 기관명
+  PRIMARY KEY ("LCNS_NO")
 );
 
 -- =============================================================================
@@ -3490,14 +3496,13 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 미검증
 -- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 샘플 부족으로 값 포함률 미검증 — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "C005"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/949, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "바코드연계제품정보" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [SUGGESTED/100] "C005"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "C005"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.1% (1/949, row 1)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "바코드연계제품정보" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 0.1%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+-- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 0.1%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
+
+-- FK 후보 [UNVERIFIED/100] "C005"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/949, row 0)
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "바코드연계제품정보" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "C005"."BAR_CD" -> "I2570"."BRCD_NO"
 -- 값 포함률: 1.5% (15/969, row 15)
@@ -3508,56 +3513,48 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "영업소재지 GIS 코드" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 99.9%, 매칭 고유값 999개, 매칭 row 999건
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I2560"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "영업소재지 GIS 코드" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [UNVERIFIED/100] "I2560"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- 값 포함률: 0.3% (3/1000, row 3)
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 0.3%, 매칭 고유값 3개 — 확정 기준(3.0%, 3개) 미달
 
--- FK 후보 [HIGH/100] "I2640"."BRCDNO" -> "I2620"."BRCDNO"
--- 값 포함률: 100.0% (15/15, row 19)
--- 사유: 대상 테이블 I2620의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 100.0%, 매칭 고유값 15개, 매칭 row 19건
--- FOREIGN KEY ("BRCDNO") REFERENCES "I2620" ("BRCDNO")
-
--- FK 후보 [HIGH/100] "I2640"."BRCDNO" -> "I0490"."BRCDNO"
--- 값 포함률: 40.0% (6/15, row 9)
--- 사유: 대상 테이블 I0490의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 40.0%, 매칭 고유값 6개, 매칭 row 9건
--- FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO")
+-- FK 후보 [HIGH/100] "I2640"."RTRVLDSUSE_SEQ" -> "I2620"."RTRVLDSUSE_SEQ"
+-- 값 포함률: 100.0% (235/235, row 268)
+-- 사유: 대상 테이블 I2620의 PK 후보(HIGH)와 동일 필드 / 값 포함률 100.0%, 매칭 고유값 235개, 매칭 row 268건
+-- FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I2620" ("RTRVLDSUSE_SEQ")
 
 -- FK 후보 [UNVERIFIED/100] "I2640"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/11, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합 현황(농산물)" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2640"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2640"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/11, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합 현황(농산물)" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합 현황(농산물)" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [HIGH/100] "I2620"."BRCDNO" -> "I0490"."BRCDNO"
--- 값 포함률: 41.4% (24/58, row 34)
--- 사유: 대상 테이블 I0490의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 41.4%, 매칭 고유값 24개, 매칭 row 34건
--- FOREIGN KEY ("BRCDNO") REFERENCES "I0490" ("BRCDNO")
-
--- FK 후보 [UNVERIFIED/100] "I2620"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I2620"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/53, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합(국내)" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [UNVERIFIED/100] "I2620"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/53, row 0)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합(국내)" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합(국내)" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2620"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/84, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합(국내)" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2620"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/84, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "검사부적합(국내)" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [HIGH/100] "I2620"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- 값 포함률: 3.6% (3/84, row 3)
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 3.6%, 매칭 고유값 3개, 매칭 row 3건
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 
 -- FK 후보 [UNVERIFIED/100] "I0470"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/989, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0470"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I0470"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/989, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [HIGH/100] "I0470"."DSPSDTLS_SEQ" -> "I0480"."DSPSDTLS_SEQ"
+-- 값 포함률: 5.0% (50/1000, row 50)
+-- 사유: 대상 테이블 I0480의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 업무 명칭 규칙: "행정처분결과" → "행정처분결과(식품제조가공업)" 부모-자식 관계 확인 / 값 포함률 5.0%, 매칭 고유값 50개, 매칭 row 50건
+-- FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0480" ("DSPSDTLS_SEQ")
 
 -- FK 후보 [UNVERIFIED/100] "I2630"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/993, row 0)
@@ -3588,73 +3585,68 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/647, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과(식품판매업)" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0481"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I0481"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/647, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과(식품판매업)" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "행정처분결과(식품판매업)" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [HIGH/100] "I0490"."PRDLST_CD" -> "I2510"."PRDLST_CD"
 -- 값 포함률: 9.2% (11/120, row 16)
 -- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 9.2%, 매칭 고유값 11개, 매칭 row 16건
 -- FOREIGN KEY ("PRDLST_CD") REFERENCES "I2510" ("PRDLST_CD")
 
--- FK 후보 [UNVERIFIED/100] "I0490"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I0490"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/155, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "회수.판매중지 정보" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "회수.판매중지 정보" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0490"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/155, row 0)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "회수.판매중지 정보" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [UNVERIFIED/100] "I0490"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/219, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "회수.판매중지 정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [SUGGESTED/100] "I0490"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I0490"."LCNS_NO" -> "I1300"."LCNS_NO"
 -- 값 포함률: 2.3% (5/219, row 7)
--- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "회수.판매중지 정보" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 2.3%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 2.3%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
 
--- FK 후보 [UNVERIFIED/100] "I0460"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/383, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "수거검사 계획 및 실적 관련 현황" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [UNVERIFIED/100] "I0490"."LCNS_NO" -> "I1260"."LCNS_NO"
+-- 값 포함률: 1.4% (3/219, row 3)
+-- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 1.4%, 매칭 고유값 3개 — 확정 기준(3.0%, 3개) 미달
 
--- FK 후보 [SUGGESTED/100] "I0460"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I0460"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
 -- 값 포함률: 2.6% (10/383, row 10)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "수거검사 계획 및 실적 관련 현황" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 2.6%, 매칭 고유값 10개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+-- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 2.6%, 매칭 고유값 10개 — 확정 기준(3.0%, 3개) 미달
 
--- FK 후보 [UNVERIFIED/100] "I0320"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/533, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품이력추적관리 등록 현황" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [UNVERIFIED/100] "I0460"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/383, row 0)
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "수거검사 계획 및 실적 관련 현황" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0320"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I0320"."PRDLST_REPORT_NO" -> "I0030"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.2% (1/533, row 1)
+-- 사유: 대상 테이블 I0030의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 0.2%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
+
+-- FK 후보 [UNVERIFIED/100] "I0320"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/533, row 0)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품이력추적관리 등록 현황" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품이력추적관리 등록 현황" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I0080"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.5% (1/217, row 4)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 0.5%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
 
--- FK 후보 [UNVERIFIED/100] "I0080"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/217, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [HIGH/100] "I0080"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- 값 포함률: 11.1% (24/217, row 64)
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 11.1%, 매칭 고유값 24개, 매칭 row 64건
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I0080"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/743, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [SUGGESTED/100] "I0080"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I0080"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.7% (5/743, row 7)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 0.7%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1310" ("PRDLST_REPORT_NO")
+-- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 0.7%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
+
+-- FK 후보 [UNVERIFIED/100] "I0080"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/743, row 0)
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "어린이 기호식품 품질인증 현황 및 재심사 현황" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I0580"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/457, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "HACCP 적용업소 지정 현황" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0580"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/457, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "HACCP 적용업소 지정 현황" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [HIGH/100] "I0580"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 4.8% (22/457, row 55)
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "HACCP 적용업소 지정 현황" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 4.8%, 매칭 고유값 22개, 매칭 row 55건
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
 -- FK 후보 [UNVERIFIED/100] "I0610"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/973, row 0)
@@ -3689,22 +3681,18 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품소분업 인허가 대장" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2852"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- FK 후보 [UNVERIFIED/100] "I2852"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2852"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [UNVERIFIED/100] "I2852"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/180, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [SUGGESTED/100] "I2852"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2852"."LCNS_NO" -> "I1300"."LCNS_NO"
 -- 값 포함률: 2.8% (5/180, row 17)
--- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 2.8%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("LCNS_NO") REFERENCES "I1300" ("LCNS_NO")
+-- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 2.8%, 매칭 고유값 5개 — 확정 기준(3.0%, 3개) 미달
+
+-- FK 후보 [HIGH/100] "I2852"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 3.9% (7/180, row 44)
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "생산중단제품정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 3.9%, 매칭 고유값 7개, 매칭 row 44건
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
 -- FK 후보 [UNVERIFIED/100] "I2830"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -3741,7 +3729,7 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 
 -- FK 후보 [UNVERIFIED/100] "I2714"."LCNS_NO" -> "I1260"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 업무 명칭 규칙: "위생용품수입업영업신고대장" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [HIGH/100] "I2711"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 81.4% (35/43, row 985)
@@ -3877,10 +3865,9 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 업무 명칭 규칙: "수입식품등영업신고대장" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 100.0%, 매칭 고유값 1000개, 매칭 row 1000건
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
 
--- FK 후보 [SUGGESTED/100] "I0250"."LCNS_NO" -> "I1260"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I0250"."LCNS_NO" -> "I1260"."LCNS_NO"
 -- 값 포함률: 2.5% (1/40, row 1)
--- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 업무 명칭 규칙: "우수수입업소 등록 현황" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 2.5%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
--- FOREIGN KEY ("LCNS_NO") REFERENCES "I1260" ("LCNS_NO")
+-- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 값 포함률 2.5%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
 
 -- FK 후보 [UNVERIFIED/100] "I2847"."LCNS_NO" -> "I1200"."LCNS_NO"
 -- 값 포함률: 0.0% (0/989, row 0)
@@ -3899,13 +3886,10 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 6.4%, 매칭 고유값 17개, 매칭 row 73건
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "C002"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +10 / 업무 명칭 규칙: "식품(첨가물)품목제조보고(원재료)" → "위생용품품목제조보고" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
-
--- FK 후보 [UNVERIFIED/100] "C002"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
--- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +10 / 업무 명칭 규칙: "식품(첨가물)품목제조보고(원재료)" → "축산물 품목제조정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [SUGGESTED/100] "C002"."PRDLST_REPORT_NO" -> "I1250"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.2% (2/1000, row 2)
+-- 사유: 대상 테이블 I1250의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +10 / 업무 명칭 규칙: "식품(첨가물)품목제조보고(원재료)" → "식품(첨가물)품목제조보고" 부모-자식 관계 확인 / 값 포함률 0.2%, 매칭 고유값 2개 — 확정 기준(3.0%, 3개) 미달
+-- FOREIGN KEY ("PRDLST_REPORT_NO") REFERENCES "I1250" ("PRDLST_REPORT_NO")
 
 -- FK 후보 [HIGH/100] "I0300"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 5.6% (3/54, row 385)
@@ -3929,25 +3913,27 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품업소 인허가 변경 정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 0.3%, 매칭 고유값 1개 — 확정 기준(3.0%, 3개) 미달
 -- FOREIGN KEY ("LCNS_NO") REFERENCES "I2500" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I2859"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/343, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품업소 인허가 변경 정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [HIGH/100] "I2859"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 100.0% (343/343, row 1000)
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품업소 인허가 변경 정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 100.0%, 매칭 고유값 343개, 매칭 row 1000건
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I1560"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I1560"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생교육내역" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생교육내역" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I1560"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I1560"."LCNS_NO" -> "I1200"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1, row 0)
--- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생교육내역" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1200의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생교육내역" → "식품접객업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I1540"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/759, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생등급평가관리내역" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [SUGGESTED/100] "I1540"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 0.3% (2/759, row 2)
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생등급평가관리내역" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 0.3%, 매칭 고유값 2개 — 확정 기준(3.0%, 3개) 미달
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I1540"."LCNS_NO" -> "I1300"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I1540"."LCNS_NO" -> "I1200"."LCNS_NO"
 -- 값 포함률: 0.0% (0/759, row 0)
--- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생등급평가관리내역" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1200의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품위생등급평가관리내역" → "식품접객업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I1230"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 1.2% (12/1000, row 12)
@@ -3975,21 +3961,22 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I0680"."LCNS_NO" -> "I2713"."LCNS_NO"
--- 값 포함률: 0.0% (0/759, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "위생관리등급별 업소 현황" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- FK 후보 [SUGGESTED/100] "I0680"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 0.3% (2/759, row 2)
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "위생관리등급별 업소 현황" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 0.3%, 매칭 고유값 2개 — 확정 기준(3.0%, 3개) 미달
+-- FOREIGN KEY ("LCNS_NO") REFERENCES "I1220" ("LCNS_NO")
 
--- FK 후보 [UNVERIFIED/100] "I0680"."LCNS_NO" -> "I1260"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I0680"."LCNS_NO" -> "I1200"."LCNS_NO"
 -- 값 포함률: 0.0% (0/759, row 0)
--- 사유: 대상 테이블 I1260의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "위생관리등급별 업소 현황" → "식품등수입판매업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1200의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "위생관리등급별 업소 현황" → "식품접객업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2827"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식육즉석판매가공업 폐업정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2827"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2827"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식육즉석판매가공업 폐업정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식육즉석판매가공업 폐업정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2821"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -4003,9 +3990,9 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/600, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품보존업 폐업정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2817"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2817"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/600, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품보존업 폐업정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품보존업 폐업정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2822"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -4015,17 +4002,17 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품소분업 폐업정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2815"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2815"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품소분업 폐업정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품소분업 폐업정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2814"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품운반업 폐업정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2814"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2814"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품운반업 폐업정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품운반업 폐업정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2813"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -4059,9 +4046,9 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2500의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품판매업 폐업정보" → "인허가 업소 정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/100] "I2816"."LCNS_NO" -> "I2713"."LCNS_NO"
+-- FK 후보 [UNVERIFIED/100] "I2816"."LCNS_NO" -> "I1220"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
--- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품판매업 폐업정보" → "위생용품영업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+-- 사유: 대상 테이블 I1220의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 업무 명칭 규칙: "식품판매업 폐업정보" → "식품제조가공업정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/100] "I2820"."LCNS_NO" -> "I2500"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -4119,6 +4106,16 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I1300의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +20 / 업무 명칭 규칙: "축산물 판매업 폐업정보" → "축산물 가공업허가정보" 부모-자식 관계 확인 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
+-- FK 후보 [HIGH/95] "I0470"."DSPSDTLS_SEQ" -> "I0481"."DSPSDTLS_SEQ"
+-- 값 포함률: 7.9% (79/1000, row 79)
+-- 사유: 대상 테이블 I0481의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 7.9%, 매칭 고유값 79개, 매칭 row 79건
+-- FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0481" ("DSPSDTLS_SEQ")
+
+-- FK 후보 [HIGH/95] "I0482"."DSPSDTLS_SEQ" -> "I0470"."DSPSDTLS_SEQ"
+-- 값 포함률: 11.1% (5/45, row 5)
+-- 사유: 대상 테이블 I0470의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 11.1%, 매칭 고유값 5개, 매칭 row 5건
+-- FOREIGN KEY ("DSPSDTLS_SEQ") REFERENCES "I0470" ("DSPSDTLS_SEQ")
+
 -- FK 후보 [UNVERIFIED/93] "I0960"."PRDLST_CD" -> "I2510"."PRDLST_CD"
 -- 값 포함률: 0.0% (0/517, row 0)
 -- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
@@ -4135,15 +4132,19 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/382, row 0)
 -- 사유: 대상 테이블 I2510의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [HIGH/92] "I2550"."HRNK_DSPS_STDR_CD" -> "I1670"."DSPS_STDR_CD"
--- 값 포함률: 7.0% (12/172, row 88)
--- 사유: 필드명 유사 매칭 유사도 82% (정규화 기준, -3점) / 대상 테이블 I1670의 PK 후보(HIGH)와 동일 필드 / 코드 계열 필드 / 값 포함률 7.0%, 매칭 고유값 12개, 매칭 row 88건
--- FOREIGN KEY ("HRNK_DSPS_STDR_CD") REFERENCES "I1670" ("DSPS_STDR_CD")
+-- FK 후보 [UNVERIFIED/93] "C002"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/1000, row 0)
+-- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [HIGH/85] "I0910"."PRSEC_INSTT_RCOGN_NO" -> "I0890"."PRSEC_INSTT_RCOGN_NO"
--- 값 포함률: 12.0% (20/166, row 23)
--- 사유: 대상 테이블 I0890의 PK 후보(HIGH)와 동일 필드 / 값 포함률 12.0%, 매칭 고유값 20개, 매칭 row 23건
--- FOREIGN KEY ("PRSEC_INSTT_RCOGN_NO") REFERENCES "I0890" ("PRSEC_INSTT_RCOGN_NO")
+-- FK 후보 [HIGH/85] "I2640"."RTRVLDSUSE_SEQ" -> "I0490"."RTRVLDSUSE_SEQ"
+-- 값 포함률: 3.8% (9/235, row 10)
+-- 사유: 대상 테이블 I0490의 PK 후보(HIGH)와 동일 필드 / 값 포함률 3.8%, 매칭 고유값 9개, 매칭 row 10건
+-- FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I0490" ("RTRVLDSUSE_SEQ")
+
+-- FK 후보 [HIGH/85] "I2620"."RTRVLDSUSE_SEQ" -> "I0490"."RTRVLDSUSE_SEQ"
+-- 값 포함률: 12.5% (43/345, row 50)
+-- 사유: 대상 테이블 I0490의 PK 후보(HIGH)와 동일 필드 / 값 포함률 12.5%, 매칭 고유값 43개, 매칭 row 50건
+-- FOREIGN KEY ("RTRVLDSUSE_SEQ") REFERENCES "I0490" ("RTRVLDSUSE_SEQ")
 
 -- FK 후보 [UNVERIFIED/83] "I2570"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/464, row 0)
@@ -4152,6 +4153,26 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- FK 후보 [UNVERIFIED/83] "I2570"."PRDLST_REPORT_NO" -> "I1310"."PRDLST_REPORT_NO"
 -- 값 포함률: 0.0% (0/464, row 0)
 -- 사유: 대상 테이블 I1310의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I2640"."BRCDNO" -> "I2570"."BRCD_NO"
+-- 값 포함률: 0.0% (0/15, row 0)
+-- 사유: 필드명 유사 매칭 유사도 100% (정규화 기준, -0점) / 대상 테이블 I2570의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I2620"."BRCDNO" -> "I2570"."BRCD_NO"
+-- 값 포함률: 0.0% (0/58, row 0)
+-- 사유: 필드명 유사 매칭 유사도 100% (정규화 기준, -0점) / 대상 테이블 I2570의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I2620"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/53, row 0)
+-- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I0490"."BRCDNO" -> "I2570"."BRCD_NO"
+-- 값 포함률: 0.0% (0/163, row 0)
+-- 사유: 필드명 유사 매칭 유사도 100% (정규화 기준, -0점) / 대상 테이블 I2570의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I0490"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/155, row 0)
+-- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/83] "I2857"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 0.0% (0/79, row 0)
@@ -4172,6 +4193,10 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- FK 후보 [UNVERIFIED/83] "I2831"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
 -- 사유: 대상 테이블 I2713의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/83] "I2852"."PRDLST_REPORT_NO" -> "I2711"."PRDLST_REPORT_NO"
+-- 값 포함률: 0.0% (0/1000, row 0)
+-- 사유: 대상 테이블 I2711의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 대표 마스터 테이블 규칙 적용 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- FK 후보 [UNVERIFIED/83] "I2830"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 0.0% (0/1000, row 0)
@@ -4277,13 +4302,33 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/6, row 0)
 -- 사유: 대상 테이블 I2590의 PK 후보(HIGH)와 동일 필드 / 공통 관계키 목록에 포함 / 코드 계열 필드 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
--- FK 후보 [UNVERIFIED/75] "I1790"."HIST_TRACE_REG_NO" -> "I1800"."HIST_TRACE_REG_NO"
+-- FK 후보 [UNVERIFIED/72] "I1790"."HIST_TRACE_REG_NO" -> "I1800"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.8% (8/1000, row 8)
 -- 사유: 대상 테이블 I1800의 PK 후보(HIGH)와 동일 필드 / 값 포함률 0.8%, 매칭 고유값 8개 — 확정 기준(3.0%, 3개) 미달
 
 -- FK 후보 [UNVERIFIED/68] "I0990"."LIMIT_STDR_STND_RCOGN_NO" -> "I1010"."LIMIT_STDR_STND_RCOGN_NO"
 -- 값 포함률: 0.0% (0/14, row 0)
 -- 사유: 대상 테이블 I1010의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +20 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/60] "I2630"."DSPSDTLS_SEQ" -> "I0470"."DSPSDTLS_SEQ"
+-- 값 포함률: 0.0% (0/1000, row 0)
+-- 사유: 대상 테이블 I0470의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/60] "I2630"."DSPSDTLS_SEQ" -> "I0481"."DSPSDTLS_SEQ"
+-- 값 포함률: 0.0% (0/1000, row 0)
+-- 사유: 대상 테이블 I0481의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/60] "I0482"."DSPSDTLS_SEQ" -> "I0481"."DSPSDTLS_SEQ"
+-- 값 포함률: 0.0% (0/45, row 0)
+-- 사유: 대상 테이블 I0481의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/60] "I0480"."DSPSDTLS_SEQ" -> "I0481"."DSPSDTLS_SEQ"
+-- 값 포함률: 0.0% (0/262, row 0)
+-- 사유: 대상 테이블 I0481의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
+
+-- FK 후보 [UNVERIFIED/60] "I0580"."HACCP_APPN_NO" -> "I0610"."HACCP_APPN_NO"
+-- 값 포함률: 0.0% (0/917, row 0)
+-- 사유: 대상 테이블 I0610의 PK 후보(HIGH)와 동일 필드 / 데이터셋명 도메인 유사성 가산점 +10 / 값 포함률 낮음 0.0% — UNVERIFIED 분류
 
 -- =============================================================================
 -- 제외된 FK 후보 목록 (검토용 주석)
@@ -4329,37 +4374,13 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 0.0% (0/61, row 0)
 -- 제외 사유: UNVERIFIED 후보 점수 42점으로 기준 미달
 
--- 제외 FK 후보 "I2510"."HRNK_PRDLST_CD" -> "I0960"."PRDLST_CD"
--- 값 포함률: 0.0% (0/338, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 57점으로 기준 미달
+-- 제외 FK 후보 "I0910"."PRSEC_INSTT_RCOGN_NO" -> "I0890"."PRSEC_INSTT_RCOGN_NO"
+-- 값 포함률: 미검증
+-- 제외 사유: 국외기관 ↔ 국내기관 번호 체계 교차 방지 (spurious match 가능성)
 
--- 제외 FK 후보 "I2510"."HRNK_PRDLST_CD" -> "I0940"."PRDLST_CD"
--- 값 포함률: 0.0% (0/338, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 49점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HRNK_PRDLST_CD" -> "I0950"."PRDLST_CD"
--- 값 포함률: 0.0% (0/338, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 57점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HRNK_PRDLST_CD" -> "I2854"."PRDLST_CD"
--- 값 포함률: 0.0% (0/338, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 53점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HTRK_PRDLST_CD" -> "I0960"."PRDLST_CD"
--- 값 포함률: 0.0% (0/1, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 57점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HTRK_PRDLST_CD" -> "I0940"."PRDLST_CD"
--- 값 포함률: 0.0% (0/1, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 49점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HTRK_PRDLST_CD" -> "I0950"."PRDLST_CD"
--- 값 포함률: 0.0% (0/1, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 57점으로 기준 미달
-
--- 제외 FK 후보 "I2510"."HTRK_PRDLST_CD" -> "I2854"."PRDLST_CD"
--- 값 포함률: 0.0% (0/1, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 53점으로 기준 미달
+-- 제외 FK 후보 "I0890"."PRSEC_INSTT_RCOGN_NO" -> "I0910"."PRSEC_INSTT_RCOGN_NO"
+-- 값 포함률: 미검증
+-- 제외 사유: 국외기관 ↔ 국내기관 번호 체계 교차 방지 (spurious match 가능성)
 
 -- 제외 FK 후보 "I2630"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 미검증
@@ -4374,6 +4395,14 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
 -- 제외 FK 후보 "I2630"."LCNS_NO" -> "I1220"."LCNS_NO"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
+-- 제외 FK 후보 "I2630"."DSPSDTLS_SEQ" -> "I0482"."DSPSDTLS_SEQ"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
+-- 제외 FK 후보 "I2630"."DSPSDTLS_SEQ" -> "I0480"."DSPSDTLS_SEQ"
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
@@ -4393,6 +4422,14 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
+-- 제외 FK 후보 "I0482"."DSPSDTLS_SEQ" -> "I2630"."DSPSDTLS_SEQ"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
+-- 제외 FK 후보 "I0482"."DSPSDTLS_SEQ" -> "I0480"."DSPSDTLS_SEQ"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
 -- 제외 FK 후보 "I0480"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
@@ -4406,6 +4443,14 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
 -- 제외 FK 후보 "I0480"."LCNS_NO" -> "I1200"."LCNS_NO"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
+-- 제외 FK 후보 "I0480"."DSPSDTLS_SEQ" -> "I2630"."DSPSDTLS_SEQ"
+-- 값 포함률: 미검증
+-- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
+
+-- 제외 FK 후보 "I0480"."DSPSDTLS_SEQ" -> "I0482"."DSPSDTLS_SEQ"
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
@@ -4431,7 +4476,7 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 
 -- 제외 FK 후보 "I1920"."HIST_TRACE_REG_NO" -> "I1800"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.0% (0/263, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 50점으로 기준 미달
+-- 제외 사유: UNVERIFIED 후보 점수 47점으로 기준 미달
 
 -- 제외 FK 후보 "I1930"."HIST_TRACE_REG_NO" -> "I1790"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.0% (0/5, row 0)
@@ -4439,7 +4484,7 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 
 -- 제외 FK 후보 "I1930"."HIST_TRACE_REG_NO" -> "I1800"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.0% (0/5, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 50점으로 기준 미달
+-- 제외 사유: UNVERIFIED 후보 점수 47점으로 기준 미달
 
 -- 제외 FK 후보 "I1940"."HIST_TRACE_REG_NO" -> "I1790"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.0% (0/74, row 0)
@@ -4447,7 +4492,7 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 
 -- 제외 FK 후보 "I1940"."HIST_TRACE_REG_NO" -> "I1800"."HIST_TRACE_REG_NO"
 -- 값 포함률: 0.0% (0/74, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 50점으로 기준 미달
+-- 제외 사유: UNVERIFIED 후보 점수 47점으로 기준 미달
 
 -- 제외 FK 후보 "I0610"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 미검증
@@ -4985,10 +5030,6 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
 
--- 제외 FK 후보 "I2781"."MEATWATCH_NO" -> "I2780"."MEATWATCH_NO"
--- 값 포함률: 0.0% (0/560, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 49점으로 기준 미달
-
 -- 제외 FK 후보 "I0300"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
@@ -5200,10 +5241,6 @@ CREATE TABLE IF NOT EXISTS "I2550" (
 -- 제외 FK 후보 "I2823"."LCNS_NO" -> "I1200"."LCNS_NO"
 -- 값 포함률: 미검증
 -- 제외 사유: 이기종 도메인 교차 연결 제한 (Root Domain 불일치)
-
--- 제외 FK 후보 "I2780"."ACCEPT_NO" -> "I2781"."ACCEPT_NO"
--- 값 포함률: 0.0% (0/55, row 0)
--- 제외 사유: UNVERIFIED 후보 점수 50점으로 기준 미달
 
 -- 제외 FK 후보 "I2820"."LCNS_NO" -> "I2713"."LCNS_NO"
 -- 값 포함률: 미검증
