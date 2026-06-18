@@ -350,11 +350,16 @@ function getDomainScore(fromTableName, toTableName) {
     // 1. 서로 절대 섞이면 안 되는 대분류 (Root Domains)
     const rootDomains = [
         ['건강기능식품', '건기식'],
-        ['축산물'],
+        // 도축·식육즉석판매 등 축산물 계열 업종 포함
+        ['축산물', '축산물HACCP', '도축', '식육'],
         ['수입식품', '수입식품등', '수입업', '수입판매업'],
         ['위생용품'],
-        ['식품접객', '음식점', '모범음식점', '푸드트럭', '집단급식소'],
-        ['식품제조', '식품첨가물', '즉석판매제조'],
+        // 공유주방운영업은 식품접객 도메인
+        ['식품접객', '음식점', '모범음식점', '푸드트럭', '집단급식소', '공유주방'],
+        // 식품판매·소분·운반·냉동·냉장·조사처리 등 식품 일반 업종 포함
+        ['식품제조', '식품첨가물', '식품(첨가물)', '즉석판매제조',
+         '식품소분', '식품운반', '식품판매', '식품냉동', '식품냉장', '식품조사',
+         '어린이기호식품', '기호식품'],
         ['기구', '용기', '포장']
     ];
 
@@ -368,6 +373,19 @@ function getDomainScore(fromTableName, toTableName) {
     ];
 
     let score = 0;
+
+    // 행정처분결과 업종별 세부 테이블(I0480/I0481/I0482/I2630 등)끼리
+    // DSPSDTLS_SEQ를 공유해도 형제 관계일 뿐 FK가 아님.
+    // I0470(공통 마스터)이 부모이므로, 세부 테이블→세부 테이블 연결은 금지.
+    // 행정처분결과 계열: 공통마스터(I0470 '행정처분결과')와 업종별 세부 테이블 포함
+    // 세부 테이블→세부 테이블, 또는 공통마스터→세부 테이블(역방향) 모두 FK 아님
+    const isDspsSibling = (nm) =>
+        /^행정처분결과/.test(nm.trim());
+    if (isDspsSibling(fromTableName) && isDspsSibling(toTableName)) return -100;
+
+    // 검사부적합 계열: 농산물/국내 등 업종별 테이블끼리 형제 관계 — FK 아님
+    const isInspFail = (nm) => /검사부적합/.test(nm);
+    if (isInspFail(fromTableName) && isInspFail(toTableName)) return -100;
 
     const fromRoots = [];
     const toRoots = [];
@@ -390,9 +408,20 @@ function getDomainScore(fromTableName, toTableName) {
     }
 
     // 2. Action Keyword 매칭 (같은 루트 도메인이거나, 한쪽이 범용인 경우에만 적용)
-    for (const group of actionKeywords) {
-        if (tableNameHasAny(fromTableName, group) && tableNameHasAny(toTableName, group)) {
-            score += 10;
+    // 단, 한쪽만 특수 도메인(축산물·위생용품·건강기능식품)이고 다른 쪽이 범용일 때
+    // actionKeyword 점수는 주지 않는다 — 도메인 특화 테이블과 범용 테이블을 섞으면 안 됨.
+    // 예: 식품HACCP 적용업소(범용) ↔ 축산물HACCP 지정정보(축산물) → 연결 금지
+    const EXCLUSIVE_DOMAINS = [1, 3, 0]; // 축산물, 위생용품, 건강기능식품 — 범용과 섞이면 안 되는 도메인
+    const fromHasExclusive = fromRoots.some(r => EXCLUSIVE_DOMAINS.includes(r));
+    const toHasExclusive = toRoots.some(r => EXCLUSIVE_DOMAINS.includes(r));
+    const eitherIsGeneric = fromRoots.length === 0 || toRoots.length === 0;
+    const skipActionBonus = eitherIsGeneric && (fromHasExclusive || toHasExclusive);
+
+    if (!skipActionBonus) {
+        for (const group of actionKeywords) {
+            if (tableNameHasAny(fromTableName, group) && tableNameHasAny(toTableName, group)) {
+                score += 10;
+            }
         }
     }
 
