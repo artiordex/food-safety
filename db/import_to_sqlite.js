@@ -209,12 +209,11 @@ function closeDb(db) {
 
 // =============================================================================
 // 섹션 2. 필드명/한글명/샘플값 기반 SQL 타입 + 길이 자동 추론
-// ※ inferColumnSpec 은 이 파일에서만 정의한다.
-//    analyze_pk_fk.js의 generateKeysErdSql은 field.sqlType을 그대로 사용하므로
-//    두 ERD 파일 간 타입이 항상 일치한다.
+// ※ inferColumnSpec 은 이 파일에서만 정의
+//    analyze_pk_fk.js의 generateKeysErdSql은 field.sqlType을 그대로 사용하므로 두 ERD 파일 간 타입이 항상 일치
 // =============================================================================
 
-// 접미사 패턴: 필드명으로 타입을 추론할 때 사용됩니다.
+// 접미사 패턴: 필드명으로 타입을 추론할 때 사용
 // 예: *_CNT → 수치, *_DT → 날짜, *_CD → 코드, *_NM → 이름 등
 const NUMERIC_SUFFIXES = /(_CNT|_QTY|_AMT|_PRICE|_SEQ|_SZ|_RATE|_PCT|_NUM|_QT|_MG|_KG|_ML|_QNTT|_SCNT|_MCNT|_DCNT|_TOT|_AMT_SUM|_VAL)$/;
 const DATE_SUFFIXES = /(_DT|_YMD|_DE|_DAT|DATE|DTM|ENDDT|BGNDT)$/;
@@ -1065,7 +1064,7 @@ async function run({
     samplesDir,
     createViews,
     erdPath,
-    runPkFk = true,
+    runPkFk = false,
     applyConstraints = false,
     pkFkJsonPath = path.join(__dirname, 'foodsafety_key_candidates.json'),
     pkFkMdPath = path.join(__dirname, 'foodsafety_key_candidates.md'),

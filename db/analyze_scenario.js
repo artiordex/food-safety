@@ -24,6 +24,10 @@
 const fs = require('fs');
 const path = require('path');
 const aq = require('arquero');
+const { UndirectedGraph } = require('graphology');
+const louvain = require('graphology-communities-louvain');
+const TfIdf = require('natural/lib/natural/tfidf/tfidf');
+const Hangul = require('hangul-js');
 const stringSimilarity = require('string-similarity');
 const logger = require('../utils/logger');
 
@@ -39,7 +43,8 @@ const DEFAULT_PKFK    = path.join(__dirname, 'foodsafety_key_candidates.json');
 // =============================================================================
 
 // 명칭·주소·날짜·연락처 계열 — JOIN 키로 의미 없는 설명성 필드
-const WEAK_KEY_PATTERN = /_NM$|_NAME$|_CD_NM$|ADDR$|ADDRESS$|_DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$|_FNCLTY$|_STND$|DISPOS$|USAGE$|_MTRQLT$|_DAYCNT$|_YN$/i;
+// 특히 _DCNM(품목유형명)은 카테고리성 데이터로, 조인 시 엄청난 카테시안 곱을 유발하므로 조인 키에서 영구 배제함
+const WEAK_KEY_PATTERN = /^STEP$|^OPERTN_CITYPOINT$|^FRMLCUNIT$|^FRMLC_UNIT$|^SPEC_VAL_SUMUP$|^SPECVALSUMUP$|_SUMUP$|^SORC$|^SOURCE$|^DSPSCN$|^VILTCN$|^VILTDTLS$|_DTLS$|_NM$|NM$|_DCNM$|DCNM$|_NAME$|NAME$|_CD_NM$|ADDR$|ADDRESS$|DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$|_FNCLTY$|_STND$|DISPOS$|USAGE$|_MTRQLT$|_DAYCNT$|_YN$/i;
 
 const KEY_SYNONYM_GROUPS = [
     ['LCNS_NO', 'BSSH_NO', 'BSN_LCNS_NO', 'LICENSE_NO', 'LICENCE_NO', 'PERM_NO'],
@@ -52,6 +57,12 @@ const KEY_SYNONYM_GROUPS = [
     ['INDUTY_CD', 'BIZ_TYPE_CD', 'UPSO_KIND_CD']
 ];
 
+// 비즈니스적으로 조인하면 안 되는 테이블 블랙리스트 (도메인 분리)
+const FORBIDDEN_JOIN_PAIRS = [
+    // 농약 기준(I1040)과 동물의약품 기준(I1080)은 서로 조인하지 않음 (카테시안 곱 방지)
+    ['I1040', 'I1080']
+];
+
 const MIN_OVERLAP_RATIO = 0.05;
 const MIN_DATASETS_PER_SCENARIO = 3;
 const MAX_SQL_TABLES = 5;
@@ -60,6 +71,11 @@ const TOP_RELATIONS = 100;
 const MAX_CANDIDATES_PER_PAIR = 3;
 const SIMILAR_KEY_THRESHOLD = 0.84;
 const KEYLIKE_PATTERN = /(NO|CD|CODE|ID|KEY|SEQ|SN|NUM|NUMBER|REPORT|LCNS|BSSH|PRDLST|BRCD|BARCODE|TEST|ITEM|RAW|MTRL)/i;
+const THEME_KEYWORD_STOPWORDS = new Set([
+    'addr', 'address', 'telno', 'tel_no', 'phone', 'fax', 'zipno', 'kg', 'lv', 'yn',
+    'dt', 'ymd', 'date', 'gubun', 'production', 'dispos', 'prsdnt_nm', 'bssh_nm',
+    'lcns_no', 'prms_dt', 'prdlst_report_no', 'prdlst_cd'
+]);
 
 function formatKstTimestamp(date = new Date()) {
     const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
@@ -451,6 +467,248 @@ function buildPkFkContext(pkfkAnalysis) {
     };
 }
 
+// 한글 검색/유사도용 정규화
+function normalizeKoreanSearchText(value) {
+    const compact = String(value || '')
+        .normalize('NFKC')
+        .toLowerCase()
+        .replace(/[\s\-_()[\]{}·.,/\\|:;'"`~!?]+/g, '');
+    return Hangul.disassembleToString(compact);
+}
+
+function getFieldTerms(fields) {
+    if (Array.isArray(fields)) return fields.filter(Boolean);
+    return Object.entries(fields || {})
+        .flatMap(([field, korNm]) => [field, korNm])
+        .filter(Boolean);
+}
+
+// TF-IDF 대표 키워드용 문서 생성
+function buildDatasetDocument(svcNo, meta) {
+    const m = meta[svcNo] || {};
+    const fieldTerms = getFieldTerms(m.fields);
+    return [
+        m.svc_nm || svcNo,
+        m.cat || '',
+        ...fieldTerms
+    ].join(' ');
+}
+
+// natural TF-IDF 기반 군집 대표 키워드 추출
+function extractCommunityKeywords(tables, meta, limit = 6) {
+    const tfidf = new TfIdf();
+    const docs = tables.map(svcNo => buildDatasetDocument(svcNo, meta));
+    docs.forEach(doc => tfidf.addDocument(doc));
+
+    const scores = new Map();
+    const addScore = (token, score) => {
+        const normalizedToken = String(token || '').trim().toLowerCase();
+        if (normalizedToken.length < 2 || /^\d+$/.test(normalizedToken)) return;
+        if (THEME_KEYWORD_STOPWORDS.has(normalizedToken)) return;
+        if (/^(addr|tel|phone|fax|zip|dt|ymd|date|kg|lv)$/i.test(normalizedToken)) return;
+        scores.set(normalizedToken, (scores.get(normalizedToken) || 0) + score);
+    };
+
+    for (let i = 0; i < docs.length; i++) {
+        for (const term of tfidf.listTerms(i).slice(0, 20)) {
+            addScore(term.term, term.tfidf);
+        }
+    }
+
+    for (const svcNo of tables) {
+        const m = meta[svcNo] || {};
+        for (const token of String(`${m.cat || ''} ${m.svc_nm || ''}`).split(/[\s/·,()_-]+/)) {
+            addScore(token, 1.5);
+        }
+    }
+
+    return Array.from(scores.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([term, score]) => ({ term, score: Number(score.toFixed(3)) }));
+}
+
+function buildThemeSourceText(tables, rels, meta, categories, keywords) {
+    return [
+        ...tables.flatMap(svcNo => [meta[svcNo]?.svc_nm, meta[svcNo]?.cat]),
+        ...Array.from(categories.keys()),
+        ...rels.flatMap(rel => [rel.joinKey, rel.colA, rel.colB, rel.nmA, rel.nmB, rel.catA, rel.catB]),
+        ...keywords.map(k => k.term)
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+}
+
+function hasThemeWord(text, words) {
+    return words.some(word => text.includes(String(word).toLowerCase()));
+}
+
+function buildReadableThemeName(tables, rels, meta, categories, keywords, idx) {
+    const text = buildThemeSourceText(tables, rels, meta, categories, keywords);
+    const topCategories = Array.from(categories.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([cat]) => cat)
+        .filter(Boolean);
+
+    if (hasThemeWord(text, ['haccp', '해썹']) && hasThemeWord(text, ['업체인허가', '인허가', 'lcns', 'bssh', 'prms', '영업', '축산물'])) {
+        return 'HACCP 및 업체 인허가 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['gmp']) && hasThemeWord(text, ['건강기능식품'])) {
+        return '건강기능식품 GMP 품목 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['식품위해관리', '위해', '행정처분', 'dsps', 'vilt'])) {
+        return '식품위해 행정처분 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['기준규격정보', '기준규격', 'testitm', 'spec', '시험', '검사'])) {
+        return '시험검사 기준규격 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['이력추적관리', '이력추적', 'hist_trace', 'histtrace'])) {
+        return '이력추적관리 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['수질환경정보', '수질', 'bod', 'cod', 'phnl', 'orgnicph'])) {
+        return '수질환경 정보 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['검사기관정보', '검사기관'])) {
+        return '검사기관 정보 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['위생용품'])) {
+        return '위생용품 인허가 연계 데이터 세트';
+    }
+    if (hasThemeWord(text, ['수입식품'])) {
+        return '수입식품 업체 연계 데이터 세트';
+    }
+
+    if (topCategories.length >= 2) {
+        return `${topCategories[0]} 및 ${topCategories[1]} 연계 데이터 세트`;
+    }
+    if (topCategories.length === 1 && topCategories[0] !== '기타') {
+        return `${topCategories[0]} 연계 데이터 세트`;
+    }
+    return `연계 데이터 세트 ${idx + 1}`;
+}
+
+// 관계 그래프를 Louvain 커뮤니티 탐지용 그래프로 변환
+function buildRelationGraph(relations, meta) {
+    const graph = new UndirectedGraph({ multi: false, allowSelfLoops: false });
+
+    for (const svcNo of Object.keys(meta)) {
+        graph.mergeNode(svcNo, {
+            svc_nm: meta[svcNo]?.svc_nm || svcNo,
+            cat: meta[svcNo]?.cat || '기타'
+        });
+    }
+
+    for (const rel of relations) {
+        if (!rel.svcA || !rel.svcB || rel.svcA === rel.svcB) continue;
+
+        graph.mergeNode(rel.svcA, { svc_nm: rel.nmA, cat: rel.catA });
+        graph.mergeNode(rel.svcB, { svc_nm: rel.nmB, cat: rel.catB });
+
+        const weight = Math.max(0.1, (rel.score || 0) / 100) + Math.min(1, (rel.matched || 0) / 1000);
+        if (graph.hasEdge(rel.svcA, rel.svcB)) {
+            const edge = graph.edge(rel.svcA, rel.svcB);
+            const prev = graph.getEdgeAttribute(edge, 'weight') || 0;
+            graph.setEdgeAttribute(edge, 'weight', Math.max(prev, weight));
+        } else {
+            graph.addEdge(rel.svcA, rel.svcB, {
+                weight,
+                joinKey: rel.joinKey,
+                score: rel.score
+            });
+        }
+    }
+
+    return graph;
+}
+
+// Louvain + TF-IDF 기반 테마별 데이터 세트 후보 생성
+function buildDatasetSets(relations, meta) {
+    const graph = buildRelationGraph(relations, meta);
+    if (graph.order === 0 || graph.size === 0) {
+        return {
+            method: 'louvain+tfidf+hangul-normalization',
+            modularity: 0,
+            communityCount: 0,
+            sets: []
+        };
+    }
+
+    let details;
+    try {
+        details = louvain.detailed(graph, {
+            getEdgeWeight: 'weight',
+            randomWalk: false
+        });
+    } catch (err) {
+        logger.warn({ errorMessage: err.message }, 'Louvain 커뮤니티 탐지 실패');
+        return {
+            method: 'louvain+tfidf+hangul-normalization',
+            modularity: 0,
+            communityCount: 0,
+            sets: []
+        };
+    }
+
+    const communityMap = new Map();
+    for (const [svcNo, community] of Object.entries(details.communities || {})) {
+        if (!communityMap.has(community)) communityMap.set(community, []);
+        communityMap.get(community).push(svcNo);
+    }
+
+    const relationGroups = new Map();
+    for (const rel of relations) {
+        const community = details.communities?.[rel.svcA];
+        if (community == null || community !== details.communities?.[rel.svcB]) continue;
+        if (!relationGroups.has(community)) relationGroups.set(community, []);
+        relationGroups.get(community).push(rel);
+    }
+
+    const sets = Array.from(communityMap.entries())
+        .filter(([, tables]) => tables.length >= 2)
+        .map(([community, tables], idx) => {
+            const rels = relationGroups.get(community) || [];
+            const keywords = extractCommunityKeywords(tables, meta);
+            const joinKeys = new Map();
+            const categories = new Map();
+
+            for (const rel of rels) {
+                joinKeys.set(rel.joinKey, (joinKeys.get(rel.joinKey) || 0) + 1);
+            }
+            for (const svcNo of tables) {
+                const cat = meta[svcNo]?.cat || '기타';
+                categories.set(cat, (categories.get(cat) || 0) + 1);
+            }
+
+            const themeName = buildReadableThemeName(tables, rels, meta, categories, keywords, idx);
+
+            return {
+                setId: `LOUVAIN_${String(idx + 1).padStart(2, '0')}`,
+                community,
+                themeName,
+                datasetCount: tables.length,
+                relationCount: rels.length,
+                keywords,
+                categories: Array.from(categories.entries()).sort((a, b) => b[1] - a[1]).map(([cat, count]) => ({ cat, count })),
+                joinKeys: Array.from(joinKeys.entries()).sort((a, b) => b[1] - a[1]).map(([joinKey, count]) => ({ joinKey, count })).slice(0, 8),
+                datasets: tables.map(svcNo => ({
+                    svcNo,
+                    svcNm: meta[svcNo]?.svc_nm || svcNo,
+                    cat: meta[svcNo]?.cat || '기타',
+                    normalizedName: normalizeKoreanSearchText(meta[svcNo]?.svc_nm || svcNo)
+                }))
+            };
+        })
+        .sort((a, b) => b.relationCount - a.relationCount || b.datasetCount - a.datasetCount);
+
+    return {
+        method: 'louvain+tfidf+hangul-normalization',
+        modularity: Number((details.modularity || 0).toFixed(4)),
+        communityCount: sets.length,
+        sets
+    };
+}
+
 // =============================================================================
 // 3. 컬럼 프로파일링
 // =============================================================================
@@ -705,7 +963,7 @@ function findJoinCandidates(svcA, profilesA, svcB, profilesB) {
 }
 
 // =============================================================================
-// 5. 쌍별 관계 구축
+// 5. 쌍별 관계(데이터셋 2개씩 짝지어서 서로 JOIN 가능한 관계) 구축 
 // =============================================================================
 
 /**
@@ -726,6 +984,13 @@ function buildPairRelations(allProfiles, meta) {
         for (let j = i + 1; j < svcNos.length; j++) {
             const svcA = svcNos[i];
             const svcB = svcNos[j];
+
+            // 도메인 규칙: 블랙리스트에 등록된 테이블 쌍은 조인 후보 탐색에서 아예 제외
+            const isForbidden = FORBIDDEN_JOIN_PAIRS.some(pair => 
+                (pair[0] === svcA && pair[1] === svcB) || 
+                (pair[0] === svcB && pair[1] === svcA)
+            );
+            if (isForbidden) continue;
 
             const candidates = findJoinCandidates(
                 svcA,
@@ -824,12 +1089,29 @@ function clusterByJoinKey(relations, meta) {
             continue;
         }
 
-        // 연결된 데이터셋 집합 수집
-        const datasets = new Set();
+        // 점수 내림차순으로 정렬 (평균 점수·SQL 생성·relations 출력에 일관되게 사용)
+        const sortedRels = [...rels]
+            .sort((a, b) => b.score - a.score || b.matched - a.matched);
 
-        for (const relation of rels) {
-            datasets.add(relation.svcA);
-            datasets.add(relation.svcB);
+        // 연결된 데이터셋 집합 수집 (블랙리스트 필터링 적용)
+        const datasets = new Set();
+        const acceptedRels = [];
+
+        for (const relation of sortedRels) {
+            const tempSets = new Set(datasets);
+            tempSets.add(relation.svcA);
+            tempSets.add(relation.svcB);
+
+            // 도메인 규칙: 클러스터 내에 블랙리스트 쌍이 동시에 포함되는 것을 방지
+            const hasForbidden = FORBIDDEN_JOIN_PAIRS.some(pair => 
+                tempSets.has(pair[0]) && tempSets.has(pair[1])
+            );
+
+            if (!hasForbidden) {
+                datasets.add(relation.svcA);
+                datasets.add(relation.svcB);
+                acceptedRels.push(relation);
+            }
         }
 
         // 최소 데이터셋 수 미달 시 제외
@@ -837,13 +1119,9 @@ function clusterByJoinKey(relations, meta) {
             continue;
         }
 
-        // 점수 내림차순으로 정렬 (평균 점수·SQL 생성·relations 출력에 일관되게 사용)
-        const sortedRels = [...rels]
-            .sort((a, b) => b.score - a.score || b.matched - a.matched);
-
         // 평균 점수 계산 (전체 관계 기준)
         const avgScore = Math.round(
-            sortedRels.reduce((sum, relation) => sum + relation.score, 0) / sortedRels.length
+            acceptedRels.reduce((sum, relation) => sum + relation.score, 0) / acceptedRels.length
         );
 
         // 시나리오 신뢰도 산정 (단일 관계가 아닌 평균 점수 기준)
@@ -856,14 +1134,14 @@ function clusterByJoinKey(relations, meta) {
         // datasets은 전체 관계에서 수집하고, SQL 힌트는 상위 관계만 사용한다.
         // 이전에는 sortedRels.slice(0, 3) 기준으로 datasets을 수집해
         // datasetCount와 실제 datasets 목록이 불일치하는 문제가 있었다.
-        const sqlHint = buildSqlHint(joinKey, sortedRels.slice(0, MAX_SQL_TABLES - 1), meta);
+        const sqlHint = buildSqlHint(joinKey, acceptedRels.slice(0, MAX_SQL_TABLES - 1), meta);
 
         scenarios.push({
             id: `SCN_${String(scenarioId++).padStart(3, '0')}`,
             joinKey,
             datasets: [...datasets],
             datasetCount: datasets.size,
-            relations: sortedRels.map(relation => ({
+            relations: acceptedRels.map(relation => ({
                 from: relation.svcA,
                 fromNm: relation.nmA,
                 to: relation.svcB,
@@ -1044,6 +1322,13 @@ function buildChainScenarios(starScenarios, relations, meta) {
             if (joinPath.length >= MAX_SQL_TABLES - 1) break;
             if (usedTables.has(step.neighbor)) continue;
 
+            // 도메인 규칙: 체인(N-way) 내에 블랙리스트 쌍이 포함되는 것을 방지
+            const hasForbidden = FORBIDDEN_JOIN_PAIRS.some(pair => 
+                (usedTables.has(pair[0]) && step.neighbor === pair[1]) ||
+                (usedTables.has(pair[1]) && step.neighbor === pair[0])
+            );
+            if (hasForbidden) continue;
+
             usedTables.add(step.neighbor);
             coveredKeys.add(step.joinKey);
             joinPath.push({
@@ -1105,7 +1390,7 @@ function buildChainScenarios(starScenarios, relations, meta) {
 // =============================================================================
 
 // JSON 결과 파일을 저장하는 함수
-function writeJson(scenarios, relations, outputPath, pkfkContext = {}) {
+function writeJson(scenarios, relations, outputPath, pkfkContext = {}, datasetSetAnalysis = null) {
     const result = {
         generatedAt: formatKstTimestamp(),
         summary: {
@@ -1117,10 +1402,13 @@ function writeJson(scenarios, relations, outputPath, pkfkContext = {}) {
             sqlErrorScenarios: scenarios.filter(scenario => scenario.sqlError).length,
             integratedThemeCandidates: pkfkContext.themeCandidates?.length || 0,
             integratedConnectionPaths: pkfkContext.connectionPaths?.length || 0,
+            louvainDatasetSets: datasetSetAnalysis?.sets?.length || 0,
+            louvainModularity: datasetSetAnalysis?.modularity || 0,
         },
         pkfkSummary: pkfkContext.summary || null,
         themeCandidates: (pkfkContext.themeCandidates || []).slice(0, TOP_SCENARIOS),
         connectionPaths: (pkfkContext.connectionPaths || []).slice(0, TOP_RELATIONS),
+        datasetSetAnalysis,
         scenarios: scenarios.slice(0, TOP_SCENARIOS),
         relations: relations.slice(0, TOP_RELATIONS)
     };
@@ -1140,7 +1428,7 @@ function writeJson(scenarios, relations, outputPath, pkfkContext = {}) {
 }
 
 // Markdown 결과 파일을 저장하는 함수
-function writeMd(scenarios, relations, outputPath, pkfkContext = {}) {
+function writeMd(scenarios, relations, outputPath, pkfkContext = {}, datasetSetAnalysis = null) {
     const lines = [];
 
     lines.push('# 데이터셋 사용 시나리오 분석 결과');
@@ -1152,9 +1440,24 @@ function writeMd(scenarios, relations, outputPath, pkfkContext = {}) {
     lines.push(`- SQL 검증 오류 시나리오: **${scenarios.filter(scenario => scenario.sqlError).length}개**`);
     lines.push(`- 통합 테마 후보: **${pkfkContext.themeCandidates?.length || 0}개**`);
     lines.push(`- 통합 연결 경로: **${pkfkContext.connectionPaths?.length || 0}개**`);
+    lines.push(`- Louvain 데이터 세트 후보: **${datasetSetAnalysis?.sets?.length || 0}개** (modularity ${datasetSetAnalysis?.modularity || 0})`);
     lines.push('');
     lines.push('---');
     lines.push('');
+
+    if ((datasetSetAnalysis?.sets || []).length > 0) {
+        lines.push('## Louvain 기반 테마별 데이터 세트 후보');
+        lines.push('');
+        lines.push('| 세트ID | 테마명 | 데이터셋 수 | 관계 수 | 대표 키워드 | 주요 조인키 | 주요 카테고리 |');
+        lines.push('|---|---|---:|---:|---|---|---|');
+        datasetSetAnalysis.sets.slice(0, 20).forEach(set => {
+            const keywords = (set.keywords || []).map(k => k.term).join(', ');
+            const joinKeys = (set.joinKeys || []).map(k => `${k.joinKey}(${k.count})`).join(', ');
+            const cats = (set.categories || []).map(c => `${c.cat}(${c.count})`).join(', ');
+            lines.push(`| ${escapeMarkdownCell(set.setId)} | ${escapeMarkdownCell(set.themeName)} | ${set.datasetCount} | ${set.relationCount} | ${escapeMarkdownCell(keywords)} | ${escapeMarkdownCell(joinKeys)} | ${escapeMarkdownCell(cats)} |`);
+        });
+        lines.push('');
+    }
 
     if ((pkfkContext.themeCandidates || []).length > 0) {
         lines.push('## PK/FK 그래프 기반 테마 데이터 세트 후보');
@@ -1287,6 +1590,13 @@ async function main() {
     logger.info('데이터셋 쌍별 값 겹침 분석을 시작합니다.');
     const relations = buildPairRelations(allProfiles, meta);
 
+    logger.info('Louvain 기반 테마별 데이터 세트 군집화를 시작합니다.');
+    const datasetSetAnalysis = buildDatasetSets(relations, meta);
+    logger.info({
+        datasetSets: datasetSetAnalysis.sets.length,
+        modularity: datasetSetAnalysis.modularity
+    }, '테마별 데이터 세트 군집화 완료');
+
     // valueSet은 buildPairRelations 에서만 사용하므로 이후 GC 수거를 위해 참조를 끊는다.
     for (const colProfiles of Object.values(allProfiles)) {
         for (const p of Object.values(colProfiles)) delete p.valueSet;
@@ -1351,8 +1661,8 @@ async function main() {
     }
 
     // 7. 결과 파일 저장
-    if (!noJson) writeJson(scenarios, relations, jsonOut, pkfkContext);
-    if (!noMd)   writeMd(scenarios, relations, mdOut, pkfkContext);
+    if (!noJson) writeJson(scenarios, relations, jsonOut, pkfkContext, datasetSetAnalysis);
+    if (!noMd)   writeMd(scenarios, relations, mdOut, pkfkContext, datasetSetAnalysis);
 
     if (!noXlsx) {
         if (!fs.existsSync(xlsxPath)) {
@@ -1401,6 +1711,10 @@ module.exports = {
     buildSqlHintFromPath,
     loadPkFkAnalysis,
     buildPkFkContext,
+    normalizeKoreanSearchText,
+    extractCommunityKeywords,
+    buildRelationGraph,
+    buildDatasetSets,
     writeJson,
     writeMd,
     // 유틸
