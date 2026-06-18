@@ -33,7 +33,7 @@ function run(label, scriptPath, args = '') {
 }
 
 async function main() {
-  // STEP 1: 식품안전나라 크롤링
+  // // STEP 1: 식품안전나라 크롤링
   // try {
   //   run('1/9 crawler_api', path.join(DIR, 'crawler_api.js'));
   // } catch (err) {

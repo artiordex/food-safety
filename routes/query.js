@@ -161,7 +161,7 @@ router.post('/query', (req, res) => {
     return res.status(400).json({ error: '쿼리 내용이 비어 있습니다.' });
   }
 
-  logger.info({ query }, 'SQL 쿼리 실행 요청이 들어왔습니다.');
+  logger.info(`SQL 쿼리 실행 요청이 들어왔습니다.\n${query}`);
 
   // 화이트리스트 방식: SELECT / EXPLAIN / PRAGMA 만 허용 (ATTACH 등 우회 차단)
   const ALLOWED_SQL = /^\s*(SELECT|EXPLAIN|PRAGMA\s+(table_info|table_list|index_list|foreign_key_list|database_list|compile_options|encoding|journal_mode|page_size|user_version|schema_version|quick_check|integrity_check))/i;

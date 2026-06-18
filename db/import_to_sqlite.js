@@ -756,7 +756,9 @@ function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAn
         }
     }
 
-    fs.writeFileSync(outputPath, lines.join('\n'), 'utf-8');
+    const tmpPath = outputPath + '.tmp';
+    fs.writeFileSync(tmpPath, lines.join('\n'), 'utf-8');
+    fs.renameSync(tmpPath, outputPath);
     log('INFO', `ERD용 SQL 생성 완료: ${outputPath}`);
 }
 
@@ -1094,8 +1096,16 @@ async function run({
 
     log('STEP', `SQLite DB 생성: ${dbPath}`);
     if (fs.existsSync(dbPath)) {
-        fs.unlinkSync(dbPath);
-        log('INFO', '기존 DB 파일 삭제 후 재생성');
+        try {
+            fs.unlinkSync(dbPath);
+            log('INFO', '기존 DB 파일 삭제 후 재생성');
+        } catch (err) {
+            if (err.code === 'EBUSY' || err.code === 'EPERM') {
+                log('ERR', `[파일 잠김 에러] DBeaver, DB Browser 등에서 '${path.basename(dbPath)}' 파일을 열고 있는지 확인해주세요. DB 연결을 해제한 후 다시 실행해야 합니다.`);
+                process.exit(1);
+            }
+            throw err;
+        }
     }
 
     const db = await openDb(dbPath);

@@ -492,7 +492,9 @@ function runDirectJoinVerification(tableFieldMap) {
     const activeVerified = verifyDirectJoins(relationships);
     const sqlContent = buildDirectJoinSqlContent(activeVerified, tableFieldMap);
 
-    fs.writeFileSync(JOIN_SQL_PATH, sqlContent, 'utf8');
+    const tmpJoinPath = JOIN_SQL_PATH + '.tmp';
+    fs.writeFileSync(tmpJoinPath, sqlContent, 'utf8');
+    fs.renameSync(tmpJoinPath, JOIN_SQL_PATH);
 
     logger.info({
         outputPath: JOIN_SQL_PATH,
@@ -886,7 +888,9 @@ function runChainJoinFinder(tableNames, tableColumns, tableFieldMap) {
 
     const sqlContent = buildChainJoinSqlContent(verifiedChains, tableColumns, tableFieldMap);
 
-    fs.writeFileSync(CHAIN_JOIN_SQL_PATH, sqlContent, 'utf-8');
+    const tmpChainPath = CHAIN_JOIN_SQL_PATH + '.tmp';
+    fs.writeFileSync(tmpChainPath, sqlContent, 'utf-8');
+    fs.renameSync(tmpChainPath, CHAIN_JOIN_SQL_PATH);
 
     logger.info({
         outputPath: CHAIN_JOIN_SQL_PATH,

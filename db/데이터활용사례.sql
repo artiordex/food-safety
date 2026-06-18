@@ -50,6 +50,7 @@
 --   I1230      식품첨가물제조업
 --   I1300      축산물 가공업허가정보
 --   I0610      축산물HACCP 지정정보
+--   I2819      식품접객업 폐업정보
 -- ============================================================
 
 
@@ -1434,4 +1435,52 @@ FROM "C003" a
 JOIN "I0030" b ON a.LCNS_NO = b.LCNS_NO
 JOIN "I2860" c ON b.LCNS_NO = c.LCNS_NO
 ORDER BY c.CHNG_DT DESC
+LIMIT 30;
+
+
+-- ============================================================
+-- [사례 26] REDTABLE — 식품접객업 영업·폐업 통합 조회
+--   활용 데이터: I2500(인허가 업소 정보) + I2819(식품접객업 폐업정보)
+--   출처: 식품안전나라_데이터_활용사례.xlsx
+-- ============================================================
+
+-- 26-1. 현재 영업 중인 식품접객업소 목록  [I2500 단독]
+SELECT
+    LCNS_NO        AS 인허가번호,
+    BSSH_NM        AS 업소명,
+    PRSDNT_NM      AS 대표자명,
+    INDUTY_CD_NM   AS 업종,
+    PRMS_DT        AS 허가일자,
+    ADDR           AS 주소
+FROM "I2500"
+WHERE INDUTY_CD_NM LIKE '%접객%'
+ORDER BY PRMS_DT DESC
+LIMIT 30;
+
+-- 26-2. 폐업한 식품접객업소 목록  [I2819 단독]
+SELECT
+    LCNS_NO          AS 인허가번호,
+    BSSH_NM          AS 업소명,
+    PRSDNT_NM        AS 대표자명,
+    INDUTY_NM        AS 업종,
+    PRMS_DT          AS 허가일자,
+    CLSBIZ_DT        AS 폐업일자,
+    CLSBIZ_DVS_CD_NM AS 폐업상태,
+    LOCP_ADDR        AS 주소
+FROM "I2819"
+ORDER BY CLSBIZ_DT DESC
+LIMIT 30;
+
+-- 26-3. 동일 인허가번호로 영업→폐업 이력 연계  [연결키: LCNS_NO]
+SELECT
+    a.LCNS_NO          AS 인허가번호,
+    a.BSSH_NM          AS 현재업소명,
+    a.INDUTY_CD_NM     AS 업종,
+    a.ADDR             AS 현재주소,
+    b.CLSBIZ_DT        AS 폐업일자,
+    b.CLSBIZ_DVS_CD_NM AS 폐업상태,
+    b.LOCP_ADDR        AS 폐업당시주소
+FROM "I2500" a
+JOIN "I2819" b ON a.LCNS_NO = b.LCNS_NO
+ORDER BY b.CLSBIZ_DT DESC
 LIMIT 30;
