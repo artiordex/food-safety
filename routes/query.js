@@ -107,7 +107,7 @@ module.exports = (db, dbAll, logger, readonlyDb) => {
 
   function getScenarios() {
     if (_joinScenariosCache) return _joinScenariosCache;
-    const sqlFiles = ['join.sql', 'chain_joins.sql', '데이터활용사례.sql'];
+    const sqlFiles = ['데이터활용사례.sql'];
     const allScenarios = [];
     for (const fileName of sqlFiles) {
       const filePath = path.join(DB_DIR, fileName);

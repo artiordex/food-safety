@@ -97,7 +97,7 @@ function buildValidJoinKeys(datasets) {
         /_SN$/i.test(f);
 
     const isWeak = (f) =>
-        /_NM$/i.test(f)      ||  // 명칭류
+        /_NM$/i.test(f) || /_DCNM$/i.test(f) || /^STEP$/i.test(f) || /^OPERTN_CITYPOINT$/i.test(f)      ||  // 명칭류
         /_NAME$/i.test(f)    ||
         /_CD_NM$/i.test(f)   ||
         /ADDR$/i.test(f)     ||  // 주소류

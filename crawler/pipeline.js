@@ -14,6 +14,35 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
+const EXCLUDED_COMMON_KEY_PATTERNS = [
+  /^ATT_FILE_NO(_|$)/i,
+  /^FILE_PATH$/i,
+  /^IMAGE_PATH$/i,
+  /^IMG(_|$)/i,
+  /^WORD$/i
+];
+
+const COMMON_KEY_SYNONYM_GROUPS = [
+  ['BRCD_NO', 'BRCDNO', 'BARCODE_NO', 'BAR_CD']
+];
+
+const COMMON_KEY_CANONICAL_MAP = new Map();
+for (const group of COMMON_KEY_SYNONYM_GROUPS) {
+  const canonical = group[0];
+  for (const key of group) COMMON_KEY_CANONICAL_MAP.set(key, canonical);
+}
+
+function isCommonKeyCandidate(fieldName) {
+  const name = String(fieldName || '').trim().toUpperCase();
+  if (!name) return false;
+  return !EXCLUDED_COMMON_KEY_PATTERNS.some(pattern => pattern.test(name));
+}
+
+function canonicalCommonKey(fieldName) {
+  const name = String(fieldName || '').trim().toUpperCase();
+  return COMMON_KEY_CANONICAL_MAP.get(name) || name;
+}
+
 const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const OUTPUT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
@@ -86,11 +115,14 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     ds.sample_count = records ? records.length : 0;
   }
 
-  logger.info('STEP 2: 엔트로피 맵 생성 중...');
-  const entropyMap = buildEntropyMap(recordsMap);
+  logger.info('STEP 2: (엔트로피 분석 생략 - 사전 분석 결과 활용)');
 
-  logger.info('STEP 3: PK/FK 후보 통계 분석 중...');
-  const analysisResult = analyze(datasets, recordsMap, entropyMap);
+  logger.info('STEP 3: PK/FK 후보 통계 분석 결과 로딩 중...');
+  const analysisResultPath = path.join(__dirname, '../db/foodsafety_key_candidates.json');
+  if (!fs.existsSync(analysisResultPath)) {
+    throw new Error(`PK/FK 분석 결과가 없습니다. 먼저 analyze_pk_fk.js를 실행하세요: ${analysisResultPath}`);
+  }
+  const analysisResult = JSON.parse(fs.readFileSync(analysisResultPath, 'utf8'));
 
   logger.info('STEP 4: 엑셀 리포터 데이터 구조 매핑 중...');
 
@@ -108,21 +140,34 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   for (const ds of datasets) {
     catMap[ds.svc_no] = ds.cat || '';
     datasetKeyMap[ds.svc_no] = [];
+    const seenFieldFreqKeys = new Set();
+    const seenDatasetKeys = new Set();
 
     for (const f of ds.fields || []) {
       const fieldName = (f.field || '').trim().toUpperCase();
       if (!fieldName) continue;
+      const fieldKey = isCommonKeyCandidate(fieldName) ? canonicalCommonKey(fieldName) : fieldName;
 
-      fieldFreq[fieldName] = (fieldFreq[fieldName] || 0) + 1;
-      datasetKeyMap[ds.svc_no].push(fieldName);
+      if (!seenFieldFreqKeys.has(fieldKey)) {
+        seenFieldFreqKeys.add(fieldKey);
+        fieldFreq[fieldKey] = (fieldFreq[fieldKey] || 0) + 1;
+      }
 
-      // 필드명 기준으로 포함 데이터셋 목록 생성
-      if (!keyDatasetMap[fieldName]) keyDatasetMap[fieldName] = [];
-      keyDatasetMap[fieldName].push(ds.svc_no);
+      if (isCommonKeyCandidate(fieldName)) {
+        const commonKey = canonicalCommonKey(fieldName);
+        if (!seenDatasetKeys.has(commonKey)) {
+          seenDatasetKeys.add(commonKey);
+          datasetKeyMap[ds.svc_no].push(commonKey);
+
+          // 필드명 기준으로 포함 데이터셋 목록 생성
+          if (!keyDatasetMap[commonKey]) keyDatasetMap[commonKey] = [];
+          keyDatasetMap[commonKey].push(ds.svc_no);
+        }
+      }
 
       // 같은 필드명이 반복되면 먼저 확보한 메타데이터 우선 사용
-      if (!fieldMeta[fieldName] || (f.kor_nm && !fieldMeta[fieldName].kor_nm)) {
-        fieldMeta[fieldName] = {
+      if (!fieldMeta[fieldKey] || (f.kor_nm && !fieldMeta[fieldKey].kor_nm)) {
+        fieldMeta[fieldKey] = {
           kor_nm: f.kor_nm || '',
           type: f.type || '',
           length: f.length || '',
@@ -133,15 +178,24 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     }
   }
 
+  if (fieldMeta.BRCD_NO) {
+    fieldMeta.BRCD_NO = {
+      ...fieldMeta.BRCD_NO,
+      kor_nm: '바코드번호',
+      desc: 'BRCD_NO/BRCDNO/BARCODE_NO/BAR_CD 바코드 계열 통합키'
+    };
+  }
+
   // =============================================================================
   // 2. 시나리오 매핑
   // =============================================================================
   const excelScenarios = [];
 
   for (const sc of analysisResult.relationships) {
+    if (!isCommonKeyCandidate(sc.from_field) || !isCommonKeyCandidate(sc.to_field)) continue;
 
     // 이 시나리오에 사용된 타겟 필드를 공통키 풀에 등록
-    commonKeysSet.add(sc.to_field);
+    commonKeysSet.add(canonicalCommonKey(sc.to_field));
 
     // analyze_pk_fk.js 결과를 excel_reporter.js 입력 형식으로 변환
     excelScenarios.push({
@@ -164,14 +218,14 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   // PK로 식별된 필드들도 공통키 풀에 등록
   for (const t of analysisResult.tables) {
     for (const pk of t.pk_candidates) {
-      if (pk.score > 40) {
-        commonKeysSet.add(pk.fields[0]);
+      if (pk.score > 40 && isCommonKeyCandidate(pk.fields[0])) {
+        commonKeysSet.add(canonicalCommonKey(pk.fields[0]));
       }
     }
   }
 
   // 공통키 배열 생성 및 빈도순 정렬
-  const commonKeys = Array.from(commonKeysSet).sort((a, b) => {
+  const commonKeys = Array.from(commonKeysSet).filter(isCommonKeyCandidate).sort((a, b) => {
     return (fieldFreq[b] || 0) - (fieldFreq[a] || 0);
   });
 
