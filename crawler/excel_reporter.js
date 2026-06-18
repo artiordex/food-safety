@@ -1,6 +1,9 @@
 /**
  * 식품안전나라 Open API 데이터 관계 분석 엑셀 보고서 생성 스크립트
  *
+ * 크롤링/분석 결과를 ExcelJS 워크북으로 변환한다.
+ * 신규 보고서 생성(buildExcel)과 기존 보고서의 일부 시트 갱신(update*)을 모두 담당한다.
+ *
  * [주요 기능]
  * 1. 데이터셋 목록, 공통키 분석, 키×데이터셋 맵 시트 생성
  * 2. 결합 시나리오, SQLite 조인 검증, Arquero 상세 분석 시트 생성
@@ -18,13 +21,13 @@ const log = {
   error: (...args) => logger.error(...args),
 };
 
-// 상수 정의
-
+// 보고서 표시 품질과 파일 크기 사이의 균형을 맞추기 위한 표시 제한값
 const MAX_CROSS_KEYS = 35;   // 크로스맵에 표시할 최대 공통키 수
 const DESC_MAX_LEN = 100;  // 설명 필드 최대 표시 길이
 const FIELD_MAX_LEN = 80;   // 출력항목 설명 최대 길이
 const SAMPLE_MAX_LEN = 30;   // 샘플값 최대 길이
 
+// 시트명은 생성/부분 갱신 양쪽에서 공유하므로 상수로 관리한다.
 const SHEET_NAMES = {
   COVER: '분석 개요',
   DATASETS: '데이터셋 목록',
@@ -80,7 +83,8 @@ const TAB_COLORS = {
 };
 
 // 공통 유틸리티
-
+// 외부 분석 단계에서 넘어온 데이터가 비어 있거나 형식이 조금 달라도
+// 엑셀 생성 단계가 중단되지 않도록 안전한 기본값으로 정리한다.
 // 전달된 값을 항상 배열 형태로 변환하여 반환 (null/undefined 방지)
 function toArray(value) {
   return Array.isArray(value) ? value : [];
@@ -178,6 +182,7 @@ function normalizeScenarios(scenarios) {
 }
 
 // 공통 셀 포맷터
+// 모든 시트가 동일한 글꼴/정렬/테두리 규칙을 쓰도록 스타일 적용을 한 곳에 모은다.
 function formatCell(cell, {
   val = undefined,
   bg = 'FFFFFF',
@@ -212,6 +217,7 @@ function formatCell(cell, {
 }
 
 // 엑셀 워크시트에 특정 행의 컬럼 데이터를 일괄 기록
+// 각 컬럼 객체는 값(v)과 개별 스타일 override를 함께 전달할 수 있다.
 function writeRow(ws, rowNo, cols, defaultStyle = {}) {
   cols.forEach((col, idx) => {
     const cell = ws.getCell(rowNo, idx + 1);
@@ -287,6 +293,7 @@ function setWorksheetCommon(ws, sheetName, views = [{ showGridLines: false }]) {
 }
 
 // 시트 1: 분석 개요
+// 전체 보고서의 KPI, 파이프라인 단계, 시트 구성을 한 화면에 요약한다.
 function shCover(ws, datasets, ka, scenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.COVER);
   setColWidths(ws, [3, 26, 52, 18]);
@@ -418,6 +425,7 @@ function shCover(ws, datasets, ka, scenarios) {
 }
 
 // 시트 2: 데이터셋 목록
+// 데이터셋별 필드 수, 공통키 수, 샘플 존재 여부를 표 형태로 제공한다.
 function shList(ws, datasets, ka) {
   setWorksheetCommon(ws, SHEET_NAMES.DATASETS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 14, 40, 14, 10, 10, 10, 12, 45]);
@@ -477,6 +485,7 @@ function shList(ws, datasets, ka) {
 }
 
 // 시트 3: 공통키 분석
+// 여러 데이터셋에서 반복 등장한 필드를 빈도와 점유율 기준으로 정리
 function shKeys(ws, ka, datasets) {
   setWorksheetCommon(ws, SHEET_NAMES.KEYS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 26, 16, 14, 12, 12, 8, 45, 38]);
@@ -526,6 +535,7 @@ function shKeys(ws, ka, datasets) {
 }
 
 // 시트 4: 키×데이터셋 크로스맵
+// 상위 공통키가 어떤 데이터셋에 존재하는지 Y/N 매트릭스로 보여줌
 function shCross(ws, datasets, ka) {
   setWorksheetCommon(ws, SHEET_NAMES.CROSS, [{ showGridLines: false, state: 'frozen', xSplit: 3, ySplit: 2 }]);
 
@@ -597,6 +607,7 @@ function shCross(ws, datasets, ka) {
 }
 
 // 시트 5: 결합 시나리오
+// 공통키 기반으로 도출된 데이터셋 간 결합 후보를 점수순으로 나열
 function shScenarios(ws, scenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.SCENARIOS, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 13, 32, 12, 13, 32, 12, 8, 30, 9, 12, 8, 48, 58]);
@@ -645,6 +656,7 @@ function shScenarios(ws, scenarios) {
 }
 
 // 시트 6: 출력항목 원본
+// 크롤링된 필드 메타데이터를 데이터셋별로 펼쳐서 원본 검토용으로 제공
 function shRaw(ws, datasets) {
   setWorksheetCommon(ws, SHEET_NAMES.RAW, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 13, 30, 12, 26, 14, 12, 10, 30, 24]);
@@ -688,6 +700,7 @@ function shRaw(ws, datasets) {
 }
 
 // 시트 7: Arquero 상세 분석 (추가 데이터)
+// 값 겹침 기반 분석 결과가 있는 경우에만 추가되는 상세 시트
 function shArquero(ws, arqueroScenarios) {
   setWorksheetCommon(ws, SHEET_NAMES.ARQUERO, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 18, 30, 10, 10, 10, 30, 48]);
@@ -724,6 +737,7 @@ function shArquero(ws, arqueroScenarios) {
 }
 
 // 시트 8: SQLite 직접 조인 검증 쿼리
+// 실제 SQLite 검증으로 확인된 직접 조인 SQL 원문을 보존
 function shJoinSql(ws, joinSqlText) {
   setWorksheetCommon(ws, SHEET_NAMES.JOIN_SQL, [{ showGridLines: false }]);
   setColWidths(ws, [120]);
@@ -747,6 +761,7 @@ function shJoinSql(ws, joinSqlText) {
 }
 
 // 시트 9: SQLite 체인 조인 쿼리 (추가 데이터)
+// 여러 테이블을 연쇄적으로 연결한 검증 SQL을 줄 단위로 기록
 function shChainJoins(ws, chainJoinsText) {
   setWorksheetCommon(ws, SHEET_NAMES.CHAIN_SQL, [{ showGridLines: false }]);
   setColWidths(ws, [120]);
@@ -777,6 +792,7 @@ function confidenceBg(confidence, rowIdx) {
 }
 
 // 시트: PK 후보 분석
+// analyze_pk_fk.js 결과 중 테이블별 대표 PK 후보를 요약
 function shPkCandidates(ws, tables) {
   setWorksheetCommon(ws, SHEET_NAMES.PK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 36, 18, 22, 22, 10, 10, 8, 10, 12, 10, 60]);
@@ -829,6 +845,7 @@ function shPkCandidates(ws, tables) {
 }
 
 // 시트: FK 후보 분석
+// 단일 FK와 복합 FK 후보를 같은 시트에 이어서 기록
 function shFkCandidates(ws, relationships, compositeFks) {
   setWorksheetCommon(ws, SHEET_NAMES.FK_CANDIDATES, [{ showGridLines: false, state: 'frozen', ySplit: 1 }]);
   setColWidths(ws, [5, 12, 12, 12, 32, 20, 12, 32, 20, 8, 10, 10, 10, 70]);
@@ -893,7 +910,6 @@ function shFkCandidates(ws, relationships, compositeFks) {
 }
 
 // 워크북 설정
-
 // 엑셀 워크북의 작성자 등 메타데이터 기본 설정
 function setupWorkbookMetadata(workbook) {
   workbook.creator = '식품안전나라 API 분석기';
@@ -909,6 +925,7 @@ function setupWorkbookMetadata(workbook) {
 }
 
 // 분석된 데이터를 기반으로 모든 엑셀 시트 생성 및 데이터 추가
+// extraData가 있을 때만 선택 시트를 추가해 기본 보고서 구성을 간결하게 유지
 function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   shCover(workbook.addWorksheet(SHEET_NAMES.COVER), datasets, ka, scenarios);
   shList(workbook.addWorksheet(SHEET_NAMES.DATASETS), datasets, ka);
@@ -929,8 +946,6 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
   shRaw(workbook.addWorksheet(SHEET_NAMES.RAW), datasets);
 }
 
-// 진입 함수: buildExcel
-
 // 전체 엑셀 보고서를 생성하는 진입 함수
 // @param {Array}  datasets   - 크롤링된 데이터셋 목록
 // @param {Object} ka         - 공통키 분석 결과
@@ -939,6 +954,7 @@ function addSheets(workbook, datasets, ka, scenarios, extraData = {}) {
 async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   log.info('STEP 9: 엑셀 보고서 생성 시작');
 
+  // 외부 단계의 출력 구조를 검증/정규화한 뒤 시트 생성 함수에 넘김
   validateInputs(datasets, ka, scenarios, outputPath);
   validateExtraData(extraData);
 
@@ -958,8 +974,6 @@ async function buildExcel(datasets, ka, scenarios, outputPath, extraData = {}) {
   log.info({ outputPath, sheets: workbook.worksheets.length }, `STEP 9 완료`);
 }
 
-// 기존 xlsx에 시트 교체 (부분 갱신용)
-
 // 기존 엑셀 파일의 PK/FK 시트를 갱신한다.
 // analyze_pk_fk.js 에서 호출.
 // @param {Object} analysis - foodsafety_key_candidates.json 내용
@@ -969,6 +983,7 @@ async function updatePkFkSheets(analysis, xlsxPath) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(xlsxPath);
 
+  // 기존 시트를 제거한 뒤 새 분석 결과로 다시 생성한다.
   for (const name of [SHEET_NAMES.PK_CANDIDATES, SHEET_NAMES.FK_CANDIDATES]) {
     const existing = workbook.getWorksheet(name);
     if (existing) workbook.removeWorksheet(existing.id);
@@ -998,6 +1013,7 @@ async function updateArqueroSheet(scenarios, xlsxPath) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(xlsxPath);
 
+  // Arquero 상세 시트만 교체하여 기존 보고서의 다른 시트는 유지
   const existing = workbook.getWorksheet(SHEET_NAMES.ARQUERO);
   if (existing) workbook.removeWorksheet(existing.id);
 
@@ -1024,7 +1040,7 @@ module.exports = {
 
 // 단독 실행 (Standalone) 모드
 if (require.main === module) {
-  // pipeline.js가 캐시 로드, PK/FK 분석, ka/시나리오 구성, 엑셀 빌드를 모두 수행한다.
+  // pipeline.js가 캐시 로드, PK/FK 분석, ka/시나리오 구성, 엑셀 빌드를 모두 수행
   const { runAnalysis } = require('./pipeline.js');
 
   runAnalysis()

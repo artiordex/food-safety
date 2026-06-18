@@ -1,6 +1,9 @@
 /**
  * 식품안전나라 API 메타데이터 분석 파이프라인
  *
+ * crawl_cache.json과 samples 데이터를 읽어 PK/FK 분석을 수행하고
+ * excel_reporter.js로 최종 엑셀 보고서를 생성했음
+ *
  * [주요 기능]
  * 1. db/analyze_pk_fk.js의 강력한 통계적(Entropy, Inclusion Ratio, String-Similarity) 분석 결과를 활용
  * 2. analyze_pk_fk.js 결과를 excel_reporter.js 가 요구하는 형식으로 어댑팅(Adapting)
@@ -15,12 +18,14 @@ const CACHE_FILE = path.join(__dirname, 'crawl_cache.json');
 const SAMPLES_DIR = path.join(__dirname, 'samples');
 const OUTPUT_XLSX = path.join(__dirname, '../식품안전나라_API_분석결과.xlsx');
 
+// PK/FK 후보 분석 엔진 사용
 const {
   analyze,
   buildEntropyMap,
   parseSampleJson,
 } = require('../db/analyze_pk_fk.js');
 
+// 엑셀 보고서 생성기 사용
 const { buildExcel } = require('./excel_reporter.js');
 
 // JSON 샘플을 로드하여 recordsMap 생성
@@ -32,10 +37,11 @@ function loadSamples(datasets, samplesDir) {
     const samplePath = path.join(samplesDir, `${svcNo}.json`);
 
     if (fs.existsSync(samplePath)) {
-      // parseSampleJson은 파일 경로를 받아 내부에서 readFileSync를 수행한다
+      // 샘플 JSON 파싱했음
       const records = parseSampleJson(samplePath, svcNo);
       recordsMap.set(svcNo, records || []);
     } else {
+      // 샘플이 없으면 빈 배열 사용
       recordsMap.set(svcNo, []);
     }
   }
@@ -44,9 +50,11 @@ function loadSamples(datasets, samplesDir) {
 
 // SQL 힌트 템플릿
 function getSqlHint(serviceNoA, datasetNameA, serviceNoB, datasetNameB, sharedKeys, joinType) {
+  // 공통키 최대 3개만 SQL 예시 조건에 사용
   const onClause = sharedKeys.slice(0, 3).map(key => `A.${key} = B.${key}`).join(' AND ');
   const selectKeys = sharedKeys.slice(0, 3).map(key => `A.${key}`).join(', ');
 
+  // 분석된 관계 유형에 맞춰 JOIN 방식 선택했음
   let sqlJoin = 'LEFT JOIN';
   if (joinType.includes('1:1')) sqlJoin = 'INNER JOIN';
   if (joinType.includes('M:1')) sqlJoin = 'LEFT JOIN';
@@ -59,9 +67,11 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   logger.info('메타데이터 분석 파이프라인을 시작합니다. (analyze_pk_fk.js 엔진 사용)');
 
   if (!fs.existsSync(cacheFile)) {
+    // 크롤링 캐시 필수 사용
     throw new Error(`캐시 파일을 찾을 수 없습니다: ${cacheFile}`);
   }
 
+  // 크롤링 메타데이터 로드
   const datasets = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
   if (datasets.length === 0) throw new Error('분석 가능한 데이터셋이 없습니다.');
 
@@ -93,7 +103,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   const keyDatasetMap = {};
   const commonKeysSet = new Set();
 
-  // 데이터셋 카테고리 빠른 매핑
+  // 데이터셋 카테고리 빠른 매핑 사용
   const catMap = {};
   for (const ds of datasets) {
     catMap[ds.svc_no] = ds.cat || '';
@@ -106,9 +116,11 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
       fieldFreq[fieldName] = (fieldFreq[fieldName] || 0) + 1;
       datasetKeyMap[ds.svc_no].push(fieldName);
 
+      // 필드명 기준으로 포함 데이터셋 목록 생성
       if (!keyDatasetMap[fieldName]) keyDatasetMap[fieldName] = [];
       keyDatasetMap[fieldName].push(ds.svc_no);
 
+      // 같은 필드명이 반복되면 먼저 확보한 메타데이터 우선 사용
       if (!fieldMeta[fieldName] || (f.kor_nm && !fieldMeta[fieldName].kor_nm)) {
         fieldMeta[fieldName] = {
           kor_nm: f.kor_nm || '',
@@ -131,6 +143,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     // 이 시나리오에 사용된 타겟 필드를 공통키 풀에 등록
     commonKeysSet.add(sc.to_field);
 
+    // analyze_pk_fk.js 결과를 excel_reporter.js 입력 형식으로 변환
     excelScenarios.push({
       ds_a: sc.from_table,
       nm_a: sc.from_table_name,
@@ -157,7 +170,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
     }
   }
 
-  // 공통키 배열 생성 및 점유율/가중치 정렬
+  // 공통키 배열 생성 및 빈도순 정렬
   const commonKeys = Array.from(commonKeysSet).sort((a, b) => {
     return (fieldFreq[b] || 0) - (fieldFreq[a] || 0);
   });
@@ -178,15 +191,17 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   let extraData = {};
 
   try {
-    const scenarioJsonPath = path.join(__dirname, '../db/scenario_analysis.json');
+    // Arquero 시나리오 분석 결과 있으면 사용
+    const scenarioJsonPath = path.join(__dirname, '../db/foodsafety_scenarios.json');
     if (fs.existsSync(scenarioJsonPath)) {
       extraData.arqueroScenarios = JSON.parse(fs.readFileSync(scenarioJsonPath, 'utf8'));
     }
   } catch (err) {
-    logger.warn('db/scenario_analysis.json 로딩 실패');
+    logger.warn('db/foodsafety_scenarios.json 로딩 실패');
   }
 
   try {
+    // SQLite 체인 조인 SQL 있으면 사용
     const chainJoinsPath = path.join(__dirname, '../db/chain_joins.sql');
     if (fs.existsSync(chainJoinsPath)) {
       extraData.chainJoinsText = fs.readFileSync(chainJoinsPath, 'utf8');
@@ -196,6 +211,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   }
 
   try {
+    // SQLite 직접 조인 SQL 있으면 사용
     const joinSqlPath = path.join(__dirname, '../db/join.sql');
     if (fs.existsSync(joinSqlPath)) {
       extraData.joinSqlText = fs.readFileSync(joinSqlPath, 'utf8');
@@ -205,6 +221,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
   }
 
   logger.info('STEP 6: 엑셀 파일 생성 중...');
+  // 최종 엑셀 보고서 생성했음
   await buildExcel(datasets, ka, excelScenarios, outputXlsx, extraData);
 
   logger.info(`통합 파이프라인 실행 완료! 결과 파일: ${outputXlsx}`);
@@ -214,6 +231,7 @@ async function runAnalysis(cacheFile = CACHE_FILE, outputXlsx = OUTPUT_XLSX, opt
 
 // 직접 실행 지원
 if (require.main === module) {
+  // node crawler/pipeline.js 실행 지원
   runAnalysis().catch(err => {
     logger.fatal({ err }, '파이프라인 실행 중 심각한 오류 발생');
     process.exit(1);

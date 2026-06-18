@@ -18,6 +18,16 @@
  *      - foodsafety_key_candidates.md
  *      - foodsafety_keys_erd.sql
  *
+ *   [주요 외부 라이브러리 및 역할]
+ *   - Arquero (aq)           : 데이터프레임 형식으로 각 컬럼의 결측치, 고유도 등 데이터 분포를 고속 프로파일링
+ *   - Graphology             : 수백 개의 테이블을 노드(Node)로, FK를 엣지(Edge)로 삼아 '방향성 그래프' 구축
+ *                              (중심도(Centrality) 분석, 위상정렬, 순환참조(Cycle) 탐지, 테마 그룹핑에 활용)
+ *   - Fuse.js                : 한글 테이블명, 업무 도메인 명칭 등의 오타 및 유사어 퍼지(Fuzzy) 검색
+ *   - string-similarity      : 다이스 계수(Dice's coefficient)를 이용해 영문 컬럼명의 문자열 유사도 측정
+ *   - Zod (z)                : 외부에서 입력받은 메타데이터(Dataset Schema)의 타입 및 구조 검증
+ *   - simple-statistics (ss) : 정보 엔트로피(Entropy) 등 수학적/통계적 수치 계산
+ *   - sqlite3                : 분석된 데이터를 로컬 SQLite DB에 기록하거나 조회할 때 사용
+ *
  *   [두 가지 실행 방식]
  *   A. 독립 CLI 실행 — 캐시 파일과 samples 폴더를 직접 읽어 처리
  *        node analyze_pk_fk.js
@@ -43,7 +53,10 @@ const { z } = require('zod');
 const { DirectedGraph } = require('graphology');
 const { connectedComponents } = require('graphology-components');
 const { topologicalSort, hasCycle } = require('graphology-dag');
-// graphology-metrics centrality는 서브패스 import가 필요하므로 직접 계산으로 대체
+const pagerank = require('graphology-metrics/centrality/pagerank');
+const betweenness = require('graphology-metrics/centrality/betweenness');
+const closeness = require('graphology-metrics/centrality/closeness');
+const { bidirectional, undirectedSingleSourceLength } = require('graphology-shortest-path/unweighted');
 
 // 로그 레벨(INFO/WARN/ERR/STEP)에 따라 logger 메서드를 호출하는 래퍼
 function log(level, msg) {
@@ -69,14 +82,15 @@ function formatKstTimestamp(date = new Date()) {
     return kst.toISOString().replace('Z', '+09:00');
 }
 
-// 복합 PK/FK 후보는 2개 필드 조합(makePairs)까지만 탐색한다.
+// 복합 PK/FK 후보 탐색 최대 필드 수
+const MAX_COMPOSITE_KEY_SIZE = Number(process.env.MAX_COMPOSITE_KEY_SIZE || 3);
 
 // FK 후보 정제 기준
-// 사용자 요청 반영: 조인이 되는(1건이라도 포함되는) 경우만 매핑하도록 기준 변경
-const FK_MIN_INCLUSION_RATIO = 0.0001;     // 조인되는 값이 1개라도 있으면 확정 FK 후보
+const FK_MIN_INCLUSION_RATIO = 0.03;       // 확정 FK 후보 최소 포함률
+const FK_MIN_MATCHED_COUNT = 3;            // 확정 FK 후보 최소 실제 매칭 고유값 수
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
 const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 논리적 구조 기반으로 유지
-const FK_MAX_PER_FROM_FIELD = 2;           // 동일 From Table.Field 기준 최대 후보 수
+const FK_MAX_PER_FROM_FIELD = 2;           // 한 컬럼당 찾을 수 있는 'FK 연결 후보(부모 테이블)'의 최대 개수 제한
 
 // 추정 FK 후보 기준
 const FK_SUGGESTED_MIN_SCORE = 60;         // 이 점수 이상이면 추정 후보로 보존
@@ -86,9 +100,16 @@ const FK_INCLUDE_SUGGESTED_IN_SQL = false; // 불확실한 추정 후보는 SQL 
 const FIELD_SIMILARITY_THRESHOLD = 0.72;  // 정규화 후 Dice 유사도 기준
 const FIELD_SIMILARITY_PENALTY = 15;    // 유사 매칭 시 스코어 감점 최대값
 
-// 업무 명칭 기반 부모-자식 관계 규칙 배열.
-// from 테이블명이 childKeywords, to 테이블명이 parentKeywords에 매칭되면
-// 포함률이 낮아도(0% 포함) CONFIRMED로 승격하고 FK_DOMAIN_CONFIRMED_BONUS를 가산한다.
+/**
+ * [도메인 지식 기반 부모-자식(FK) 매칭 사전]
+ * 
+ * 데이터 포함률(Inclusion Rate) 검사만으로는 FK 관계를 찾기 힘든 예외 케이스를 구제
+ * 하위(Child) 테이블(예: 폐업, 행정처분)은 상위(Parent) 마스터 테이블의 극히 일부 데이터만 가지고 있어 포함률이 0%에 가깝게 나오더라도, 실제로는 부모-자식 관계인 경우가 잇음
+ * 
+ * - 동작 방식: From 테이블명이 `childKeywords`를, To 테이블명이 `parentKeywords`를 포함하면 규칙 성립
+ * - 적용 효과: 포함률이 미달하더라도 해당 관계를 강제로 'CONFIRMED(확정)' 상태로 승격시키고,
+ *             가산점(FK_DOMAIN_CONFIRMED_BONUS)을 부여하여 최종 FK 후보 우선순위를 높임
+ */
 const FK_DOMAIN_PARENT_CHILD_RULES = [
     // 폐업정보 → 영업(인허가) 마스터
     { childKeywords: ['폐업정보', '폐업'], parentKeywords: ['영업정보', '허가정보', '신고대장', '영업신고대장', '허가대장', '인허가대장', '인허가 업소', '식품접객업정보', '식품제조가공업정보', '위생용품영업정보', '가공업허가정보'] },
@@ -136,8 +157,12 @@ const FK_DOMAIN_PARENT_CHILD_RULES = [
 
 const FK_DOMAIN_CONFIRMED_BONUS = 25; // 업무 명칭 규칙 매칭 시 CONFIRMED 승격 점수 가산
 
-// 공통키별 대표 마스터 테이블 목록. 등록된 테이블이 해당 키의 부모로 우선 선택된다.
-// N:N 무분별 연결을 방지하며, 실제 구조에 맞게 조정 가능하다.
+/**
+ * [공통 핵심 키(Hub Key)별 지정 마스터 테이블(Parent) 목록]
+ * 
+ * 범용적으로 사용되는 공통 식별키(예: LCNS_NO, PRDLST_REPORT_NO 등)에 대해, 해당 키의 '진짜 원본(마스터) 데이터'를 소유한 부모 테이블을 명시적으로 정의
+ * 탐색된 부모(To) 테이블 후보가 이 목록에 정의된 테이블일 경우, 가장 강력한 가산점을 부여하거나 최우선 부모 테이블로 확정(CONFIRMED)
+ */
 const MASTER_TABLE_BY_KEY = {
     LCNS_NO: [
         'I2500', // 인허가 업소 정보
@@ -262,9 +287,11 @@ function normalizeValue(value) {
     return String(value).trim();
 }
 
-// 파일을 저장하고 생성 완료 로그를 남김
+// 파일을 저장하고 생성 완료 로그를 남김 (원자적 쓰기 - Atomic Write)
 function safeFileWrite(filePath, content) {
-    fs.writeFileSync(filePath, content, 'utf-8');
+    const tmpPath = filePath + '.tmp';
+    fs.writeFileSync(tmpPath, content, 'utf-8');
+    fs.renameSync(tmpPath, filePath);
     log('INFO', `파일 생성 완료: ${filePath}`);
 }
 
@@ -310,8 +337,7 @@ function tableNameHasAny(tableName, keywords) {
 
 /**
  * 동일 공통키 안에서 도메인이 완전히 다른 테이블끼리 무분별하게 붙는 것을 줄인다.
- * 예: 건강기능식품 ↔ 축산물 ↔ 위생용품 ↔ 수입식품 등은 같은 LCNS_NO라도
- *     우선 같은 도메인끼리 연결하는 것이 더 타당하다.
+ * 예: 건강기능식품 ↔ 축산물 ↔ 위생용품 ↔ 수입식품 등은 같은 LCNS_NO라도 같은 도메인끼리 연결하는 것이 타당
  */
 function getDomainScore(fromTableName, toTableName) {
     // 1. 서로 절대 섞이면 안 되는 대분류 (Root Domains)
@@ -368,16 +394,16 @@ function getDomainScore(fromTableName, toTableName) {
 
 
 /**
- * 공백을 제거하고 소문자로 정규화한다.
- * "영업 신고 대장" → "영업신고대장" 처럼 공백 차이를 흡수한다.
+ * 공백을 제거하고 소문자로 정규화
+ * "영업 신고 대장" → "영업신고대장" 처럼 공백 차이를 흡수
  */
 function normalizeForDomainMatch(text) {
     return String(text || '').replace(/\s+/g, '').toLowerCase();
 }
 
 /**
- * 전체 데이터셋 이름을 Fuse.js 인덱스로 구성한다.
- * 도메인 키워드 fuzzy 검색에 재사용된다.
+ * 전체 데이터셋 이름을 Fuse.js 인덱스로 구성
+ * 도메인 키워드 fuzzy 검색에 재사용
  *
  * @param {object[]} datasets
  * @returns {Fuse} Fuse 인덱스
@@ -398,7 +424,7 @@ function buildDatasetFuseIndex(datasets) {
 }
 
 /**
- * 키워드가 텍스트 내에 포함되는지 3단계로 확인한다.
+ * 키워드가 텍스트 내에 포함되는지 3단계로 확인
  * 1. exact includes        — 가장 엄격, 빠름
  * 2. 공백 제거 후 includes  — 한국어 띄어쓰기 변형 흡수
  * 3. Fuse.js fuzzy match   — 짧은 오기/유사 표현 흡수 (길이 3+ 키워드만)
@@ -415,7 +441,7 @@ function keywordMatchesText(keyword, text, fuseIndex) {
 
 /**
  * Fuse.js 및 공백 정규화를 활용한 도메인 부모-자식 규칙 매칭.
- * exact includes 및 공백 정규화보다 넓은 범위를 커버한다.
+ * exact includes 및 공백 정규화보다 넓은 범위를 커버
  */
 function matchesDomainParentChildRuleFuzzy(fromSvcNm, toSvcNm, fuseIndex) {
     for (const rule of FK_DOMAIN_PARENT_CHILD_RULES) {
@@ -428,17 +454,16 @@ function matchesDomainParentChildRuleFuzzy(fromSvcNm, toSvcNm, fuseIndex) {
 }
 
 /**
- * 언더스코어를 제거하고 대문자로 정규화한다.
- * LCNS_NO → LCNSNO, APLC_DT → APLCDT
- * 이를 통해 언더스코어 위치 차이로 인한 유사 필드명 변형을 흡수한다.
+ * 언더스코어를 제거하고 대문자로 정규화(언더스코어 위치 차이로 인한 유사 필드명 변형을 흡수）)
+ * LCNS_NO → LCNSNO, APLC_DT → APLCDT 
  */
 function normalizeFieldForSim(fieldName) {
     return String(fieldName || '').replace(/_/g, '').toUpperCase();
 }
 
 /**
- * pkFieldIndex 안에서 upperField 와 유사한 PK 필드를 찾아 반환한다.
- * 1. exact match 우선
+ * pkFieldIndex 안에서 upperField 와 유사한 PK 필드를 찾아 반환
+ * 1. exact match 우선（정확히 일치하면 바로 반환）
  * 2. 정규화(언더스코어 제거) 후 Dice's coefficient >= FIELD_SIMILARITY_THRESHOLD 인 후보
  *
  * @returns {Array<{ key: string, similarity: number, exact: boolean }>}
@@ -682,8 +707,8 @@ function toRecordArray(records) {
 // =============================================================================
 
 /**
- * 필드값의 Shannon 엔트로피를 0~1로 정규화하여 반환한다.
- * 값이 모두 다르면(식별자성) 1.0, 모두 같으면(상수) 0.0 에 가깝다.
+ * 필드값의 Shannon 엔트로피를 0~1로 정규화하여 반환
+ * 값이 모두 다르면(식별자성) 1.0, 모두 같으면(상수) 0.0 에 가깝게 됨
  */
 function computeFieldEntropy(records, fieldName) {
     const rows = toRecordArray(records);
@@ -705,8 +730,8 @@ function computeFieldEntropy(records, fieldName) {
 }
 
 /**
- * 실제 포함률(inclusion ratio) 분포에서 임계값을 데이터 기반으로 도출한다.
- * 하드코딩된 FK_MIN_INCLUSION_RATIO, FK_STRONG_INCLUSION_RATIO를 대체한다.
+ * 실제 포함률(inclusion ratio) 분포에서 임계값을 데이터 기반으로 도출
+ * 하드코딩된 FK_MIN_INCLUSION_RATIO, FK_STRONG_INCLUSION_RATIO를 대체
  *
  * @param {number[]} ratios - 0 이상의 포함률 목록
  * @returns {{ min: number, strong: number }}
@@ -719,14 +744,14 @@ function deriveInclusionThresholds(ratios) {
     const minThreshold = ss.quantile(nonZero, 0.10);
     const strongThreshold = ss.quantile(nonZero, 0.70);
     return {
-        min: Math.max(minThreshold, 0.0001),
+        min: Math.max(minThreshold, FK_MIN_INCLUSION_RATIO),
         strong: Math.max(strongThreshold, 0.10)
     };
 }
 
 /**
- * 전체 데이터셋 샘플에서 모든 필드의 엔트로피를 미리 계산해 반환한다.
- * analyze() 전에 호출하면 스코어링에 활용할 수 있다.
+ * 전체 데이터셋 샘플에서 모든 필드의 엔트로피를 미리 계산해 반환
+ * analyze() 전에 호출하면 스코어링에 활용
  *
  * @param {Map<string, object[]>} recordsMap - svcNo → 레코드 배열
  * @returns {Map<string, Map<string, number>>} svcNo → (fieldName → entropy)
@@ -752,7 +777,7 @@ function buildEntropyMap(recordsMap) {
 // =============================================================================
 
 /**
- * 샘플 레코드에서 지정된 필드(또는 필드 조합)의 고유성(Uniqueness) 통계를 반환합니다.
+ * 샘플 레코드에서 지정된 필드(또는 필드 조합)의 고유성(Uniqueness) 통계를 반환
  * (총 건수, 고유 건수, 중복 건수, 빈값 포함 여부 등)
  */
 function getUniquenessStats(records, fields) {
@@ -791,10 +816,12 @@ function getUniquenessStats(records, fields) {
 }
 
 /**
- * 자식 테이블(fromRecords)의 값이 부모 테이블(toRecords)에 얼마나 포함되는지(포함률)를 계산합니다.
- * valuesCache를 활용해 Set 객체 생성을 최소화(Memoization)합니다.
+ * 자식 테이블(fromRecords)의 값이 부모 테이블(toRecords)에 얼마나 포함되는지(포함률)를 계산
+ * valuesCache를 활용해 Set 객체 생성을 최소화(Memoization)
  */
 function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField, toField, valuesCache = new Map()) {
+    const fromRows = toRecordArray(fromRecords);
+    const toRows = toRecordArray(toRecords);
     const getCached = (svcNo, records, field) => {
         const key = `${svcNo}|${field}`;
         let set = valuesCache.get(key);
@@ -810,30 +837,49 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
         return set;
     };
 
-    const fromValues = getCached(fromSvcNo, toRecordArray(fromRecords), fromField);
-    const toValues = getCached(toSvcNo, toRecordArray(toRecords), toField);
+    const fromValues = getCached(fromSvcNo, fromRows, fromField);
+    const toValues = getCached(toSvcNo, toRows, toField);
 
     if (fromValues.size === 0 || toValues.size === 0) {
         return {
+            from_record_count: fromRows.length,
+            to_record_count: toRows.length,
             from_unique_count: fromValues.size,
             to_unique_count: toValues.size,
             matched_count: 0,
+            matched_row_count: 0,
             inclusion_ratio: 0,
-            checked: false
+            checked: false,
+            source: 'records'
         };
     }
 
     let matched = 0;
+    const matchedValues = new Set();
     for (const value of fromValues) {
-        if (toValues.has(value)) matched++;
+        if (toValues.has(value)) {
+            matched++;
+            matchedValues.add(value);
+        }
+    }
+
+    let matchedRowCount = 0;
+    for (const row of fromRows) {
+        const value = normalizeValue(row ? row[fromField] : '');
+        if (value && matchedValues.has(value)) matchedRowCount++;
     }
 
     return {
+        from_record_count: fromRows.length,
+        to_record_count: toRows.length,
         from_unique_count: fromValues.size,
         to_unique_count: toValues.size,
         matched_count: matched,
+        matched_row_count: matchedRowCount,
         inclusion_ratio: matched / fromValues.size,
-        checked: true
+        row_inclusion_ratio: fromRows.length > 0 ? matchedRowCount / fromRows.length : 0,
+        checked: true,
+        source: 'records'
     };
 }
 
@@ -843,7 +889,7 @@ function getInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fromField
 // =============================================================================
 
 /**
- * 특정 필드가 기본키(PK) 식별자로 사용되기에 얼마나 적합한지 종합 점수(Score)를 계산합니다.
+ * 특정 필드가 기본키(PK) 식별자로 사용되기에 얼마나 적합한지 종합 점수(Score)를 계산
  * (필드명 패턴, 한글명, 엔트로피, 샘플 고유성 등을 반영)
  */
 function calculateIdentifierScore(field, records, precomputedEntropy = null) {
@@ -926,14 +972,32 @@ function getConfidence(score) {
     return 'LOW';
 }
 
-// 배열의 모든 2-원소 조합(쌍)을 반환함 (복합 PK 후보 탐색용).
-// MAX_COMPOSITE_KEY_SIZE가 2로 고정되어 있으므로 재귀 조합 생성 대신 단순 이중 루프로 충분하다.
-function makePairs(arr) {
+// 배열의 k-원소 조합을 반환
+function makeCombinations(arr, size) {
     const result = [];
-    for (let i = 0; i < arr.length - 1; i++) {
-        for (let j = i + 1; j < arr.length; j++) {
-            result.push([arr[i], arr[j]]);
+
+    function visit(start, combo) {
+        if (combo.length === size) {
+            result.push(combo.slice());
+            return;
         }
+        for (let i = start; i < arr.length; i++) {
+            combo.push(arr[i]);
+            visit(i + 1, combo);
+            combo.pop();
+        }
+    }
+
+    visit(0, []);
+    return result;
+}
+
+// 복합 PK/FK 후보 조합 생성
+function makeCompositeKeyCombos(arr, maxSize = MAX_COMPOSITE_KEY_SIZE) {
+    const result = [];
+    const safeMax = Math.min(Math.max(Number(maxSize) || 2, 2), 3);
+    for (let size = 2; size <= safeMax; size++) {
+        result.push(...makeCombinations(arr, size));
     }
     return result;
 }
@@ -944,14 +1008,14 @@ function makePairs(arr) {
 // =============================================================================
 
 /**
- * 단일 데이터셋(테이블)의 필드 목록과 샘플 레코드를 바탕으로, 단일/복합 기본키(PK) 후보를 추출합니다.
+ * 단일 데이터셋(테이블)의 필드 목록과 샘플 레코드를 바탕으로, 단일/복합 기본키(PK) 후보를 추출
  */
 function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
     const fields = Array.isArray(ds.fields) ? ds.fields : [];
     const validFields = fields.filter(f => getFieldName(f));
 
-    // 모든 필드가 집계/통계 성격이면 이 테이블은 PK 없는 집계 테이블로 분류한다.
-    // 단, 필드가 전혀 없는 경우(데이터 수집 실패)는 집계 판정하지 않는다.
+    // 모든 필드가 집계/통계 성격이면 이 테이블은 PK 없는 집계 테이블로 분류
+    // 단, 필드가 전혀 없는 경우(데이터 수집 실패)는 집계 판정하지 않음
     if (validFields.length > 0 && validFields.every(f => isBadPkField(f))) {
         return [{
             fields: [],
@@ -995,10 +1059,10 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
     const compositeCandidates = [];
 
     if (records.length > 0 && compositeBase.length >= 2) {
-        // arquero 기반 컬럼 프로파일 — 복합키 후보 필드의 null 비율을 근거 문구에 반영한다.
+        // arquero 기반 컬럼 프로파일 — 복합키 후보 필드의 null 비율을 근거 문구에 반영
         const arqueroProfile = profileColumnsWithArquero(records, compositeBase);
 
-        for (const combo of makePairs(compositeBase)) {
+        for (const combo of makeCompositeKeyCombos(compositeBase)) {
             const stats = getUniquenessStats(records, combo);
             if (!stats.is_unique) continue;
 
@@ -1007,9 +1071,10 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
                 return f ? getKorName(f) : fname;
             });
 
-            let score = 75;
+            let score = combo.length === 2 ? 75 : 68;
             if (combo.some(f => isKnownRelationKey(f.toUpperCase()))) score += 10;
             if (combo.some(f => /SEQ|_NO|NO$/i.test(f))) score += 10;
+            if (combo.length >= 3) score -= 5;
 
             const nullNotes = combo
                 .map(fname => {
@@ -1029,6 +1094,7 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
                 kor_names: korNames,
                 score: Math.min(score, 95),
                 type: 'composite',
+                key_size: combo.length,
                 confidence: getConfidence(score),
                 unique_check: stats,
                 reason
@@ -1048,38 +1114,77 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
 // =============================================================================
 
 /**
- * arquero를 사용해 각 컬럼의 분포를 프로파일링한다.
- * 기존 getUniquenessStats보다 풍부한 통계를 제공하며,
- * 복합키 분석과 함께 활용된다.
- *
- * @param {object[]} records
- * @param {string[]} fieldNames
- * @returns {Map<string, object>} 대문자 필드명 → 통계 객체
+ * [Arquero 기반 컬럼 프로파일링 함수]
+ * 
+ * 주어진 레코드(JSON 배열)를 Arquero 데이터 테이블로 변환한 뒤, 각 컬럼(필드)별 데이터 분포, 결측률(Null Rate), 고유도(Uniqueness) 등의 통계 지표를 계산
+ * 이 통계는 해당 컬럼이 기본키(PK)나 외래키(FK)로 사용되기에 적합한지 판단하는 핵심 지표로 활용
+ * 
+ * @param {object[]} records - 분석할 실제 데이터 레코드 배열 (예: [{ id: 1, name: 'A' }, ...])
+ * @param {string[]} fieldNames - 통계를 추출하고자 하는 대상 컬럼명 배열
+ * 
+ * @returns {Map<string, object>} 분석 결과 Map 반환
+ *          - Key: 대문자로 변환된 필드명 (정규화 목적)
+ *          - Value: 아래 지표를 포함하는 통계 객체
+ *              * total        : 전체 행 개수
+ *              * non_empty    : null, undefined, 빈 문자열('')이 아닌 유효한 값을 가진 행 개수
+ *              * unique       : 유효한 값들 중 중복을 제거한 고유(Unique) 값의 개수
+ *              * null_rate    : 전체 행 중 결측치가 차지하는 비율 (0.0 ~ 1.0)
+ *              * unique_ratio : 유효한 값 중 고유값이 차지하는 비율 (1.0에 가까울수록 PK에 적합)
+ *              * is_unique    : 빈 값이 전혀 없고, 모든 값이 고유한지 여부 (완벽한 PK 후보 여부)
  */
 function profileColumnsWithArquero(records, fieldNames) {
+    // 분석할 데이터가 아예 없는 경우, 불필요한 연산을 막기 위해 빈 Map 반환
     if (!records || records.length === 0) return new Map();
 
+    // 일반 JSON 배열을 Arquero 라이브러리가 다룰 수 있는 'Table' 객체로 변환
     const table = aq.from(records);
+    
+    // 현재 테이블에 실제로 존재하는 컬럼명들만 추출 (빠른 검사를 위해 Set 자료구조 사용)
     const avail = new Set(table.columnNames());
+    
+    // 최종 통계 결과를 담을 Map 객체 초기화
     const result = new Map();
 
     for (const field of fieldNames) {
+        // 테이블에 존재하지 않는 컬럼을 분석하려고 하면 오류가 나므로 건너뜀(Skip)
         if (!avail.has(field)) continue;
 
+        // 다른 컬럼의 간섭 없이 해당 컬럼 딱 하나만 잘라내서(Select) 분석 속도 최적화
         const col = table.select([field]);
+        
+        // 전체 행(Row) 개수
         const total = col.numRows();
-        const nonEmpty = col.filter(aq.escape(d => d[field] !== null && d[field] !== undefined && String(d[field]).trim() !== '')).numRows();
+        
+        // null, undefined, 빈 문자열('') 같은 의미 없는 데이터를 제외한 '유효한 데이터'의 개수
+        const nonEmpty = col.filter(aq.escape(d => 
+            d[field] !== null && 
+            d[field] !== undefined && 
+            String(d[field]).trim() !== ''
+        )).numRows();
+        
+        // 유효한 데이터 중에서 중복을 제거(dedupe)했을 때 남는 '고유값'의 개수
         const uniqueCount = nonEmpty === 0 ? 0 : col
-            .filter(aq.escape(d => d[field] !== null && d[field] !== undefined && String(d[field]).trim() !== ''))
-            .dedupe([field])
+            .filter(aq.escape(d => 
+                d[field] !== null && 
+                d[field] !== undefined && 
+                String(d[field]).trim() !== ''
+            ))
+            .dedupe([field]) // 중복 제거 함수
             .numRows();
 
+        // 계산된 지표들을 대문자 필드명을 Key로 하여 Map에 저장
         result.set(field.toUpperCase(), {
-            total,
-            non_empty: nonEmpty,
-            unique: uniqueCount,
+            total,                          // 전체 행 수
+            non_empty: nonEmpty,            // 유효 데이터 수
+            unique: uniqueCount,            // 고유값 개수
+            
+            // 결측률: (전체 개수 - 유효한 개수) / 전체 개수
             null_rate: total > 0 ? (total - nonEmpty) / total : 0,
+            
+            // 고유도 비율: 고유값 개수 / 유효한 개수 (1에 가까울수록 식별자로 좋음)
             unique_ratio: nonEmpty > 0 ? uniqueCount / nonEmpty : 0,
+            
+            // 완벽한 PK 조건: 유효 데이터가 100% 고유하고, 빈 값(Null)도 하나도 없는 경우
             is_unique: uniqueCount === nonEmpty && nonEmpty === total
         });
     }
@@ -1088,133 +1193,235 @@ function profileColumnsWithArquero(records, fieldNames) {
 }
 
 /**
- * 복합키(여러 필드 조합)의 포함률을 계산한다.
- * NULL 이 하나라도 있는 행은 제외한다. 순수 JS Set 캐싱으로 성능 최적화.
+ * [복합키(Composite Key) 포함률 계산 함수]
+ * 
+ * 여러 필드(예: 업소번호 + 제품번호)를 조합하여 만든 복합키가 대상(To) 테이블에 얼마나 포함되어 있는지(Inclusion Rate)를 계산
  *
- * @param {string} fromSvcNo
- * @param {string} toSvcNo
- * @param {object[]} fromRecords
- * @param {object[]} toRecords
- * @param {string[]} fields
- * @param {Map} valuesCache
+ * @param {string} fromSvcNo - From 테이블의 고유 번호(캐시 키 생성용)
+ * @param {string} toSvcNo - To 테이블의 고유 번호(캐시 키 생성용)
+ * @param {object[]} fromRecords - 분석할 From 테이블의 데이터 배열
+ * @param {object[]} toRecords - 분석할 To 테이블의 데이터 배열
+ * @param {string[]} fields - 복합키를 구성할 컬럼명 배열 (예: ['LCNS_NO', 'BSSH_NO'])
+ * @param {Map} valuesCache - 이전 계산 결과를 저장해둔 전역/상위 스코프의 캐시 Map
  */
 function getCompositeInclusionStats(fromSvcNo, toSvcNo, fromRecords, toRecords, fields, valuesCache = new Map()) {
+    // 입력받은 데이터를 처리하기 쉬운 순수 배열 형태로 변환
     const fromRows = toRecordArray(fromRecords);
     const toRows = toRecordArray(toRecords);
+    
+    // 어느 한쪽이라도 데이터가 아예 없다면 비교할 필요 없이 바로 0 반환
     if (!fromRows.length || !toRows.length) {
-        return { from_count: 0, to_count: 0, matched: 0, inclusion_ratio: 0, checked: false };
+        return {
+            from_record_count: fromRows.length,
+            to_record_count: toRows.length,
+            from_count: 0,
+            to_count: 0,
+            matched: 0,
+            matched_row_count: 0,
+            inclusion_ratio: 0,
+            checked: false,
+            source: 'records'
+        };
     }
-
+    // 복합키 문자열 생성용 구분자 (Null 문자 '\x00')
     const SEP = '\x00';
+    
+    // 값이 비어있는지(null, undefined, 빈 문자열) 확인하는 헬퍼 함수
     const isEmpty = (v) => v === null || v === undefined || String(v).trim() === '';
+    
+    // 여러 필드의 값을 뽑아 구분자(SEP)로 이어붙인 하나의 '복합키 문자열' 생성
+    // 예: { id: 1, type: 'A' } -> "1\x00A"
     const makeKey = (rec) => fields.map(f => String(rec[f] ?? '')).join(SEP);
+    
+    // 생성된 복합키 문자열이 유효한지 검사
+    // 복합키를 구성하는 N개의 필드 중 단 하나라도 값이 비어있다면, 그 키는 무효(버림) 처리
     const isValidKey = (k) => !k.split(SEP).some(isEmpty);
-
+    // 캐시(Cache)를 활용하여 데이터를 Set으로 변환하는 내부 함수
     const getCached = (svcNo, records) => {
+        // 캐시 관리를 위한 고유 식별 키 생성 (예: "I1200|COMPOSITE|LCNS_NO,BSSH_NO")
         const key = `${svcNo}|COMPOSITE|${fields.join(',')}`;
         let set = valuesCache.get(key);
+        
         if (!set) {
+            // 캐시에 없다면 새로 계산: 레코드를 순회하며 키를 만들고 유효한 것만 추려서 Set(중복 제거) 생성
             set = new Set(toRecordArray(records).map(makeKey).filter(isValidKey));
-            valuesCache.set(key, set);
+            valuesCache.set(key, set); // 다음 번 검사를 위해 저장
         }
         return set;
     };
-
+    // 양쪽 테이블의 데이터를 각각 고유한 복합키 Set으로 추출 (캐시 활용)
     const fromValues = getCached(fromSvcNo, fromRows);
     const toValues = getCached(toSvcNo, toRows);
-
+    // 순수하게 중복과 NULL이 제거된 최종 고유 키의 개수
     const fromCount = fromValues.size;
     const toCount = toValues.size;
-
+    // 추출된 유효한 키가 하나도 없다면 바로 종료
     if (fromCount === 0 || toCount === 0) {
-        return { from_count: fromCount, to_count: toCount, matched: 0, inclusion_ratio: 0, checked: false };
+        return {
+            from_record_count: fromRows.length,
+            to_record_count: toRows.length,
+            from_count: fromCount,
+            to_count: toCount,
+            matched: 0,
+            matched_row_count: 0,
+            inclusion_ratio: 0,
+            checked: false,
+            source: 'records'
+        };
     }
-
+    // 교집합 계산 (From의 키가 To의 키 Set 안에 존재하는지 카운트)
     let matched = 0;
+    const matchedValues = new Set();
     for (const val of fromValues) {
-        if (toValues.has(val)) matched++;
+        if (toValues.has(val)) {
+            matched++;
+            matchedValues.add(val);
+        }
     }
-
+    let matchedRowCount = 0;
+    for (const row of fromRows) {
+        const key = makeKey(row);
+        if (isValidKey(key) && matchedValues.has(key)) matchedRowCount++;
+    }
+    // 최종 포함률(Inclusion Ratio) 및 통계 결과 반환
     return {
-        from_count: fromCount,
-        to_count: toCount,
-        matched,
-        inclusion_ratio: matched / fromCount,
-        checked: true
+        from_record_count: fromRows.length,
+        to_record_count: toRows.length,
+        from_count: fromCount,           // From 테이블의 유효 고유 복합키 개수
+        to_count: toCount,               // To 테이블의 유효 고유 복합키 개수
+        matched,                         // 양쪽에 공통으로 존재하는(매칭된) 키의 개수
+        matched_row_count: matchedRowCount,
+        inclusion_ratio: matched / fromCount, // 포함률: (매칭 수 / From 전체 수) - 1.0에 가까울수록 강력한 FK
+        row_inclusion_ratio: fromRows.length > 0 ? matchedRowCount / fromRows.length : 0,
+        checked: true,                   // 정상적으로 검사가 수행되었음을 마킹
+        source: 'records'
     };
 }
 
 /**
- * 복합 PK 후보를 가진 테이블을 기준으로 다른 테이블에서 동일 필드 조합이
- * FK 역할을 하는지 탐지한다.
+ * [복합 외래키(Composite FK) 후보 탐지 함수]
+ * 
+ * 복합 PK 후보를 가진 부모(Target) 테이블을 기준으로 삼고, 나머지 다른 테이블들(From)이 해당 복합 필드들을 똑같이 가지고 있으면서 FK 역할을 하는지를 탐지
  *
- * @param {object[]}           datasets
- * @param {object[]}           tableAnalyses
- * @param {Map<string,object[]>} recordsMap
- * @param {Map}                valuesCache - analyze()에서 공유하는 값 Set 캐시 (Memoization)
- * @returns {object[]} 복합 FK 후보 목록
+ * @param {object[]}           datasets - 전체 데이터셋(테이블) 기본 정보 목록
+ * @param {object[]}           tableAnalyses - 개별 테이블별로 미리 분석해둔 PK/FK 후보 분석 결과
+ * @param {Map<string,object[]>} recordsMap - 메모리에 로드된 전체 테이블의 실제 데이터(레코드) Map
+ * @param {Map}                valuesCache - 성능 최적화를 위해 이전 단계에서부터 공유되는 Set 캐시
+ * @returns {object[]} 최종적으로 탐지된 복합 FK 후보 목록
  */
 function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, valuesCache = new Map()) {
     const results = [];
+    // 똑같은 (From 테이블 + 필드 조합 + To 테이블) 관계를 두 번 검사하지 않기 위한 중복 방지용 Set
     const seenKeys = new Set();
+    const reverseSeenKeys = new Set();
 
+    // 모든 테이블을 순회하며 '부모(To/Target) 테이블' 역할을 할 수 있는지 검사
     for (const targetTable of tableAnalyses) {
+        
+        // 부모 테이블이 되려면 먼저 쓸만한 '복합 기본키(Composite PK)'를 가지고 있어야 함
+        // 신뢰도가 너무 낮은(LOW) 후보는 오탐지의 원인이 되므로 제외
         const compositePks = targetTable.pk_candidates.filter(
             pk => pk.type === 'composite' && pk.confidence !== 'LOW'
         );
-        if (compositePks.length === 0) continue;
+        if (compositePks.length === 0) continue; // 복합 PK가 없으면 부모 테이블 자격 미달로 패스
 
+        // 부모 테이블의 실제 데이터를 꺼내오고、 데이터가 없으면 포함률 검사를 할 수 없으니 패스
         const toRecords = recordsMap.get(targetTable.svc_no) || [];
         if (toRecords.length === 0) continue;
 
+        // 모든 다른 테이블을 순회하며, 부모 테이블의 복합 PK 후보와 맞는 FK 후보가 있는지 검사
         for (const ds of datasets) {
             const fromSvcNo = String(ds.svc_no || '').trim();
+            
+            // 자기 자신(부모=자식)을 참조하는 경우는 일반적이지 않으므로 건너뜀
             if (fromSvcNo === targetTable.svc_no) continue;
 
+            // 자식 테이블의 실제 데이터를 꺼내옴
             const fromRecords = recordsMap.get(fromSvcNo) || [];
             if (fromRecords.length === 0) continue;
 
+            // 자식 테이블이 어떤 컬럼들을 가지고 있는지 빠르게 확인하기 위해 컬럼명 Set을 만듦
             const fromFieldSet = new Set(Object.keys(fromRecords[0]).map(k => k.toUpperCase()));
 
+            // 부모 테이블이 가진 복합 PK 후보들을 하나씩 꺼내어 자식 테이블과 맞춰봅니다.
+            // 성능 폭발을 막기 위해 가장 가능성이 높은 상위 2개의 복합 PK 후보만 검사
             for (const pk of compositePks.slice(0, 2)) {
                 const pkFields = pk.fields;
 
-                // from 테이블이 해당 복합키 필드를 모두 보유하지 않으면 스킵
+                // 자식 테이블이 부모의 복합키 필드(예: A, B 컬럼)를 전부 가지고 있지 않다면 아예 검사할 필요가 없음
                 if (!pkFields.every(f => fromFieldSet.has(f.toUpperCase()))) continue;
 
-                // 설명성 필드(_NM, 주소 등)가 포함된 복합키는 스킵
+                // 복합키에 '이름(_NM)', '주소' 같은 설명성 텍스트 필드가 껴있다면 FK일 확률이 없으므로 버림
                 if (pkFields.some(f => isExcludedFkField(f))) continue;
 
+                // "자식테이블 | 필드조합 | 부모테이블" 형태의 키를 만들어, 이미 검사한 이력이 있는지 확인합니다.
                 const dedupeKey = [fromSvcNo, pkFields.join('+'), targetTable.svc_no].join('|');
                 if (seenKeys.has(dedupeKey)) continue;
+                const reverseKey = [targetTable.svc_no, pkFields.join('+'), fromSvcNo].join('|');
+                if (reverseSeenKeys.has(reverseKey)) continue;
                 seenKeys.add(dedupeKey);
 
+                // '포함률(Inclusion Rate)' 계산 로직 호출
                 const stats = getCompositeInclusionStats(fromSvcNo, targetTable.svc_no, fromRecords, toRecords, pkFields, valuesCache);
-                if (!stats.checked || stats.inclusion_ratio <= 0) continue;
+                
+                // 검증 불가 또는 매칭이 전혀 없으면 복합 FK 후보에서 제외
+                if (!stats.checked || stats.inclusion_ratio <= 0 || stats.matched < FK_MIN_MATCHED_COUNT) continue;
 
+                // 5. 포함률을 기반으로 최종 FK 신뢰도 점수를 매김
+                // 기본점수 55점 + (포함률 최대 35점) + (부모 PK가 매우 확실할 경우 가산점 10점) = 최대 100점
+                const confirmedByData = stats.inclusion_ratio >= FK_MIN_INCLUSION_RATIO && stats.matched >= FK_MIN_MATCHED_COUNT;
                 const score = Math.min(
-                    Math.round(55 + stats.inclusion_ratio * 35 + (pk.confidence === 'HIGH' ? 10 : 0)),
-                    95
+                    Math.round(55 + stats.inclusion_ratio * 35 + (pk.confidence === 'HIGH' ? 10 : 0) - (pk.fields.length >= 3 ? 5 : 0)),
+                    95 // 점수가 너무 넘치지 않게 95점으로 상한선(Cap)을 둠
                 );
-                const confidence = score >= 80 ? 'HIGH' : score >= 65 ? 'MEDIUM' : 'LOW';
+                
+                // 점수 구간에 따라 등급(HIGH, MEDIUM, LOW)을 부여
+                const confidence = confirmedByData
+                    ? (score >= 80 ? 'HIGH' : score >= 65 ? 'MEDIUM' : 'LOW')
+                    : 'SUGGESTED';
 
+                // 6. 훌륭한 복합 FK 후보를 찾았으므로 최종 결과 배열에 담음
                 results.push({
-                    from_table: fromSvcNo,
-                    from_table_name: String(ds.svc_nm || '').trim(),
-                    from_fields: pkFields,
-                    to_table: targetTable.svc_no,
-                    to_table_name: targetTable.svc_nm,
-                    to_fields: pkFields,
-                    pk_confidence: pk.confidence,
-                    inclusion_check: stats,
-                    score,
-                    confidence,
-                    relation_type: 'COMPOSITE_FK'
+                    from_table: fromSvcNo,                      // 자식 테이블 ID
+                    from_table_name: String(ds.svc_nm || '').trim(), // 자식 테이블 이름
+                    from_fields: pkFields,                      // 외래키로 쓰인 컬럼들
+                    to_table: targetTable.svc_no,               // 참조하는 부모 테이블 ID
+                    to_table_name: targetTable.svc_nm,          // 참조하는 부모 테이블 이름
+                    to_fields: pkFields,                        // 참조되는 부모의 기본키 컬럼들
+                    pk_confidence: pk.confidence,               // 부모 PK의 신뢰도 수준
+                    inclusion_check: stats,                     // 포함률 통계 결과 원본
+                    score,                                      // 최종 산정된 FK 퀄리티 점수
+                    confidence,                                 // 최종 FK 신뢰도 등급
+                    relation_type: confirmedByData ? 'COMPOSITE_FK' : 'SUGGESTED_COMPOSITE_FK',
+                    reason: `복합키 ${pkFields.join(' + ')} 포함률 ${(stats.inclusion_ratio * 100).toFixed(1)}%, 매칭 고유값 ${stats.matched}개, 매칭 row ${stats.matched_row_count}건`,
+                    review_evidence: {
+                        pk_confidence: pk.confidence,
+                        pk_score: pk.score,
+                        key_size: pkFields.length,
+                        inclusion_ratio: stats.inclusion_ratio,
+                        matched_count: stats.matched,
+                        matched_row_count: stats.matched_row_count,
+                        from_unique_count: stats.from_count,
+                        to_unique_count: stats.to_count,
+                        threshold: {
+                            min_inclusion_ratio: FK_MIN_INCLUSION_RATIO,
+                            min_matched_count: FK_MIN_MATCHED_COUNT
+                        },
+                        decision: confirmedByData ? 'COMPOSITE_FK' : 'SUGGESTED_COMPOSITE_FK',
+                        reasons: [
+                            `부모 복합 PK 신뢰도 ${pk.confidence}`,
+                            `포함률 ${(stats.inclusion_ratio * 100).toFixed(1)}%`,
+                            `매칭 고유값 ${stats.matched}개`,
+                            `매칭 row ${stats.matched_row_count}건`
+                        ]
+                    }
                 });
+                reverseSeenKeys.add(dedupeKey);
             }
         }
     }
 
+    // 찾아낸 모든 복합 FK 후보들을 점수가 가장 높은 순서(내림차순)로 정렬하여 반환
     return results.sort((a, b) => b.score - a.score);
 }
 
@@ -1223,7 +1430,7 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, values
 // 8. FK 후보 분석 — 정제 반영 버전
 // =============================================================================
 
-// tableAnalyses 배열을 svcNo → 분석 결과 Map으로 변환함
+// tableAnalyses 배열을 svcNo → 분석 결과 Map으로 변환
 function createTableLookup(tableAnalyses) {
     const map = new Map();
     for (const table of tableAnalyses) {
@@ -1327,6 +1534,10 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
     }
 
     const inclusion = getInclusionStats(fromSvcNo, target.svc_no, fromRecords, toRecords, fieldName, target.pk.fields[0], valuesCache);
+    const hasEnoughMatch = inclusion.checked &&
+        inclusion.inclusion_ratio >= minRatio &&
+        inclusion.matched_count >= FK_MIN_MATCHED_COUNT;
+    const hasAnyMatch = inclusion.checked && inclusion.matched_count > 0;
 
     // ==== 데이터 샘플 크기 한계로 인해 교집합이 없어도 
     // FK_ALLOW_UNCHECKED가 true라면 강제 스킵하지 않고 이후 점수로 평가하도록 변경 ====
@@ -1340,16 +1551,13 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
         };
     }
 
-    let relationType = 'SUGGESTED';
+    let relationType = 'UNVERIFIED';
 
-    // ── 방향 B: 업무 명칭 기반 부모-자식 관계 규칙 ──────────────────────────
-    // 데이터셋명으로 보아 명백히 부모-자식 관계인 경우,
-    // 값 포함률이 낮거나(0% 포함) 미검증이어도 CONFIRMED로 승격한다.
-    // 샘플 5건으로는 실제 FK가 있어도 포함률 0%가 나오는 것이 정상이기 때문이다.
+    // 방향 B: 업무 명칭 기반 부모-자식 관계 규칙
+    // 데이터셋명으로 보아 명백히 부모-자식 관계인 경우, 값 포함률이 낮거나(0% 포함) 미검증이어도 CONFIRMED로 승격
     const domainConfirmed = matchesDomainParentChildRuleFuzzy(fromSvcNm, target.svc_nm, fuseIndex);
     if (domainConfirmed) {
         score += FK_DOMAIN_CONFIRMED_BONUS;
-        relationType = 'CONFIRMED';
         reasons.push(`업무 명칭 규칙: "${fromSvcNm}" → "${target.svc_nm}" 부모-자식 관계 확인`);
     }
     // =============================================================================───────────────────────
@@ -1357,24 +1565,22 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
     if (inclusion.checked) {
         const pct = (inclusion.inclusion_ratio * 100).toFixed(1);
 
-        if (inclusion.inclusion_ratio >= strongRatio) {
+        if (inclusion.inclusion_ratio >= strongRatio && inclusion.matched_count >= FK_MIN_MATCHED_COUNT) {
             score += 30;
             relationType = 'CONFIRMED';
-            reasons.push(`값 포함률 ${pct}%`);
-        } else if (inclusion.inclusion_ratio >= minRatio) {
+            reasons.push(`값 포함률 ${pct}%, 매칭 고유값 ${inclusion.matched_count}개, 매칭 row ${inclusion.matched_row_count}건`);
+        } else if (hasEnoughMatch) {
             score += 15;
             relationType = 'CONFIRMED';
-            reasons.push(`값 포함률 ${pct}%`);
+            reasons.push(`값 포함률 ${pct}%, 매칭 고유값 ${inclusion.matched_count}개, 매칭 row ${inclusion.matched_row_count}건`);
+        } else if (hasAnyMatch) {
+            score += 5;
+            relationType = domainConfirmed ? 'SUGGESTED' : 'UNVERIFIED';
+            reasons.push(`값 포함률 ${pct}%, 매칭 고유값 ${inclusion.matched_count}개 — 확정 기준(${(minRatio * 100).toFixed(1)}%, ${FK_MIN_MATCHED_COUNT}개) 미달`);
         } else {
-            // 샘플 수가 적을 경우 0%라도 업무상 관계일 수 있으므로 즉시 제외하지 않고 처리한다.
-            // 단, 업무 명칭 규칙으로 이미 CONFIRMED 승격된 경우에는 강등하지 않는다.
-            if (!domainConfirmed) {
-                score -= 20;
-                relationType = 'SUGGESTED';
-                reasons.push(`값 포함률 낮음 ${pct}% — 추정 후보로 분류`);
-            } else {
-                reasons.push(`값 포함률 낮음 ${pct}% (업무 명칭 규칙으로 CONFIRMED 유지)`);
-            }
+            score -= 20;
+            relationType = domainConfirmed ? 'UNVERIFIED' : 'UNVERIFIED';
+            reasons.push(`값 포함률 낮음 ${pct}% — UNVERIFIED 분류`);
         }
     } else {
         if (!FK_ALLOW_UNCHECKED && !domainConfirmed) {
@@ -1389,34 +1595,33 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
 
         if (!domainConfirmed) {
             score -= 10;
-            relationType = 'SUGGESTED';
-            reasons.push('샘플 부족으로 값 포함률 미검증 — 추정 후보로 분류');
+            relationType = 'UNVERIFIED';
+            reasons.push('샘플 부족으로 값 포함률 미검증 — UNVERIFIED 분류');
         } else {
-            reasons.push('샘플 부족으로 값 포함률 미검증 (업무 명칭 규칙으로 CONFIRMED 유지)');
+            relationType = 'SUGGESTED';
+            reasons.push('샘플 부족으로 값 포함률 미검증 — 업무 명칭 규칙 기반 SUGGESTED 분류');
         }
     }
 
-    // ── Substantive evidence gate ─────────────────────────────────────────────
-    // 도메인 규칙 확인 OR 샘플 포함률 > 0 중 하나라도 있어야 CONFIRMED를 유지한다.
-    // 두 근거가 모두 없으면 기계적 점수만으로 CONFIRMED가 되는 것을 막고 SUGGESTED로 강등한다.
-    // 이로써 기본 점수(45 + PK기여 25 + 관계키 18 + 마스터규칙 15)만으로
-    // 아무 근거 없이 CONFIRMED가 되는 케이스를 제거한다.
+    if (relationType === 'UNVERIFIED' && domainConfirmed && hasAnyMatch) {
+        relationType = 'SUGGESTED';
+        reasons.push('업무 명칭 규칙과 일부 값 매칭으로 SUGGESTED 승격');
+    }
+
+    // 확정은 값 포함률과 매칭 수 기준을 모두 충족해야 유지
     if (relationType === 'CONFIRMED') {
-        const inclusionPositive = inclusion.checked && inclusion.inclusion_ratio > 0;
-        if (!domainConfirmed && !inclusionPositive) {
+        if (!hasEnoughMatch) {
             relationType = 'SUGGESTED';
             score -= 15;
-            reasons.push('도메인 규칙·포함률 근거 없음 → SUGGESTED 강등 (-15)');
+            reasons.push('확정 기준 미달 → SUGGESTED 강등 (-15)');
         }
     }
-    // =============================================================================───────────────────────
-
     const finalScore = Math.min(Math.max(Math.round(score), 0), 100);
 
-    if (relationType === 'SUGGESTED' && finalScore < FK_SUGGESTED_MIN_SCORE) {
+    if ((relationType === 'SUGGESTED' || relationType === 'UNVERIFIED') && finalScore < FK_SUGGESTED_MIN_SCORE) {
         return {
             skip: true,
-            skip_reason: `추정 후보 점수 ${finalScore}점으로 기준 미달`,
+            skip_reason: `${relationType} 후보 점수 ${finalScore}점으로 기준 미달`,
             inclusion,
             score: finalScore,
             reasons
@@ -1426,7 +1631,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
     return {
         skip: false,
         score: finalScore,
-        confidence: relationType === 'CONFIRMED' ? getConfidence(finalScore) : 'SUGGESTED',
+        confidence: relationType === 'CONFIRMED' ? getConfidence(finalScore) : relationType,
         relation_type: relationType,
         inclusion,
         reasons
@@ -1434,7 +1639,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
 }
 
 /**
- * 대상 데이터셋의 단일 필드들이 다른 테이블의 단일키(PK)를 참조하는 외래키(FK)인지 분석하고 점수를 매깁니다.
+ * 대상 데이터셋의 단일 필드들이 다른 테이블의 단일키(PK)를 참조하는 외래키(FK)인지 분석하고 점수를 매김
  */
 function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fuseIndex = null, thresholds = null, valuesCache = new Map()) {
     const tableLookup = createTableLookup(tableAnalyses);
@@ -1543,7 +1748,25 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                     confidence: scored.confidence,
                     relation_type: scored.relation_type,
                     inclusion_check: scored.inclusion,
-                    reason: scored.reasons.join(' / ')
+                    reason: scored.reasons.join(' / '),
+                    review_evidence: {
+                        pk_confidence: target.pk.confidence,
+                        pk_score: target.pk.score,
+                        exact_field_match: target.exactFieldMatch ?? true,
+                        field_similarity: target.fieldSimilarity ?? 1.0,
+                        inclusion_ratio: scored.inclusion?.inclusion_ratio ?? 0,
+                        matched_count: scored.inclusion?.matched_count ?? 0,
+                        matched_row_count: scored.inclusion?.matched_row_count ?? 0,
+                        from_unique_count: scored.inclusion?.from_unique_count ?? 0,
+                        to_unique_count: scored.inclusion?.to_unique_count ?? 0,
+                        threshold: {
+                            min_inclusion_ratio: thresholds?.min ?? FK_MIN_INCLUSION_RATIO,
+                            min_matched_count: FK_MIN_MATCHED_COUNT,
+                            strong_inclusion_ratio: thresholds?.strong ?? FK_STRONG_INCLUSION_RATIO
+                        },
+                        decision: scored.relation_type,
+                        reasons: scored.reasons
+                    }
                 });
             }
 
@@ -1657,7 +1880,7 @@ function buildColMap(ds, records) {
 // =============================================================================
 
 /**
- * FK 관계(단일+복합)로 방향 그래프를 구성한다.
+ * FK 관계(단일+복합)로 방향 그래프를 구성
  * from → to 방향: 자식(참조하는 쪽) → 부모(마스터)
  */
 function buildFkGraph(tableAnalyses, relationships, compositeFks) {
@@ -1668,6 +1891,7 @@ function buildFkGraph(tableAnalyses, relationships, compositeFks) {
     }
 
     for (const rel of relationships) {
+        if (rel.relation_type === 'UNVERIFIED') continue;
         graph.mergeNode(rel.from_table);
         graph.mergeNode(rel.to_table);
         if (!graph.hasEdge(rel.from_table, rel.to_table)) {
@@ -1680,6 +1904,7 @@ function buildFkGraph(tableAnalyses, relationships, compositeFks) {
     }
 
     for (const fk of (compositeFks || [])) {
+        if (fk.relation_type !== 'COMPOSITE_FK') continue;
         graph.mergeNode(fk.from_table);
         graph.mergeNode(fk.to_table);
         if (!graph.hasEdge(fk.from_table, fk.to_table)) {
@@ -1695,10 +1920,10 @@ function buildFkGraph(tableAnalyses, relationships, compositeFks) {
 }
 
 /**
- * in-degree 기준으로 테이블을 순위화한다.
- * in-degree >= 2 이고 out-degree 가 작은 테이블 = 마스터 테이블 후보.
+ * in-degree 기준으로 테이블을 순위화
+ * in-degree >= 2 이고 out-degree 가 작은 테이블 = 마스터 테이블 후보
  * graphology-metrics의 in-degree centrality를 함께 계산해 그래프 크기에 따라
- * 정규화된 중심성 지표도 제공한다 (마스터 테이블 판단의 보조 근거).
+ * 정규화된 중심성 지표도 제공한다 (마스터 테이블 판단의 보조 근거)
  */
 function computeInDegreeRanking(graph, tableAnalyses) {
     const tableMap = new Map(tableAnalyses.map(t => [t.svc_no, t]));
@@ -1719,9 +1944,8 @@ function computeInDegreeRanking(graph, tableAnalyses) {
 }
 
 /**
- * 사이클을 가장 작은(사전순) 노드가 맨 앞에 오도록 회전시켜 정규화한다.
- * 서로 다른 시작점에서 탐지된 동일한 사이클(A→B→C→A 를 A, B, C 각각에서 발견)을
- * 같은 표현으로 만들어 중복 제거에 사용한다.
+ * 사이클을 가장 작은(사전순) 노드가 맨 앞에 오도록 회전시켜 정규화
+ * 서로 다른 시작점에서 탐지된 동일한 사이클(A→B→C→A 를 A, B, C 각각에서 발견)을 같은 표현으로 만들어 중복 제거에 사용
  */
 function normalizeCycle(cycle) {
     if (cycle.length === 0) return cycle;
@@ -1733,8 +1957,7 @@ function normalizeCycle(cycle) {
 }
 
 /**
- * DFS로 순환 FK 참조를 탐지한다.
- * 순환이 있으면 SQL DDL 실행 순서가 깨질 수 있어 경고가 필요하다.
+ * DFS로 순환 FK 참조를 탐지
  *
  * @returns {string[][]} 각 사이클에 포함된 테이블 목록 (중복 제거됨)
  */
@@ -1792,10 +2015,8 @@ function detectFkCycles(graph) {
 }
 
 /**
- * 위상 정렬을 수행한다. 결과 순서대로 CREATE TABLE을 실행하면
- * FK 제약조건 위반 없이 DDL 실행 가능하다.
- * graphology-dag의 검증된 구현을 사용하며, 사이클이 있는 그래프(DAG 아님)에서는
- * Kahn 알고리즘 기반 부분 순서로 대체해 사이클이 있어도 최대한 유용한 순서를 제공한다.
+ * 위상 정렬을 수행 결과 순서대로 CREATE TABLE을 실행하면 FK 제약조건 위반 없이 DDL 실행 가능
+ * graphology-dag의 검증된 구현을 사용하며, 사이클이 있는 그래프(DAG 아님)에서는 Kahn 알고리즘 기반 부분 순서로 대체해 사이클이 있어도 최대한 유용한 순서를 제공
  *
  * @returns {{ order: string[], is_dag: boolean }}
  */
@@ -1854,16 +2075,194 @@ function computeConnectedComponents(graph) {
     return components.sort((a, b) => b.length - a.length);
 }
 
+// graphology-metrics 기반 중심성 계산
+function computeCentralityRanking(graph, tableAnalyses) {
+    const tableMap = new Map(tableAnalyses.map(t => [t.svc_no, t]));
+    let pageRankScores = {};
+    let betweennessScores = {};
+    let closenessScores = {};
+
+    try { pageRankScores = pagerank(graph); } catch (_) { pageRankScores = {}; }
+    try { betweennessScores = betweenness(graph); } catch (_) { betweennessScores = {}; }
+    try { closenessScores = closeness(graph); } catch (_) { closenessScores = {}; }
+
+    return graph.nodes()
+        .map(node => {
+            const inDeg = graph.inDegree(node);
+            const outDeg = graph.outDegree(node);
+            const pr = Number(pageRankScores[node] || 0);
+            const btw = Number(betweennessScores[node] || 0);
+            const cls = Number(closenessScores[node] || 0);
+            const degreeScore = graph.order > 1 ? (inDeg + outDeg) / (graph.order - 1) : 0;
+
+            return {
+                svc_no: node,
+                svc_nm: tableMap.get(node)?.svc_nm || node,
+                cat: tableMap.get(node)?.cat || '',
+                in_degree: inDeg,
+                out_degree: outDeg,
+                pagerank: Number(pr.toFixed(6)),
+                betweenness: Number(btw.toFixed(6)),
+                closeness: Number(cls.toFixed(6)),
+                centrality_score: Number((pr * 100 + degreeScore * 30 + cls * 10 + btw).toFixed(3))
+            };
+        })
+        .sort((a, b) => b.centrality_score - a.centrality_score);
+}
+
+// 컴포넌트별 테마 후보 생성
+function buildThemeCandidates(components, tableAnalyses, relationships, centralityRanking) {
+    const tableMap = new Map(tableAnalyses.map(t => [t.svc_no, t]));
+    const centralityMap = new Map(centralityRanking.map(t => [t.svc_no, t]));
+    const stopWords = new Set(['정보', '현황', '조회', '목록', '데이터', '식품', '안전나라', 'Open', 'API']);
+
+    function collectNameTokens(tables) {
+        const counts = new Map();
+        for (const svcNo of tables) {
+            const name = tableMap.get(svcNo)?.svc_nm || '';
+            const tokens = name.split(/[\s/()·,.]+/).map(t => t.trim()).filter(t => t.length >= 2 && !stopWords.has(t));
+            for (const token of tokens) counts.set(token, (counts.get(token) || 0) + 1);
+        }
+        return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([token]) => token);
+    }
+
+    return components
+        .filter(comp => comp.length >= 2)
+        .map((comp, idx) => {
+            const compSet = new Set(comp);
+            const categories = new Map();
+            const joinKeys = new Map();
+            let relationCount = 0;
+
+            for (const svcNo of comp) {
+                const cat = tableMap.get(svcNo)?.cat || '기타';
+                categories.set(cat, (categories.get(cat) || 0) + 1);
+            }
+
+            for (const rel of relationships) {
+                if (!compSet.has(rel.from_table) || !compSet.has(rel.to_table)) continue;
+                relationCount++;
+                const key = String(rel.to_field || rel.from_field || '').toUpperCase();
+                if (key) joinKeys.set(key, (joinKeys.get(key) || 0) + 1);
+            }
+
+            const topCategories = Array.from(categories.entries()).sort((a, b) => b[1] - a[1]);
+            const topTokens = collectNameTokens(comp).slice(0, 2);
+            const hubTables = comp
+                .map(svcNo => centralityMap.get(svcNo) || {
+                    svc_no: svcNo,
+                    svc_nm: tableMap.get(svcNo)?.svc_nm || svcNo,
+                    centrality_score: 0,
+                    in_degree: 0,
+                    out_degree: 0
+                })
+                .sort((a, b) => b.centrality_score - a.centrality_score)
+                .slice(0, 3);
+            const themeName = topTokens.length > 0
+                ? `${topTokens.join('·')} 데이터 세트`
+                : `${topCategories[0]?.[0] || '연계'} 데이터 세트`;
+
+            return {
+                theme_id: `THEME_${String(idx + 1).padStart(2, '0')}`,
+                theme_name: themeName,
+                size: comp.length,
+                relation_count: relationCount,
+                main_categories: topCategories.slice(0, 3).map(([cat, count]) => ({ cat, count })),
+                hub_tables: hubTables.map(t => ({
+                    svc_no: t.svc_no,
+                    svc_nm: t.svc_nm,
+                    in_degree: t.in_degree,
+                    out_degree: t.out_degree,
+                    centrality_score: t.centrality_score
+                })),
+                join_keys: Array.from(joinKeys.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([field, count]) => ({ field, count })),
+                tables: comp.map(svcNo => ({
+                    svc_no: svcNo,
+                    svc_nm: tableMap.get(svcNo)?.svc_nm || svcNo,
+                    cat: tableMap.get(svcNo)?.cat || ''
+                }))
+            };
+        })
+        .sort((a, b) => b.relation_count - a.relation_count || b.size - a.size);
+}
+
+// 대표 연결 경로 산출
+function buildConnectionPaths(graph, centralityRanking, relationships, maxPaths = 30) {
+    const relationMap = new Map();
+    for (const rel of relationships) {
+        relationMap.set(`${rel.from_table}->${rel.to_table}`, rel);
+    }
+
+    const sources = centralityRanking
+        .filter(t => t.out_degree > 0)
+        .sort((a, b) => b.out_degree - a.out_degree || b.centrality_score - a.centrality_score)
+        .slice(0, 20);
+    const targets = centralityRanking
+        .filter(t => t.in_degree > 0)
+        .sort((a, b) => b.in_degree - a.in_degree || b.centrality_score - a.centrality_score)
+        .slice(0, 20);
+
+    const paths = [];
+    const seen = new Set();
+
+    for (const source of sources) {
+        if (paths.length >= maxPaths) break;
+        const reachability = undirectedSingleSourceLength(graph, source.svc_no);
+
+        for (const target of targets) {
+            if (paths.length >= maxPaths) break;
+            if (source.svc_no === target.svc_no) continue;
+            if (!Object.prototype.hasOwnProperty.call(reachability, target.svc_no)) continue;
+
+            const nodePath = bidirectional(graph, source.svc_no, target.svc_no);
+            if (!nodePath || nodePath.length < 2) continue;
+
+            const key = nodePath.join('->');
+            if (seen.has(key)) continue;
+            seen.add(key);
+
+            const edges = [];
+            for (let i = 0; i < nodePath.length - 1; i++) {
+                const from = nodePath[i];
+                const to = nodePath[i + 1];
+                const rel = relationMap.get(`${from}->${to}`);
+                edges.push({
+                    from,
+                    to,
+                    field: rel?.from_field || '',
+                    to_field: rel?.to_field || '',
+                    relation_type: rel?.relation_type || '',
+                    score: rel?.score || 0
+                });
+            }
+
+            paths.push({
+                from: source.svc_no,
+                from_name: source.svc_nm,
+                to: target.svc_no,
+                to_name: target.svc_nm,
+                hop_count: nodePath.length - 1,
+                path: nodePath,
+                edges
+            });
+        }
+    }
+
+    return paths.sort((a, b) => a.hop_count - b.hop_count || a.from.localeCompare(b.from)).slice(0, maxPaths);
+}
+
 /**
- * PK/FK 관계로 방향 그래프를 구성하고 in-degree 기반 마스터 테이블 추출,
- * 순환 참조 감지, 위상 정렬, 도메인 클러스터링을 수행한다.
+ * PK/FK 관계로 방향 그래프를 구성하고 in-degree 기반 마스터 테이블 추출, 순환 참조 감지, 위상 정렬, 도메인 클러스터링을 수행
  */
 function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
     const graph = buildFkGraph(tableAnalyses, relationships, compositeFks);
     const inDegRanking = computeInDegreeRanking(graph, tableAnalyses);
+    const centralityRanking = computeCentralityRanking(graph, tableAnalyses);
     const cycles = detectFkCycles(graph);
     const topoResult = computeTopologicalOrder(graph);
     const components = computeConnectedComponents(graph);
+    const themeCandidates = buildThemeCandidates(components, tableAnalyses, relationships, centralityRanking);
+    const connectionPaths = buildConnectionPaths(graph, centralityRanking, relationships);
 
     const derivedMasters = inDegRanking
         .filter(t => t.is_derived_master)
@@ -1873,6 +2272,7 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
         node_count: graph.order,
         edge_count: graph.size,
         in_degree_ranking: inDegRanking,
+        centrality_ranking: centralityRanking,
         derived_master_tables: derivedMasters,
         cycles,
         has_cycles: cycles.length > 0,
@@ -1882,7 +2282,10 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
             cluster_id: i + 1,
             size: comp.length,
             tables: comp
-        }))
+        })),
+        dataset_clusters: themeCandidates,
+        theme_candidates: themeCandidates,
+        connection_paths: connectionPaths
     };
 }
 
@@ -1892,7 +2295,7 @@ function analyzeGraphStructure(tableAnalyses, relationships, compositeFks) {
 // =============================================================================
 
 /**
- * 전체 데이터셋과 샘플 레코드를 받아 PK/FK 후보 분석 결과를 반환한다.
+ * 전체 데이터셋과 샘플 레코드를 받아 PK/FK 후보 분석 결과를 반환
  *
  * @param {object[]} datasets - crawl_cache.json의 데이터셋 메타 배열
  * @param {Map<string, object[]>} recordsMap - svcNo → 레코드 배열
@@ -1911,11 +2314,10 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     }
 
     // FK 분석과 복합 FK 탐지가 공유하는 값 Set 캐시 (Memoization).
-    // 과거에는 recordsMap에 임의 프로퍼티(_valuesCache)를 붙여 전달했으나,
-    // 타입 안전성이 없는 방식이라 일반 변수로 명시적으로 전달한다.
+    // 과거에는 recordsMap에 임의 프로퍼티(_valuesCache)를 붙여 전달했으나, 타입 안전성이 없는 방식이라 일반 변수로 명시적으로 전달
     const valuesCache = new Map();
 
-    // 필드 엔트로피를 한 번만 계산해 PK 점수 산정 시 재사용한다 (중복 계산 제거).
+    // 필드 엔트로피를 한 번만 계산해 PK 점수 산정 시 재사용한다 (중복 계산 제거)
     const entropyMap = buildEntropyMap(recordsMap);
 
     const tableAnalyses = datasets.map(ds => {
@@ -1958,9 +2360,11 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
         generated_at: formatKstTimestamp(),
         config: {
             fk_min_inclusion_ratio: FK_MIN_INCLUSION_RATIO,
+            fk_min_matched_count: FK_MIN_MATCHED_COUNT,
             fk_strong_inclusion_ratio: FK_STRONG_INCLUSION_RATIO,
             fk_allow_unchecked: FK_ALLOW_UNCHECKED,
             fk_max_per_from_field: FK_MAX_PER_FROM_FIELD,
+            max_composite_key_size: MAX_COMPOSITE_KEY_SIZE,
             fk_suggested_min_score: FK_SUGGESTED_MIN_SCORE,
             fk_include_suggested_in_sql: FK_INCLUDE_SUGGESTED_IN_SQL,
             fk_domain_confirmed_bonus: FK_DOMAIN_CONFIRMED_BONUS,
@@ -1975,9 +2379,14 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
             relationship_count: relationships.length,
             confirmed_relationship_count: relationships.filter(r => r.relation_type === 'CONFIRMED').length,
             suggested_relationship_count: relationships.filter(r => r.relation_type === 'SUGGESTED').length,
+            unverified_relationship_count: relationships.filter(r => r.relation_type === 'UNVERIFIED').length,
             composite_fk_count: compositeFks.length,
+            confirmed_composite_fk_count: compositeFks.filter(r => r.relation_type === 'COMPOSITE_FK').length,
+            suggested_composite_fk_count: compositeFks.filter(r => r.relation_type === 'SUGGESTED_COMPOSITE_FK').length,
             graph_master_table_count: graphAnalysis.derived_master_tables.length,
             graph_domain_cluster_count: graphAnalysis.domain_clusters.length,
+            graph_theme_candidate_count: graphAnalysis.theme_candidates.length,
+            graph_connection_path_count: graphAnalysis.connection_paths.length,
             graph_has_cycles: graphAnalysis.has_cycles,
             rejected_relationship_count: rejectedRelationships.length
         },
@@ -1985,6 +2394,9 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
         relationships,
         composite_fks: compositeFks,
         graph_analysis: graphAnalysis,
+        dataset_clusters: graphAnalysis.dataset_clusters,
+        theme_candidates: graphAnalysis.theme_candidates,
+        connection_paths: graphAnalysis.connection_paths,
         rejected_relationships: rejectedRelationships
     };
 }
@@ -2042,7 +2454,10 @@ function escapeMd(text) {
 // 포함률 통계 객체를 Markdown 표시용 문자열로 변환함
 function formatInclusionForMd(inclusion) {
     if (!inclusion || !inclusion.checked) return '미검증';
-    return `${(inclusion.inclusion_ratio * 100).toFixed(1)}% (${inclusion.matched_count}/${inclusion.from_unique_count})`;
+    const matched = inclusion.matched_count ?? inclusion.matched ?? 0;
+    const fromCount = inclusion.from_unique_count ?? inclusion.from_count ?? 0;
+    const rowCount = inclusion.matched_row_count != null ? `, row ${inclusion.matched_row_count}` : '';
+    return `${(inclusion.inclusion_ratio * 100).toFixed(1)}% (${matched}/${fromCount}${rowCount})`;
 }
 
 // PK/FK 후보 분석 결과를 Markdown 테이블로 변환해 파일로 저장함
@@ -2056,13 +2471,18 @@ function generateMarkdownReport(analysis, outputPath) {
     lines.push(`- FK 후보 수: ${analysis.summary.relationship_count}`);
     lines.push(`  - 확정 FK 후보 수: ${analysis.summary.confirmed_relationship_count || 0}`);
     lines.push(`  - 추정 FK 후보 수: ${analysis.summary.suggested_relationship_count || 0}`);
+    lines.push(`  - 미검증 FK 후보 수: ${analysis.summary.unverified_relationship_count || 0}`);
+    lines.push(`  - 확정 복합 FK 후보 수: ${analysis.summary.confirmed_composite_fk_count || 0}`);
+    lines.push(`  - 추정 복합 FK 후보 수: ${analysis.summary.suggested_composite_fk_count || 0}`);
     lines.push(`- 제외된 FK 후보 수: ${analysis.summary.rejected_relationship_count || 0}`);
     lines.push(`- 생성일시: ${analysis.generated_at}`);
     lines.push('');
     lines.push('## 0. FK 정제 기준');
     lines.push('');
     lines.push(`- 최소 값 포함률 기준: ${(analysis.config.fk_min_inclusion_ratio * 100).toFixed(0)}%`);
+    lines.push(`- 최소 매칭 고유값 수 기준: ${analysis.config.fk_min_matched_count}개`);
     lines.push(`- 강한 값 포함률 기준: ${(analysis.config.fk_strong_inclusion_ratio * 100).toFixed(0)}%`);
+    lines.push(`- 복합키 탐색 최대 필드 수: ${analysis.config.max_composite_key_size}개`);
     lines.push(`- 미검증 FK 허용 여부: ${analysis.config.fk_allow_unchecked ? '추정 후보로 허용' : '제외'}`);
     lines.push(`- 동일 From Table.Field 기준 최대 후보 수: ${analysis.config.fk_max_per_from_field}`);
     lines.push(`- 추정 FK 최소 점수: ${analysis.config.fk_suggested_min_score}`);
@@ -2114,6 +2534,7 @@ function generateMarkdownReport(analysis, outputPath) {
     lines.push('');
 
     const inDegRanking = analysis.graph_analysis?.in_degree_ranking || [];
+    const centralityRanking = analysis.graph_analysis?.centrality_ranking || [];
     
     const sortedByConnections = [...inDegRanking].sort((a, b) => {
         const connA = a.in_degree + a.out_degree;
@@ -2121,18 +2542,22 @@ function generateMarkdownReport(analysis, outputPath) {
         return connB - connA;
     });
 
-    const top10Central = sortedByConnections.slice(0, 10).filter(t => (t.in_degree + t.out_degree) > 0);
+    const centralityMap = new Map(centralityRanking.map(t => [t.svc_no, t]));
+    const top10Central = (centralityRanking.length > 0 ? centralityRanking : sortedByConnections)
+        .slice(0, 10)
+        .filter(t => (t.in_degree + t.out_degree) > 0);
     const isolatedTables = sortedByConnections.filter(t => (t.in_degree + t.out_degree) === 0);
 
-    lines.push('### 4.1. 중심 테이블 Top 10 (연결 수가 많은 순)');
+    lines.push('### 4.1. 중심 테이블 Top 10 (중심성 점수순)');
     lines.push('');
-    lines.push('| 순위 | 서비스번호 | 데이터셋명 | 연결 수(In+Out) | In-Degree(참조받음) | Out-Degree(참조함) |');
-    lines.push('|---|---|---|---:|---:|---:|');
+    lines.push('| 순위 | 서비스번호 | 데이터셋명 | 중심성 점수 | PageRank | 연결 수(In+Out) | In-Degree | Out-Degree |');
+    lines.push('|---|---|---|---:|---:|---:|---:|---:|');
     if (top10Central.length === 0) {
-        lines.push('| - | - | - | - | - | - |');
+        lines.push('| - | - | - | - | - | - | - | - |');
     } else {
         top10Central.forEach((t, i) => {
-            lines.push(`| ${i + 1} | ${t.svc_no} | ${escapeMd(t.svc_nm)} | ${t.in_degree + t.out_degree} | ${t.in_degree} | ${t.out_degree} |`);
+            const c = centralityMap.get(t.svc_no) || t;
+            lines.push(`| ${i + 1} | ${t.svc_no} | ${escapeMd(t.svc_nm)} | ${c.centrality_score ?? '-'} | ${c.pagerank ?? '-'} | ${t.in_degree + t.out_degree} | ${t.in_degree} | ${t.out_degree} |`);
         });
     }
     lines.push('');
@@ -2193,6 +2618,41 @@ function generateMarkdownReport(analysis, outputPath) {
     }
     lines.push('');
 
+    lines.push('### 4.5. 테마별 데이터 세트 후보');
+    lines.push('');
+    const themeCandidates = analysis.theme_candidates || analysis.graph_analysis?.theme_candidates || [];
+    lines.push('| 테마ID | 테마명 | 테이블 수 | 관계 수 | 주요 카테고리 | 허브 테이블 | 대표 조인키 |');
+    lines.push('|---|---|---:|---:|---|---|---|');
+    if (themeCandidates.length === 0) {
+        lines.push('| - | 후보 없음 | - | - | - | - | - |');
+    } else {
+        themeCandidates.slice(0, 15).forEach(theme => {
+            const cats = (theme.main_categories || []).map(c => `${c.cat}(${c.count})`).join(', ');
+            const hubs = (theme.hub_tables || []).map(t => `${t.svc_no} ${t.svc_nm}`).slice(0, 2).join(' / ');
+            const keys = (theme.join_keys || []).map(k => `${k.field}(${k.count})`).join(', ');
+            lines.push(`| ${theme.theme_id} | ${escapeMd(theme.theme_name)} | ${theme.size} | ${theme.relation_count} | ${escapeMd(cats)} | ${escapeMd(hubs)} | ${escapeMd(keys)} |`);
+        });
+    }
+    lines.push('');
+
+    lines.push('### 4.6. 대표 연결 경로');
+    lines.push('');
+    const connectionPaths = analysis.connection_paths || analysis.graph_analysis?.connection_paths || [];
+    lines.push('| From | To | 홉 수 | 경로 | 조인 필드 |');
+    lines.push('|---|---|---:|---|---|');
+    if (connectionPaths.length === 0) {
+        lines.push('| - | - | - | 연결 경로 없음 | - |');
+    } else {
+        connectionPaths.slice(0, 20).forEach(p => {
+            const edgeFields = (p.edges || [])
+                .map(e => e.field && e.to_field ? `${e.field}->${e.to_field}` : e.field || e.to_field || '')
+                .filter(Boolean)
+                .join(', ');
+            lines.push(`| ${p.from} ${escapeMd(p.from_name)} | ${p.to} ${escapeMd(p.to_name)} | ${p.hop_count} | ${p.path.join(' -> ')} | ${escapeMd(edgeFields)} |`);
+        });
+    }
+    lines.push('');
+
     lines.push('## 5. 테이블별 상세');
     lines.push('');
 
@@ -2241,11 +2701,13 @@ function generateKeysErdSql(analysis, outputPath) {
     const fksByTable = new Map();
     for (const rel of analysis.relationships) {
         if (!FK_INCLUDE_SUGGESTED_IN_SQL && rel.relation_type === 'SUGGESTED') continue;
+        if (rel.relation_type === 'UNVERIFIED') continue;
         if (!fksByTable.has(rel.from_table)) fksByTable.set(rel.from_table, []);
         fksByTable.get(rel.from_table).push(rel);
     }
     // 복합 FK 병합 (단일 FK와 동일 테이블 목록에 추가)
     for (const fk of (analysis.composite_fks || [])) {
+        if (fk.relation_type !== 'COMPOSITE_FK') continue;
         if (!fksByTable.has(fk.from_table)) fksByTable.set(fk.from_table, []);
         fksByTable.get(fk.from_table).push({
             from_table: fk.from_table,
@@ -2262,8 +2724,7 @@ function generateKeysErdSql(analysis, outputPath) {
     }
 
     // 위상 정렬 순서가 있으면 해당 순서대로 DDL 생성 (FK 제약 위반 방지)
-    // 그래프 방향이 자식→부모이므로 위상 정렬 결과를 역순으로 해야
-    // 부모 테이블 CREATE TABLE이 먼저 실행되어 FK 제약 위반을 방지한다.
+    // 그래프 방향이 자식→부모이므로 위상 정렬 결과를 역순으로 해야 부모 테이블 CREATE TABLE이 먼저 실행되어 FK 제약 위반을 방지
     const topoOrder = (analysis.graph_analysis?.topological_order || []).slice().reverse();
     const tableMap = new Map(analysis.tables.map(t => [t.svc_no, t]));
     const orderedTables = topoOrder.length > 0
@@ -2366,7 +2827,7 @@ function generateKeysErdSql(analysis, outputPath) {
 // =============================================================================
 
 /**
- * CLI 독립 실행 진입점. 캐시 파일과 샘플을 읽어 분석하고 결과 파일을 생성한다.
+ * CLI 독립 실행 진입점. 캐시 파일과 샘플을 읽어 분석하고 결과 파일을 생성
  *
  * @param {object} options - parseArgs()가 반환한 옵션 객체
  */
@@ -2418,8 +2879,8 @@ async function run(options) {
 
         return new Promise((resolve) => {
             if (db) {
-                // SQLite 적재된 실제 데이터가 있는지 조회 (최대 5000개 로드하여 정확도 극대화)
-                db.all(`SELECT * FROM ${quoteIdent(svcNo)} LIMIT 5000;`, [], (err, rows) => {
+                // SQLite 적재된 전체 데이터 기준으로 검증
+                db.all(`SELECT * FROM ${quoteIdent(svcNo)};`, [], (err, rows) => {
                     if (!err && rows && rows.length > 0) {
                         recordsMap.set(svcNo, rows);
                         resolve();
@@ -2479,9 +2940,14 @@ async function run(options) {
     log('INFO', `  FK 후보 수              : ${analysis.summary.relationship_count}`);
     log('INFO', `    확정 FK 후보 수       : ${analysis.summary.confirmed_relationship_count}`);
     log('INFO', `    추정 FK 후보 수       : ${analysis.summary.suggested_relationship_count}`);
+    log('INFO', `    미검증 FK 후보 수     : ${analysis.summary.unverified_relationship_count}`);
     log('INFO', `  복합 FK 후보 수         : ${analysis.summary.composite_fk_count}`);
+    log('INFO', `    확정 복합 FK 후보 수  : ${analysis.summary.confirmed_composite_fk_count}`);
+    log('INFO', `    추정 복합 FK 후보 수  : ${analysis.summary.suggested_composite_fk_count}`);
     log('INFO', `  마스터 테이블 감지       : ${analysis.summary.graph_master_table_count}개`);
     log('INFO', `  도메인 클러스터          : ${analysis.summary.graph_domain_cluster_count}개`);
+    log('INFO', `  테마 데이터 세트 후보    : ${analysis.summary.graph_theme_candidate_count}개`);
+    log('INFO', `  대표 연결 경로           : ${analysis.summary.graph_connection_path_count}개`);
     log('INFO', `  순환 FK 존재             : ${analysis.summary.graph_has_cycles ? '경고 있음' : '없음'}`);
     log('INFO', `  제외된 FK 후보 수       : ${analysis.summary.rejected_relationship_count}`);
     if (!noJson) log('INFO', `  JSON 결과               : ${json}`);
@@ -2522,6 +2988,9 @@ module.exports = {
     detectCompositeFkCandidates,
     buildFkGraph,
     analyzeGraphStructure,
+    computeCentralityRanking,
+    buildThemeCandidates,
+    buildConnectionPaths,
     buildDatasetFuseIndex,
     keywordMatchesText,
     matchesDomainParentChildRuleFuzzy,
