@@ -44,7 +44,19 @@ const DEFAULT_PKFK    = path.join(__dirname, 'foodsafety_key_candidates.json');
 
 // 명칭·주소·날짜·연락처 계열 — JOIN 키로 의미 없는 설명성 필드
 // 특히 _DCNM(품목유형명)은 카테고리성 데이터로, 조인 시 엄청난 카테시안 곱을 유발하므로 조인 키에서 영구 배제함
-const WEAK_KEY_PATTERN = /^STEP$|^OPERTN_CITYPOINT$|^FRMLCUNIT$|^FRMLC_UNIT$|^SPEC_VAL_SUMUP$|^SPECVALSUMUP$|_SUMUP$|^SORC$|^SOURCE$|^DSPSCN$|^VILTCN$|^VILTDTLS$|_DTLS$|_NM$|NM$|_DCNM$|DCNM$|_NAME$|NAME$|_CD_NM$|ADDR$|ADDRESS$|DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$|_FNCLTY$|_STND$|DISPOS$|USAGE$|_MTRQLT$|_DAYCNT$|_YN$/i;
+const WEAK_KEY_PATTERN = /^STEP$|^OPERTN_CITYPOINT$|^FRMLCUNIT$|^FRMLC_UNIT$|^SPEC_VAL_SUMUP$|^SPECVALSUMUP$|_SUMUP$|^SORC$|^SOURCE$|^DSPSCN$|^VILTCN$|^VILTDTLS$|_DTLS$|_NM$|NM$|_DCNM$|DCNM$|_NAME$|NAME$|_CD_NM$|ADDR$|ADDRESS$|DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$|_FNCLTY$|_STND$|DISPOS$|USAGE$|_MTRQLT$|_DAYCNT$|_YN$|
+  // 수질·토양 환경 측정값 — 수치값 일치는 구조적 FK 관계가 아님
+  ^BOD$|^COD$|^SS$|^DO$|^TN$|^TP$|
+  ^ORGNICPH$|^PCE$|^TCE$|^PHNL$|^BENZ$|^TOLUE$|^ETBEN$|^XYLEN$|^TPH$|
+  ^CR6$|^ZINC$|^NICKEL$|^IMCOW$|^CYN$|^PB$|^CDMM$|^COPPR$|^MRC$|^HYDRIONDNSTY$|
+  // 기준규격 수치값 필드 — 한계값·적합기준값은 데이터 값이지 FK가 아님
+  ^VALDMANLI$|^CHOICIMPROPT$|^CHOICFIT$|^DISTBTMLMT$|^UPTLMT$|^LWRLMT$|_LMT$|
+  // 등급·단계 범주값 — 같은 등급이라고 같은 개체가 아님
+  ^LV$|^GRADE$|
+  // 검사결과 자유텍스트 — 텍스트 값 일치는 FK로 부적합
+  _RSLT$|^TESTANALSRSLT$|
+  // 국가코드 접미 명칭 필드 (_NM_KOR, _NM_ENG) — 명칭 변형이므로 FK 아님
+  _NM_KOR$|_NM_ENG$/i;
 
 const KEY_SYNONYM_GROUPS = [
     ['LCNS_NO', 'BSSH_NO', 'BSN_LCNS_NO', 'LICENSE_NO', 'LICENCE_NO', 'PERM_NO'],

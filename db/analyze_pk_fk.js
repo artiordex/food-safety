@@ -688,7 +688,10 @@ const BAD_PK_FIELD_PATTERNS = [
     ...LOCATION_COMPONENT_FIELD_PATTERNS,
     ...DESCRIPTIVE_OR_FILE_FIELD_PATTERNS
 ];
-const EXCLUDED_FK_FIELD_PATTERNS = WEAK_FIELD_PATTERNS;
+// 명칭/날짜/주소 계열(WEAK) 외에 집계·측정값 계열(AGGREGATE)도 FK 후보에서 제외한다.
+// BAD_PK_FIELD_PATTERNS는 AGGREGATE_FIELD_PATTERNS를 포함하므로 BOD·COD·SS 등은 PK에서 제외되지만,
+// FK 탐색 시에도 동일하게 걸러야 수질측정값·집계값 간의 우연적 값 일치를 FK 관계로 오탐하지 않는다.
+const EXCLUDED_FK_FIELD_PATTERNS = [...WEAK_FIELD_PATTERNS, ...AGGREGATE_FIELD_PATTERNS];
 
 const BAD_PK_KOR_PATTERNS = [
     /명$/, /이름$/, /업소명$/, /기관명$/, /제품명$/, /품목명$/,
