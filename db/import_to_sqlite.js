@@ -45,16 +45,6 @@
 const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-
-// 이 파일은 JSON 메타데이터와 샘플 데이터를 읽어
-// SQLite 스키마를 추론하고 DB로 이식하는 역할을 합니다.
-// 아래 함수들은 컬럼 타입/길이 추론과 테이블 생성의 핵심입니다.
-
-
-// analyze_pk_fk.js에서 공유 함수를 가져온다.
-// parseSampleJson : 샘플 JSON 파싱 — 이 파일에서 중복 구현하지 않는다.
-// analyze         : datasets + recordsMap → analysis 객체 (파일 I/O 없음)
-// writeReports    : analysis 객체 → json/md/sql 파일 생성
 const {
     parseSampleJson,
     analyze: analyzePkFk,
@@ -303,8 +293,24 @@ function roundVarcharLength(maxLen, minimum = 50) {
 // 기본 VARCHAR 길이로 사용하는 헬퍼 (예: 30, 50, 100, 200 등)
 
 /**
- * 필드 메타데이터 + 샘플값을 기반으로 SQLite 컬럼 스펙을 추론한다.
- * 반환값의 sqlType은 analyze_pk_fk.js의 generateKeysErdSql에서도 그대로 사용한다.
+ * 필드 메타데이터와 샘플 값을 기반으로 SQLite에서 사용할 적절한 컬럼 스펙(타입, 길이 등)을 자동 추론
+ * 
+ * [추론 우선순위]
+ * 1. API가 제공하는 원본 데이터 타입(rawType)이 있을 경우 우선 매핑
+ * 2. 컬럼명/한글명에 날짜형 접미사(예: _DT, 일자, 날짜)가 포함되면 DATE
+ * 3. '여부'나 Y/N 전용 필드는 VARCHAR(1)
+ * 4. 전화번호, 팩스 등 연락처는 VARCHAR (선행 0 보존)
+ * 5. 분류성 코드(예: _CD, 코드, 구분)는 VARCHAR
+ * 6. 식별번호(예: _NO)는 숫자로만 구성되어 있으면 NUMERIC, 문자가 섞이면 VARCHAR
+ * 7. 수량, 금액, 비율(예: _CNT, _AMT)은 NUMERIC
+ * 8. 일반 명칭, 이름(예: _NM)은 최대 200자 내외의 VARCHAR
+ * 9. 주소/소재지는 최대 500자 내외의 VARCHAR
+ * 10. 내용/메모(예: _CN, _DESC)는 샘플 길이에 따라 VARCHAR(1000) 또는 TEXT
+ * 11. 최종적으로 규칙에 해당하지 않으면 샘플 값의 형태(숫자/문자)에 따라 기본값 부여
+ *
+ * @param {Object} field - API에서 수집한 메타데이터 필드 객체 (field, type, length, kor_nm 포함)
+ * @param {Array} [records=[]] - 타입 추론을 위한 실제 샘플 데이터 배열
+ * @returns {{sqlType: string, dataType: string, length: string, reason: string}} 추론된 컬럼 스펙
  */
 function inferColumnSpec(field, records = []) {
     // 입력: API에서 온 필드 메타 `field` (예: {field, type, length, kor_nm})
@@ -333,7 +339,9 @@ function inferColumnSpec(field, records = []) {
             if (mappedType === 'NUMERIC') return { sqlType: 'NUMERIC(18,4)', dataType: 'NUMERIC', length: '18,4', reason: '원본 type 기반 NUMERIC' };
             if (mappedType === 'INTEGER') return { sqlType: 'INTEGER', dataType: 'INTEGER', length: '', reason: '원본 type 기반 INTEGER' };
             if (mappedType === 'REAL') return { sqlType: 'REAL', dataType: 'REAL', length: '', reason: '원본 type 기반 REAL' };
-            if (mappedType === 'DATE') return { sqlType: 'DATE', dataType: 'DATE', length: '8', reason: '원본 type 기반 DATE' };
+            if (mappedType === 'DATE') {
+                return { sqlType: 'DATE', dataType: 'DATE', length: '8', reason: '원본 type 기반 DATE' };
+            }
             return { sqlType: mappedType, dataType: mappedType, length: rawLength, reason: '원본 type 기반' };
         }
     }
@@ -342,7 +350,7 @@ function inferColumnSpec(field, records = []) {
     if (DATE_SUFFIXES.test(upperField) ||
         /일자$|년월일$|날짜$|등록일$|수정일$|시작일자$|종료일자$|허가일자$|지정일자$|취소일자$|폐업일자$/.test(korNm) ||
         allDateLike(sampleValues)) {
-        // 필드명/한글명/샘플값에서 날짜 패턴이 보이면 DATE로 처리
+        // DATE 타입은 SQLite 내부적으로 NUMERIC 어피니티를 가지므로 insert 시 YYYY-MM-DD로 포맷팅하여 숫자 변환 방지
         return { sqlType: 'DATE', dataType: 'DATE', length: '8', reason: '필드명/한글명/샘플값 날짜 패턴' };
     }
 
@@ -446,10 +454,27 @@ function quoteIdent(identifier) {
     return `"${String(identifier).replace(/"/g, '""')}"`;
 }
 
-function normalizeValue(value) {
+function normalizeValue(value, typeInfo = null) {
     if (value === undefined || value === null) return null;
+    
+    // SQLite 내부적으로 빈 문자열 대신 null을 사용하는 것이 무결성에 좋음
+    let strVal = String(value).trim();
+    if (strVal === '') return null;
+
+    // 객체/배열 타입은 JSON 문자열화
     if (typeof value === 'object') return JSON.stringify(value);
-    return value;
+
+    // DATE 타입의 경우 'YYYYMMDD' (8자리) 형식을 'YYYY.MM.DD'로 자동 변환
+    // (SQLite의 DATE 타입은 NUMERIC 어피니티라 8자리 숫자가 Integer로 뭉뚱그려지는 것을 막기 위함)
+    if (typeInfo && typeInfo.dataType === 'DATE') {
+        if (/^\d{8}$/.test(strVal)) {
+            return `${strVal.substring(0, 4)}.${strVal.substring(4, 6)}.${strVal.substring(6, 8)}`;
+        } else if (/^\d{14}$/.test(strVal)) {
+            return `${strVal.substring(0, 4)}.${strVal.substring(4, 6)}.${strVal.substring(6, 8)} ${strVal.substring(8, 10)}:${strVal.substring(10, 12)}:${strVal.substring(12, 14)}`;
+        }
+    }
+
+    return strVal;
 }
 
 // fileSizeIfExists: 파일이 존재하면 크기(바이트)를 반환, 없으면 0
@@ -607,7 +632,11 @@ function buildColMeta(fields, records, svcNo) {
     return { colMeta, apiColumnRows, extraColumns };
 }
 
-// insertApiColumns: api_columns 메타 테이블에 컬럼 메타 정보를 삽입
+/**
+ * api_columns 메타 테이블에 추출된 컬럼 메타 정보들을 한 번에 등록
+ * @param {Object} db - SQLite DB 객체
+ * @param {Array} apiColumnRows - buildColMeta에서 반환된 API 기본 컬럼 목록
+ */
 async function insertApiColumns(db, apiColumnRows) {
     for (const row of apiColumnRows) {
         await runSql(db,
@@ -623,7 +652,12 @@ async function insertApiColumns(db, apiColumnRows) {
     }
 }
 
-// insertExtraApiColumns: 샘플에만 등장하는 누락 필드를 api_columns에 추가
+/**
+ * 샘플 JSON에만 존재하고 API 메타데이터에는 명세되지 않은 숨겨진 필드(누락 필드)를 api_columns 테이블에 자동으로 추가
+ *  * @param {Object} db - SQLite DB 객체
+ * @param {string} svcNo - 서비스/테이블 번호
+ * @param {Array} extraColumns - buildColMeta에서 발견된 추가 필드 목록
+ */
 async function insertExtraApiColumns(db, svcNo, extraColumns) {
     for (const { key, spec } of extraColumns) {
         log('INFO', `        누락 필드 자동 추가: ${key} (${spec.sqlType})`);
@@ -637,21 +671,26 @@ async function insertExtraApiColumns(db, svcNo, extraColumns) {
     }
 }
 
-// createDatasetTable: colMeta로부터 CREATE TABLE 문을 생성해 실제 테이블을 만든다.
-// colMeta의 value.sqlType를 그대로 DDL에 사용.
+// createDatasetTable: colMeta로부터 CREATE TABLE 문을 생성해 실제 테이블을 만듦
+// colMeta의 value.sqlType를 그대로 DDL에 사용
 
 // =============================================================================
 // 섹션 4. ERD용 SQL DDL 생성
 // =============================================================================
 
 /**
- * @param {Array}  datasets
- * @param {string} outputPath
- * @param {Map}    recordsMap     — Map<svcNo, records[]>
- * @param {Object} pkFkAnalysis   — analyze_pk_fk.js의 analyze() 반환값 (없으면 FK 표시 생략)
+ * 전체 데이터셋과 분석된 컬럼 정보를 바탕으로 테이블 구조 및 관계를 정의한 ERD(Entity-Relationship Diagram)용 DDL SQL 파일을 생성
+ * 
+ * [특징]
+ * - `--apply-constraints` 여부와 상관없이 엄격한 PK 및 확정(CONFIRMED) FK 관계가 있다면 모두 DDL 주석 및 제약조건으로 출력
+ * - 물리적인 컬럼명 옆에 인라인 주석으로 논리적인 한글명을 함께 달아 가독성을 높입니다.
+ * - 물리명 대신 한글명으로 쿼리할 수 있도록 각 테이블에 매칭되는 `VIEW` 생성 구문도 함께 포함
+ * 
+ * @param {Array} datasets - 처리할 데이터셋(테이블) 목록
+ * @param {string} outputPath - 생성할 SQL 파일이 저장될 경로
+ * @param {Map} [recordsMap=new Map()] - 각 데이터셋의 샘플 데이터 (Map<svcNo, records[]>)
+ * @param {Object} [pkFkAnalysis=null] - analyze_pk_fk.js의 analyze()가 반환한 PK/FK 분석 결과 객체
  */
-// generateErdSqlFile: datasets와 컬럼 추론 결과로 ERD용 DDL(.sql) 파일 생성
-// 출력은 물리 컬럼명과 논리 한글명을 주석으로 함께 포함
 function generateErdSqlFile(datasets, outputPath, recordsMap = new Map(), pkFkAnalysis = null) {
     if (!outputPath) return;
 
@@ -906,7 +945,7 @@ async function insertRecords(db, svcNo, records, colMeta) {
     await runSql(db, 'BEGIN TRANSACTION');
     try {
         for (const rec of records) {
-            const result = await runSql(db, insertSql, colNames.map(c => normalizeValue(rec[c])));
+            const result = await runSql(db, insertSql, colNames.map(c => normalizeValue(rec[c], colMeta.get(c))));
             if (result.changes > 0) inserted++;
             else skipped++;
         }
@@ -948,7 +987,25 @@ async function createLogicalView(db, svcNo, svcNm, colMeta) {
     }
 }
 
-// migrateDataset: 개별 dataset에 대해 메타 저장, 테이블 생성, 데이터 삽입, 뷰 생성까지 수행
+/**
+ * 하나의 데이터셋(API 서비스)에 대해 A부터 Z까지의 전체 마이그레이션 파이프라인을 수행
+ * 
+ * 1. `api_tables`에 데이터셋의 메타 정보를 INSERT/UPDATE
+ * 2. `buildColMeta`로 컬럼 스펙을 추출하고 `api_columns`에 저장
+ * 3. 실제 물리 SQLite `CREATE TABLE` 실행 (필요 시 PK/FK 제약조건 적용)
+ * 4. 크롤링된 JSON 배열 샘플 데이터를 실제 테이블에 `INSERT`
+ * 5. 한글 컬럼명으로 조회 가능한 논리적 `CREATE VIEW` 생성
+ * 
+ * @param {Object} db - SQLite DB 연결 객체
+ * @param {Object} ds - 데이터셋 메타데이터 객체 (svc_no, svc_nm 등 포함)
+ * @param {number} idx - 현재 처리 중인 데이터셋의 인덱스 순서
+ * @param {number} totalCount - 처리해야 할 전체 데이터셋 개수
+ * @param {Map} recordsMap - 전체 데이터셋의 샘플 데이터 Map (svc_no 기준으로 데이터 배열 참조)
+ * @param {Object} pkFkAnalysis - 전체 PK/FK 구조 분석 결과 (PK/FK 제약 조건 생성에 사용)
+ * @param {Map} allFksMap - 부모 테이블 기준으로 그룹핑된 FK 목록 맵
+ * @param {Object} options - 실행 옵션 (samplesDir, createViews, applyConstraints)
+ * @returns {Promise<{skipped: boolean, insertedRows: number}>} 처리 결과 통계 객체
+ */
 async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis, allFksMap, options) {
     const svcNo = String(ds.svc_no || '').trim();
     const svcNm = String(ds.svc_nm || '').trim();
@@ -996,7 +1053,7 @@ async function migrateDataset(db, ds, idx, totalCount, recordsMap, pkFkAnalysis,
     return { skipped: false, insertedRows };
 }
 
-// [REMOVED] 중복 createIndexesForFields 제거 — PRAGMA 기반 버전(위)을 사용합니다.
+// [REMOVED] 중복 createIndexesForFields 제거 — PRAGMA 기반 버전(위)을 사용
 
 // validateForeignKeysIfNeeded: applyConstraints 모드에서 PRAGMA foreign_key_check 실행
 async function validateForeignKeysIfNeeded(db, applyConstraints) {
@@ -1057,7 +1114,22 @@ function printSummary(summary) {
 // 섹션 6. 메인 마이그레이션 로직
 // =============================================================================
 
-// run: 메인 마이그레이션 실행 함수 (cachePath, dbPath 등 옵션을 받아 전체 흐름 수행)
+/**
+ * SQLite 마이그레이션 및 PK/FK 분석의 진입점(Main Function).
+ * 제공된 캐시 파일과 샘플 데이터를 읽고 SQLite DB 및 관련 DDL/분석 보고서를 일괄 생성
+ *
+ * [실행 흐름]
+ * 1. 크롤링된 `crawl_cache.json` 메타데이터 및 `samples` JSON 데이터 로드
+ * 2. (선택) `analyze_pk_fk.js`를 호출해 전체 테이블 간의 연관 관계(PK/FK/ERD 구조) 분석
+ * 3. 기존 SQLite DB 파일 삭제 및 재생성 (충돌/잠김 오류 시 프로세스 중단)
+ * 4. 메타 관리 테이블(`api_tables`, `api_columns`) 생성
+ * 5. 170여 개 API 데이터셋에 대해 루프를 돌며 `migrateDataset` 수행 (테이블 생성 및 JSON 데이터 이식)
+ * 6. 조인 및 검색 성능을 높이기 위한 인덱스 생성
+ * 7. (선택) 물리 테이블과 한글 논리 뷰에 대한 통합 ERD SQL 파일 생성
+ * 8. 처리 요약 통계를 콘솔에 출력
+ * 
+ * @param {Object} config - 설정 및 CLI에서 전달된 파라미터 객체
+ */
 async function run({
     cachePath,
     dbPath,

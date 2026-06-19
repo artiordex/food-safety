@@ -41,10 +41,67 @@ const DEFAULT_PKFK    = path.join(__dirname, 'foodsafety_key_candidates.json');
 // =============================================================================
 // 1. 유틸 및 상수
 // =============================================================================
+const CONFIG = {
+    // 두 컬럼의 고유값이 최소 이 비율 이상 겹칠 때 관계 후보로 봄
+    MIN_OVERLAP_RATIO: 0.05,
+    // 하나의 시나리오로 묶기 위해 필요한 최소 데이터셋 수
+    MIN_DATASETS_PER_SCENARIO: 2,
+    // 생성 SQL 예시에 포함할 최대 테이블 수
+    MAX_SQL_TABLES: 5,
+    // 최종 출력할 상위 시나리오 개수
+    TOP_SCENARIOS: 50,
+    // 관계 후보 목록에서 유지할 상위 관계 개수
+    TOP_RELATIONS: 100,
+    // 동일한 테이블 쌍에서 유지할 최대 관계 후보 수
+    MAX_CANDIDATES_PER_PAIR: 3,
+    // 컬럼명이 이 유사도 이상이면 같은 의미의 키 후보로 봄
+    SIMILAR_KEY_THRESHOLD: 0.84,
+    COMPOSITE_JOIN_RULES: [
+        {
+            keys: ['PRDLST_CD', 'TESTITM_CD'],
+            minMatched: 3,
+            minOverlapRatio: 0.05
+        }
+    ],
+    // PK 판별 시 요구되는 고유도 및 최소 데이터 건수
+    // 완전 유일성 대신 노이즈를 일부 허용해 시나리오 탐색용 후보를 넓게 잡음
+    PK_DISTINCT_RATE: 0.90,
+    PK_MIN_ROW_COUNT: 10,
+    // 테마 키워드 추출에서 제외할 범용/식별자/주소성 키워드
+    // 너무 흔하거나 조인 키에 가까운 단어가 시나리오 주제를 오염시키는 것을 막기 위해 제거함
+    THEME_KEYWORD_STOPWORDS: new Set([
+        'addr', 'address', 'telno', 'tel_no', 'phone', 'fax', 'zipno', 'kg', 'lv', 'yn',
+        'dt', 'ymd', 'date', 'gubun', 'production', 'dispos', 'prsdnt_nm', 'bssh_nm',
+        'lcns_no', 'prms_dt', 'prdlst_report_no', 'prdlst_cd', 'work_scope', 'workscope'
+    ])
+};
 
 // 명칭·주소·날짜·연락처 계열 — JOIN 키로 의미 없는 설명성 필드
 // 특히 _DCNM(품목유형명)은 카테고리성 데이터로, 조인 시 엄청난 카테시안 곱을 유발하므로 조인 키에서 영구 배제함
-const WEAK_KEY_PATTERN = /^STEP$|^OPERTN_CITYPOINT$|^FRMLCUNIT$|^FRMLC_UNIT$|^SPEC_VAL_SUMUP$|^SPECVALSUMUP$|_SUMUP$|^SORC$|^SOURCE$|^DSPSCN$|^VILTCN$|^VILTDTLS$|_DTLS$|_NM$|NM$|_DCNM$|DCNM$|_NAME$|NAME$|_CD_NM$|ADDR$|ADDRESS$|DT$|_YMD$|DTM$|DATE$|_MM$|_YEAR$|_YR$|_CN$|_CONT$|_CONTENT$|_DESC$|_MEMO$|_PRVNS$|_MTHD$|TELNO$|TEL_NO$|_TELNO$|PHONE$|MOBILE$|FAX$|_QY$|_VAL$|LV_NO$|PRODUCTION$|_CNT$|_COUNT$|_AMT$|_AMOUNT$|_QTY$|_WGHT$|_RATE$|_RATIO$|_PCT$|_TOT$|_SUM$|_AVG$|_MAX$|_MIN$|YEAR$|AREA$|_FNCLTY$|_STND$|DISPOS$|USAGE$|_MTRQLT$|_DAYCNT$|_YN$/i;
+const WEAK_PATTERNS = {
+    // 1. 단계/출처/일반 설명성 컬럼
+    GENERAL: ['^STEP$', '^OPERTN_CITYPOINT$', 'ADDR$', 'ADDRESS$', '_DESC$', '_MEMO$', '_PRVNS$', '_MTHD$', '_CONT$', '_CONTENT$', '^SORC$', '^SOURCE$', 'USAGE$', 'DISPOS$', 'AREA$', '^YEAR$'],
+    // 2. 명칭(이름) 계열
+    NAME: ['_NM$', 'NM$', '_DCNM$', 'DCNM$', '_NAME$', 'NAME$', '_CD_NM$', '_KOR$', 'KOR$', '_ENG$', 'ENG$'],
+    // 3. 날짜/시간 기한 계열
+    DATE: ['DT$', '_YMD$', 'DTM$', 'DATE$', '_LMT$', 'LMT$', '_MM$', '_YEAR$', '_YR$', '_DAYCNT$'],
+    // 4. 수치/단위/통계 계열
+    MEASURE: ['FRMLCUNIT$', 'FRMLC_UNIT$', '_SUMUP$', 'SPECVALSUMUP$', '_QY$', '_VAL$', 'PRODUCTION$', '_CNT$', '_COUNT$', '_AMT$', '_AMOUNT$', '_QTY$', '_WGHT$', '_RATE$', '_RATIO$', '_PCT$', '_TOT$', '_SUM$', '_AVG$', '_MAX$', '_MIN$', '_MANLI$', 'MANLI$', '_OPNO$', 'OPNO$', 'ORDNO$', '_ORDNO$'],
+    // 5. 연락처 계열
+    CONTACT: ['TELNO$', 'TEL_NO$', '_TELNO$', 'PHONE$', 'MOBILE$', 'FAX$'],
+    // 6. 상태/결과/여부 계열 (Enum 성격)
+    STATUS: ['_YN$', '_RSLT$', 'RSLT$', '_FIT$', 'FIT$', '_IMPROPT$', 'IMPROPT$', '^LV$', 'LV_NO$'],
+    // 7. 카테고리 Enum 코드 계열
+    ENUM_CD: ['_DVS_CD$', '^DVS_CD$', '^DVSCD$', '_DVS$', '_FOM_CD$', '^FOM_CD$', '^FOMCD$', '_FOM$', '_UNIT_CD$', '^UNIT_CD$', '^UNITCD$', '^UNIT$', '^WORK_SCOPE$', '^WORKSCOPE$', '_STTUS_CD$', '^STTUSCD$', '_STAT_CD$', '^STATCD$', '_SE_CD$', '^SECD$', '_KND_CD$', '^KNDCD$', '_TY_CD$', '^TYCD$'],
+    // 8. 수질 및 특정 오염 지표
+    WATER_METRICS: ['^BOD$', '^COD$', '^SS$', '^PH$', '^TN$', '^TP$', '^DOC$', '^EC$', '^TOC$', '^TEMOD$', '^EEC_QTY$', '^ORGNICPH$', '^PCE$', '^PHNL$'],
+    // 9. 행정처분 등 특정 업무 필드
+    ADMIN: ['^DSPSCN$', '^VILTCN$', '^VILTDTLS$', '_DTLS$', '_CN$', '_FNCLTY$', '_STND$', '_MTRQLT$']
+};
+
+const WEAK_KEY_PATTERN = new RegExp(
+    Object.values(WEAK_PATTERNS).flat().join('|'), 'i'
+);
 
 const KEY_SYNONYM_GROUPS = [
     ['LCNS_NO', 'BSSH_NO', 'BSN_LCNS_NO', 'LICENSE_NO', 'LICENCE_NO', 'PERM_NO'],
@@ -63,25 +120,13 @@ const FORBIDDEN_JOIN_PAIRS = [
     ['I1040', 'I1080']
 ];
 
-const MIN_OVERLAP_RATIO = 0.05;
-const MIN_DATASETS_PER_SCENARIO = 2;
-const MAX_SQL_TABLES = 5;
-const TOP_SCENARIOS = 50;
-const TOP_RELATIONS = 100;
-const MAX_CANDIDATES_PER_PAIR = 3;
-const SIMILAR_KEY_THRESHOLD = 0.84;
+// 조인 키 후보로서 의미 있는 컬럼명 패턴
 const KEYLIKE_PATTERN = /(NO|CD|CODE|ID|KEY|SEQ|SN|NUM|NUMBER|REPORT|LCNS|BSSH|PRDLST|BRCD|BARCODE|TEST|ITEM|RAW|MTRL)/i;
-const THEME_KEYWORD_STOPWORDS = new Set([
-    'addr', 'address', 'telno', 'tel_no', 'phone', 'fax', 'zipno', 'kg', 'lv', 'yn',
-    'dt', 'ymd', 'date', 'gubun', 'production', 'dispos', 'prsdnt_nm', 'bssh_nm',
-    'lcns_no', 'prms_dt', 'prdlst_report_no', 'prdlst_cd'
-]);
 
 function formatKstTimestamp(date = new Date()) {
     const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
     return kst.toISOString().replace('Z', '+09:00');
 }
-
 
 // 커맨드라인 인수에서 --key value 형태의 옵션을 파싱하는 함수
 function parseArgs() {
@@ -235,11 +280,20 @@ function normalizeColName(col) {
     return String(col || '').replace(/_/g, '').toUpperCase();
 }
 
+function isWeakJoinColumn(col) {
+    const raw = String(col || '');
+    return WEAK_KEY_PATTERN.test(raw) || WEAK_KEY_PATTERN.test(normalizeColName(raw));
+}
+
 // KEY_SYNONYM_GROUPS의 정규화 결과를 미리 계산해 areSynonyms 호출마다 재생성하지 않는다.
 const NORMALIZED_SYNONYM_GROUPS = KEY_SYNONYM_GROUPS.map(group => group.map(normalizeColName));
 
 // 두 컬럼명이 같은 동의어 그룹에 속하는지 확인하는 함수
 function areSynonyms(colA, colB) {
+    if (isWeakJoinColumn(colA) || isWeakJoinColumn(colB)) {
+        return false;
+    }
+
     const normA = normalizeColName(colA);
     const normB = normalizeColName(colB);
 
@@ -262,7 +316,7 @@ function areSynonyms(colA, colB) {
 
 // 식별자 성격의 유사 컬럼명 매칭
 function isSimilarJoinKey(colA, colB) {
-    if (WEAK_KEY_PATTERN.test(colA) || WEAK_KEY_PATTERN.test(colB)) {
+    if (isWeakJoinColumn(colA) || isWeakJoinColumn(colB)) {
         return false;
     }
 
@@ -276,8 +330,18 @@ function isSimilarJoinKey(colA, colB) {
         return false;
     }
 
+    // 구조적 매칭 (접미사 제외 본문 비교)
+    // 접미사를 잘라낸 기본 어간(body)이 일치하는지 확인
+    const suffixRegex = /(NO|CD|CODE|ID|KEY|SEQ|SN|NUM)$/i;
+    const bodyA = normA.replace(suffixRegex, '');
+    const bodyB = normB.replace(suffixRegex, '');
+    
+    if (bodyA && bodyB && bodyA === bodyB) {
+        return true;
+    }
+
     const similarity = stringSimilarity.compareTwoStrings(normA, normB);
-    return similarity >= SIMILAR_KEY_THRESHOLD;
+    return similarity >= CONFIG.SIMILAR_KEY_THRESHOLD;
 }
 
 // 두 컬럼명의 대표 키를 반환하는 함수
@@ -292,6 +356,147 @@ function canonicalKey(col) {
     }
 
     return normalizeColName(col);
+}
+
+function buildCompositeProfile(profiles, columns) {
+    const columnProfiles = columns.map(col => profiles[col]);
+    if (columnProfiles.some(profile => !profile || !Array.isArray(profile.values))) {
+        return null;
+    }
+
+    const rowCount = Math.min(...columnProfiles.map(profile => profile.values.length));
+    const valueSet = new Set();
+    let nonEmptyCount = 0;
+
+    for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        const values = columnProfiles.map(profile => profile.values[rowIndex]);
+        if (values.some(value => !value)) {
+            continue;
+        }
+
+        nonEmptyCount++;
+        valueSet.add(values.join('\u001f'));
+    }
+
+    return {
+        valueSet,
+        distinctRate: nonEmptyCount > 0 ? valueSet.size / nonEmptyCount : 0,
+        nonEmptyRate: rowCount > 0 ? nonEmptyCount / rowCount : 0,
+        rowCount,
+        nonEmptyCount,
+        distinctCount: valueSet.size
+    };
+}
+
+function getSampleMatches(setA, setB, limit = 3) {
+    const sampleMatches = [];
+
+    for (const value of setA) {
+        if (setB.has(value)) {
+            sampleMatches.push(value.replace(/\u001f/g, ' + '));
+
+            if (sampleMatches.length >= limit) {
+                break;
+            }
+        }
+    }
+
+    return sampleMatches;
+}
+
+function buildCompositeJoinCandidates(candidates, profilesA, profilesB) {
+    const candidatesByKey = new Map();
+
+    for (const candidate of candidates) {
+        if (!candidatesByKey.has(candidate.canonicalKey)) {
+            candidatesByKey.set(candidate.canonicalKey, candidate);
+        }
+    }
+
+    const compositeCandidates = [];
+
+    for (const rule of CONFIG.COMPOSITE_JOIN_RULES) {
+        const parts = rule.keys.map(key => candidatesByKey.get(key));
+        if (parts.some(part => !part)) {
+            continue;
+        }
+
+        const colsA = parts.map(part => part.colA);
+        const colsB = parts.map(part => part.colB);
+        if (new Set(colsA).size !== colsA.length || new Set(colsB).size !== colsB.length) {
+            continue;
+        }
+
+        const profileA = buildCompositeProfile(profilesA, colsA);
+        const profileB = buildCompositeProfile(profilesB, colsB);
+        if (!profileA || !profileB) {
+            continue;
+        }
+
+        const overlap = computeOverlap(profileA.valueSet, profileB.valueSet);
+        if (!overlap) {
+            continue;
+        }
+
+        const minMatched = rule.minMatched ?? 1;
+        const minOverlapRatio = rule.minOverlapRatio ?? CONFIG.MIN_OVERLAP_RATIO;
+        if (
+            overlap.matched < minMatched ||
+            (overlap.ratioA < minOverlapRatio && overlap.ratioB < minOverlapRatio)
+        ) {
+            continue;
+        }
+
+        const { joinType, cardinality, score, confidence } = classifyJoin(overlap, profileA, profileB);
+        const columnPairs = parts.map(part => ({ colA: part.colA, colB: part.colB }));
+
+        compositeCandidates.push({
+            colA: colsA.join('+'),
+            colB: colsB.join('+'),
+            canonicalKey: rule.keys.join('+'),
+            matched: overlap.matched,
+            ratioA: +overlap.ratioA.toFixed(3),
+            ratioB: +overlap.ratioB.toFixed(3),
+            joinType,
+            cardinality,
+            score,
+            confidence,
+            sampleMatches: getSampleMatches(profileA.valueSet, profileB.valueSet),
+            isComposite: true,
+            compositeParts: rule.keys,
+            columnPairs,
+            replacedKeys: rule.keys
+        });
+    }
+
+    return compositeCandidates;
+}
+
+function applyCompositeJoinRules(candidates, profilesA, profilesB) {
+    const compositeCandidates = buildCompositeJoinCandidates(candidates, profilesA, profilesB);
+    if (compositeCandidates.length === 0) {
+        return candidates;
+    }
+
+    const replacedKeys = new Set(compositeCandidates.flatMap(candidate => candidate.replacedKeys || []));
+    return [
+        ...candidates.filter(candidate => !replacedKeys.has(candidate.canonicalKey)),
+        ...compositeCandidates
+    ];
+}
+
+function combineJoinKeyLabels(joinKeys) {
+    const parts = [];
+
+    for (const joinKey of joinKeys) {
+        for (const part of String(joinKey || '').split('+')) {
+            if (part && !parts.includes(part)) {
+                parts.push(part);
+            }
+        }
+    }
+
+    return parts.join('+');
 }
 
 // Markdown 테이블 깨짐 방지를 위해 문자열을 이스케이프하는 함수
@@ -318,6 +523,56 @@ function expandTableColumns(tableAlias, svcNo, meta) {
         const col = `${tableAlias}.${quoteIdent(field)}`;
         return korNm ? `${col} AS "${tableAlias}_${korNm}"` : col;
     });
+}
+
+function getRelationColumnPairs(relation) {
+    if (Array.isArray(relation.columnPairs) && relation.columnPairs.length > 0) {
+        return relation.columnPairs;
+    }
+
+    return [{ colA: relation.colA, colB: relation.colB }];
+}
+
+function getRelationColumnsForSide(relation, side) {
+    const key = side === 'A' ? 'colA' : 'colB';
+    return getRelationColumnPairs(relation)
+        .map(pair => pair[key])
+        .filter(Boolean);
+}
+
+function buildOnClause(leftAlias, rightAlias, relation, leftSide) {
+    const pairs = getRelationColumnPairs(relation);
+    return pairs.map((pair, index) => {
+        const leftCol = leftSide === 'A' ? pair.colA : pair.colB;
+        const rightCol = leftSide === 'A' ? pair.colB : pair.colA;
+        const prefix = index === 0 ? '  ON' : ' AND';
+        return `${prefix} ${leftAlias}.${quoteIdent(leftCol)} = ${rightAlias}.${quoteIdent(rightCol)}`;
+    }).join('\n');
+}
+
+function buildNonEmptyWhereClause(alias, columns) {
+    const uniqueColumns = [...new Set(columns.filter(Boolean))];
+    if (uniqueColumns.length === 0) {
+        return '';
+    }
+
+    return uniqueColumns.map((column, index) => {
+        const prefix = index === 0 ? 'WHERE' : '  AND';
+        const quoted = `${alias}.${quoteIdent(column)}`;
+        return `${prefix} ${quoted} IS NOT NULL AND ${quoted} != ''`;
+    }).join('\n');
+}
+
+function formatColumnDisplay(svcNo, column, meta) {
+    const korNm = ((meta[svcNo] || {}).fields || {})[column];
+    return korNm ? `${korNm}(${column})` : column;
+}
+
+function formatRelationColumnDisplay(relation, side, meta) {
+    const svcNo = side === 'A' ? relation.svcA : relation.svcB;
+    return getRelationColumnsForSide(relation, side)
+        .map(column => formatColumnDisplay(svcNo, column, meta))
+        .join(' + ');
 }
 
 // JOIN 유형 문자열을 SQL JOIN 키워드로 정리하는 함수
@@ -504,7 +759,7 @@ function extractCommunityKeywords(tables, meta, limit = 6) {
     const addScore = (token, score) => {
         const normalizedToken = String(token || '').trim().toLowerCase();
         if (normalizedToken.length < 2 || /^\d+$/.test(normalizedToken)) return;
-        if (THEME_KEYWORD_STOPWORDS.has(normalizedToken)) return;
+        if (CONFIG.THEME_KEYWORD_STOPWORDS.has(normalizedToken)) return;
         if (/^(addr|tel|phone|fax|zip|dt|ymd|date|kg|lv)$/i.test(normalizedToken)) return;
         scores.set(normalizedToken, (scores.get(normalizedToken) || 0) + score);
     };
@@ -721,7 +976,7 @@ function profileTable(svcNo, table) {
 
     for (const col of colNames) {
         // 명칭, 주소, 전화번호, 날짜 등 약한 키는 조인 후보에서 제외
-        if (WEAK_KEY_PATTERN.test(col)) {
+        if (isWeakJoinColumn(col)) {
             continue;
         }
 
@@ -742,6 +997,7 @@ function profileTable(svcNo, table) {
             : 0;
 
         profiles[col] = {
+            values: normalizedValues,
             valueSet,
             distinctRate,
             nonEmptyRate,
@@ -837,9 +1093,9 @@ function classifyJoin(overlap, profileA, profileB) {
             : 'LEFT JOIN (B→A)';
 
     // 카디널리티 판단
-    // distinctRate가 높으면 PK 성격이 강하다고 간주함
-    const cardinalityA = profileA.distinctRate >= 0.9 ? 'PK' : 'FK';
-    const cardinalityB = profileB.distinctRate >= 0.9 ? 'PK' : 'FK';
+    // distinctRate가 높으면서 일정 데이터 건수(PK_MIN_ROW_COUNT)를 만족하면 PK로 간주함
+    const cardinalityA = (profileA.distinctRate >= CONFIG.PK_DISTINCT_RATE && profileA.nonEmptyCount >= CONFIG.PK_MIN_ROW_COUNT) ? 'PK' : 'FK';
+    const cardinalityB = (profileB.distinctRate >= CONFIG.PK_DISTINCT_RATE && profileB.nonEmptyCount >= CONFIG.PK_MIN_ROW_COUNT) ? 'PK' : 'FK';
 
     const cardinality = cardinalityA === 'PK' && cardinalityB === 'PK'
         ? '1:1'
@@ -870,7 +1126,7 @@ function classifyJoin(overlap, profileA, profileB) {
  * A 테이블과 B 테이블의 모든 컬럼을 서로 교차 비교(Cross Join)하여, 실제로 데이터를 JOIN 할 수 있는 유효한 컬럼 쌍(후보)을 찾아냄
  * 
  * - 필터링 1: 이름이 똑같거나 동의어(Synonym)인 컬럼만 1차로 추림
- * - 필터링 2: 실제 데이터 겹침(Overlap) 비율이 최소 기준(MIN_OVERLAP_RATIO)을 넘는지 확인
+ * - 필터링 2: 실제 데이터 겹침(Overlap) 비율이 최소 기준(CONFIG.MIN_OVERLAP_RATIO)을 넘는지 확인
  * - 최적화  : 완전히 동일한 의미의 키(canonicalKey)에 대해서는 가장 점수가 높은 하나만 남김
  * 
  * @param {string} svcA - A 테이블 고유번호
@@ -896,7 +1152,7 @@ function findJoinCandidates(svcA, profilesA, svcB, profilesB) {
             }
 
             // 두 방향 모두 최소 겹침 비율 미만이면 제외
-            if (overlap.ratioA < MIN_OVERLAP_RATIO && overlap.ratioB < MIN_OVERLAP_RATIO) {
+            if (overlap.ratioA < CONFIG.MIN_OVERLAP_RATIO && overlap.ratioB < CONFIG.MIN_OVERLAP_RATIO) {
                 continue;
             }
 
@@ -948,7 +1204,11 @@ function findJoinCandidates(svcA, profilesA, svcB, profilesB) {
         }
     }
 
-    const candidates = Array.from(bestByCanonicalKey.values());
+    const candidates = applyCompositeJoinRules(
+        Array.from(bestByCanonicalKey.values()),
+        profilesA,
+        profilesB
+    );
 
     // 점수 내림차순, 매칭 건수 내림차순 정렬
     candidates.sort((a, b) => {
@@ -1012,7 +1272,7 @@ function buildPairRelations(allProfiles, meta) {
                 continue;
             }
 
-            candidates.slice(0, MAX_CANDIDATES_PER_PAIR).forEach((candidate, candidateRank) => {
+            candidates.slice(0, CONFIG.MAX_CANDIDATES_PER_PAIR).forEach((candidate, candidateRank) => {
                 relations.push({
                     svcA,
                     svcB,
@@ -1034,6 +1294,9 @@ function buildPairRelations(allProfiles, meta) {
                     ratioB: candidate.ratioB,
                     sampleMatches: candidate.sampleMatches,
                     candidateRank: candidateRank + 1,
+                    isComposite: Boolean(candidate.isComposite),
+                    columnPairs: candidate.columnPairs || null,
+                    compositeParts: candidate.compositeParts || null,
                     allCandidates: candidates
                 });
             });
@@ -1060,7 +1323,7 @@ function buildPairRelations(allProfiles, meta) {
  * 1:1로 흩어져 있는 조인 관계들을 모아서, 동일한 '조인 키(예: 바코드, 인허가번호)'를 공유하는 테이블들을 하나의 거대한 '비즈니스 시나리오 그룹(클러스터)'으로 묶어줌
  * 
  * - 예시: A-B(바코드 조인), B-C(바코드 조인) 관계가 있다면 A, B, C를 묶어서 "바코드 기반 상품 모니터링" 이라는 하나의 시나리오를 도출
- * - 필터링: 최소 N개(MIN_DATASETS_PER_SCENARIO) 이상의 테이블이 묶여야만 유의미한 시나리오로 인정하고 SQL 힌트를 자동 생성
+ * - 필터링: 최소 N개(CONFIG.MIN_DATASETS_PER_SCENARIO) 이상의 테이블이 묶여야만 유의미한 시나리오로 인정하고 SQL 힌트를 자동 생성
  * 
  * @param {object[]} relations - buildPairRelations에서 구한 1:1 관계 목록
  * @param {object} meta - 테이블 메타데이터
@@ -1085,7 +1348,7 @@ function clusterByJoinKey(relations, meta) {
 
     for (const [joinKey, rels] of Object.entries(keyGroups)) {
         // 최소 관계 수 미달 시 제외
-        if (rels.length < MIN_DATASETS_PER_SCENARIO - 1) {
+        if (rels.length < CONFIG.MIN_DATASETS_PER_SCENARIO - 1) {
             continue;
         }
 
@@ -1115,7 +1378,7 @@ function clusterByJoinKey(relations, meta) {
         }
 
         // 최소 데이터셋 수 미달 시 제외
-        if (datasets.size < MIN_DATASETS_PER_SCENARIO) {
+        if (datasets.size < CONFIG.MIN_DATASETS_PER_SCENARIO) {
             continue;
         }
 
@@ -1134,7 +1397,7 @@ function clusterByJoinKey(relations, meta) {
         // datasets은 전체 관계에서 수집하고, SQL 힌트는 상위 관계만 사용한다.
         // 이전에는 sortedRels.slice(0, 3) 기준으로 datasets을 수집해
         // datasetCount와 실제 datasets 목록이 불일치하는 문제가 있었다.
-        const sqlHint = buildSqlHint(joinKey, acceptedRels.slice(0, MAX_SQL_TABLES - 1), meta);
+        const sqlHint = buildSqlHint(joinKey, acceptedRels.slice(0, CONFIG.MAX_SQL_TABLES - 1), meta);
 
         scenarios.push({
             id: `SCN_${String(scenarioId++).padStart(3, '0')}`,
@@ -1148,8 +1411,9 @@ function clusterByJoinKey(relations, meta) {
                 toNm: relation.nmB,
                 colFrom: relation.colA,
                 colTo: relation.colB,
-                colFromDisplay: relation.korA ? `${relation.korA}(${relation.colA})` : relation.colA,
-                colToDisplay: relation.korB ? `${relation.korB}(${relation.colB})` : relation.colB,
+                colFromDisplay: formatRelationColumnDisplay(relation, 'A', meta),
+                colToDisplay: formatRelationColumnDisplay(relation, 'B', meta),
+                columnPairs: relation.columnPairs,
                 joinType: relation.joinType,
                 cardinality: relation.cardinality,
                 score: relation.score,
@@ -1181,31 +1445,29 @@ function buildSqlHint(joinKey, rels, meta) {
 
     const joinedTables = [];
     // 각 테이블이 실제로 사용하는 컬럼명을 별도로 추적
-    const joinedCols = [];
+    let firstWhereCols = [];
     const joins = [];
 
     // 시작 테이블 (가장 첫 번째 관계의 svcA)
     const firstRel = rels[0];
     joinedTables.push(firstRel.svcA);
-    joinedCols.push(firstRel.colA);
+    firstWhereCols = getRelationColumnsForSide(firstRel, 'A');
 
     for (const relation of rels) {
-        if (joinedTables.length >= MAX_SQL_TABLES) break;
+        if (joinedTables.length >= CONFIG.MAX_SQL_TABLES) break;
 
         if (joinedTables.includes(relation.svcA) && !joinedTables.includes(relation.svcB)) {
             const existingAlias = aliases[joinedTables.indexOf(relation.svcA)];
             const newAlias = aliases[joinedTables.length];
             joinedTables.push(relation.svcB);
-            joinedCols.push(relation.colB);
 
-            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcB)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colA)} = ${newAlias}.${quoteIdent(relation.colB)}`);
+            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcB)} ${newAlias}\n${buildOnClause(existingAlias, newAlias, relation, 'A')}`);
         } else if (joinedTables.includes(relation.svcB) && !joinedTables.includes(relation.svcA)) {
             const existingAlias = aliases[joinedTables.indexOf(relation.svcB)];
             const newAlias = aliases[joinedTables.length];
             joinedTables.push(relation.svcA);
-            joinedCols.push(relation.colA);
 
-            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcA)} ${newAlias}\n  ON ${existingAlias}.${quoteIdent(relation.colB)} = ${newAlias}.${quoteIdent(relation.colA)}`);
+            joins.push(`${normalizeSqlJoinType(relation.joinType)} ${quoteIdent(relation.svcA)} ${newAlias}\n${buildOnClause(existingAlias, newAlias, relation, 'B')}`);
         }
     }
 
@@ -1225,8 +1487,7 @@ function buildSqlHint(joinKey, rels, meta) {
     }
 
     // WHERE 절도 시작 테이블(A)의 실제 컬럼명을 사용한다.
-    const firstCol = quoteIdent(joinedCols[0]);
-    lines.push(`WHERE A.${firstCol} IS NOT NULL AND A.${firstCol} != ''`);
+    lines.push(buildNonEmptyWhereClause('A', firstWhereCols));
     lines.push('LIMIT 100;');
 
     return lines.join('\n');
@@ -1255,11 +1516,12 @@ function buildSqlHintFromPath(rootTable, joinPath, meta) {
         const fromAlias = tableAliasMap.get(step.fromTable);
         const toAlias = tableAliasMap.get(step.toTable);
         lines.push(`${normalizeSqlJoinType(step.rel.joinType)} ${quoteIdent(step.toTable)} ${toAlias}`);
-        lines.push(`  ON ${fromAlias}.${quoteIdent(step.fromCol)} = ${toAlias}.${quoteIdent(step.toCol)}`);
+        const fromSide = step.rel.svcA === step.fromTable ? 'A' : 'B';
+        lines.push(buildOnClause(fromAlias, toAlias, step.rel, fromSide));
     }
 
-    const firstCol = quoteIdent(joinPath[0].fromCol);
-    lines.push(`WHERE A.${firstCol} IS NOT NULL AND A.${firstCol} != ''`);
+    const firstSide = joinPath[0].rel.svcA === joinPath[0].fromTable ? 'A' : 'B';
+    lines.push(buildNonEmptyWhereClause('A', getRelationColumnsForSide(joinPath[0].rel, firstSide)));
     lines.push('LIMIT 100;');
 
     return lines.join('\n');
@@ -1311,7 +1573,7 @@ function buildChainScenarios(starScenarios, relations, meta) {
             stepsPerKey.push({ joinKey, neighbor, fromCol, toCol, rel: best, score: best.score });
         }
 
-        // 점수 내림차순 정렬 후 MAX_SQL_TABLES - 1개까지
+        // 점수 내림차순 정렬 후 CONFIG.MAX_SQL_TABLES - 1개까지
         stepsPerKey.sort((a, b) => b.score - a.score);
 
         const joinPath = [];
@@ -1319,7 +1581,7 @@ function buildChainScenarios(starScenarios, relations, meta) {
         const coveredKeys = new Set();
 
         for (const step of stepsPerKey) {
-            if (joinPath.length >= MAX_SQL_TABLES - 1) break;
+            if (joinPath.length >= CONFIG.MAX_SQL_TABLES - 1) break;
             if (usedTables.has(step.neighbor)) continue;
 
             // 도메인 규칙: 체인(N-way) 내에 블랙리스트 쌍이 포함되는 것을 방지
@@ -1349,7 +1611,7 @@ function buildChainScenarios(starScenarios, relations, meta) {
         const confidence = avgScore >= 70 ? 'HIGH' : avgScore >= 40 ? 'MEDIUM' : 'LOW';
 
         const datasets = new Set([bridgeTable, ...joinPath.map(p => p.toTable)]);
-        const joinKeyLabel = `CHAIN:${[...coveredKeys].join('+')}`;
+        const joinKeyLabel = `CHAIN:${combineJoinKeyLabels([...coveredKeys])}`;
 
         chainScenarios.push({
             id: `SCN_CHAIN_${String(chainId++).padStart(3, '0')}`,
@@ -1364,8 +1626,9 @@ function buildChainScenarios(starScenarios, relations, meta) {
                 toNm:           p.rel.nmB,
                 colFrom:        p.rel.colA,
                 colTo:          p.rel.colB,
-                colFromDisplay: p.rel.korA ? `${p.rel.korA}(${p.rel.colA})` : p.rel.colA,
-                colToDisplay:   p.rel.korB ? `${p.rel.korB}(${p.rel.colB})` : p.rel.colB,
+                colFromDisplay: formatRelationColumnDisplay(p.rel, 'A', meta),
+                colToDisplay:   formatRelationColumnDisplay(p.rel, 'B', meta),
+                columnPairs:    p.rel.columnPairs,
                 joinType:       p.rel.joinType,
                 cardinality:    p.rel.cardinality,
                 score:          p.rel.score,
@@ -1406,11 +1669,11 @@ function writeJson(scenarios, relations, outputPath, pkfkContext = {}, datasetSe
             louvainModularity: datasetSetAnalysis?.modularity || 0,
         },
         pkfkSummary: pkfkContext.summary || null,
-        themeCandidates: (pkfkContext.themeCandidates || []).slice(0, TOP_SCENARIOS),
-        connectionPaths: (pkfkContext.connectionPaths || []).slice(0, TOP_RELATIONS),
+        themeCandidates: (pkfkContext.themeCandidates || []).slice(0, CONFIG.TOP_SCENARIOS),
+        connectionPaths: (pkfkContext.connectionPaths || []).slice(0, CONFIG.TOP_RELATIONS),
         datasetSetAnalysis,
-        scenarios: scenarios.slice(0, TOP_SCENARIOS),
-        relations: relations.slice(0, TOP_RELATIONS)
+        scenarios: scenarios.slice(0, CONFIG.TOP_SCENARIOS),
+        relations: relations.slice(0, CONFIG.TOP_RELATIONS)
     };
 
     try {
@@ -1483,7 +1746,7 @@ function writeMd(scenarios, relations, outputPath, pkfkContext = {}, datasetSetA
         lines.push('');
     }
 
-    for (const scenario of scenarios.slice(0, TOP_SCENARIOS)) {
+    for (const scenario of scenarios.slice(0, CONFIG.TOP_SCENARIOS)) {
         const chainTag = scenario.isChain ? ` 🔗 브릿지: \`${scenario.bridgeTable}\`` : '';
         const emptyTag = scenario.isEmpty ? ' ⚠️ (건수 0건)' : '';
         const errorTag = scenario.sqlError ? ' ❌ SQL 오류' : '';

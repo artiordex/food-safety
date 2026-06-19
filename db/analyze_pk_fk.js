@@ -90,7 +90,7 @@ function formatKstTimestamp(date = new Date()) {
 const MAX_COMPOSITE_KEY_SIZE = Number(process.env.MAX_COMPOSITE_KEY_SIZE || 3);
 
 // FK 후보 정제 기준
-const FK_MIN_INCLUSION_RATIO = 0.03;       // 확정 FK 후보 최소 포함률
+const FK_MIN_INCLUSION_RATIO = 0.05;       // 확정 FK 후보 최소 포함률
 const FK_MIN_MATCHED_COUNT = 3;            // 확정 FK 후보 최소 실제 매칭 고유값 수
 const FK_STRONG_INCLUSION_RATIO = 0.50;    // 50% 이상이면 HIGH 가산
 const FK_ALLOW_UNCHECKED = true;           // 샘플 부족 미검증 FK도 논리적 구조 기반으로 유지
@@ -99,6 +99,38 @@ const FK_MAX_PER_FROM_FIELD = 2;           // 한 컬럼당 찾을 수 있는 'F
 // 추정 FK 후보 기준
 const FK_SUGGESTED_MIN_SCORE = 60;         // 이 점수 이상이면 추정 후보로 보존
 const FK_INCLUDE_SUGGESTED_IN_SQL = false; // 불확실한 추정 후보는 SQL ERD에서 제외
+
+// FK 리뷰 상태
+const FK_REVIEW_STATUS = Object.freeze({
+    // 값 포함률, 매칭 수, 도메인 규칙 등을 통과해 확정 후보로 볼 수 있는 FK
+    CONFIRMED: 'CONFIRMED',
+    // 확정 기준에는 못 미치지만 점수/명칭/일부 근거가 있어 검토 후보로 남긴 FK
+    SUGGESTED: 'SUGGESTED',
+    // 포함률 검사는 수행됐지만 부모 값과 매칭된 값이 0건인 FK 보류 후보
+    UNVERIFIED_ZERO_MATCH: 'UNVERIFIED_ZERO_MATCH',
+    // 포함률 검사는 수행됐고 일부 값은 매칭됐지만 확정/추정 기준에는 못 미친 FK
+    UNVERIFIED_WEAK_MATCH: 'UNVERIFIED_WEAK_MATCH',
+    // 샘플 부족 등으로 포함률 검사를 제대로 수행하지 못한 FK
+    UNVERIFIED_UNCHECKED: 'UNVERIFIED_UNCHECKED'
+});
+
+// FK 미검증 후보 처리 정책
+const FK_UNVERIFIED_POLICY = Object.freeze({
+    // 값 매칭 0건 후보를 관계 목록에 남길지 여부. false면 보류 후보 목록으로 분리
+    keepZeroMatchInRelationships: false,
+    // 일부 값만 매칭된 미검증 후보를 관계 목록에 남길지 여부
+    keepWeakMatchInRelationships: true,
+    // 포함률 검사를 수행하지 못한 후보를 관계 목록에 남길지 여부
+    keepUncheckedInRelationships: true,
+    // 보류 후보 목록에 표시/저장할 최대 후보 수
+    maxExpansionCandidates: 300
+});
+
+// PK 후보 정제 기준
+// 샘플이 있는 경우 실제 PRIMARY KEY로 쓰려면 빈값/중복이 없어야 한다.
+const PK_NEAR_UNIQUE_RATIO = 0.99;
+const PK_DUPLICATE_HIGH_CAP = 74;
+const PK_DUPLICATE_LOW_CAP = 64;
 
 // 필드명 유사도 (string-similarity Dice's coefficient)
 const FIELD_SIMILARITY_THRESHOLD = 0.72;  // 정규화 후 Dice 유사도 기준
@@ -603,9 +635,9 @@ const STRONG_PK_KOR_PATTERNS = [
     /기준규격일련번호$/, /회수폐기일련번호$/
 ];
 
-const CODE_FIELD_PATTERNS = [/_CD$/i, /_CODE$/i, /_CLCD$/i, /_DVS_CD$/i, /_TYPE_CD$/i, /_INSTTCD$/i];
+const CODE_FIELD_PATTERNS = [/_CD$/i, /_CODE$/i, /_INSTTCD$/i];
 
-const CODE_KOR_PATTERNS = [/코드$/, /분류코드$/, /구분코드$/, /유형코드$/, /기관코드$/, /시험항목코드$/, /품목코드$/, /단위코드$/];
+const CODE_KOR_PATTERNS = [/코드$/, /기관코드$/, /시험항목코드$/, /품목코드$/];
 
 // 순서/정렬값은 단독 PK에서 제외하고, 복합키 보조 필드로만 검토한다.
 const ORDER_FIELD_PATTERNS = [
@@ -656,7 +688,15 @@ const WEAK_FIELD_PATTERNS = [
     /^DSPSCN$/i, /^VILTCN$/i, /^VILTDTLS$/i, /_DTLS$/i,
     /_CN$/i, /_CONT$/i, /_CONTENT$/i, /_DESC$/i, /_MEMO$/i,
     /_PRVNS$/i, /_MTHD$/i, /_FNCLTY$/i, /_STND$/i, /DISPOS$/i, /USAGE$/i, /_MTRQLT$/i, /_DAYCNT$/i, /_YN$/i,
-    /TELNO$/i, /TEL_NO$/i, /_TELNO$/i, /PHONE$/i, /MOBILE$/i, /FAX$/i
+    /TELNO$/i, /TEL_NO$/i, /_TELNO$/i, /PHONE$/i, /MOBILE$/i, /FAX$/i,
+    // Enum/분류성 코드 계열 (분석 상 PK/FK로서 조인에 부적합)
+    /_DVS_CD$/i, /^DVS_CD$/i, /^DVSCD$/i, /_DVS$/i,
+    /_FOM_CD$/i, /^FOM_CD$/i, /^FOMCD$/i, /_FOM$/i,
+    /_UNIT_CD$/i, /^UNIT_CD$/i, /^UNITCD$/i, /^UNIT$/i,
+    /^WORKSCOPE$/i,
+    /_STTUS_CD$/i, /^STTUSCD$/i, /_STAT_CD$/i, /^STATCD$/i,
+    /_SE_CD$/i, /^SECD$/i, /_KND_CD$/i, /^KNDCD$/i,
+    /_TY_CD$/i, /^TYCD$/i, /_CLCD$/i, /^CLCD$/i, /_TYPE_CD$/i, /^TYPE_CD$/i
 ];
 
 // 집계/통계/측정값 성격의 필드 -- 고유 식별자가 될 수 없으므로 PK 후보에서 제외한다.
@@ -678,7 +718,8 @@ const AGGREGATE_FIELD_PATTERNS = [
     /_RATE$/i, /_RATIO$/i, /_PCT$/i,// 비율
     /_TOT$/i, /_SUM$/i,             // 합계
     /_AVG$/i, /_MAX$/i, /_MIN$/i,   // 통계
-    /_QTY$/i, /_WGHT$/i, /_WT$/i    // 수량, 중량
+    /_QTY$/i, /_WGHT$/i, /_WT$/i,   // 수량, 중량
+    /ORDNO$/i, /_ORDNO$/i           // 순서/순번
 ];
 
 const BAD_PK_FIELD_PATTERNS = [
@@ -695,6 +736,8 @@ const BAD_PK_KOR_PATTERNS = [
     /대표자$/, /대표자명$/, /주소$/, /소재지$/, /내용$/, /사유$/,
     /비고$/, /메모$/, /방법$/, /전화번호$/, /연락처$/, /팩스$/,
     /일자$/, /날짜$/, /년월일$/, /기능성$/, /규격$/, /성상$/, /용도$/, /재질$/, /기한$/, /일수$/, /여부$/, /해당$/,
+    // Enum/분류 한글명
+    /분류코드$/, /구분코드$/, /유형코드$/, /단위코드$/, /형식코드$/, /종류코드$/, /상태코드$/,
     // 집계/통계 한글명
     /건수$/, /면적$/, /연도$/, /년도$/, /금액$/, /비율$/, /율$/,
     /합계$/, /총계$/, /평균$/, /수량$/, /중량$/, /농도$/
@@ -1119,6 +1162,41 @@ function getConfidence(score) {
     return 'LOW';
 }
 
+function applyPkUniquenessGuard(candidate) {
+    const stats = candidate?.unique_check;
+    if (!stats || !stats.record_count) return candidate;
+    if (stats.is_unique) return candidate;
+
+    const hasDuplicate = (stats.duplicate_count || 0) > 0;
+    const hasEmpty = !!stats.has_empty;
+    if (!hasDuplicate && !hasEmpty) return candidate;
+
+    const cap = !hasEmpty && stats.uniqueness_ratio >= PK_NEAR_UNIQUE_RATIO
+        ? PK_DUPLICATE_HIGH_CAP
+        : PK_DUPLICATE_LOW_CAP;
+    const originalScore = candidate.score;
+    candidate.score = Math.min(candidate.score, cap);
+    candidate.confidence = getConfidence(candidate.score);
+
+    const issues = [];
+    if (hasDuplicate) issues.push(`샘플 중복 ${stats.duplicate_count}건`);
+    if (hasEmpty) issues.push('빈값 존재');
+    candidate.reason += ` / 실제 PK 부적합(${issues.join(', ')})으로 점수 상한 ${originalScore}→${candidate.score}`;
+    return candidate;
+}
+
+function isStrictPkCandidate(pk) {
+    return !!(
+        pk &&
+        pk.fields &&
+        pk.fields.length > 0 &&
+        pk.confidence !== 'NONE' &&
+        pk.unique_check &&
+        pk.unique_check.record_count > 0 &&
+        pk.unique_check.is_unique
+    );
+}
+
 // 배열의 k-원소 조합을 반환
 function makeCombinations(arr, size) {
     const result = [];
@@ -1295,6 +1373,8 @@ function analyzePkCandidatesForTable(ds, records, fieldEntropyMap = null) {
             cand.reason += ' / ⚠️ 공전·기준규격 테이블 — 품목코드당 기준항목별 복수 행 존재, PRDLST_CD는 FK';
         }
     }
+
+    allCandidates.forEach(applyPkUniquenessGuard);
 
     return allCandidates
         .filter(c => c.score >= 50 || c.type === 'composite')
@@ -1515,7 +1595,7 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, values
         // 부모 테이블이 되려면 먼저 쓸만한 '복합 기본키(Composite PK)'를 가지고 있어야 함
         // 신뢰도가 너무 낮은(LOW) 후보는 오탐지의 원인이 되므로 제외
         const compositePks = targetTable.pk_candidates.filter(
-            pk => pk.type === 'composite' && pk.confidence !== 'LOW'
+            pk => pk.type === 'composite' && pk.confidence !== 'LOW' && isStrictPkCandidate(pk)
         );
         if (compositePks.length === 0) continue; // 복합 PK가 없으면 부모 테이블 자격 미달로 패스
 
@@ -1610,7 +1690,7 @@ function detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, values
                         ]
                     }
                 });
-                reverseSeenKeys.add(dedupeKey);
+                reverseSeenKeys.add(reverseKey);
             }
         }
     }
@@ -1638,7 +1718,7 @@ function buildPkFieldIndex(tableAnalyses) {
     const pkFieldIndex = new Map();
 
     for (const table of tableAnalyses) {
-        const bestSinglePk = table.pk_candidates.find(pk => pk.type === 'single');
+        const bestSinglePk = table.pk_candidates.find(pk => pk.type === 'single' && isStrictPkCandidate(pk));
         if (!bestSinglePk) continue;
 
         // 집계 테이블(aggregate_table)은 부모 FK 후보에서 제외한다.
@@ -1683,6 +1763,34 @@ function shouldSkipByMasterRule(fromSvcNo, fieldName, existingSvcNoSet) {
     // 대표 마스터 테이블은 부모 역할로 보는 것이 자연스럽다.
     // 따라서 자기 자신이 해당 키의 대표 마스터면 다른 마스터/주변 테이블을 참조하는 FK 생성을 막는다.
     return isMasterTableForKey(fromSvcNo, upperField, existingSvcNoSet);
+}
+
+function classifyFkEvidence({ relationType, inclusion }) {
+    if (relationType === 'CONFIRMED') return FK_REVIEW_STATUS.CONFIRMED;
+    if (relationType === 'SUGGESTED') return FK_REVIEW_STATUS.SUGGESTED;
+    if (!inclusion || !inclusion.checked) return FK_REVIEW_STATUS.UNVERIFIED_UNCHECKED;
+    if ((inclusion.matched_count || 0) > 0) return FK_REVIEW_STATUS.UNVERIFIED_WEAK_MATCH;
+    return FK_REVIEW_STATUS.UNVERIFIED_ZERO_MATCH;
+}
+
+function shouldKeepFkReviewStatus(status) {
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_ZERO_MATCH) {
+        return FK_UNVERIFIED_POLICY.keepZeroMatchInRelationships;
+    }
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_WEAK_MATCH) {
+        return FK_UNVERIFIED_POLICY.keepWeakMatchInRelationships;
+    }
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_UNCHECKED) {
+        return FK_UNVERIFIED_POLICY.keepUncheckedInRelationships;
+    }
+    return true;
+}
+
+function getFkExpansionReason(status) {
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_ZERO_MATCH) return '값 매칭 0건: 정규화/샘플 확장 검토';
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_WEAK_MATCH) return '일부 값 매칭: 확정 기준 미달';
+    if (status === FK_REVIEW_STATUS.UNVERIFIED_UNCHECKED) return '값 포함률 검증 불가: 샘플 보강 필요';
+    return '';
 }
 
 // FK 후보 하나에 대해 포함률·도메인 규칙·유사도를 종합해 점수와 관계 유형을 결정함
@@ -1792,7 +1900,7 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
             reasons.push(`값 포함률 ${pct}%, 매칭 고유값 ${inclusion.matched_count}개 — 확정 기준(${(minRatio * 100).toFixed(1)}%, ${FK_MIN_MATCHED_COUNT}개) 미달`);
         } else {
             score -= 20;
-            relationType = domainConfirmed ? 'UNVERIFIED' : 'UNVERIFIED';
+            relationType = domainConfirmed ? 'SUGGESTED' : 'UNVERIFIED';
             reasons.push(`값 포함률 낮음 ${pct}% — UNVERIFIED 분류`);
         }
     } else {
@@ -1830,6 +1938,9 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
         }
     }
     const finalScore = Math.min(Math.max(Math.round(score), 0), 100);
+    const reviewStatus = classifyFkEvidence({ relationType, inclusion });
+    const keepRelationship = shouldKeepFkReviewStatus(reviewStatus);
+    const expansionReason = getFkExpansionReason(reviewStatus);
 
     if ((relationType === 'SUGGESTED' || relationType === 'UNVERIFIED') && finalScore < FK_SUGGESTED_MIN_SCORE) {
         return {
@@ -1837,15 +1948,20 @@ function scoreFkCandidate({ field, target, fromSvcNo, fromSvcNm, fromRecords, to
             skip_reason: `${relationType} 후보 점수 ${finalScore}점으로 기준 미달`,
             inclusion,
             score: finalScore,
-            reasons
+            reasons,
+            review_status: reviewStatus,
+            expansion_reason: expansionReason
         };
     }
 
     return {
         skip: false,
+        keep_relationship: keepRelationship,
+        expansion_reason: expansionReason,
         score: finalScore,
         confidence: relationType === 'CONFIRMED' ? getConfidence(finalScore) : relationType,
         relation_type: relationType,
+        review_status: reviewStatus,
         inclusion,
         reasons
     };
@@ -1861,6 +1977,7 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
 
     const relationships = [];
     const rejectedRelationships = [];
+    const expansionCandidates = [];
     // 순환 참조 탐지용 Set: "toTable|toField|fromTable|fromField" 형태로 기존 관계를 기록
     const reverseRelSet = new Set();
 
@@ -1950,7 +2067,7 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                     continue;
                 }
 
-                candidatesForField.push({
+                const relationshipCandidate = {
                     from_table: fromSvcNo,
                     from_table_name: fromSvcNm,
                     from_field: fieldName,
@@ -1964,6 +2081,8 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                     score: scored.score,
                     confidence: scored.confidence,
                     relation_type: scored.relation_type,
+                    review_status: scored.review_status,
+                    expansion_reason: scored.expansion_reason,
                     inclusion_check: scored.inclusion,
                     reason: scored.reasons.join(' / '),
                     review_evidence: {
@@ -1982,9 +2101,16 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
                             strong_inclusion_ratio: thresholds?.strong ?? FK_STRONG_INCLUSION_RATIO
                         },
                         decision: scored.relation_type,
+                        review_status: scored.review_status,
                         reasons: scored.reasons
                     }
-                });
+                };
+
+                if (scored.keep_relationship) {
+                    candidatesForField.push(relationshipCandidate);
+                } else {
+                    expansionCandidates.push(relationshipCandidate);
+                }
             }
 
             // 같은 From Table.Field에서 부모 후보가 너무 많이 붙는 것을 제한한다.
@@ -2000,7 +2126,10 @@ function analyzeFkCandidates(datasets, tableAnalyses, recordsMap = new Map(), fu
 
     return {
         relationships: removeDuplicateRelationships(relationships).sort((a, b) => b.score - a.score),
-        rejected_relationships: removeDuplicateRejectedRelationships(rejectedRelationships)
+        rejected_relationships: removeDuplicateRejectedRelationships(rejectedRelationships),
+        fk_expansion_candidates: removeDuplicateRelationships(expansionCandidates)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, FK_UNVERIFIED_POLICY.maxExpansionCandidates)
     };
 }
 
@@ -2561,6 +2690,7 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
     const fkResult = analyzeFkCandidates(datasets, tableAnalyses, recordsMap, fuseIndex, thresholds, valuesCache);
     const relationships = fkResult.relationships;
     const rejectedRelationships = fkResult.rejected_relationships;
+    const fkExpansionCandidates = fkResult.fk_expansion_candidates || [];
 
     const compositeFks = detectCompositeFkCandidates(datasets, tableAnalyses, recordsMap, valuesCache);
     log('INFO', `복합 FK 후보 탐지: ${compositeFks.length}개`);
@@ -2586,6 +2716,10 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
             fk_include_suggested_in_sql: FK_INCLUDE_SUGGESTED_IN_SQL,
             fk_domain_confirmed_bonus: FK_DOMAIN_CONFIRMED_BONUS,
             fk_domain_parent_child_rule_count: FK_DOMAIN_PARENT_CHILD_RULES.length,
+            fk_unverified_policy: FK_UNVERIFIED_POLICY,
+            pk_near_unique_ratio: PK_NEAR_UNIQUE_RATIO,
+            pk_duplicate_high_cap: PK_DUPLICATE_HIGH_CAP,
+            pk_duplicate_low_cap: PK_DUPLICATE_LOW_CAP,
             master_table_by_key: MASTER_TABLE_BY_KEY
         },
         summary: {
@@ -2593,10 +2727,18 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
             tables_with_pk_candidates: tableAnalyses.filter(t =>
                 t.pk_candidates.some(pk => pk.fields && pk.fields.length > 0)
             ).length,
+            tables_with_strict_pk: tableAnalyses.filter(t =>
+                t.pk_candidates.some(isStrictPkCandidate)
+            ).length,
             relationship_count: relationships.length,
             confirmed_relationship_count: relationships.filter(r => r.relation_type === 'CONFIRMED').length,
             suggested_relationship_count: relationships.filter(r => r.relation_type === 'SUGGESTED').length,
             unverified_relationship_count: relationships.filter(r => r.relation_type === 'UNVERIFIED').length,
+            unverified_zero_match_count: relationships.filter(r => r.review_status === FK_REVIEW_STATUS.UNVERIFIED_ZERO_MATCH).length,
+            unverified_weak_match_count: relationships.filter(r => r.review_status === FK_REVIEW_STATUS.UNVERIFIED_WEAK_MATCH).length,
+            unverified_unchecked_count: relationships.filter(r => r.review_status === FK_REVIEW_STATUS.UNVERIFIED_UNCHECKED).length,
+            fk_zero_match_pending_candidate_count: fkExpansionCandidates.length,
+            fk_expansion_candidate_count: fkExpansionCandidates.length,
             composite_fk_count: compositeFks.length,
             confirmed_composite_fk_count: compositeFks.filter(r => r.relation_type === 'COMPOSITE_FK').length,
             suggested_composite_fk_count: compositeFks.filter(r => r.relation_type === 'SUGGESTED_COMPOSITE_FK').length,
@@ -2614,7 +2756,9 @@ function analyze(datasets, recordsMap = new Map(), thresholds = null) {
         dataset_clusters: graphAnalysis.dataset_clusters,
         theme_candidates: graphAnalysis.theme_candidates,
         connection_paths: graphAnalysis.connection_paths,
-        rejected_relationships: rejectedRelationships
+        rejected_relationships: rejectedRelationships,
+        fk_zero_match_pending_candidates: fkExpansionCandidates,
+        fk_expansion_candidates: fkExpansionCandidates
     };
 }
 
@@ -2670,11 +2814,38 @@ function escapeMd(text) {
 
 // 포함률 통계 객체를 Markdown 표시용 문자열로 변환함
 function formatInclusionForMd(inclusion) {
-    if (!inclusion || !inclusion.checked) return '미검증';
+    if (!inclusion || !inclusion.checked) return '검증 불가';
     const matched = inclusion.matched_count ?? inclusion.matched ?? 0;
     const fromCount = inclusion.from_unique_count ?? inclusion.from_count ?? 0;
     const rowCount = inclusion.matched_row_count != null ? `, row ${inclusion.matched_row_count}` : '';
     return `${(inclusion.inclusion_ratio * 100).toFixed(1)}% (${matched}/${fromCount}${rowCount})`;
+}
+
+function formatFkCandidateLabelForMd(rel) {
+    if (!rel) return '-';
+    if (rel.relation_type === 'CONFIRMED') return rel.confidence || '확정';
+    if (rel.relation_type === 'SUGGESTED') return '추정';
+    if (rel.relation_type === 'UNVERIFIED') return '검토 보류';
+    return rel.confidence || rel.relation_type || '-';
+}
+
+function formatFkReviewStatusForMd(status) {
+    const labels = {
+        CONFIRMED: '확정',
+        SUGGESTED: '추정',
+        UNVERIFIED_ZERO_MATCH: '값 매칭 0건 보류',
+        UNVERIFIED_WEAK_MATCH: '일부 값 매칭 보류',
+        UNVERIFIED_UNCHECKED: '검증 불가 보류'
+    };
+    return labels[status] || status || '-';
+}
+
+function formatFkReasonForMd(reason) {
+    return String(reason || '')
+        .replace(/UNVERIFIED 후보/g, '검토 보류 후보')
+        .replace(/UNVERIFIED 분류/g, '검토 보류 분류')
+        .replace(/SUGGESTED 후보/g, '추정 후보')
+        .replace(/SUGGESTED 분류/g, '추정 분류');
 }
 
 function formatPkFieldsForMd(pk) {
@@ -2717,6 +2888,21 @@ function formatPkLogicalNamesForMd(pk) {
     return names.length > 0 ? names.join(' + ') : '-';
 }
 
+function formatSqlPkApplicability(pk) {
+    if (!pk || !pk.fields || pk.fields.length === 0 || pk.confidence === 'NONE') return '-';
+    return isStrictPkCandidate(pk) ? '적용' : '미적용';
+}
+
+function getPkWarningReason(pk) {
+    const stats = pk?.unique_check;
+    if (!stats || !stats.record_count || stats.is_unique) return '';
+    const reasons = [];
+    if (stats.has_empty) reasons.push('빈값 존재');
+    if ((stats.duplicate_count || 0) > 0) reasons.push(`중복 ${stats.duplicate_count}건`);
+    if (stats.uniqueness_ratio != null) reasons.push(`unique 비율 ${(stats.uniqueness_ratio * 100).toFixed(1)}%`);
+    return reasons.join(', ');
+}
+
 // PK/FK 후보 분석 결과를 Markdown 테이블로 변환해 파일로 저장함
 function generateMarkdownReport(analysis, outputPath) {
     const lines = [];
@@ -2724,13 +2910,18 @@ function generateMarkdownReport(analysis, outputPath) {
     lines.push('# 식품안전나라 PK/FK 후보 분석 결과');
     lines.push('');
     lines.push(`- 분석 데이터셋 수: ${analysis.summary.total_tables}`);
-    lines.push(`- PK 후보 보유 테이블 수: ${analysis.summary.tables_with_pk_candidates}`);
-    lines.push(`- FK 후보 수: ${analysis.summary.relationship_count}`);
+    lines.push(`- PK 후보(검토 포함) 보유 테이블 수: ${analysis.summary.tables_with_pk_candidates}`);
+    lines.push(`- 엄격 PK 적용 가능 테이블 수: ${analysis.summary.tables_with_strict_pk || 0}`);
+    lines.push(`- FK 후보(확정/추정/검토 보류) 수: ${analysis.summary.relationship_count}`);
     lines.push(`  - 확정 FK 후보 수: ${analysis.summary.confirmed_relationship_count || 0}`);
     lines.push(`  - 추정 FK 후보 수: ${analysis.summary.suggested_relationship_count || 0}`);
-    lines.push(`  - 미검증 FK 후보 수: ${analysis.summary.unverified_relationship_count || 0}`);
+    lines.push(`  - 검토 보류 FK 후보 수: ${analysis.summary.unverified_relationship_count || 0}`);
+    lines.push(`    - 일부 값 매칭 보류: ${analysis.summary.unverified_weak_match_count || 0}`);
+    lines.push(`    - 검증 불가 보류: ${analysis.summary.unverified_unchecked_count || 0}`);
+    lines.push(`    - 값 매칭 0건 보류: ${analysis.summary.unverified_zero_match_count || 0}`);
     lines.push(`  - 확정 복합 FK 후보 수: ${analysis.summary.confirmed_composite_fk_count || 0}`);
     lines.push(`  - 추정 복합 FK 후보 수: ${analysis.summary.suggested_composite_fk_count || 0}`);
+    lines.push(`- 관계 목록 제외 보류 FK 후보 수(값 매칭 0건): ${analysis.summary.fk_zero_match_pending_candidate_count || analysis.summary.fk_expansion_candidate_count || 0}`);
     lines.push(`- 제외된 FK 후보 수: ${analysis.summary.rejected_relationship_count || 0}`);
     lines.push(`- 생성일시: ${analysis.generated_at}`);
     lines.push('');
@@ -2740,54 +2931,116 @@ function generateMarkdownReport(analysis, outputPath) {
     lines.push(`- 최소 매칭 고유값 수 기준: ${analysis.config.fk_min_matched_count}개`);
     lines.push(`- 강한 값 포함률 기준: ${(analysis.config.fk_strong_inclusion_ratio * 100).toFixed(0)}%`);
     lines.push(`- 복합키 탐색 최대 필드 수: ${analysis.config.max_composite_key_size}개`);
-    lines.push(`- 미검증 FK 허용 여부: ${analysis.config.fk_allow_unchecked ? '추정 후보로 허용' : '제외'}`);
+    lines.push(`- 검토 보류 FK 관계 목록 유지 여부: ${analysis.config.fk_allow_unchecked ? '일부 보류 후보 유지' : '제외'}`);
     lines.push(`- 동일 From Table.Field 기준 최대 후보 수: ${analysis.config.fk_max_per_from_field}`);
     lines.push(`- 추정 FK 최소 점수: ${analysis.config.fk_suggested_min_score}`);
     lines.push(`- DBeaver ERD용 추정 FK SQL 포함 여부: ${analysis.config.fk_include_suggested_in_sql ? '포함' : '제외'}`);
     lines.push(`- 업무 명칭 CONFIRMED 승격 규칙 수: ${analysis.config.fk_domain_parent_child_rule_count}`);
     lines.push(`- 업무 명칭 규칙 매칭 시 점수 가산: +${analysis.config.fk_domain_confirmed_bonus}`);
+    lines.push(`- 값 매칭 0건 보류 후보 관계 목록 포함 여부: ${analysis.config.fk_unverified_policy?.keepZeroMatchInRelationships ? '관계 목록 유지' : '관계 목록 제외 보류로 분리'}`);
+    lines.push(`- 일부 값 매칭 보류 후보 관계 목록 포함 여부: ${analysis.config.fk_unverified_policy?.keepWeakMatchInRelationships ? '관계 목록 유지' : '관계 목록 제외 보류로 분리'}`);
+    lines.push(`- 검증 불가 보류 후보 관계 목록 포함 여부: ${analysis.config.fk_unverified_policy?.keepUncheckedInRelationships ? '관계 목록 유지' : '관계 목록 제외 보류로 분리'}`);
+    lines.push(`- PK 중복 후보 HIGH 상한 기준: unique 비율 ${Math.round((analysis.config.pk_near_unique_ratio || 0) * 100)}% 이상 → ${analysis.config.pk_duplicate_high_cap}점, 그 외 → ${analysis.config.pk_duplicate_low_cap}점`);
+    lines.push('- SQL PRIMARY KEY 적용 기준: 샘플 기준 빈값·중복 없는 후보만 적용');
+    lines.push('- SQL FOREIGN KEY 적용 기준: CONFIRMED FK와 확정 복합 FK만 적용');
     lines.push('');
 
     lines.push('## 1. PK 후보 요약');
     lines.push('');
-    lines.push('| 서비스번호 | 데이터셋명 | PK 후보 | 논리형 이름 | 신뢰도 | 점수 | 사유 |');
-    lines.push('|---|---|---|---|---|---:|---|');
+    lines.push('> 이 표의 PK 후보는 검토 대상까지 포함합니다. SQL PRIMARY KEY는 `SQL PK 적용 여부`가 `적용`인 후보에만 생성됩니다.');
+    lines.push('');
+    lines.push('| 서비스번호 | 데이터셋명 | PK 후보 | 논리형 이름 | 신뢰도 | 점수 | SQL PK 적용 여부 | 사유 |');
+    lines.push('|---|---|---|---|---|---:|---|---|');
 
     for (const table of analysis.tables) {
         const best = table.pk_candidates[0];
         if (!best) {
-            lines.push(`| ${table.svc_no} | ${escapeMd(table.svc_nm)} | - | - | - | - | 후보 없음 |`);
+            lines.push(`| ${table.svc_no} | ${escapeMd(table.svc_nm)} | - | - | - | - | - | 후보 없음 |`);
             continue;
         }
-        lines.push(`| ${table.svc_no} | ${escapeMd(table.svc_nm)} | ${escapeMd(formatPkFieldsForMd(best))} | ${escapeMd(formatPkLogicalNamesForMd(best))} | ${best.confidence} | ${best.score} | ${escapeMd(best.reason)} |`);
+        lines.push(`| ${table.svc_no} | ${escapeMd(table.svc_nm)} | ${escapeMd(formatPkFieldsForMd(best))} | ${escapeMd(formatPkLogicalNamesForMd(best))} | ${best.confidence} | ${best.score} | ${formatSqlPkApplicability(best)} | ${escapeMd(best.reason)} |`);
+    }
+
+    lines.push('');
+    lines.push('## 1-1. PK 주의 후보');
+    lines.push('');
+    lines.push('> 아래 후보는 식별자처럼 보이지만 샘플 기준 중복 또는 빈값이 있어 SQL PRIMARY KEY로 적용하지 않습니다.');
+    lines.push('');
+    lines.push('| 서비스번호 | 데이터셋명 | 후보 필드 | 신뢰도 | 점수 | 중복검사 | 주의 사유 |');
+    lines.push('|---|---|---|---|---:|---|---|');
+
+    const pkWarnings = [];
+    for (const table of analysis.tables) {
+        for (const pk of table.pk_candidates || []) {
+            const warningReason = getPkWarningReason(pk);
+            if (!warningReason) continue;
+            pkWarnings.push({ table, pk, warningReason });
+        }
+    }
+    pkWarnings
+        .sort((a, b) => (b.pk.unique_check?.duplicate_count || 0) - (a.pk.unique_check?.duplicate_count || 0))
+        .slice(0, 80)
+        .forEach(({ table, pk, warningReason }) => {
+            const stats = pk.unique_check || {};
+            const check = stats.record_count > 0
+                ? `unique ${stats.unique_count}/${stats.record_count}, duplicate ${stats.duplicate_count}`
+                : '샘플 없음';
+            lines.push(`| ${table.svc_no} | ${escapeMd(table.svc_nm)} | ${escapeMd(formatPkFieldsForMd(pk))} | ${pk.confidence} | ${pk.score} | ${check} | ${escapeMd(warningReason)} |`);
+        });
+    if (pkWarnings.length === 0) {
+        lines.push('| - | - | - | - | - | - | 주의 후보 없음 |');
+    } else if (pkWarnings.length > 80) {
+        lines.push(`| ... | ... | ... | ... | ... | ... | 총 ${pkWarnings.length}건 중 80건만 표시 |`);
     }
 
     lines.push('');
     lines.push('## 2. FK 후보 요약');
     lines.push('');
-    lines.push('| From | Field | To | Field | 신뢰도 | 점수 | 값 포함률 | 사유 |');
-    lines.push('|---|---|---|---|---|---:|---|---|');
+    lines.push('> FK 신뢰도 `HIGH`는 부모 키로의 값 포함률과 관계 점수가 높다는 뜻입니다. 자식 테이블의 FK 컬럼은 같은 부모 값을 여러 행에서 반복할 수 있으므로, PK의 `HIGH`와 의미가 다릅니다.');
+    lines.push('> `검토 보류`는 FK로 확정하지 않은 후보입니다. 관계 가능성은 있지만 현재 샘플 기준이 부족하므로 SQL ERD에는 반영하지 않습니다.');
+    lines.push('');
+    lines.push('| From | Field | To | Field | 후보분류 | 검토 라벨 | 점수 | 값 포함률 | 사유 |');
+    lines.push('|---|---|---|---|---|---|---:|---|---|');
 
     for (const rel of analysis.relationships) {
-        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${rel.confidence} | ${rel.score} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reason)} |`);
+        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${formatFkCandidateLabelForMd(rel)} | ${formatFkReviewStatusForMd(rel.review_status)} | ${rel.score} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(formatFkReasonForMd(rel.reason))} |`);
     }
 
     lines.push('');
-    lines.push('## 3. 제외된 FK 후보 요약');
+    lines.push('## 3. 관계 목록 제외 보류 FK 후보(값 매칭 0건)');
+    lines.push('');
+    lines.push('> 아래 후보는 컬럼명·업무명은 FK처럼 보이지만 현재 샘플 값 매칭이 0건이라 FK 후보 요약에서는 제외한 보류 후보입니다.');
+    lines.push('');
+    lines.push('| From | Field | To | Field | 보류 라벨 | 점수 | 값 포함률 | 보류 사유 |');
+    lines.push('|---|---|---|---|---|---:|---|---|');
+
+    const expansionCandidates = analysis.fk_zero_match_pending_candidates || analysis.fk_expansion_candidates || [];
+    const expansionPreview = expansionCandidates.slice(0, 120);
+    for (const rel of expansionPreview) {
+        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${formatFkReviewStatusForMd(rel.review_status)} | ${rel.score} | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(formatFkReasonForMd(rel.expansion_reason || rel.reason))} |`);
+    }
+    if (expansionCandidates.length === 0) {
+        lines.push('| - | - | - | - | - | - | - | 관계 목록 제외 보류 후보 없음 |');
+    } else if (expansionCandidates.length > expansionPreview.length) {
+        lines.push(`| ... | ... | ... | ... | ... | ... | ... | 총 ${expansionCandidates.length}건 중 ${expansionPreview.length}건만 표시 |`);
+    }
+
+    lines.push('');
+    lines.push('## 4. 제외된 FK 후보 요약');
     lines.push('');
     lines.push('| From | Field | To | Field | 값 포함률 | 제외 사유 |');
     lines.push('|---|---|---|---|---|---|');
 
     const rejectedPreview = (analysis.rejected_relationships || []).slice(0, 300);
     for (const rel of rejectedPreview) {
-        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(rel.reject_reason)} |`);
+        lines.push(`| ${rel.from_table} ${escapeMd(rel.from_table_name)} | ${rel.from_field}(${escapeMd(rel.from_kor_nm)}) | ${rel.to_table} ${escapeMd(rel.to_table_name)} | ${rel.to_field}(${escapeMd(rel.to_kor_nm)}) | ${formatInclusionForMd(rel.inclusion_check)} | ${escapeMd(formatFkReasonForMd(rel.reject_reason))} |`);
     }
     if ((analysis.rejected_relationships || []).length > rejectedPreview.length) {
         lines.push(`| ... | ... | ... | ... | ... | 총 ${analysis.rejected_relationships.length}건 중 ${rejectedPreview.length}건만 표시 |`);
     }
 
     lines.push('');
-    lines.push('## 4. 네트워크(관계) 지표 분석');
+    lines.push('## 5. 네트워크(관계) 지표 분석');
     lines.push('');
 
     const inDegRanking = analysis.graph_analysis?.in_degree_ranking || [];
@@ -2910,7 +3163,7 @@ function generateMarkdownReport(analysis, outputPath) {
     }
     lines.push('');
 
-    lines.push('## 5. 테이블별 상세');
+    lines.push('## 6. 테이블별 상세');
     lines.push('');
 
     for (const table of analysis.tables) {
@@ -2922,18 +3175,18 @@ function generateMarkdownReport(analysis, outputPath) {
         lines.push('');
         lines.push('#### PK 후보');
         lines.push('');
-        lines.push('| 후보 필드 | 논리형 이름 | 유형 | 신뢰도 | 점수 | 중복검사 | 사유 |');
-        lines.push('|---|---|---|---|---:|---|---|');
+        lines.push('| 후보 필드 | 논리형 이름 | 유형 | 신뢰도 | 점수 | SQL PK 적용 여부 | 중복검사 | 사유 |');
+        lines.push('|---|---|---|---|---:|---|---|---|');
 
         if (table.pk_candidates.length === 0) {
-            lines.push('| - | - | - | - | - | - | 후보 없음 |');
+            lines.push('| - | - | - | - | - | - | - | 후보 없음 |');
         } else {
             for (const pk of table.pk_candidates) {
                 const stats = pk.unique_check;
                 const check = stats.record_count > 0
                     ? `unique ${stats.unique_count}/${stats.record_count}, duplicate ${stats.duplicate_count}`
                     : '샘플 없음';
-                lines.push(`| ${escapeMd(formatPkFieldsForMd(pk))} | ${escapeMd(formatPkLogicalNamesForMd(pk))} | ${pk.type} | ${pk.confidence} | ${pk.score} | ${check} | ${escapeMd(pk.reason)} |`);
+                lines.push(`| ${escapeMd(formatPkFieldsForMd(pk))} | ${escapeMd(formatPkLogicalNamesForMd(pk))} | ${pk.type} | ${pk.confidence} | ${pk.score} | ${formatSqlPkApplicability(pk)} | ${check} | ${escapeMd(pk.reason)} |`);
             }
         }
         lines.push('');
@@ -2990,9 +3243,7 @@ function generateKeysErdSql(analysis, outputPath) {
         : analysis.tables;
 
     for (const table of orderedTables) {
-        const bestPk = table.pk_candidates.find(
-            pk => pk.fields && pk.fields.length > 0 && pk.confidence !== 'NONE'
-        );
+        const bestPk = table.pk_candidates.find(isStrictPkCandidate);
         const hasPk = !!bestPk;
         const fksList = fksByTable.get(table.svc_no) || [];
         const hasFks = fksList.length > 0;
@@ -3197,7 +3448,7 @@ async function run(options) {
     log('INFO', `  FK 후보 수              : ${analysis.summary.relationship_count}`);
     log('INFO', `    확정 FK 후보 수       : ${analysis.summary.confirmed_relationship_count}`);
     log('INFO', `    추정 FK 후보 수       : ${analysis.summary.suggested_relationship_count}`);
-    log('INFO', `    미검증 FK 후보 수     : ${analysis.summary.unverified_relationship_count}`);
+    log('INFO', `    검토 보류 FK 후보 수  : ${analysis.summary.unverified_relationship_count}`);
     log('INFO', `  복합 FK 후보 수         : ${analysis.summary.composite_fk_count}`);
     log('INFO', `    확정 복합 FK 후보 수  : ${analysis.summary.confirmed_composite_fk_count}`);
     log('INFO', `    추정 복합 FK 후보 수  : ${analysis.summary.suggested_composite_fk_count}`);
