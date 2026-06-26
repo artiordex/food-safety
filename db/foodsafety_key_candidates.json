@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T11:31:09.467+09:00",
+  "generated_at": "2026-06-23T14:29:36.587+09:00",
   "config": {
     "fk_min_inclusion_ratio": 0.05,
     "fk_min_matched_count": 3,
@@ -96,7 +96,7 @@
       "svc_nm": "식품영양성분 DB정보",
       "cat": "식품영양정보",
       "field_count": 193,
-      "sample_record_count": 5,
+      "sample_record_count": 500,
       "fields": [
         {
           "field": "NUM",
@@ -1646,6 +1646,69 @@
       "pk_candidates": [
         {
           "fields": [
+            "FOOD_CD"
+          ],
+          "kor_names": [
+            "FOOD_CD"
+          ],
+          "score": 100,
+          "type": "single",
+          "confidence": "HIGH",
+          "unique_check": {
+            "record_count": 500,
+            "non_empty_count": 500,
+            "unique_count": 500,
+            "duplicate_count": 0,
+            "uniqueness_ratio": 1,
+            "has_empty": false,
+            "is_unique": true
+          },
+          "reason": "코드 계열 필드 / 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20)"
+        },
+        {
+          "fields": [
+            "NUM"
+          ],
+          "kor_names": [
+            "NUM"
+          ],
+          "score": 80,
+          "type": "single",
+          "confidence": "MEDIUM",
+          "unique_check": {
+            "record_count": 500,
+            "non_empty_count": 500,
+            "unique_count": 500,
+            "duplicate_count": 0,
+            "uniqueness_ratio": 1,
+            "has_empty": false,
+            "is_unique": true
+          },
+          "reason": "엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20)"
+        },
+        {
+          "fields": [
+            "FOOD_NM_KR"
+          ],
+          "kor_names": [
+            "FOOD_NM_KR"
+          ],
+          "score": 80,
+          "type": "single",
+          "confidence": "MEDIUM",
+          "unique_check": {
+            "record_count": 500,
+            "non_empty_count": 500,
+            "unique_count": 500,
+            "duplicate_count": 0,
+            "uniqueness_ratio": 1,
+            "has_empty": false,
+            "is_unique": true
+          },
+          "reason": "엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20)"
+        },
+        {
+          "fields": [
             "FOOD_CD",
             "FOOD_OR_CD"
           ],
@@ -1658,9 +1721,9 @@
           "key_size": 2,
           "confidence": "MEDIUM",
           "unique_check": {
-            "record_count": 5,
-            "non_empty_count": 5,
-            "unique_count": 5,
+            "record_count": 500,
+            "non_empty_count": 500,
+            "unique_count": 500,
             "duplicate_count": 0,
             "uniqueness_ratio": 1,
             "has_empty": false,
@@ -1682,87 +1745,15 @@
           "key_size": 2,
           "confidence": "MEDIUM",
           "unique_check": {
-            "record_count": 5,
-            "non_empty_count": 5,
-            "unique_count": 5,
+            "record_count": 500,
+            "non_empty_count": 500,
+            "unique_count": 500,
             "duplicate_count": 0,
             "uniqueness_ratio": 1,
             "has_empty": false,
             "is_unique": true
           },
           "reason": "복합키 FOOD_CD + FOOD_CAT1_CD 샘플 기준 중복 없음"
-        },
-        {
-          "fields": [
-            "FOOD_CD",
-            "FOOD_REF_CD"
-          ],
-          "kor_names": [
-            "FOOD_CD",
-            "FOOD_REF_CD"
-          ],
-          "score": 75,
-          "type": "composite",
-          "key_size": 2,
-          "confidence": "MEDIUM",
-          "unique_check": {
-            "record_count": 5,
-            "non_empty_count": 5,
-            "unique_count": 5,
-            "duplicate_count": 0,
-            "uniqueness_ratio": 1,
-            "has_empty": false,
-            "is_unique": true
-          },
-          "reason": "복합키 FOOD_CD + FOOD_REF_CD 샘플 기준 중복 없음"
-        },
-        {
-          "fields": [
-            "FOOD_CD",
-            "FOOD_CAT2_CD"
-          ],
-          "kor_names": [
-            "FOOD_CD",
-            "FOOD_CAT2_CD"
-          ],
-          "score": 75,
-          "type": "composite",
-          "key_size": 2,
-          "confidence": "MEDIUM",
-          "unique_check": {
-            "record_count": 5,
-            "non_empty_count": 5,
-            "unique_count": 5,
-            "duplicate_count": 0,
-            "uniqueness_ratio": 1,
-            "has_empty": false,
-            "is_unique": true
-          },
-          "reason": "복합키 FOOD_CD + FOOD_CAT2_CD 샘플 기준 중복 없음"
-        },
-        {
-          "fields": [
-            "FOOD_CD",
-            "FOOD_CAT3_CD"
-          ],
-          "kor_names": [
-            "FOOD_CD",
-            "FOOD_CAT3_CD"
-          ],
-          "score": 75,
-          "type": "composite",
-          "key_size": 2,
-          "confidence": "MEDIUM",
-          "unique_check": {
-            "record_count": 5,
-            "non_empty_count": 5,
-            "unique_count": 5,
-            "duplicate_count": 0,
-            "uniqueness_ratio": 1,
-            "has_empty": false,
-            "is_unique": true
-          },
-          "reason": "복합키 FOOD_CD + FOOD_CAT3_CD 샘플 기준 중복 없음"
         }
       ]
     },

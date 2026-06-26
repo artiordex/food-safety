@@ -139,11 +139,9 @@ async function main() {
     fs.mkdirSync(SAMPLE_DIR, { recursive: true });
   }
 
-  // 전체 응답 중 앞 5건만 샘플 파일로 저장
-  // 데이터 구조 확인 및 테스트 용도로 사용
   fs.writeFileSync(
     path.join(SAMPLE_DIR, '1471000.json'),
-    JSON.stringify(items.slice(0, 5), null, 2),
+    JSON.stringify(items, null, 2),
     'utf-8'
   );
 

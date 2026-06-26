@@ -14,7 +14,7 @@
   - 추정 복합 FK 후보 수: 9
 - 관계 목록 제외 보류 FK 후보 수(값 매칭 0건): 159
 - 제외된 FK 후보 수: 204
-- 생성일시: 2026-06-19T11:31:09.467+09:00
+- 생성일시: 2026-06-23T14:29:36.587+09:00
 
 ## 0. FK 정제 기준
 
@@ -41,7 +41,7 @@
 
 | 서비스번호 | 데이터셋명 | PK 후보 | 논리형 이름 | 신뢰도 | 점수 | SQL PK 적용 여부 | 사유 |
 |---|---|---|---|---|---:|---|---|
-| 1471000 | 식품영양성분 DB정보 | FOOD_CD + FOOD_OR_CD | 식품코드 + 식품출처코드 | MEDIUM | 75 | 적용 | 복합키 FOOD_CD + FOOD_OR_CD 샘플 기준 중복 없음 |
+| 1471000 | 식품영양성분 DB정보 | FOOD_CD | 식품코드 | HIGH | 100 | 적용 | 코드 계열 필드 / 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20) |
 | I2580 | 개별기준규격 | INDV_SPEC_SEQ | 개별기준규격일련번호 | HIGH | 100 | 적용 | 번호/일련번호/식별자 계열 필드 / 한글명이 고유 식별번호 성격 / 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 1000건 전체 unique (신뢰도 100% → +20) |
 | I2610 | 공통기준제외 | CMMN_SPEC_CD + PRDLST_CD + TESTITM_CD | 공통기준규격코드 + 품목코드 + 시험항목코드 | MEDIUM | 73 | 적용 | 복합키 CMMN_SPEC_CD + PRDLST_CD + TESTITM_CD 샘플 기준 중복 없음 |
 | I2590 | 공통기준종류 | CMMN_SPEC_CD | 공통기준규격코드 | HIGH | 100 | 적용 | 코드 계열 필드 / 식품안전나라 공통 관계키 후보 / 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 90건 전체 unique (신뢰도 100% → +20) |
@@ -941,17 +941,17 @@
 
 - 카테고리: 식품영양정보
 - 필드 수: 193
-- 샘플 레코드 수: 5
+- 샘플 레코드 수: 500
 
 #### PK 후보
 
 | 후보 필드 | 논리형 이름 | 유형 | 신뢰도 | 점수 | SQL PK 적용 여부 | 중복검사 | 사유 |
 |---|---|---|---|---:|---|---|---|
-| FOOD_CD + FOOD_OR_CD | 식품코드 + 식품출처코드 | composite | MEDIUM | 75 | 적용 | unique 5/5, duplicate 0 | 복합키 FOOD_CD + FOOD_OR_CD 샘플 기준 중복 없음 |
-| FOOD_CD + FOOD_CAT1_CD | 식품코드 + 식품대분류코드 | composite | MEDIUM | 75 | 적용 | unique 5/5, duplicate 0 | 복합키 FOOD_CD + FOOD_CAT1_CD 샘플 기준 중복 없음 |
-| FOOD_CD + FOOD_REF_CD | 식품코드 + 대표식품코드 | composite | MEDIUM | 75 | 적용 | unique 5/5, duplicate 0 | 복합키 FOOD_CD + FOOD_REF_CD 샘플 기준 중복 없음 |
-| FOOD_CD + FOOD_CAT2_CD | 식품코드 + 식품중분류코드 | composite | MEDIUM | 75 | 적용 | unique 5/5, duplicate 0 | 복합키 FOOD_CD + FOOD_CAT2_CD 샘플 기준 중복 없음 |
-| FOOD_CD + FOOD_CAT3_CD | 식품코드 + 식품소분류코드 | composite | MEDIUM | 75 | 적용 | unique 5/5, duplicate 0 | 복합키 FOOD_CD + FOOD_CAT3_CD 샘플 기준 중복 없음 |
+| FOOD_CD | 식품코드 | single | HIGH | 100 | 적용 | unique 500/500, duplicate 0 | 코드 계열 필드 / 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20) |
+| NUM | NUM | single | MEDIUM | 80 | 적용 | unique 500/500, duplicate 0 | 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20) |
+| FOOD_NM_KR | FOOD_NM_KR | single | MEDIUM | 80 | 적용 | unique 500/500, duplicate 0 | 엔트로피 높음 100% (샘플신뢰도 100% → 기여 +60) / 샘플 500건 전체 unique (신뢰도 100% → +20) |
+| FOOD_CD + FOOD_OR_CD | 식품코드 + 식품출처코드 | composite | MEDIUM | 75 | 적용 | unique 500/500, duplicate 0 | 복합키 FOOD_CD + FOOD_OR_CD 샘플 기준 중복 없음 |
+| FOOD_CD + FOOD_CAT1_CD | 식품코드 + 식품대분류코드 | composite | MEDIUM | 75 | 적용 | unique 500/500, duplicate 0 | 복합키 FOOD_CD + FOOD_CAT1_CD 샘플 기준 중복 없음 |
 
 ### I2580 - 개별기준규격
 
