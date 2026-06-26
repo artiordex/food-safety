@@ -10,6 +10,7 @@
     "report": "chcp 65001 && node crawler/crawler_and_report.js",
     "db:import": "node db/import_to_sqlite.js",
     "db:analyze": "node db/analyze_pk_fk.js",
+    "db:validate-quality": "node db/dataQualityValidator.js",
     "db:check-joins": "node db/check_joins.js",
     "db:generate-sql": "node db/generate_json_sql.js"
   },
@@ -20,6 +21,7 @@
     "arquero": "^8.0.3",
     "better-sqlite3": "^12.11.1",
     "cors": "^2.8.6",
+    "dayjs": "^1.11.21",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
